@@ -1,0 +1,165 @@
+version: "3.9"
+
+services:
+
+  # ──────────────────────────────────────────────
+  # POSTGRESQL — one instance, two databases
+  # ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: duneinsolite-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: duneinsolite
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-keycloak-db.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql
+    ports:
+      - "5434:5432"   # host 5433 is taken by a native Postgres 17 Windows service on this machine
+    networks:
+      - duneinsolite-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────
+  # KEYCLOAK
+  # ──────────────────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: duneinsolite-keycloak
+    restart: unless-stopped
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8180
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HTTP_PORT: 8180
+    ports:
+      - "8180:8180"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - duneinsolite-network
+
+  # ──────────────────────────────────────────────
+  # RABBITMQ
+  # ──────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: duneinsolite-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: duneinsolite
+      RABBITMQ_DEFAULT_PASS: duneinsolite123
+    ports:
+      - "5672:5672"       # AMQP port — Spring Boot connects here
+      - "15672:15672"     # Management UI — browser dashboard
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - duneinsolite-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────
+  # BACKEND — Spring Boot API
+  # ──────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+    container_name: duneinsolite-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duneinsolite
+      SPRING_RABBITMQ_HOST: rabbitmq
+      KEYCLOAK_SERVER_URL: http://keycloak:8180
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - duneinsolite-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
+      retries: 5
+
+  # ──────────────────────────────────────────────
+  # FRONTEND — 3 Angular SPAs (static nginx serving)
+  # ──────────────────────────────────────────────
+  partner-app:
+    build:
+      context: ../sahara-tourism-monorepo
+      args:
+        APP_NAME: partner-app
+        NG_CONFIGURATION: production
+    container_name: duneinsolite-partner-app
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    networks:
+      - duneinsolite-network
+
+  admin-app:
+    build:
+      context: ../sahara-tourism-monorepo
+      args:
+        APP_NAME: admin-app
+        NG_CONFIGURATION: development   # environment.prod.ts has a dead placeholder apiUrl
+    container_name: duneinsolite-admin-app
+    restart: unless-stopped
+    ports:
+      - "4201:80"
+    networks:
+      - duneinsolite-network
+
+  camping-app:
+    build:
+      context: ../sahara-tourism-monorepo
+      args:
+        APP_NAME: camping-app
+        NG_CONFIGURATION: production
+    container_name: duneinsolite-camping-app
+    restart: unless-stopped
+    ports:
+      - "4202:80"
+    networks:
+      - duneinsolite-network
+
+# ──────────────────────────────────────────────
+# VOLUMES & NETWORKS
+# ──────────────────────────────────────────────
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  duneinsolite-network:
+    driver: bridge
