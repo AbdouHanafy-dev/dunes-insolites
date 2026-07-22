@@ -16,9 +16,9 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-                "http://localhost:4200",  // admin-app
-                "http://localhost:4201",  // camping-app
-                "http://localhost:4202",  // partenaire-app
+                "http://79.143.185.33:4200",  // admin-app
+                "http://79.143.185.33:4201",  // camping-app
+                "http://79.143.185.33:4202",  // partenaire-app
                 "https://www.dunes-insolites.com",
                 "https://dunes-insolites.com"
         ));
