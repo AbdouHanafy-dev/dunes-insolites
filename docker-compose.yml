@@ -90,9 +90,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duneinsolite
       SPRING_RABBITMQ_HOST: rabbitmq
       KEYCLOAK_SERVER_URL: http://keycloak:8180
-      SPRING_MAIL_USERNAME: bacemakkari25@gmail.com
-      SPRING_MAIL_PASSWORD: wfze sgwp oxwl zmeh
-      KEYCLOAK_CLIENT_SECRET: DzXfwEHyTCynUJtKevpCXlz5yVtBBUYK
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
     ports:
       - "8080:8080"
     depends_on:
