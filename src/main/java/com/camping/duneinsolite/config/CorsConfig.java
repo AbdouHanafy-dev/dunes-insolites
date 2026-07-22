@@ -16,11 +16,17 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
-                "http://79.143.185.33:4200",  // admin-app
-                "http://79.143.185.33:4201",  // camping-app
-                "http://79.143.185.33:4202",  // partenaire-app
-                "https://www.dunes-insolites.com",
-                "https://dunes-insolites.com"
+                "http://79.143.185.33:4200",  // partner-app (IP, pre-domain testing)
+                "http://79.143.185.33:4201",  // admin-app (IP, pre-domain testing)
+                "http://79.143.185.33:4202",  // camping-app (IP, pre-domain testing)
+                "http://admin.dunesinsolites.com",
+                "https://admin.dunesinsolites.com",
+                "http://partner.dunesinsolites.com",
+                "https://partner.dunesinsolites.com",
+                "http://camping.dunesinsolites.com",
+                "https://camping.dunesinsolites.com",
+                "https://www.dunesinsolites.com",
+                "https://dunesinsolites.com"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
