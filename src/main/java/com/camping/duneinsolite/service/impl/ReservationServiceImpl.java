@@ -696,22 +696,24 @@ public class ReservationServiceImpl implements ReservationService {
 
             invoiceRepository.save(proforma);
 
-            // ── Email the client: reservation confirmed, minimum 10% due before check-in ──
-            LocalDate paymentDueDate = savedReservation.getCheckInDate() != null
-                    ? savedReservation.getCheckInDate()
-                    : savedReservation.getServiceDate();
-            double minPaymentAmount = r2(totalTtc * 0.10);
+            // ── Email the client: only when the admin actually provided a payment link ──
+            if (savedReservation.getPaymentLink() != null && !savedReservation.getPaymentLink().isBlank()) {
+                LocalDate paymentDueDate = savedReservation.getCheckInDate() != null
+                        ? savedReservation.getCheckInDate()
+                        : savedReservation.getServiceDate();
+                double minPaymentAmount = r2(totalTtc * 0.10);
 
-            emailService.sendReservationConfirmedPaymentEmail(
-                    savedReservation.getUser().getEmail(),
-                    savedReservation.getUser().getName(),
-                    savedReservation.getGroupName(),
-                    totalTtc,
-                    minPaymentAmount,
-                    savedReservation.getCurrency() != null ? savedReservation.getCurrency().name() : "TND",
-                    paymentDueDate,
-                    savedReservation.getPaymentLink()
-            );
+                emailService.sendReservationConfirmedPaymentEmail(
+                        savedReservation.getUser().getEmail(),
+                        savedReservation.getUser().getName(),
+                        savedReservation.getGroupName(),
+                        totalTtc,
+                        minPaymentAmount,
+                        savedReservation.getCurrency() != null ? savedReservation.getCurrency().name() : "TND",
+                        paymentDueDate,
+                        savedReservation.getPaymentLink()
+                );
+            }
         }
 
         if (status == ReservationStatus.COMPLETED) {
