@@ -10,6 +10,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -46,6 +49,177 @@ public class EmailService {
             // Log the error but do NOT crash the user-creation flow
             log.error("❌ Failed to send welcome email to: {} — {}", to, e.getMessage());
         }
+    }
+
+    /**
+     * Sends the reservation-confirmed / payment-due email to the client who owns the
+     * reservation. Fired once, right after the admin confirms and the proforma is
+     * generated. dueDate may be null (no checkInDate/serviceDate) — the deadline line
+     * is skipped in that case rather than showing a garbage date. paymentLink is optional.
+     */
+    @Async
+    public void sendReservationConfirmedPaymentEmail(String to, String name, String groupName,
+                                                       double totalAmount, double minPaymentAmount,
+                                                       String currency, LocalDate dueDate, String paymentLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Réservation confirmée — Acompte requis");
+            helper.setText(
+                    buildPaymentPlainText(name, groupName, totalAmount, minPaymentAmount, currency, dueDate, paymentLink),
+                    false);
+            helper.setText(
+                    buildPaymentHtml(name, groupName, totalAmount, minPaymentAmount, currency, dueDate, paymentLink),
+                    true);
+
+            mailSender.send(message);
+            log.info("✅ Payment-reminder email sent to: {}", to);
+
+        } catch (MessagingException e) {
+            log.error("❌ Failed to send payment-reminder email to: {} — {}", to, e.getMessage());
+        }
+    }
+
+    private String buildPaymentPlainText(String name, String groupName, double totalAmount, double minPaymentAmount,
+                                          String currency, LocalDate dueDate, String paymentLink) {
+        String deadlineLine = dueDate != null
+                ? "avant le " + dueDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : "avant votre date d'arrivée";
+        String linkLine = (paymentLink != null && !paymentLink.isBlank())
+                ? "\nPayer en ligne : " + paymentLink + "\n"
+                : "";
+
+        return """
+            Bonjour %s,
+
+            Votre réservation pour le groupe "%s" a été confirmée.
+
+            Un acompte minimum de 10%% du montant total est requis %s :
+
+              Montant total       : %.2f %s
+              Acompte minimum (10%%) : %.2f %s
+            %s
+            Cordialement,
+            L'équipe Dune Insolite
+            """.formatted(name, groupName, deadlineLine, totalAmount, currency, minPaymentAmount, currency, linkLine);
+    }
+
+    private String buildPaymentHtml(String name, String groupName, double totalAmount, double minPaymentAmount,
+                                     String currency, LocalDate dueDate, String paymentLink) {
+        String deadlineText = dueDate != null
+                ? "avant le <strong>" + dueDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "</strong>"
+                : "avant votre date d'arrivée";
+
+        String linkButton = (paymentLink != null && !paymentLink.isBlank())
+                ? """
+                  <table width="100%%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td align="center">
+                        <a href="%s"
+                           style="display:inline-block;background:linear-gradient(135deg,#c8963e,#a07030);
+                                  color:#ffffff;font-size:15px;font-weight:600;
+                                  text-decoration:none;padding:14px 36px;
+                                  border-radius:8px;letter-spacing:0.3px;">
+                          Payer maintenant →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                  """.formatted(paymentLink)
+                : "";
+
+        return """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0"
+                           style="background:#ffffff;border-radius:12px;overflow:hidden;
+                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+                      <!-- Header -->
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
+                                   padding:36px 40px;text-align:center;">
+                          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;
+                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
+                          <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                            Réservation confirmée
+                          </p>
+                        </td>
+                      </tr>
+
+                      <!-- Body -->
+                      <tr>
+                        <td style="padding:40px 40px 24px;">
+                          <p style="margin:0 0 16px;font-size:16px;color:#374151;">
+                            Bonjour <strong>%s</strong>,
+                          </p>
+                          <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Votre réservation pour le groupe <strong>%s</strong> a été confirmée.
+                            Un acompte minimum de <strong>10%%</strong> du montant total est requis %s.
+                          </p>
+
+                          <!-- Amount box -->
+                          <table width="100%%" cellpadding="0" cellspacing="0"
+                                 style="background:#fef9f0;border:1px solid #f0d9a8;
+                                        border-radius:8px;margin-bottom:24px;">
+                            <tr>
+                              <td style="padding:24px 28px;">
+                                <table cellpadding="6" cellspacing="0">
+                                  <tr>
+                                    <td style="font-size:13px;color:#9ca3af;font-weight:600;
+                                               text-transform:uppercase;letter-spacing:0.5px;
+                                               padding-right:16px;">Montant total</td>
+                                    <td style="font-size:15px;color:#111827;font-weight:500;">%.2f %s</td>
+                                  </tr>
+                                  <tr>
+                                    <td style="font-size:13px;color:#9ca3af;font-weight:600;
+                                               text-transform:uppercase;letter-spacing:0.5px;
+                                               padding-right:16px;">Acompte minimum (10%%)</td>
+                                    <td>
+                                      <code style="font-size:15px;color:#c8963e;font-weight:700;
+                                                   background:#fff8ed;border:1px solid #f0d9a8;
+                                                   padding:3px 10px;border-radius:4px;
+                                                   letter-spacing:1px;">%.2f %s</code>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+
+                          %s
+                        </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
+                                   text-align:center;">
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                            Cet email a été envoyé automatiquement — merci de ne pas y répondre.<br>
+                            © 2025 Dune Insolite. Tous droits réservés.
+                          </p>
+                        </td>
+                      </tr>
+
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(name, groupName, deadlineText, totalAmount, currency, minPaymentAmount, currency, linkButton);
     }
 
     // ── Plain-text fallback ───────────────────────────────────────

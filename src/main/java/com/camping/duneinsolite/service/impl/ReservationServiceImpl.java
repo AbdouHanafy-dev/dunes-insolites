@@ -70,6 +70,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final DocumentSequenceRepository  documentSequenceRepository;
     private final ReservationCapacityValidator reservationCapacityValidator;
     private final CurrencyConfig              currencyConfig;
+    private final EmailService                emailService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -542,7 +543,8 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ReservationResponse updateReservationStatus(UUID reservationId, ReservationStatus status,
-                                                       String rejectionReason, CompanyType companyType) {
+                                                       String rejectionReason, CompanyType companyType,
+                                                       String paymentLink) {
         Reservation reservation = findById(reservationId);
 
         ReservationStatus current = reservation.getStatus();
@@ -584,6 +586,9 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setStatus(status);
         if (status == ReservationStatus.REJECTED) {
             reservation.setRejectionReason(rejectionReason);
+        }
+        if (status == ReservationStatus.CONFIRMED && paymentLink != null && !paymentLink.isBlank()) {
+            reservation.setPaymentLink(paymentLink);
         }
         if (status == ReservationStatus.COMPLETED) {
             reservation.setCompletedAt(LocalDateTime.now());
@@ -690,6 +695,23 @@ public class ReservationServiceImpl implements ReservationService {
             proforma.setTotalAmount(totalTtc);
 
             invoiceRepository.save(proforma);
+
+            // ── Email the client: reservation confirmed, minimum 10% due before check-in ──
+            LocalDate paymentDueDate = savedReservation.getCheckInDate() != null
+                    ? savedReservation.getCheckInDate()
+                    : savedReservation.getServiceDate();
+            double minPaymentAmount = r2(totalTtc * 0.10);
+
+            emailService.sendReservationConfirmedPaymentEmail(
+                    savedReservation.getUser().getEmail(),
+                    savedReservation.getUser().getName(),
+                    savedReservation.getGroupName(),
+                    totalTtc,
+                    minPaymentAmount,
+                    savedReservation.getCurrency() != null ? savedReservation.getCurrency().name() : "TND",
+                    paymentDueDate,
+                    savedReservation.getPaymentLink()
+            );
         }
 
         if (status == ReservationStatus.COMPLETED) {

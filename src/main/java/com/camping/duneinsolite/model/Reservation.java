@@ -94,6 +94,11 @@ public class Reservation {
     @Column(name = "demande_special", columnDefinition = "TEXT")
     private String demandeSpecial;
 
+    // Optional payment link (e.g. Konnect/Flouci checkout URL) set by the admin at
+    // confirmation time. Sent to the client in the payment-reminder email.
+    @Column(name = "payment_link")
+    private String paymentLink;
+
     // ── HEBERGEMENT — TourTypes ───────────────────────────────────
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

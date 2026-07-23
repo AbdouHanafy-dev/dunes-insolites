@@ -97,8 +97,9 @@ public class ReservationController {
             @PathVariable UUID reservationId,
             @RequestParam ReservationStatus status,
             @RequestParam(required = false) String rejectionReason,
-            @RequestParam(required = false) CompanyType companyType) {
-        return ResponseEntity.ok(reservationService.updateReservationStatus(reservationId, status, rejectionReason, companyType));
+            @RequestParam(required = false) CompanyType companyType,
+            @RequestParam(required = false) String link) {
+        return ResponseEntity.ok(reservationService.updateReservationStatus(reservationId, status, rejectionReason, companyType, link));
     }
 
     @PutMapping("/{reservationId}")

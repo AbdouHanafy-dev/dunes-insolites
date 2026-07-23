@@ -21,7 +21,7 @@ public interface ReservationService {
     List<ReservationResponse> getReservationsByUser(UUID userId);
     List<ReservationResponse> getNonCompletedReservationsByUser(UUID userId);
     Page<ReservationResponse> getReservationsByStatus(ReservationStatus status, Pageable pageable);
-    ReservationResponse updateReservationStatus(UUID reservationId, ReservationStatus status, String rejectionReason, CompanyType companyType);
+    ReservationResponse updateReservationStatus(UUID reservationId, ReservationStatus status, String rejectionReason, CompanyType companyType, String paymentLink);
     ReservationResponse updateReservation(UUID reservationId, ReservationUpdateRequest request);
     void deleteReservation(UUID reservationId);
     List<ReservationResponse> getMyReservations(UUID userId);
