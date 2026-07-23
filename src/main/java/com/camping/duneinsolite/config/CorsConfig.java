@@ -26,7 +26,9 @@ public class CorsConfig {
                 "http://camping.dunesinsolites.com",
                 "https://camping.dunesinsolites.com",
                 "https://www.dunesinsolites.com",
-                "https://dunesinsolites.com"
+                "https://dunesinsolites.com",
+                "https://www.dunes-insolites.com",  // separate, already-deployed platform
+                "https://dunes-insolites.com"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
