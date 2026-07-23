@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, UUID>, JpaSpecificationExecutor<Reservation> {
-    List<Reservation> findByUserUserId(UUID userId);
+    List<Reservation> findByUserUserIdOrderByCreatedAtDesc(UUID userId);
     List<Reservation> findByUserUserIdAndStatusIn(UUID userId, List<ReservationStatus> statuses);
     List<Reservation> findByStatus(ReservationStatus status);
     List<Reservation> findByUserOrderByCreatedAtDesc(User user);

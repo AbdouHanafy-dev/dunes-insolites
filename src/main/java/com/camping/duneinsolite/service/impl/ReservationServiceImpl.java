@@ -491,7 +491,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     @Transactional(readOnly = true)
     public List<ReservationResponse> getReservationsByUser(UUID userId) {
-        return reservationRepository.findByUserUserId(userId).stream()
+        return reservationRepository.findByUserUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(this::toEnrichedResponse).toList();
     }
 
