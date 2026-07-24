@@ -31,6 +31,7 @@ public class ReservationResponse {
     private Double exchangeRateApplied;
     private String promoCode;
     private String demandeSpecial;
+    private String paymentLink;
     private List<ReservationTourTypeResponse> tourTypes;
     private List<ReservationTourResponse> tours;
     private List<ParticipantResponse> participants;
