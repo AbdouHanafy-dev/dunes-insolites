@@ -1499,6 +1499,15 @@ public class ReservationServiceImpl implements ReservationService {
                 .map(transactionMapper::toResponse)
                 .toList();
         response.setTransactions(txHistory);
+
+        List<Invoice> factures = invoiceRepository.findByInvoiceTypeAndReservationReservationId(
+                InvoiceType.STANDARD, reservation.getReservationId());
+        boolean hasFacture = !factures.isEmpty();
+        response.setHasFacture(hasFacture);
+        if (hasFacture) {
+            response.setFactureDate(factures.get(0).getInvoiceDate());
+        }
+
         return response;
     }
 
