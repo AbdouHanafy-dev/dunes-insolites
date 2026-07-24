@@ -12,6 +12,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
@@ -69,10 +71,31 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
+                        .bearerTokenResolver(bearerTokenResolver())
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
 
         return http.build();
+    }
+
+    /**
+     * The native browser EventSource API cannot set custom headers, so it has no way
+     * to send "Authorization: Bearer ...". This resolver falls back to an
+     * "?access_token=..." query parameter, but only for the SSE subscribe endpoint -
+     * everywhere else still requires the header, since putting tokens in URLs is bad
+     * practice in general (they end up in logs/history) and this is a narrow,
+     * RFC 6750-documented exception for exactly this SSE limitation.
+     */
+    @Bean
+    public BearerTokenResolver bearerTokenResolver() {
+        DefaultBearerTokenResolver headerResolver = new DefaultBearerTokenResolver();
+        return request -> {
+            String token = headerResolver.resolve(request);
+            if (token == null && request.getRequestURI().endsWith("/api/notifications/subscribe")) {
+                token = request.getParameter("access_token");
+            }
+            return token;
+        };
     }
 
 
