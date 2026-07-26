@@ -11,7 +11,7 @@ import com.camping.duneinsolite.repository.SourceRepository;
 import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import com.camping.duneinsolite.repository.UserRepository;
-import com.camping.duneinsolite.service.impl.KeycloakUserSyncService;
+import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
