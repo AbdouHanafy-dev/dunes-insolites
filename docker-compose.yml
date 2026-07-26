@@ -137,7 +137,7 @@ services:
       context: ../routeinsolite
       args:
         APP_NAME: admin-app
-        NG_CONFIGURATION: development   # environment.prod.ts has a dead placeholder apiUrl
+        NG_CONFIGURATION: production
     container_name: duneinsolite-admin-app
     restart: unless-stopped
     ports:
