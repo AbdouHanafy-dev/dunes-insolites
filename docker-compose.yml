@@ -17,7 +17,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-keycloak-db.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql
     ports:
-      - "5434:5432"   # host 5433 is taken by a native Postgres 17 Windows service on this machine
+      - "127.0.0.1:5434:5432"   # host-only - only backend/keycloak need this, over the internal docker network
     networks:
       - duneinsolite-network
     healthcheck:
@@ -48,7 +48,7 @@ services:
       KC_HTTP_ENABLED: true
       KC_HTTP_PORT: 8180
     ports:
-      - "8180:8180"
+      - "127.0.0.1:8180:8180"   # host-only - reached via nginx (auth.dunesinsolites.com)
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,8 +66,8 @@ services:
       RABBITMQ_DEFAULT_USER: duneinsolite
       RABBITMQ_DEFAULT_PASS: duneinsolite123
     ports:
-      - "5672:5672"       # AMQP port — Spring Boot connects here
-      - "15672:15672"     # Management UI — browser dashboard
+      - "127.0.0.1:5672:5672"     # AMQP - host-only, only backend needs this over the internal docker network
+      - "127.0.0.1:15672:15672"   # Management UI - host-only, reached via nginx (mq.dunesinsolites.com)
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -94,8 +94,12 @@ services:
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_CAMPING_EMAIL: ${SEED_CAMPING_EMAIL}
+      SEED_CAMPING_PASSWORD: ${SEED_CAMPING_PASSWORD}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"   # host-only - reached via nginx (api.dunesinsolites.com)
     depends_on:
       postgres:
         condition: service_healthy
@@ -124,7 +128,7 @@ services:
     container_name: duneinsolite-partner-app
     restart: unless-stopped
     ports:
-      - "4200:80"
+      - "127.0.0.1:4200:80"   # host-only - reached via nginx (partner.dunesinsolites.com)
     networks:
       - duneinsolite-network
 
@@ -137,7 +141,7 @@ services:
     container_name: duneinsolite-admin-app
     restart: unless-stopped
     ports:
-      - "4201:80"
+      - "127.0.0.1:4201:80"   # host-only - reached via nginx (admin.dunesinsolites.com)
     networks:
       - duneinsolite-network
 
@@ -150,7 +154,7 @@ services:
     container_name: duneinsolite-camping-app
     restart: unless-stopped
     ports:
-      - "4202:80"
+      - "127.0.0.1:4202:80"   # host-only - reached via nginx (camping.dunesinsolites.com)
     networks:
       - duneinsolite-network
 

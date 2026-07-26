@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://79.143.185.33:5433/duneinsolite}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -41,7 +41,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: ${SPRING_MAIL_USERNAME:bacemakkari25@gmail.com}
-    password: ${SPRING_MAIL_PASSWORD:wfze sgwp oxwl zmeh}
+    password: ${SPRING_MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -50,6 +50,14 @@ spring:
             enable: true
             required: true
         debug: false                      # set to true temporarily if emails aren't sending
+
+seed:
+  admin:
+    email: ${SEED_ADMIN_EMAIL:}
+    password: ${SEED_ADMIN_PASSWORD:}
+  camping:
+    email: ${SEED_CAMPING_EMAIL:}
+    password: ${SEED_CAMPING_PASSWORD:}
 
 keycloak:
   admin:
