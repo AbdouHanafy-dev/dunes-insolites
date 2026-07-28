@@ -37,6 +37,7 @@ public class ReservationResponse {
     private List<ParticipantResponse> participants;
     private List<ReservationExtraResponse> extras;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
     // ── Payment — computed from transactions, never stored in DB ──

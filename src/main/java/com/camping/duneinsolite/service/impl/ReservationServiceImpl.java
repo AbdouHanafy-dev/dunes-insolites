@@ -1032,7 +1032,23 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public void deleteReservation(UUID reservationId) {
-        reservationRepository.delete(findById(reservationId));
+        Reservation reservation = findById(reservationId);
+
+        // Soft-delete: the reservation row itself is kept (deletedAt set) so
+        // invoices/transactions keep a valid FK and stay in the accounting
+        // trail. Every detail row that belongs exclusively to this booking is
+        // hard-deleted via orphanRemoval. Repartitions are cleared first since
+        // they hold FKs into tourTypes/tours' hebergements.
+        reservation.getRepartitions().clear();
+        reservation.getTourTypes().clear();
+        reservation.getTours().clear();
+        reservation.getParticipants().clear();
+        reservation.getExtras().clear();
+        reservation.getGuides().clear();
+        reservation.getChauffeurs().clear();
+
+        reservation.setDeletedAt(LocalDateTime.now());
+        reservationRepository.save(reservation);
     }
 
     // ─────────────────────────────────────────────────────────────

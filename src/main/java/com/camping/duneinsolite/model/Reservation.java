@@ -5,6 +5,7 @@ import com.camping.duneinsolite.model.enums.ReservationStatus;
 import com.camping.duneinsolite.model.enums.ReservationType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
@@ -13,8 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+// Soft-deleted rows (deletedAt set) are excluded from every query on this
+// entity — finders, JPQL, Specifications — so a deleted reservation can never
+// leak back into a list or a capacity check.
 @Entity
 @Table(name = "reservations")
+@SQLRestriction("deleted_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Reservation {
 
@@ -147,6 +152,12 @@ public class Reservation {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // Null until the reservation is edited/changed; set automatically on every update.
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    // Null unless soft-deleted. Set by ReservationServiceImpl#deleteReservation instead
+    // of a hard DELETE, so financial documents (invoices/transactions) keep a valid FK.
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -157,6 +168,11 @@ public class Reservation {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     // ── Helper methods ────────────────────────────────────────────
