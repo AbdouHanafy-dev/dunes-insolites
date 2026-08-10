@@ -571,15 +571,20 @@ public class ReservationServiceImpl implements ReservationService {
                 throw new AccessDeniedException("You are not authorized to set this status. Only cancellation is allowed.");
             }
 
-            LocalDateTime cancellationDeadline = reservation.getCheckInDate()
-                    .atStartOfDay()
-                    .minusHours(48);
+            // checkInDate is only populated for HEBERGEMENT; TOURS/EXTRAS use serviceDate instead
+            LocalDate relevantDate = reservation.getCheckInDate() != null
+                    ? reservation.getCheckInDate()
+                    : reservation.getServiceDate();
 
-            if (LocalDateTime.now().isAfter(cancellationDeadline)) {
-                throw new ReservationStatusException(
-                        "Cancellation is no longer possible. Reservations must be cancelled " +
-                                "at least 48 hours before the check-in date (" + reservation.getCheckInDate() + ")."
-                );
+            if (relevantDate != null) {
+                LocalDateTime cancellationDeadline = relevantDate.atStartOfDay().minusHours(48);
+
+                if (LocalDateTime.now().isAfter(cancellationDeadline)) {
+                    throw new ReservationStatusException(
+                            "Cancellation is no longer possible. Reservations must be cancelled " +
+                                    "at least 48 hours before the service date (" + relevantDate + ")."
+                    );
+                }
             }
         }
 
