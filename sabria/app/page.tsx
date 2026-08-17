@@ -6,13 +6,14 @@ import GalleryStrip from "@/components/GalleryStrip";
 import Reviews from "@/components/Reviews";
 import BookDirect from "@/components/BookDirect";
 import CTA from "@/components/CTA";
-import { getStats } from "@/lib/api";
+import { getActivities, getStats } from "@/lib/api";
 import { site } from "@/lib/site";
 
 export default async function Home() {
   // The hero's bottom-left figures are the site's existing stats — the same
-  // source the experience band reads from.
-  const stats = await getStats();
+  // source the experience band reads from. The hero's experience preview
+  // reads the same activity list as the header's Experiences menu.
+  const [stats, activities] = await Promise.all([getStats(), getActivities()]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -39,7 +40,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Hero stats={stats} />
+      <Hero stats={stats} activities={activities} />
       <Activities />
       <Steps />
       <Experience />

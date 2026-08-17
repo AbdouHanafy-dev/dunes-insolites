@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
@@ -10,8 +9,29 @@ import {
   useScroll,
   useSpring,
 } from "framer-motion";
+import HeroExperienceCard from "@/components/HeroExperienceCard";
 import { site } from "@/lib/site";
-import type { Stats } from "@/lib/types";
+import type { Activity, Stats } from "@/lib/types";
+
+/** Shared so the real button and its two inert spacer copies stay pixel-identical. */
+function ExploreLabel() {
+  return (
+    <>
+      Explore experiences
+      <span className="cta-arrow" aria-hidden="true">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M4 12h15.5M13 5.5 20 12l-7 6.5"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+    </>
+  );
+}
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 /** smoothstep — the exact easing every cue point in the handoff is written against. */
@@ -20,7 +40,13 @@ const ss = (e0: number, e1: number, v: number) => {
   return x * x * (3 - 2 * x);
 };
 
-export default function Hero({ stats }: { stats: Stats }) {
+export default function Hero({
+  stats,
+  activities,
+}: {
+  stats: Stats;
+  activities: Activity[];
+}) {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
@@ -114,6 +140,8 @@ export default function Hero({ stats }: { stats: Stats }) {
   };
 
   const eyebrow = `${site.name} · ${site.brandLine}`;
+  // "8 yrs" → "8+" reads better paired with its own two-line label below.
+  const years = stats.yearsRunning.match(/\d+/)?.[0] ?? stats.yearsRunning;
 
   return (
     <section className="scroll" id="scroll" ref={sectionRef} onPointerMove={onPointerMove}>
@@ -149,7 +177,9 @@ export default function Hero({ stats }: { stats: Stats }) {
           <span className="wordmark">{site.hero}</span>
           <p className="hero-sub">{site.tagline}</p>
           <div className="hero-ctas">
-            <span className="cta-primary">Explore experiences →</span>
+            <span className="cta-primary">
+              <ExploreLabel />
+            </span>
             <span className="cta-ghost">Discover Sabria</span>
           </div>
         </div>
@@ -175,15 +205,18 @@ export default function Hero({ stats }: { stats: Stats }) {
           <span className="wordmark">{site.hero}</span>
           <p className="hero-sub">{site.tagline}</p>
           <div className="hero-ctas">
-            <span className="cta-primary">Explore experiences →</span>
+            <span className="cta-primary">
+              <ExploreLabel />
+            </span>
             <span className="cta-ghost">Discover Sabria</span>
           </div>
         </div>
 
-        {/* 7–8 — grade and vignette sit over everything photographic */}
+        {/* 7–8 — grade, vignette and grain sit over everything photographic */}
         <div className="layer grade" />
         <div className="layer flare" />
         <div className="layer vignette" />
+        <div className="layer grain" />
 
         {/* 7 — activity labels, which rise once the scene is through */}
         <div className="layer labels">
@@ -214,7 +247,7 @@ export default function Hero({ stats }: { stats: Stats }) {
           <p className="hero-sub">{site.tagline}</p>
           <div className="hero-ctas">
             <Link href="/activities" className="cta-primary">
-              Explore experiences →
+              <ExploreLabel />
             </Link>
             <Link href="/about" className="cta-ghost">
               Discover Sabria
@@ -228,38 +261,26 @@ export default function Hero({ stats }: { stats: Stats }) {
             <dt className="v">{stats.guestsGuided}</dt>
             <dd className="k">Guests guided</dd>
           </div>
+          <div className="rule" aria-hidden="true" />
           <div className="s">
             <dt className="v">{stats.avgRating}</dt>
             <dd className="k">Average rating</dd>
           </div>
+          <div className="rule" aria-hidden="true" />
           <div className="s">
-            <dt className="v">{stats.yearsRunning}</dt>
-            <dd className="k">On the dunes</dd>
+            <dt className="v">{years}+ Years</dt>
+            <dd className="k">Of experience</dd>
           </div>
         </dl>
 
-        {/* 10 — destination preview, bottom right */}
-        <Link href="/activities" className="hero-card">
-          <span className="shot">
-            <Image
-              src="/images/hero-combined.jpg"
-              alt=""
-              fill
-              sizes="220px"
-              style={{ objectFit: "cover" }}
-            />
-          </span>
-          <span className="meta">
-            <span className="t">{site.hero}</span>
-            <span className="sub">{site.brandLine}</span>
-          </span>
-          <span className="go">Explore →</span>
-        </Link>
+        {/* 10 — experience preview, upper-right. Kept well clear of the
+            WhatsApp float, which owns the lower-right corner on its own. */}
+        <HeroExperienceCard activities={activities} />
 
         <div className="boot" />
 
         <div className="cue">
-          <span>Scroll</span>
+          <span className="cue-label">Scroll</span>
           <span className="dot" />
         </div>
       </div>
