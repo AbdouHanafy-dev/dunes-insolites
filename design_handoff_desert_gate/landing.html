@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sabria — Desert Adventures</title>
+  <meta name="description" content="Camel treks, quad safaris, and sandboarding across the Sahara at sunset. Book your Sabria desert adventure." />
+  <link rel="icon" href="data:," />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&display=swap');
+    :root {
+      --paper: #fdf1e1; --sand: #f3e7d3; --ink: #2a1510; --maroon: #2a1008;
+      --accent: #c8642f; --muted: rgba(42,21,16,.66);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--maroon); overflow-x: hidden; }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    .serif { font-family: "Alexandria", sans-serif; font-weight: 500; }
+
+    /* ---------- fixed header ---------- */
+    .site-header {
+      position: fixed; z-index: 40; top: 20px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 44px); max-width: 1180px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 7px 7px 24px; border-radius: 18px; color: var(--paper);
+      background: rgba(20,26,36,.42); border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
+      box-shadow: 0 16px 44px rgba(8,12,20,.34);
+      transition: background .4s ease, box-shadow .4s ease, border-color .4s ease, max-width .4s ease;
+    }
+    .site-header.scrolled {
+      max-width: 1040px;
+      background: rgba(14,18,26,.72); border-color: rgba(255,255,255,.10);
+      box-shadow: 0 18px 50px rgba(8,12,20,.44);
+    }
+    .site-header .brand { display: flex; flex-direction: column; gap: 3px; line-height: 1; }
+    .site-header .brand .bn { font-family: "Alexandria", sans-serif; font-size: 14px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+    .site-header .brand .bl { font-size: 9.5px; font-weight: 500; letter-spacing: .32em; text-transform: uppercase; opacity: .62; }
+    .nav { display: flex; gap: 32px; align-items: center; }
+    .nav a { font-size: 12.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; opacity: .78; transition: opacity .2s, color .2s; }
+    .nav a:hover { opacity: 1; color: #f0a558; }
+    .header-cta {
+      font-family: "Alexandria", sans-serif; font-size: 11.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; cursor: pointer;
+      padding: 13px 26px; border-radius: 10px; border: 0; background: var(--accent); color: var(--paper);
+      box-shadow: 0 8px 22px rgba(200,100,47,.42), inset 0 1px 0 rgba(255,255,255,.22); transition: transform .2s, box-shadow .2s, background .2s;
+    }
+    .header-cta:hover { transform: translateY(-1px); background: #d5702f; box-shadow: 0 12px 30px rgba(200,100,47,.6), inset 0 1px 0 rgba(255,255,255,.28); }
+    .burger { display: none; }
+
+    /* ---------- cinematic scroll hero ---------- */
+    .scroll { position: relative; height: calc(100vh + 3000px); }
+    .stage { position: sticky; top: 0; height: 100vh; min-height: 600px; overflow: hidden; isolation: isolate; background: #14101a; perspective: 1400px; }
+    .layer { position: absolute; inset: 0; will-change: transform, opacity; }
+    .cover { width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; user-select: none; }
+    .scene { z-index: 1; transform: scale(var(--scene-scale,1.25)) translate(var(--scene-x,0px), var(--scene-y,0px)); opacity: var(--scene-opacity,0); }
+    .gate { z-index: 2; transform-origin: 50% 53%; transform: scale(var(--gate-scale,1)) translate(var(--gate-x,0px), var(--gate-y,0px)); opacity: var(--gate-opacity,1); }
+    /* cinematic color grade over the photograph */
+    .grade { z-index: 3; pointer-events: none; opacity: var(--grade-opacity,1); background:
+      radial-gradient(88% 66% at 50% 50%, rgba(10,12,20,.32) 0%, rgba(10,12,20,0) 62%),
+      radial-gradient(130% 100% at 50% 38%, rgba(255,196,132,.10) 0%, rgba(255,196,132,0) 52%),
+      linear-gradient(180deg, rgba(12,16,26,.34) 0%, rgba(12,16,26,0) 26%, rgba(20,10,6,0) 58%, rgba(18,9,5,.5) 100%); }
+    /* giant editorial SAHARA behind the composition */
+    .sahara { z-index: 4; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden;
+      opacity: var(--sahara-opacity,.07); transform: translateY(var(--sahara-y,0px)); }
+    .sahara .word { font-family: "Fraunces", serif; font-weight: 300; font-size: clamp(360px, 46vw, 1000px); line-height: .74;
+      letter-spacing: .06em; color: #f6ead2; white-space: nowrap; text-shadow: none; margin-top: -3vh; }
+    .flare { z-index: 5; pointer-events: none; opacity: var(--flare,0); background: radial-gradient(circle at 50% 50%, rgba(255,238,205,.95) 0%, rgba(255,205,140,.5) 26%, rgba(255,180,110,0) 58%); }
+    .vignette { z-index: 6; pointer-events: none; box-shadow: inset 0 0 260px 70px rgba(16,9,6,.6); }
+    .labels { z-index: 7; pointer-events: none; }
+    .label { position: absolute; text-align: center; transform: translate(-50%, var(--lift,18px)); opacity: var(--labels,0); }
+    .label .line { width: 1px; height: 34px; margin: 0 auto 10px; background: rgba(253,241,225,.75); }
+    .label .kicker { font-size: 11px; letter-spacing: .34em; text-transform: uppercase; font-weight: 700; color: rgba(253,241,225,.7); margin-bottom: 4px; }
+    .label .name { font-family: "Alexandria", sans-serif; font-weight: 500; font-size: 30px; line-height: 1; color: #fdf1e1; text-shadow: 0 6px 26px rgba(20,10,8,.7); }
+    .l-camel { left: 22%; top: 40%; }
+    .l-quad  { left: 19%; top: 82%; }
+    .l-board { left: 76%; top: 72%; }
+    .intro { z-index: 8; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 24px; transform: translateY(var(--intro-y,0px)); opacity: var(--intro-opacity,1); pointer-events: none; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: .46em; text-transform: uppercase; font-weight: 600; color: rgba(253,241,225,.9); text-shadow: 0 2px 16px rgba(0,0,0,.6); margin-bottom: 22px; }
+    .eyebrow::before, .eyebrow::after { content: ""; width: 34px; height: 1px; background: rgba(253,241,225,.5); }
+    .hero-title { font-family: "Alexandria", sans-serif; font-weight: 800; line-height: .84; font-size: clamp(76px, 15vw, 14rem); letter-spacing: .006em; color: #f6ecdc; text-shadow: 0 14px 50px rgba(16,9,6,.45); }
+    .hero-sub { margin-top: 22px; max-width: 500px; font-size: 1.1rem; font-weight: 300; line-height: 1.4; letter-spacing: .02em; color: rgba(253,241,225,.88); text-shadow: 0 2px 18px rgba(0,0,0,.55); }
+    .cue { z-index: 9; position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: rgba(253,241,225,.8); opacity: var(--cue-opacity,1); pointer-events: none; }
+    .cue .dot { width: 20px; height: 32px; border: 1px solid rgba(253,241,225,.6); border-radius: 999px; position: relative; }
+    .cue .dot::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; border-radius: 3px; background: rgba(253,241,225,.85); transform: translateX(-50%); animation: cueMove 1.5s ease-in-out infinite; }
+    @keyframes cueMove { 0%,100% { opacity: .3; transform: translate(-50%,0); } 50% { opacity: 1; transform: translate(-50%,8px); } }
+
+    /* ---------- shared section chrome ---------- */
+    section.block { position: relative; z-index: 10; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
+    .sect-eyebrow { font-size: 12px; letter-spacing: .32em; text-transform: uppercase; font-weight: 700; color: var(--accent); }
+    .sect-title { font-family: "Alexandria", sans-serif; font-weight: 600; line-height: 1; font-size: clamp(38px, 5vw, 76px); margin-top: 16px; }
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ---------- activities ---------- */
+    .activities { background: var(--sand); padding: 128px 0 132px; }
+    .activities .head { max-width: 640px; }
+    .activities .head p { margin-top: 20px; color: var(--muted); font-size: 1.08rem; line-height: 1.55; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 64px; }
+    .card { position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 3/4; box-shadow: 0 24px 60px rgba(42,16,8,.18); cursor: pointer; }
+    .card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.22,1,.36,1); }
+    .card:hover img { transform: scale(1.07); }
+    .card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,4,0) 40%, rgba(20,8,4,.72) 100%); }
+    .card .cap { position: absolute; z-index: 2; left: 26px; right: 26px; bottom: 26px; color: var(--paper); }
+    .card .cap .num { font-size: 12px; letter-spacing: .28em; font-weight: 700; opacity: .8; }
+    .card .cap h3 { font-family: "Alexandria", sans-serif; font-weight: 500; font-size: 30px; line-height: 1; margin: 8px 0 8px; }
+    .card .cap p { font-size: .92rem; line-height: 1.4; opacity: .86; max-width: 92%; }
+
+    /* ---------- how it works ---------- */
+    .steps { background: var(--maroon); color: var(--paper); padding: 128px 0; }
+    .steps .sect-eyebrow { color: #f0a558; }
+    .steps .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 64px; }
+    .step { border-top: 1px solid rgba(253,241,225,.22); padding-top: 26px; }
+    .step .n { font-family: "Alexandria", sans-serif; font-size: 62px; line-height: 1; color: #f0a558; }
+    .step h4 { font-size: 1.32rem; font-weight: 700; margin: 18px 0 12px; }
+    .step p { color: rgba(253,241,225,.72); font-size: 1rem; line-height: 1.55; }
+
+    /* ---------- experience band ---------- */
+    .exp { position: relative; min-height: 84vh; display: flex; align-items: center; overflow: hidden; }
+    .exp .bg { position: absolute; inset: 0; z-index: 0; }
+    .exp .bg img { width: 100%; height: 100%; object-fit: cover; }
+    .exp .bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,8,4,.78) 0%, rgba(20,8,4,.42) 48%, rgba(20,8,4,.12) 100%); }
+    .exp .wrap { position: relative; z-index: 2; color: var(--paper); }
+    .exp h2 { font-family: "Alexandria", sans-serif; font-weight: 500; font-size: clamp(40px, 5.4vw, 84px); line-height: .98; max-width: 15ch; }
+    .exp p { margin-top: 22px; max-width: 460px; font-size: 1.12rem; line-height: 1.55; color: rgba(253,241,225,.86); }
+    .stats { display: flex; gap: 56px; margin-top: 48px; flex-wrap: wrap; }
+    .stat .v { font-family: "Alexandria", sans-serif; font-size: 52px; line-height: 1; }
+    .stat .k { margin-top: 8px; font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(253,241,225,.7); }
+
+    /* ---------- gallery ---------- */
+    .gallery { background: var(--sand); padding: 120px 0 128px; }
+    .gallery .strip { display: grid; grid-template-columns: 1.3fr 1fr 1fr; grid-auto-rows: 240px; gap: 18px; margin-top: 56px; }
+    .gallery .g { border-radius: 18px; overflow: hidden; box-shadow: 0 18px 44px rgba(42,16,8,.14); }
+    .gallery .g img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.22,1,.36,1); }
+    .gallery .g:hover img { transform: scale(1.06); }
+    .gallery .tall { grid-row: span 2; }
+
+    /* ---------- CTA ---------- */
+    .cta { position: relative; overflow: hidden; padding: 140px 0; text-align: center; color: var(--paper); }
+    .cta .bg { position: absolute; inset: 0; z-index: 0; }
+    .cta .bg img { width: 100%; height: 100%; object-fit: cover; }
+    .cta .bg::after { content: ""; position: absolute; inset: 0; background: rgba(20,8,4,.6); }
+    .cta .wrap { position: relative; z-index: 2; }
+    .cta h2 { font-family: "Alexandria", sans-serif; font-weight: 500; font-size: clamp(44px, 6vw, 96px); line-height: .96; }
+    .cta p { margin: 22px auto 0; max-width: 480px; font-size: 1.12rem; color: rgba(253,241,225,.86); }
+    .btn-primary { display: inline-flex; align-items: center; gap: 10px; margin-top: 38px; padding: 18px 40px; border-radius: 999px; background: var(--paper); color: var(--ink); font-weight: 700; letter-spacing: .03em; cursor: pointer; border: 0; font-size: 1rem; transition: transform .2s, box-shadow .2s; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 24px 48px rgba(0,0,0,.45); }
+
+    /* ---------- footer ---------- */
+    footer { background: var(--maroon); color: rgba(253,241,225,.8); padding: 72px 0 40px; }
+    footer .top { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+    footer .brand { font-family: "Alexandria", sans-serif; font-size: 30px; color: var(--paper); }
+    footer .brand + p { margin-top: 12px; max-width: 300px; font-size: .95rem; line-height: 1.5; }
+    footer .cols { display: flex; gap: 64px; flex-wrap: wrap; }
+    footer h5 { color: var(--paper); font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 16px; }
+    footer ul { list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: .95rem; }
+    footer ul a:hover { color: #f0a558; }
+    footer .bar { margin-top: 56px; padding-top: 24px; border-top: 1px solid rgba(253,241,225,.16); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: .82rem; opacity: .7; }
+
+    @media (max-width: 900px) {
+      .cards, .steps .grid { grid-template-columns: 1fr; }
+      .gallery .strip { grid-template-columns: 1fr 1fr; }
+      .gallery .tall { grid-row: span 1; }
+      .nav, .header-cta { display: none; }
+    }
+    @media (max-width: 640px) {
+      .site-header, .site-header.scrolled { padding: 10px 10px 10px 20px; width: calc(100% - 24px); }
+      .wrap { padding: 0 22px; }
+      .label .name { font-size: 20px; }
+      .l-camel { top: 36%; } .l-quad { top: 80%; } .l-board { top: 72%; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .cue .dot::after { animation: none; } .reveal { opacity: 1; transform: none; } }
+
+    /* ---- premium hero refinements ---- */
+    .hero-ctas { display: flex; gap: 16px; margin-top: 36px; pointer-events: auto; flex-wrap: wrap; justify-content: center; }
+    .hero-ctas a { display: inline-flex; align-items: center; gap: 9px; font-family: "Alexandria", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; padding: 15px 30px; border-radius: 9px; transition: transform .25s ease, background .25s ease, border-color .25s ease, box-shadow .25s ease; }
+    .cta-primary { background: var(--accent); color: var(--paper); box-shadow: 0 10px 28px rgba(200,100,47,.4), inset 0 1px 0 rgba(255,255,255,.2); }
+    .cta-primary:hover { background: #d5702f; transform: translateY(-2px); box-shadow: 0 14px 34px rgba(200,100,47,.55); }
+    .cta-ghost { color: rgba(253,241,225,.92); border: 1px solid rgba(253,241,225,.42); }
+    .cta-ghost:hover { background: rgba(253,241,225,.12); border-color: rgba(253,241,225,.75); }
+    .boot { position: absolute; inset: 0; z-index: 20; background: #12100f; pointer-events: none; animation: bootFade 1.3s .1s both ease; }
+    @keyframes bootFade { to { opacity: 0; visibility: hidden; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+    .intro .eyebrow { animation: fadeUp 1s .6s both cubic-bezier(.22,1,.36,1); }
+    .intro .hero-title { animation: fadeUp 1.15s .8s both cubic-bezier(.22,1,.36,1); }
+    .intro .hero-sub { animation: fadeUp 1s 1.08s both cubic-bezier(.22,1,.36,1); }
+    .intro .hero-ctas { animation: fadeUp 1s 1.3s both cubic-bezier(.22,1,.36,1); }
+    @media (max-width: 560px) {
+      .hero-ctas { flex-direction: column; width: 100%; max-width: 300px; margin-top: 30px; }
+      .hero-ctas a { justify-content: center; }
+      .eyebrow { font-size: 9px; gap: 8px; letter-spacing: .34em; }
+      .eyebrow::before, .eyebrow::after { width: 18px; }
+      .hero-sub { font-size: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .boot { display: none; }
+      .intro .eyebrow, .intro .hero-title, .intro .hero-sub, .intro .hero-ctas { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="header">
+    <a class="brand" href="#top"><span class="bn">Dunes Insolites</span><span class="bl">Southern Tunisia</span></a>
+    <nav class="nav">
+      <a href="#activities">Activities</a>
+      <a href="#experience">Experiences</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#steps">How it works</a>
+    </nav>
+    <button class="header-cta">Book a trip</button>
+  </header>
+
+  <span id="top"></span>
+  <section class="scroll" id="scroll" style="height: calc(100vh + 2000px);">
+    <div class="stage">
+      <div class="layer scene"><img class="cover" src="assets/hero-combined.jpg" alt="Camel, quads and sandboarding on one dune" /></div>
+      <div class="layer gate"><img class="cover" src="assets/gate.jpg" alt="Lantern-lit desert gate at sunset" /></div>
+      <div class="layer grade"></div>
+      <div class="layer sahara"><span class="word">SAHARA</span></div>
+      <div class="layer flare"></div>
+      <div class="layer vignette"></div>
+      <div class="layer labels">
+        <div class="label l-camel"><div class="line"></div><div class="kicker">Ride</div><div class="name">Camel</div></div>
+        <div class="label l-quad"><div class="line"></div><div class="kicker">Race</div><div class="name">Quad</div></div>
+        <div class="label l-board"><div class="line"></div><div class="kicker">Glide</div><div class="name">Sandboarding</div></div>
+      </div>
+      <div class="intro">
+        <p class="eyebrow">Dunes Insolites · Southern Tunisia</p>
+        <h1 class="hero-title">SABRIA</h1>
+        <p class="hero-sub">Where the Sahara feels endless.</p>
+        <div class="hero-ctas">
+          <a href="#activities" class="cta-primary">Explore experiences →</a>
+          <a href="#experience" class="cta-ghost">Discover Sabria</a>
+        </div>
+      </div>
+      <div class="boot"></div>
+      <div class="cue"><span>Scroll</span><span class="dot"></span></div>
+    </div>
+  </section>
+
+  <!-- ACTIVITIES -->
+  <section class="block activities" id="activities">
+    <div class="wrap">
+      <div class="head reveal">
+        <p class="sect-eyebrow">Choose your ride</p>
+        <h2 class="sect-title">Three ways<br>to cross the sand.</h2>
+        <p>From the slow sway of a camel at golden hour to the roar of a quad over the dunes — every Sabria trip ends the same way, watching the sun drop behind the Sahara.</p>
+      </div>
+      <div class="cards">
+        <a class="card reveal" href="#">
+          <img src="assets/camel.jpg" alt="Camel trek at sunset" />
+          <div class="cap"><span class="num">01 — RIDE</span><h3>Camel Trek</h3><p>A guided caravan over the dunes to a Bedouin camp for tea and sunset.</p></div>
+        </a>
+        <a class="card reveal" href="#">
+          <img src="assets/quad.jpg" alt="Quad bike safari" />
+          <div class="cap"><span class="num">02 — RACE</span><h3>Quad Safari</h3><p>Open-throttle laps across the sand sea with a lead rider and full kit.</p></div>
+        </a>
+        <a class="card reveal" href="#">
+          <img src="assets/sandboard.jpg" alt="Sandboarding down a dune" />
+          <div class="cap"><span class="num">03 — GLIDE</span><h3>Sandboarding</h3><p>Carve the tallest dunes on a waxed board — beginners to freeriders.</p></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="block steps" id="steps">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="sect-eyebrow">How it works</p>
+        <h2 class="sect-title">From booking<br>to the dunes.</h2>
+      </div>
+      <div class="grid">
+        <div class="step reveal"><div class="n">01</div><h4>Pick your adventure</h4><p>Choose a single activity or bundle camel, quad, and board into one sunset expedition.</p></div>
+        <div class="step reveal"><div class="n">02</div><h4>Book your window</h4><p>Reserve a morning or golden-hour slot. Gear, guides, and transfers are all included.</p></div>
+        <div class="step reveal"><div class="n">03</div><h4>Meet at the gate</h4><p>Arrive at the Sabria gate, meet your guide, and head out across the open Sahara.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="block exp" id="experience">
+    <div class="bg"><img src="assets/hero-combined.jpg" alt="Sabria desert scene" /></div>
+    <div class="wrap reveal">
+      <h2 class="serif">The desert, the way it was meant to be felt.</h2>
+      <p>Small groups, local guides, and no rush. Every Sabria trip is timed so the sand still holds the day's warmth and the sky is on fire.</p>
+      <div class="stats">
+        <div class="stat"><div class="v serif">12k+</div><div class="k">Guests guided</div></div>
+        <div class="stat"><div class="v serif">4.9★</div><div class="k">Average rating</div></div>
+        <div class="stat"><div class="v serif">8 yrs</div><div class="k">On the dunes</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="block gallery" id="gallery">
+    <div class="wrap">
+      <div class="reveal">
+        <p class="sect-eyebrow">From the sand</p>
+        <h2 class="sect-title">Golden hour, every time.</h2>
+      </div>
+      <div class="strip reveal">
+        <div class="g tall"><img src="assets/hero-combined.jpg" alt="Desert adventure scene" /></div>
+        <div class="g"><img src="assets/camel.jpg" alt="Camel at sunset" /></div>
+        <div class="g"><img src="assets/sandboard.jpg" alt="Sandboarding" /></div>
+        <div class="g"><img src="assets/quad.jpg" alt="Quad riders" /></div>
+        <div class="g"><img src="assets/gate.jpg" alt="Desert gate" /></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="block cta">
+    <div class="bg"><img src="assets/gate.jpg" alt="Desert gate at dusk" /></div>
+    <div class="wrap">
+      <h2 class="serif">Ready for the dunes?</h2>
+      <p>Golden-hour slots fill fast. Reserve your Sahara adventure and we'll handle the rest.</p>
+      <button class="btn-primary">Book a trip →</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <div class="brand">Sabria</div>
+          <p>Camel treks, quad safaris, and sandboarding across the Sahara at sunset.</p>
+        </div>
+        <div class="cols">
+          <div><h5>Adventures</h5><ul><li><a href="#">Camel Trek</a></li><li><a href="#">Quad Safari</a></li><li><a href="#">Sandboarding</a></li><li><a href="#">Sunset Camp</a></li></ul></div>
+          <div><h5>Company</h5><ul><li><a href="#">About</a></li><li><a href="#">Guides</a></li><li><a href="#">Safety</a></li><li><a href="#">Contact</a></li></ul></div>
+          <div><h5>Follow</h5><ul><li><a href="#">Instagram</a></li><li><a href="#">Facebook</a></li><li><a href="#">TikTok</a></li></ul></div>
+        </div>
+      </div>
+      <div class="bar"><span>© 2026 Sabria Desert Adventures.</span><span>Sahara · Tunisia</span></div>
+    </div>
+  </footer>
+
+  <script>
+    /* cinematic hero engine */
+    (function () {
+      var section = document.getElementById("scroll");
+      var root = document.documentElement;
+      var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var span = 2000;
+      var target = 0, smooth = 0, tmx = 0, tmy = 0, mx = 0, my = 0, raf = null, init = false;
+      function clamp(v, a, b) { a = a || 0; b = b === undefined ? 1 : b; return Math.min(b, Math.max(a, v)); }
+      function ss(e0, e1, v) { var x = clamp((v - e0) / (e1 - e0)); return x * x * (3 - 2 * x); }
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function dist() { var top = -section.getBoundingClientRect().top; return clamp(top, 0, section.offsetHeight - window.innerHeight); }
+      function frame() {
+        raf = null;
+        target = dist();
+        if (!init || reduce.matches) { smooth = target; init = true; } else smooth = lerp(smooth, target, 0.14);
+        if (Math.abs(smooth - target) < 0.1) smooth = target;
+        mx = lerp(mx, tmx, 0.1); my = lerp(my, tmy, 0.1);
+        var p = clamp(smooth / span), s = root.style;
+        s.setProperty("--gate-scale", (1 + Math.pow(ss(0,0.62,p),1.35) * 7.2).toFixed(4));
+        s.setProperty("--gate-opacity", (1 - ss(0.42,0.6,p)).toFixed(4));
+        s.setProperty("--gate-x", (mx*14).toFixed(2)+"px"); s.setProperty("--gate-y", (my*10).toFixed(2)+"px");
+        var sceneIn = ss(0.4,0.66,p), settle = ss(0.66,1,p);
+        s.setProperty("--scene-opacity", sceneIn.toFixed(4));
+        s.setProperty("--scene-scale", (1.25 - sceneIn*0.25 + settle*0.05).toFixed(4));
+        s.setProperty("--scene-x", (mx*-20).toFixed(2)+"px"); s.setProperty("--scene-y", (my*-12).toFixed(2)+"px");
+        var enter = ss(0.3,0.5,p), exit = ss(0.52,0.72,p);
+        s.setProperty("--flare", "0");
+        var introExit = ss(0.05,0.32,p);
+        s.setProperty("--intro-opacity", (1-introExit).toFixed(4));
+        s.setProperty("--intro-y", (introExit*-120).toFixed(2)+"px");
+        s.setProperty("--cue-opacity", (1 - ss(0.02,0.16,p)).toFixed(4));
+        // giant SAHARA: present at rest, drifts up and fades as we enter the arch
+        s.setProperty("--sahara-opacity", (0.09 * (1 - ss(0.06,0.4,p))).toFixed(4));
+        s.setProperty("--sahara-y", (my*10 + ss(0,0.5,p)*-90).toFixed(2)+"px");
+        s.setProperty("--grade-opacity", (1 - ss(0.5,0.72,p)*0.5).toFixed(4));
+        var labelsIn = ss(0.5,0.66,p);
+        s.setProperty("--labels", labelsIn.toFixed(4));
+        s.setProperty("--lift", (18 - labelsIn*18).toFixed(2)+"px");
+        if (Math.abs(smooth - target) > 0.1 || Math.abs(mx - tmx) > 0.001 || Math.abs(my - tmy) > 0.001) tick();
+      }
+      function tick() { if (!raf) raf = requestAnimationFrame(frame); }
+      window.addEventListener("scroll", tick, { passive: true });
+      window.addEventListener("resize", tick);
+      window.addEventListener("pointermove", function (e) { if (reduce.matches) return; tmx = (e.clientX/window.innerWidth - 0.5)*2; tmy = (e.clientY/window.innerHeight - 0.5)*2; tick(); }, { passive: true });
+      tick();
+    })();
+
+    /* header solid state */
+    (function () {
+      var header = document.getElementById("header");
+      function onScroll() { header.classList.toggle("scrolled", window.scrollY > window.innerHeight * 0.92); }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    })();
+
+    /* reveal on scroll */
+    (function () {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+      }, { threshold: 0.16 });
+      document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+build/
+
+# env files — never commit these
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# editor / OS
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+.qodo/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# deploy
+.vercel
+
+# keys / certs
+*.pem
+*.key
