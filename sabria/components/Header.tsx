@@ -6,9 +6,20 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { nav, site } from "@/lib/site";
-import type { Activity } from "@/lib/types";
+import type { Activity, Stay } from "@/lib/types";
 
-export default function Header({ activities }: { activities: Activity[] }) {
+/** Everything the mega-menu card needs. `Activity.cardImage` and
+ *  `Stay.image` get normalized to `image` when each menu's item list is
+ *  built below, so one render path covers both menus. */
+type MegaMenuItem = { slug: string; title: string; tagline: string; image: string };
+
+export default function Header({
+  activities,
+  stays,
+}: {
+  activities: Activity[];
+  stays: Stay[];
+}) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
 
@@ -88,6 +99,29 @@ export default function Header({ activities }: { activities: Activity[] }) {
 
   const waHref = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}`;
 
+  const megaMenus: Record<
+    "experiences" | "stays",
+    { items: MegaMenuItem[]; hrefPrefix: string; seeAllHref: string; seeAllLabel: string }
+  > = {
+    experiences: {
+      items: activities.map((a) => ({
+        slug: a.slug,
+        title: a.title,
+        tagline: a.tagline,
+        image: a.cardImage,
+      })),
+      hrefPrefix: "/activities",
+      seeAllHref: "/activities",
+      seeAllLabel: "See all experiences →",
+    },
+    stays: {
+      items: stays.map((s) => ({ slug: s.slug, title: s.title, tagline: s.tagline, image: s.image })),
+      hrefPrefix: "/camp",
+      seeAllHref: "/camp",
+      seeAllLabel: "See all stays →",
+    },
+  };
+
   return (
     <>
       <header
@@ -141,8 +175,24 @@ export default function Header({ activities }: { activities: Activity[] }) {
           </Link>
 
           <nav className="nav" ref={menuRef}>
-            {nav.map((item) =>
-              item.menu ? (
+            {nav.map((item) => {
+              // Captured as a local so the "which menu" type stays narrowed
+              // inside the .map() below — TS doesn't carry that narrowing
+              // through a property access into a nested closure.
+              const menuKey = item.menu;
+              if (!menuKey) {
+                return (
+                  <div key={item.href} className="nav-item">
+                    <Link href={item.href} data-active={isActive(item.href)}>
+                      {item.label}
+                    </Link>
+                  </div>
+                );
+              }
+
+              const { items, hrefPrefix, seeAllHref, seeAllLabel } = megaMenus[menuKey];
+
+              return (
                 <div
                   key={item.href}
                   className="nav-item has-menu"
@@ -164,11 +214,11 @@ export default function Header({ activities }: { activities: Activity[] }) {
                   {menu === item.label && (
                     <div className="mega" onMouseEnter={() => hoverOpen(item.label)}>
                       <div className="mega-grid">
-                        {activities.map((a) => (
-                          <Link key={a.slug} href={`/activities/${a.slug}`} className="mega-card">
+                        {items.map((i) => (
+                          <Link key={i.slug} href={`${hrefPrefix}/${i.slug}`} className="mega-card">
                             <span className="thumb">
                               <Image
-                                src={a.cardImage}
+                                src={i.image}
                                 alt=""
                                 fill
                                 sizes="120px"
@@ -176,26 +226,20 @@ export default function Header({ activities }: { activities: Activity[] }) {
                               />
                             </span>
                             <span className="txt">
-                              <span className="t">{a.title}</span>
-                              <span className="d">{a.tagline}</span>
+                              <span className="t">{i.title}</span>
+                              <span className="d">{i.tagline}</span>
                             </span>
                           </Link>
                         ))}
                       </div>
-                      <Link href="/activities" className="mega-all" onClick={() => setMenu(null)}>
-                        See all experiences →
+                      <Link href={seeAllHref} className="mega-all" onClick={() => setMenu(null)}>
+                        {seeAllLabel}
                       </Link>
                     </div>
                   )}
                 </div>
-              ) : (
-                <div key={item.href} className="nav-item">
-                  <Link href={item.href} data-active={isActive(item.href)}>
-                    {item.label}
-                  </Link>
-                </div>
-              ),
-            )}
+              );
+            })}
           </nav>
 
           <Link href="/book" className="header-cta">

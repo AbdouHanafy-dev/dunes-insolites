@@ -121,10 +121,6 @@ export default function Hero({
     // Stats and the destination card clear out as soon as the descent starts.
     s.setProperty("--hud-opacity", (1 - ss(0.01, 0.18, v)).toFixed(4));
     s.setProperty("--grade-opacity", (1 - ss(0.5, 0.72, v) * 0.5).toFixed(4));
-
-    const labelsIn = ss(0.44, 0.62, v);
-    s.setProperty("--labels", labelsIn.toFixed(4));
-    s.setProperty("--lift", `${(18 - labelsIn * 18).toFixed(2)}px`);
   };
 
   useMotionValueEvent(p, "change", paint);
@@ -153,8 +149,8 @@ export default function Hero({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="cover"
-            src="/images/hero-combined.jpg"
-            alt="Camel, quads and sandboarding on one dune"
+            src="/images/under-hero.jpg"
+            alt="Rows of canvas bungalows at the Sabria desert camp"
           />
         </div>
 
@@ -217,25 +213,6 @@ export default function Hero({
         <div className="layer flare" />
         <div className="layer vignette" />
         <div className="layer grain" />
-
-        {/* 7 — activity labels, which rise once the scene is through */}
-        <div className="layer labels">
-          <div className="label l-camel">
-            <div className="line" />
-            <div className="kicker">Ride</div>
-            <div className="name">Camel</div>
-          </div>
-          <div className="label l-quad">
-            <div className="line" />
-            <div className="kicker">Race</div>
-            <div className="name">Quad</div>
-          </div>
-          <div className="label l-board">
-            <div className="line" />
-            <div className="kicker">Glide</div>
-            <div className="name">Sandboarding</div>
-          </div>
-        </div>
 
         {/* 8 — foreground copy. Mirrors the layer above, inverted: the word is
             the spacer here and everything else is real. */}

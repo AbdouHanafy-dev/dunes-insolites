@@ -21,6 +21,11 @@ import {
 import { fullGallery as seedGallery, galleryItems as seedStrip } from "@/lib/data/gallery";
 import { reviews as seedReviews } from "@/lib/data/reviews";
 import { stats as seedStats } from "@/lib/data/stats";
+import {
+  getStays as seedStays,
+  getStay as seedStay,
+  getRelatedStays as seedRelatedStays,
+} from "@/lib/data/stays";
 import type {
   Activity,
   Booking,
@@ -28,6 +33,9 @@ import type {
   GalleryItem,
   Review,
   Stats,
+  Stay,
+  StayBooking,
+  StayBookingInput,
 } from "@/lib/types";
 import type { SlotAvailability } from "@/lib/bookings";
 
@@ -86,6 +94,27 @@ export async function getRelatedActivities(slug: string): Promise<Activity[]> {
 
 export async function getStats(): Promise<Stats> {
   return get<Stats>("/stats", seedStats, { revalidate: 3600 });
+}
+
+export async function getStays(): Promise<Stay[]> {
+  const data = await get<{ stays: Stay[] }>(
+    "/stays",
+    { stays: seedStays() },
+    { revalidate: 300 },
+  );
+  return data.stays ?? seedStays();
+}
+
+export async function getStay(slug: string): Promise<Stay | undefined> {
+  if (!BASE) return seedStay(slug);
+  const all = await getStays();
+  return all.find((s) => s.slug === slug);
+}
+
+export async function getRelatedStays(slug: string): Promise<Stay[]> {
+  if (!BASE) return seedRelatedStays(slug);
+  const all = await getStays();
+  return all.filter((s) => s.slug !== slug);
 }
 
 export async function getGallery(): Promise<GalleryItem[]> {
@@ -160,6 +189,12 @@ async function post<T>(path: string, body: unknown): Promise<WriteResult<T>> {
 
 export function createBooking(input: BookingInput): Promise<WriteResult<Booking>> {
   return post<Booking>("/bookings", input);
+}
+
+export function createStayBooking(
+  input: StayBookingInput,
+): Promise<WriteResult<StayBooking>> {
+  return post<StayBooking>("/stay-bookings", input);
 }
 
 export function sendContact(input: {

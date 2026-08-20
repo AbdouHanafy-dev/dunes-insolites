@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import Activities from "@/components/Activities";
+import Stays from "@/components/Stays";
 import Steps from "@/components/Steps";
 import Experience from "@/components/Experience";
 import GalleryStrip from "@/components/GalleryStrip";
@@ -31,7 +32,7 @@ export default async function Home() {
       latitude: site.coords.lat,
       longitude: site.coords.lng,
     },
-    image: `${site.url}/images/hero-combined.jpg`,
+    image: `${site.url}/images/under-hero.jpg`,
   };
 
   return (
@@ -42,6 +43,7 @@ export default async function Home() {
       />
       <Hero stats={stats} activities={activities} />
       <Activities />
+      <Stays />
       <Steps />
       <Experience />
       <Reviews />

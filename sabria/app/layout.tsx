@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { alexandria, inter } from "./fonts";
-import { getActivities } from "@/lib/api";
+import { getActivities, getStays } from "@/lib/api";
 import { site } from "@/lib/site";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -31,13 +31,13 @@ export const metadata: Metadata = {
     title: `${site.name} — Sabria Desert Adventures`,
     description: site.description,
     url: site.url,
-    images: [{ url: "/images/hero-combined.jpg", width: 1200, height: 630, alt: site.tagline }],
+    images: [{ url: "/images/under-hero.jpg", width: 1600, height: 1200, alt: site.tagline }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${site.name} — Sabria Desert Adventures`,
     description: site.description,
-    images: ["/images/hero-combined.jpg"],
+    images: ["/images/under-hero.jpg"],
   },
   alternates: { canonical: "/" },
 };
@@ -47,8 +47,8 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // The Experiences dropdown is built from the live activity list.
-  const activities = await getActivities();
+  // The Experiences and Stay mega-menus are built from the live lists.
+  const [activities, stays] = await Promise.all([getActivities(), getStays()]);
 
   return (
     <html
@@ -56,7 +56,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={`${alexandria.variable} ${inter.variable}`}
     >
       <body>
-        <Header activities={activities} />
+        <Header activities={activities} stays={stays} />
         <main>{children}</main>
         <Footer />
         <WhatsAppButton />

@@ -22,6 +22,49 @@ export type Activity = {
   slots: TimeSlot[];
 };
 
+/**
+ * A nuitée — an overnight stay at the Sabria camp. Everything Dunes
+ * Insolites does happens on-site here; there's no multi-day touring product
+ * (that's a different business). A stay is reservable directly, with
+ * activities offered as optional add-ons (see `StayBooking.rideSlugs`).
+ */
+export type Stay = {
+  slug: string;
+  title: string;
+  kicker: string;
+  tagline: string;
+  description: string;
+  longDescription: string[];
+  image: string;
+  gallery: string[];
+  priceFrom: number;
+  groupSize: string;
+  included: string[];
+  notIncluded: string[];
+  /** Bullets for the "Informations Pratiques" section — check-in times,
+   *  what to bring, what the nights are like. */
+  practicalInfo: string[];
+  arrivalTime: string;
+  departureTime: string;
+  itinerary: Array<{
+    time: string;
+    title: string;
+    description: string;
+  }>;
+  accommodations?: Accommodation[];
+};
+
+export type Accommodation = {
+  slug: string;
+  title: string;
+  tagline: string;
+  description: string;
+  image: string;
+  priceFrom: number;
+  sleeps: string;
+  features: string[];
+};
+
 export type Stats = {
   guestsGuided: string;
   avgRating: string;
@@ -80,3 +123,27 @@ export const SLOT_LABELS: Record<TimeSlot, string> = {
 };
 
 export const MAX_PARTY_SIZE = 12;
+
+/**
+ * Reserving a nuitée — a stay date, party size, and any activities the
+ * guest wants added on (by `Activity.slug`, e.g. "camel-trek"). No time
+ * slot per ride: the camp confirms the hour with the guest on arrival,
+ * since it depends on who else is on-site that day.
+ */
+export type StayBooking = {
+  id: string;
+  staySlug: string;
+  accommodationSlug?: string;
+  date: string;
+  partySize: number;
+  rideSlugs: string[];
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string;
+  status: BookingStatus;
+  total: number;
+  createdAt: string;
+};
+
+export type StayBookingInput = Omit<StayBooking, "id" | "status" | "total" | "createdAt">;

@@ -105,7 +105,8 @@ export function validateBooking(input: Partial<BookingInput>): ValidationResult 
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true };
 }
 
-function makeId(): string {
+/** Generic — reused by `lib/tourBookings.ts` too, not activity-specific. */
+export function makeId(): string {
   const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let id = "";
   for (let i = 0; i < 6; i++) id += alphabet[Math.floor(Math.random() * alphabet.length)];

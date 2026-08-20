@@ -25,20 +25,27 @@ export const site = {
  * (dunes-insolites.com) but with the vague "Nos Services" split into the two
  * things people actually shop for, and Contact promoted out of the footer.
  *
+ * Everything Dunes Insolites runs happens on-site in Sabria — there's no
+ * separate multi-day touring product (that's a different business). "Stay"
+ * is the nuitée reservation (the fixed camp or a bivouac further out),
+ * distinct from "The camp" (the team/philosophy page at /about).
+ *
  * FR labels are noted for the i18n pass: The camp = Le campement,
- * Experiences = Nos expériences, Gallery = Galerie, Safety = Sécurité,
- * Contact = Contact.
+ * Experiences = Nos expériences, Stay = Séjour, Gallery = Galerie,
+ * Safety = Sécurité, Contact = Contact.
  */
 export type NavItem = {
   label: string;
   href: string;
-  /** Marks a section that gets a dropdown built from the activity list. */
-  menu?: "experiences";
+  /** Marks a section that gets a mega-menu dropdown — "experiences" builds
+   *  it from the activity list, "stays" from the nuitée list. */
+  menu?: "experiences" | "stays";
 };
 
 export const nav: NavItem[] = [
   { label: "The camp", href: "/about" },
   { label: "Experiences", href: "/activities", menu: "experiences" },
+  { label: "Stay", href: "/camp", menu: "stays" },
   { label: "Gallery", href: "/gallery" },
   { label: "Safety", href: "/safety" },
   { label: "Contact", href: "/contact" },
