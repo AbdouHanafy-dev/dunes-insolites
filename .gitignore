@@ -36,3 +36,7 @@ next-env.d.ts
 # keys / certs
 *.pem
 *.key
+
+# Video/photo originals — masters only, far too large for GitHub.
+# The web-encoded versions in sabria/public/ are what ship.
+**/assets-source/video/

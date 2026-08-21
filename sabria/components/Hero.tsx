@@ -49,6 +49,7 @@ export default function Hero({
 }) {
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const reduced = useReducedMotion();
 
   // Scroll progress across the 2000px runway below the sticky stage.
@@ -129,6 +130,25 @@ export default function Hero({
   // Paint once on mount so a restored scroll position renders correctly.
   useEffect(paint, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Playback is driven here rather than by an `autoPlay` attribute:
+  // `reduced` resolves after the first render, so the attribute would let
+  // the video start before we learned the user asked for no motion.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    // Muted must be set on the element, not only as a prop — browsers refuse
+    // autoplay for anything that could make noise.
+    v.muted = true;
+    if (reduced) {
+      v.pause();
+      return;
+    }
+    // Autoplay can still be refused (low-power mode, data saver). The poster
+    // stays up in that case, which is fine; what matters is not leaving the
+    // rejection as an unhandled promise.
+    void v.play().catch(() => {});
+  }, [reduced]);
+
   const onPointerMove = (e: React.PointerEvent) => {
     if (reduced) return;
     pxRaw.set((e.clientX / window.innerWidth - 0.5) * 2);
@@ -144,14 +164,23 @@ export default function Hero({
       <div className="stage" ref={stageRef}>
         {/* 1 — the reveal scene, hidden until we pass through the arch */}
         <div className="layer scene">
-          {/* Plain <img>: these layers are transformed every frame, so we want
-              zero layout involvement from next/image's wrapper. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {/* Decorative backdrop, so it is hidden from assistive tech — the
+              camp is described in the page copy, and a video carries no alt.
+              The poster paints immediately, which is what shows if autoplay
+              is refused or the user asked for no motion. */}
+          <video
+            ref={videoRef}
             className="cover"
-            src="/images/under-hero.jpg"
-            alt="Rows of canvas bungalows at the Sabria desert camp"
-          />
+            poster="/images/camp-hero-poster.jpg"
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            aria-hidden="true"
+          >
+            <source src="/video/camp-hero.webm" type="video/webm" />
+            <source src="/video/camp-hero.mp4" type="video/mp4" />
+          </video>
         </div>
 
         {/* 2 — the plate: the same view with the gate and foreground removed,
