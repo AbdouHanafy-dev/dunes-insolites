@@ -3763,3 +3763,50 @@ body:has(.drawer[data-open="true"]) .wa-float {
     transition: none;
   }
 }
+
+/* ---------- very narrow viewports (small phones, heavy browser zoom) -------
+   The header row carries the brand lockup, the language switcher and the
+   hamburger. Below roughly 430px those stop fitting, and because the header
+   is fixed-positioned it does not wrap — it just runs off the right edge
+   and drags the document wider than the window. Shed the brand text rather
+   than let that happen; the logo mark still links home. */
+@media (max-width: 430px) {
+  .site-header .brand {
+    gap: 8px;
+    min-width: 0;
+  }
+  .brand-text {
+    min-width: 0;
+  }
+  /* The strapline is the first thing to go — the name carries the brand. */
+  .brand-text .bl {
+    display: none;
+  }
+  .brand-text .bn {
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+  }
+  .header-mobile-controls {
+    gap: 4px;
+  }
+  .header-main {
+    padding: 8px 6px 8px 14px;
+  }
+}
+@media (max-width: 340px) {
+  /* Mark only. Below this the name cannot fit alongside the controls. */
+  .brand-text {
+    display: none;
+  }
+}
+
+/* Flex and grid children default to min-width: auto, which refuses to shrink
+   below their content. On a narrow viewport that is what pushes the footer
+   column and the book-direct panels past the right edge instead of letting
+   their text wrap. */
+footer.site-footer .top > * {
+  min-width: 0;
+}
+.compare .col {
+  min-width: 0;
+}
