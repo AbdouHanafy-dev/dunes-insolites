@@ -84,15 +84,23 @@ export type Review = {
   country: string;
   rating: 1 | 2 | 3 | 4 | 5;
   date: string;
-  title: string;
+  /** Not every platform gives a review its own headline (GetYourGuide's
+   *  format, for one, doesn't) — omit rather than invent one. */
+  title?: string;
   body: string;
-  activitySlug: string;
+  /** The specific ride this review is about, if any. */
+  activitySlug?: string;
+  /** The nuitée this review is about, if any. */
+  staySlug?: string;
   /** Where the review was originally left — shown as provenance. */
-  source: "direct" | "tripadvisor" | "getyourguide" | "google";
+  source: "direct" | "tripadvisor" | "getyourguide" | "google" | "airbnb" | "booking" | "wetravel";
 };
 
 export const REVIEW_SOURCE_LABELS: Record<Review["source"], string> = {
   direct: "Verified booking",
+  airbnb: "Airbnb",
+  booking: "Booking.com",
+  wetravel: "WeTravel",
   tripadvisor: "TripAdvisor",
   getyourguide: "GetYourGuide",
   google: "Google",
@@ -134,6 +142,11 @@ export type StayBooking = {
   id: string;
   staySlug: string;
   accommodationSlug?: string;
+  /** How many of that accommodation (tents/rooms/suites) to book. Only
+   *  meaningful alongside `accommodationSlug`; the real rule for how this
+   *  should work (per group, per couple, capped by `sleeps`…) is still
+   *  pending confirmation with the camp, so it's a free pick for now. */
+  accommodationQty?: number;
   date: string;
   partySize: number;
   rideSlugs: string[];

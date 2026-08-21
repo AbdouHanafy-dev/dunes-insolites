@@ -133,11 +133,25 @@ export async function getGalleryStrip(): Promise<GalleryItem[]> {
   return all.slice(0, 5);
 }
 
-export async function getReviews(activitySlug?: string): Promise<Review[]> {
-  const path = activitySlug ? `/reviews?activity=${encodeURIComponent(activitySlug)}` : "/reviews";
-  const fallback = activitySlug
-    ? seedReviews.filter((r) => r.activitySlug === activitySlug)
-    : seedReviews;
+export async function getReviews(filter?: {
+  activitySlug?: string;
+  staySlug?: string;
+}): Promise<Review[]> {
+  const params = new URLSearchParams();
+  if (filter?.activitySlug) params.set("activity", filter.activitySlug);
+  if (filter?.staySlug) params.set("stay", filter.staySlug);
+  const qs = params.toString();
+  const path = qs ? `/reviews?${qs}` : "/reviews";
+
+  // A stay page also carries general (untagged) reviews — they're about the
+  // camp overall, which is what a stay page represents. Activity pages stay
+  // narrowly filtered to that one ride.
+  const fallback = filter?.activitySlug
+    ? seedReviews.filter((r) => r.activitySlug === filter.activitySlug)
+    : filter?.staySlug
+      ? seedReviews.filter((r) => r.staySlug === filter.staySlug || (!r.staySlug && !r.activitySlug))
+      : seedReviews;
+
   const data = await get<{ reviews: Review[] }>(path, { reviews: fallback }, { revalidate: 600 });
   return data.reviews ?? fallback;
 }

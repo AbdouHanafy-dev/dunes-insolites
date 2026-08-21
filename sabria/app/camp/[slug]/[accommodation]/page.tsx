@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getActivities, getStay } from "@/lib/api";
+import { getStay } from "@/lib/api";
 import { getStays } from "@/lib/data/stays";
-import StayReservationForm from "@/components/StayReservationForm";
 
 type Props = { params: Promise<{ slug: string; accommodation: string }> };
 
@@ -35,7 +34,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function AccommodationDetail({ params }: Props) {
   const { stay, accommodation } = await getAccommodation(params);
   if (!stay || !accommodation) notFound();
-  const activities = await getActivities();
 
   return (
     <>
@@ -49,20 +47,26 @@ export default async function AccommodationDetail({ params }: Props) {
         </div>
       </section>
       <section className="detail-body">
-        <div className="wrap detail-grid">
-          <div className="prose accommodation-detail-copy">
+        <div className="wrap">
+          <div className="prose accommodation-detail-copy" style={{ maxWidth: 720, margin: "0 auto" }}>
             <p className="sect-eyebrow">The details</p>
             <h2>A night that fits your pace.</h2>
             <p>{accommodation.description}</p>
             <ul className="feature-list">
               {accommodation.features.map((feature) => <li key={feature}>{feature}</li>)}
             </ul>
+            <p style={{ marginTop: 32 }}>
+              <strong>From €{accommodation.priceFrom} per night · {accommodation.sleeps}</strong>
+            </p>
           </div>
-          <aside className="book-panel" id="reserve">
-            <div className="price"><span className="v">€{accommodation.priceFrom}</span><span className="u">per night</span></div>
-            <div className="rows"><div className="row"><span className="k">Sleeps</span><span className="v">{accommodation.sleeps}</span></div><div className="row"><span className="k">Location</span><span className="v">Sabria camp</span></div></div>
-            <StayReservationForm stay={stay} activities={activities} accommodationSlug={accommodation.slug} accommodationPrice={accommodation.priceFrom} />
-          </aside>
+          <div style={{ maxWidth: 720, margin: "24px auto 0", textAlign: "center" }}>
+            <Link
+              href={`/camp/${stay.slug}?accommodation=${accommodation.slug}#reserve`}
+              className="btn-accent"
+            >
+              Reserve this stay →
+            </Link>
+          </div>
         </div>
       </section>
     </>

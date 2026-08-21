@@ -41,7 +41,7 @@ export default async function ActivityDetail({ params }: Props) {
 
   const [related, activityReviews] = await Promise.all([
     getRelatedActivities(slug),
-    getReviews(slug),
+    getReviews({ activitySlug: slug }),
   ]);
 
   const jsonLd = {

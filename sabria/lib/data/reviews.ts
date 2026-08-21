@@ -82,6 +82,17 @@ export const reviews: Review[] = [
     activitySlug: "quad-safari",
     source: "direct",
   },
+  {
+    id: "r7",
+    name: "Ömer Faruk",
+    country: "Turkey",
+    rating: 5,
+    date: "2026-08-17",
+    // Kept in the guest's own words rather than translated — see the note
+    // above about honesty in this file.
+    body: "Nejib a été d'une grande aide et il a fait de son mieux. Un grand merci à lui 💯💜",
+    source: "getyourguide",
+  },
 ];
 
 export function averageRating(list: Review[] = reviews): string {

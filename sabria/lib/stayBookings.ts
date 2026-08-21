@@ -26,6 +26,14 @@ export function validateStayBooking(input: Partial<StayBookingInput>): Validatio
   ) {
     errors.accommodationSlug = "Pick an available accommodation.";
   }
+
+  if (input.accommodationSlug) {
+    const qty = Number(input.accommodationQty);
+    if (!qty || Number.isNaN(qty) || qty < 1 || qty > 6) {
+      errors.accommodationQty = "How many? Between 1 and 6.";
+    }
+  }
+
   if (!input.date) errors.date = "Pick a date.";
   else if (!isFutureDate(input.date)) errors.date = "Pick today or a future date.";
 
@@ -49,11 +57,14 @@ export function validateStayBooking(input: Partial<StayBookingInput>): Validatio
 export function createStayBooking(input: StayBookingInput): StayBooking {
   const stay = getStay(input.staySlug)!;
   const accommodation = stay.accommodations?.find((item) => item.slug === input.accommodationSlug);
+  const total = accommodation
+    ? accommodation.priceFrom * (input.accommodationQty ?? 1)
+    : stay.priceFrom * input.partySize;
   const booking: StayBooking = {
     ...input,
     id: makeId(),
     status: "pending",
-    total: (accommodation?.priceFrom ?? stay.priceFrom) * input.partySize,
+    total,
     createdAt: new Date().toISOString(),
   };
   store.set(booking.id, booking);

@@ -18,8 +18,13 @@ export default function AccommodationCard({
         <p className="sect-eyebrow">From €{accommodation.priceFrom} · {accommodation.sleeps}</p>
         <h3>{accommodation.title}</h3>
         <p>{accommodation.tagline}</p>
-        <Link href={`/camp/${staySlug}/${accommodation.slug}`} className="text-link">
-          Explore this stay →
+        <Link
+          href={`/camp/${staySlug}/${accommodation.slug}`}
+          className="text-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Explore this stay ↗
         </Link>
       </div>
     </article>

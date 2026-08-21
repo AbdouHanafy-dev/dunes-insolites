@@ -4,7 +4,7 @@ import Stays from "@/components/Stays";
 import Steps from "@/components/Steps";
 import Experience from "@/components/Experience";
 import GalleryStrip from "@/components/GalleryStrip";
-import Reviews from "@/components/Reviews";
+import ReviewsShowcase from "@/components/ReviewsShowcase";
 import BookDirect from "@/components/BookDirect";
 import CTA from "@/components/CTA";
 import { getActivities, getStats } from "@/lib/api";
@@ -46,7 +46,7 @@ export default async function Home() {
       <Stays />
       <Steps />
       <Experience />
-      <Reviews />
+      <ReviewsShowcase />
       <BookDirect />
       <GalleryStrip />
       <CTA />

@@ -2882,11 +2882,121 @@ footer.site-footer .bar {
 .review .who .n {
   font-weight: 600;
 }
-.review .who .src {
-  color: var(--muted);
+.platform-badge {
+  font-weight: 700;
+}
+.review .who .platform-badge {
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Homepage platform-grouped showcase — a carousel per source instead of
+   one flat grid, so each platform's own rating stays visible. */
+.reviews-showcase {
+  background: var(--paper);
+  padding: 120px 0 128px;
+}
+.reviews-showcase .rating-line {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.reviews-showcase .rating-line .score {
+  font-family: var(--font-display), sans-serif;
+  font-size: 56px;
+  line-height: 1;
+}
+.reviews-showcase .rating-line .of {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.platform-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  margin-top: 64px;
+}
+.platform-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(42, 21, 16, 0.14);
+}
+.platform-header .platform-badge {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.platform-rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.platform-rating .stars {
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+.carousel {
+  position: relative;
+  margin-top: 26px;
+}
+.carousel-track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+.carousel-track .review-slide {
+  flex: 0 0 auto;
+  width: clamp(260px, 80vw, 340px);
+  scroll-snap-align: start;
+}
+.carousel-nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.carousel-nav button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(42, 21, 16, 0.14);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(42, 16, 8, 0.1);
+  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.carousel-nav button:hover:not(:disabled) {
+  background: var(--maroon);
+  color: var(--paper);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(42, 16, 8, 0.22);
+}
+.carousel-nav button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* ---------- book direct (anti-OTA band) ---------- */
@@ -3392,6 +3502,26 @@ body:has(.drawer[data-open="true"]) .wa-float {
   }
   .u-hide-sm {
     display: none;
+  }
+}
+
+/* The full navigation plus its wide direct-booking pill has no comfortable
+   middle state. Move to the drawer before the CTA can be squeezed against
+   the viewport edge or overlap the brand. */
+@media (max-width: 1050px) {
+  .nav,
+  .header-main > .header-cta,
+  .header-utility {
+    display: none;
+  }
+  .burger {
+    display: flex;
+  }
+  .drawer .header-cta {
+    display: inline-flex;
+  }
+  .header-main {
+    padding: 8px 8px 8px 20px;
   }
 }
 

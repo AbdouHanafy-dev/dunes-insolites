@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as api from "@/lib/api";
-import { MAX_PARTY_SIZE, type Activity, type Stay } from "@/lib/types";
+import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
 
 function todayISO(): string {
   const d = new Date();
@@ -20,17 +20,19 @@ function todayISO(): string {
 export default function StayReservationForm({
   stay,
   activities,
-  accommodationSlug,
-  accommodationPrice,
+  accommodations,
+  initialAccommodationSlug,
 }: {
   stay: Stay;
   activities: Activity[];
-  accommodationSlug?: string;
-  accommodationPrice?: number;
+  accommodations?: Accommodation[];
+  initialAccommodationSlug?: string;
 }) {
   const [date, setDate] = useState("");
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
+  const [accommodationSlug, setAccommodationSlug] = useState(initialAccommodationSlug ?? "");
+  const [accommodationQty, setAccommodationQty] = useState(1);
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -43,7 +45,13 @@ export default function StayReservationForm({
 
   const min = todayISO();
   const partySize = adults + children;
-  const total = (accommodationPrice ?? stay.priceFrom) * partySize;
+  const selectedAccommodation = accommodations?.find((a) => a.slug === accommodationSlug);
+  // Per unit while a specific tent/room/suite is chosen — how many units count
+  // against a shared night's price is still to be confirmed with the camp, so
+  // this stays a free pick rather than something derived from party size.
+  const total = selectedAccommodation
+    ? selectedAccommodation.priceFrom * accommodationQty
+    : stay.priceFrom * partySize;
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
@@ -57,6 +65,15 @@ export default function StayReservationForm({
     setChildren((current) => Math.max(0, Math.min(MAX_PARTY_SIZE - adults, current + change)));
   }
 
+  function changeAccommodationQty(change: -1 | 1) {
+    setAccommodationQty((current) => Math.max(1, Math.min(6, current + change)));
+  }
+
+  function selectAccommodation(slug: string) {
+    setAccommodationSlug(slug);
+    setAccommodationQty(1);
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -65,7 +82,8 @@ export default function StayReservationForm({
 
     const result = await api.createStayBooking({
       staySlug: stay.slug,
-      accommodationSlug,
+      accommodationSlug: accommodationSlug || undefined,
+      accommodationQty: accommodationSlug ? accommodationQty : undefined,
       date,
       partySize,
       rideSlugs,
@@ -108,6 +126,59 @@ export default function StayReservationForm({
 
   return (
     <form onSubmit={onSubmit} className="reserve-form">
+      {accommodations && accommodations.length > 0 && (
+        <div className="field" data-invalid={!!errors.accommodationSlug}>
+          <label>Choose your camp</label>
+          <div className="ride-options">
+            {accommodations.map((a) => (
+              <label key={a.slug} className="ride-option">
+                <input
+                  type="radio"
+                  name="accommodation"
+                  checked={accommodationSlug === a.slug}
+                  onChange={() => selectAccommodation(a.slug)}
+                />
+                <span>{a.title}</span>
+                <span className="ride-price">from €{a.priceFrom}</span>
+              </label>
+            ))}
+          </div>
+          {errors.accommodationSlug && <span className="err">{errors.accommodationSlug}</span>}
+          {selectedAccommodation && (
+            <div className="guest-picker" style={{ marginTop: 10 }}>
+              <div className="guest-row">
+                <div>
+                  <strong>How many {selectedAccommodation.title.toLowerCase()}s?</strong>
+                  <span>Exact rule to be confirmed with the camp — pick what you need for now</span>
+                </div>
+                <div className="guest-stepper">
+                  <button
+                    type="button"
+                    onClick={() => changeAccommodationQty(-1)}
+                    disabled={accommodationQty === 1}
+                    aria-label={`Remove one ${selectedAccommodation.title.toLowerCase()}`}
+                  >
+                    −
+                  </button>
+                  <output aria-label={`${accommodationQty} ${selectedAccommodation.title.toLowerCase()}s`}>
+                    {accommodationQty}
+                  </output>
+                  <button
+                    type="button"
+                    onClick={() => changeAccommodationQty(1)}
+                    disabled={accommodationQty === 6}
+                    aria-label={`Add one ${selectedAccommodation.title.toLowerCase()}`}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              {errors.accommodationQty && <span className="err">{errors.accommodationQty}</span>}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="field" data-invalid={!!errors.date}>
         <label htmlFor="s-date">Arrival date</label>
         <input

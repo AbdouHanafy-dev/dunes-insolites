@@ -62,6 +62,10 @@ source of truth is [`lib/types.ts`](lib/types.ts).
 
 ### Review
 
+A review may be about a specific `Activity`, a specific `Stay`, or neither
+(a general review of the camp) — real reviews imported from GetYourGuide,
+Airbnb, Booking.com, etc. are often general, not tied to one ride.
+
 ```json
 {
   "id": "r1",
@@ -76,8 +80,26 @@ source of truth is [`lib/types.ts`](lib/types.ts).
 }
 ```
 
-`rating` is an integer 1–5. `source` is one of `direct` | `tripadvisor` |
-`getyourguide` | `google`.
+```json
+{
+  "id": "r7",
+  "name": "Ömer Faruk",
+  "country": "Turkey",
+  "rating": 5,
+  "date": "2026-08-17",
+  "body": "Nejib a été d'une grande aide et il a fait de son mieux. Un grand merci à lui 💯💜",
+  "source": "getyourguide"
+}
+```
+
+| Field | Java type | Notes |
+|---|---|---|
+| `title` | `String`, nullable | Not every platform gives a review a headline — GetYourGuide's format doesn't. Omit rather than invent one; the frontend skips the `<h3>` when absent |
+| `activitySlug` | `String`, nullable | Only when the review is about one specific ride |
+| `staySlug` | `String`, nullable | Only when the review is about one specific nuitée |
+| `rating` | `int` | Integer 1–5 |
+| `source` | `enum` | `direct` \| `tripadvisor` \| `getyourguide` \| `google` \| `airbnb` \| `booking` \| `wetravel` |
+| `body` | `String` | Kept in the guest's original language — don't translate a real review, that misrepresents what they actually said |
 
 ### Booking
 
@@ -107,6 +129,98 @@ source of truth is [`lib/types.ts`](lib/types.ts).
 | `total` | `int` | Euros. Backend calculates it — never trust a client-sent total |
 | `createdAt` | `String` | ISO-8601 |
 
+### Stay
+
+A nuitée — an overnight stay at the Sabria camp. This is the whole
+overnight product; there's no multi-day touring line to model. Two exist
+today (`nuitee-campement`, `nuitee-bivouac`) but don't hardcode that count.
+
+```json
+{
+  "slug": "nuitee-campement",
+  "title": "A Night at Dunes Insolites",
+  "kicker": "01 — CAMPEMENT",
+  "tagline": "Desert traditions, dinner under the stars, and a peaceful night among the dunes.",
+  "description": "A full night at the Sabria camp — dinner under the stars, a real bed in a canvas tent, and the dunes right outside the door.",
+  "longDescription": ["First paragraph.", "Second paragraph.", "Third paragraph."],
+  "image": "/images/under-hero.jpg",
+  "gallery": ["/images/under-hero.jpg", "/images/gate.jpg"],
+  "priceFrom": 95,
+  "groupSize": "2–20 guests",
+  "included": ["Private canvas tent for the night", "Dinner and breakfast"],
+  "notIncluded": ["Activities (camel, quad, sandboarding — add below)", "Gratuities"],
+  "practicalInfo": ["Nights in the desert run cold even in summer — bring a warm layer"],
+  "arrivalTime": "15:00",
+  "departureTime": "09:00",
+  "itinerary": [
+    { "time": "15:00", "title": "Welcome to the camp", "description": "Meet the team, settle into your traditional tent, and take in the quiet of the dunes." }
+  ],
+  "accommodations": [ Accommodation, … ]
+}
+```
+
+| Field | Java type | Notes |
+|---|---|---|
+| `slug` | `String` | Route is `/camp/{slug}` |
+| `priceFrom` | `int` | Euros, per person, per night — the base price shown before an accommodation is picked |
+| `arrivalTime` / `departureTime` | `String` | Free-text display strings (`"15:00"`), not parsed as `LocalTime` |
+| `itinerary` | `List<ItineraryStep>` | Ordered; rendered as the "night journal" chapters. `time` is a free-text label (`"15:00"` or `"Sunset"`), not always a clock time |
+| `accommodations` | `List<Accommodation>`, nullable | Only for stays offering a choice of sleeping arrangement (currently just `nuitee-campement`). Omit or `null` for a stay with one fixed setup like `nuitee-bivouac` |
+
+### Accommodation
+
+A specific way to sleep within a `Stay` — tent vs. room vs. suite. Only
+appears nested inside `Stay.accommodations`; looked up by slug at
+`/camp/{staySlug}/{accommodationSlug}`.
+
+```json
+{
+  "slug": "desert-tent",
+  "title": "Desert Tent",
+  "tagline": "A private canvas tent close to the fire circle.",
+  "description": "The classic Dunes Insolites night: a private tent, proper bedding, and the dunes just beyond your door.",
+  "image": "/images/under-hero.jpg",
+  "priceFrom": 95,
+  "sleeps": "Up to 2 guests",
+  "features": ["Private canvas tent", "Quality bedding", "Dinner and breakfast included"]
+}
+```
+
+`priceFrom` here overrides the parent `Stay.priceFrom` once a guest picks
+this accommodation — see `POST /stay-bookings` for how pricing resolves.
+
+### StayBooking
+
+Reserving a nuitée: a date, party size, optionally which accommodation, and
+any activities added on by slug. No time slot — the camp confirms the hour
+for each activity with the guest on arrival.
+
+```json
+{
+  "id": "DI-MSYHFD",
+  "staySlug": "nuitee-campement",
+  "accommodationSlug": "desert-tent",
+  "accommodationQty": 1,
+  "date": "2026-08-26",
+  "partySize": 2,
+  "rideSlugs": ["camel-trek", "quad-safari"],
+  "name": "Abdou Hanafi",
+  "email": "abdou@example.com",
+  "phone": "+216 20 000 000",
+  "notes": "Arriving late, around 18:00",
+  "status": "pending",
+  "total": 190,
+  "createdAt": "2026-08-16T12:05:35.785Z"
+}
+```
+
+| Field | Java type | Notes |
+|---|---|---|
+| `accommodationSlug` | `String`, nullable | Only present when the stay offers `accommodations` and the guest picked one |
+| `accommodationQty` | `Integer`, nullable | How many of that tent/room/suite (1–6, UI-side). Only present alongside `accommodationSlug`. **Provisional** — see the note under `POST /stay-bookings` |
+| `rideSlugs` | `List<String>` | Zero or more `Activity.slug` values. Validate each exists — don't trust the client list |
+| `total` | `int` | Euros. If an accommodation is picked: **`accommodation.priceFrom × accommodationQty`**. Otherwise: **`stay.priceFrom × partySize`**. Either way, activities in `rideSlugs` are *not* added to this total (see `POST /stay-bookings` below) |
+
 ---
 
 ## Endpoints
@@ -115,6 +229,14 @@ source of truth is [`lib/types.ts`](lib/types.ts).
 ```json
 { "activities": [ Activity, … ] }
 ```
+
+### `GET /stays`
+```json
+{ "stays": [ Stay, … ] }
+```
+No `GET /stays/{slug}` route needed — same as activities, the frontend
+fetches this list once (cached 5 minutes) and resolves a single stay or
+accommodation from it client-side.
 
 ### `GET /stats`
 ```json
@@ -128,10 +250,15 @@ Strings, not numbers — they render verbatim in the experience band.
 ```
 `tag` must match one of the filter labels; `tall` makes the tile span two rows.
 
-### `GET /reviews` · `GET /reviews?activity={slug}`
+### `GET /reviews` · `GET /reviews?activity={slug}` · `GET /reviews?stay={slug}`
 ```json
 { "reviews": [ Review, … ] }
 ```
+- `?activity={slug}` → only reviews with that `activitySlug`.
+- `?stay={slug}` → reviews with that `staySlug`, **plus every general
+  review** (no `activitySlug` and no `staySlug`) — a stay page is the core
+  product page, so untagged reviews about the camp belong there too.
+- No params → everything, unfiltered (used for the homepage).
 
 ### `GET /availability?activity={slug}&date=yyyy-MM-dd`
 ```json
@@ -188,6 +315,55 @@ UX, but the client can be bypassed:
 Currently unauthenticated, which means anyone who guesses a reference can read
 a booking. Before launch either add a token to the confirmation URL
 (`/bookings/{id}?t=…`) or require the email as a second factor.
+
+### `POST /stay-bookings`
+
+Request:
+```json
+{
+  "staySlug": "nuitee-campement",
+  "accommodationSlug": "desert-tent",
+  "accommodationQty": 2,
+  "date": "2026-08-26",
+  "partySize": 4,
+  "rideSlugs": ["camel-trek"],
+  "name": "Abdou Hanafi",
+  "email": "abdou@example.com",
+  "phone": "+216 20 000 000",
+  "notes": "Arriving late, around 18:00"
+}
+```
+
+- **`201`** → the full `StayBooking` object (with `id`, `status`, `total`).
+- **`422`** → field errors, keyed by the exact request field name:
+  `staySlug`, `accommodationSlug`, `accommodationQty`, `date`, `partySize`,
+  `rideSlugs`, `name`, `email`, `phone`.
+
+Server-side validation, mirroring `POST /bookings`:
+
+- `date` is today or later
+- `partySize` between 1 and 12
+- `accommodationSlug`, if sent, must belong to that stay's `accommodations`
+- `accommodationQty`, if `accommodationSlug` is sent, is an integer 1–6
+- every slug in `rideSlugs` must be a real `Activity.slug`
+- `total` = `accommodation.priceFrom × accommodationQty` when an
+  accommodation is picked, else `stay.priceFrom × partySize` — **rides do
+  not currently add to the total.** That's the product's actual behavior
+  today (activities are priced/confirmed on arrival, not billed through
+  this form), not a bug to silently "fix" — confirm with the client before
+  changing it.
+- Unlike `POST /bookings`, there is **no seat/capacity check.** Every future
+  date is bookable regardless of how many guests are already booked that
+  night. If the camp needs a real nightly capacity (limited tents/bivouac
+  spots), that logic doesn't exist anywhere yet and needs to be designed.
+
+**`accommodationQty` is explicitly provisional.** The client doesn't yet
+know the camp's real rule for how many tents/rooms/suites a party should
+book (per couple? capped by `Accommodation.sleeps`? one fixed price
+regardless of count?) — so today the guest just free-picks 1–6 and the
+price scales linearly with it. Don't harden this into a stricter rule on
+the backend until the client confirms the actual policy with the camp
+operator.
 
 ### `POST /auth/login` · `POST /auth/register`
 
@@ -248,6 +424,11 @@ Request `{ email }` → `201 { "ok": true }` or `422 { "errors": { "email": "…
   tell me and I'll adjust the formatting.
 - **Availability concurrency.** The seat check and the insert must be in one
   transaction with a row lock, or you will oversell golden-hour slots.
+- **Stay-booking capacity.** `POST /stay-bookings` has no equivalent seat
+  check today — every future date is bookable no matter how many guests are
+  already booked that night. Decide whether the two nuitées need a real
+  per-night capacity limit before this goes live, then add it; nothing in
+  the current frontend or Next.js route enforces one.
 - **Errors.** Any non-2xx without an `errors` object shows a generic message.
   Return the `errors` map wherever you want a field-level message shown.
 

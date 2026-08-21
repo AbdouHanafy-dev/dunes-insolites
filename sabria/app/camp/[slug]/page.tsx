@@ -7,10 +7,14 @@ import StayCard from "@/components/StayCard";
 import AccommodationCard from "@/components/AccommodationCard";
 import StayReservationForm from "@/components/StayReservationForm";
 import Reveal from "@/components/Reveal";
+import Reviews from "@/components/Reviews";
 import CTA from "@/components/CTA";
 import { site } from "@/lib/site";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ accommodation?: string }>;
+};
 
 export function generateStaticParams() {
   return seedStays().map((s) => ({ slug: s.slug }));
@@ -33,8 +37,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function StayDetail({ params }: Props) {
+export default async function StayDetail({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { accommodation: initialAccommodationSlug } = await searchParams;
   const stay = await getStay(slug);
   if (!stay) notFound();
 
@@ -220,7 +225,12 @@ export default async function StayDetail({ params }: Props) {
                   <span className="v">1 night</span>
                 </div>
               </div>
-              <StayReservationForm stay={stay} activities={activities} />
+              <StayReservationForm
+                stay={stay}
+                activities={activities}
+                accommodations={stay.accommodations}
+                initialAccommodationSlug={initialAccommodationSlug}
+              />
             </aside>
           </div>
 
@@ -267,6 +277,8 @@ export default async function StayDetail({ params }: Props) {
           )}
         </div>
       </section>
+
+      <Reviews staySlug={stay.slug} title={`What guests say about ${stay.title.toLowerCase()}.`} />
 
       <CTA
         title="Save your spot."
