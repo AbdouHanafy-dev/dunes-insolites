@@ -3767,22 +3767,22 @@ body:has(.drawer[data-open="true"]) .wa-float {
 /* ---------- very narrow viewports (small phones, heavy browser zoom) -------
    The header row carries the brand lockup, the language switcher and the
    hamburger. Below roughly 430px those stop fitting, and because the header
-   is fixed-positioned it does not wrap — it just runs off the right edge
-   and drags the document wider than the window. Shed the brand text rather
-   than let that happen; the logo mark still links home. */
+   is fixed-positioned it does not wrap — it just runs off the right edge and
+   drags the document wider than the window. Shed the brand text rather than
+   let that happen; the logo mark still links home.
+
+   Everything here is scoped to `.site-header`: the footer uses the same
+   `.brand-text` / `.bn` / `.bl` markup, and its `.top` row wraps happily,
+   so it had no overflow to fix and should keep its full lockup. */
 @media (max-width: 430px) {
   .site-header .brand {
     gap: 8px;
-    min-width: 0;
-  }
-  .brand-text {
-    min-width: 0;
   }
   /* The strapline is the first thing to go — the name carries the brand. */
-  .brand-text .bl {
+  .site-header .brand-text .bl {
     display: none;
   }
-  .brand-text .bn {
+  .site-header .brand-text .bn {
     font-size: 11.5px;
     letter-spacing: 0.16em;
   }
@@ -3794,9 +3794,48 @@ body:has(.drawer[data-open="true"]) .wa-float {
   }
 }
 @media (max-width: 340px) {
-  /* Mark only. Below this the name cannot fit alongside the controls. */
-  .brand-text {
-    display: none;
+  /* Mark only — below this the name cannot fit beside the controls.
+     Hidden visually but NOT removed from the accessibility tree: the logo
+     image is intentionally `alt=""`, so `display: none` here would leave the
+     home link with no accessible name at all (WCAG 2.4.4 / 4.1.2). That also
+     bites sighted users at 400% zoom, which is a supported reflow target. */
+  .site-header .brand-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* The footer carries the same lockup, but it has vertical room the header
+   does not — so let it wrap and shrink rather than disappear. Both .bn and
+   .bl are `white-space: nowrap` by default, which is what pushed the footer
+   brand (62px mark + 209px of unbreakable text) past the right edge on a
+   narrow screen no matter what min-width said. */
+@media (max-width: 430px) {
+  footer.site-footer .brand {
+    gap: 12px;
+  }
+  footer.site-footer .brand img {
+    width: 46px;
+    height: 46px;
+  }
+  footer.site-footer .brand .bn,
+  footer.site-footer .brand .bl {
+    white-space: normal;
+  }
+  footer.site-footer .brand .bn {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
+  footer.site-footer .brand .bl {
+    font-size: 9px;
+    letter-spacing: 0.18em;
   }
 }
 

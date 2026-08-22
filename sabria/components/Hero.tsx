@@ -50,6 +50,10 @@ export default function Hero({
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  // Whether we have asked the video to play, and whether the hero is still
+  // on screen at all. Both feed `syncVideo` below.
+  const videoPlayingRef = useRef(false);
+  const heroOnScreenRef = useRef(true);
   const reduced = useReducedMotion();
 
   // Scroll progress across the 2000px runway below the sticky stage.
@@ -69,6 +73,29 @@ export default function Hero({
   const mx = useSpring(pxRaw, { stiffness: 60, damping: 20 });
   const my = useSpring(pyRaw, { stiffness: 60, damping: 20 });
 
+  /**
+   * The scene layer is fully transparent until roughly a quarter of the way
+   * down the hero's 2000px runway, and `loop` means it would otherwise keep
+   * decoding long after the hero has scrolled away. Paired with
+   * `preload="none"` on the element, this keeps the network idle until the
+   * layer is about to be seen — a visitor who never scrolls pays nothing
+   * for megabytes of video they were never shown.
+   */
+  const syncVideo = (progress: number) => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const want = !reduced && heroOnScreenRef.current && progress > 0.12;
+    if (want === videoPlayingRef.current) return;
+    videoPlayingRef.current = want;
+    if (!want) {
+      vid.pause();
+      return;
+    }
+    // Autoplay can still be refused (low-power mode, data saver). The poster
+    // stays up in that case, which is fine; what matters is not leaving the
+    // rejection as an unhandled promise.
+    void vid.play().catch(() => {});
+  };
   const paint = () => {
     const el = stageRef.current;
     if (!el) return;
@@ -122,6 +149,8 @@ export default function Hero({
     // Stats and the destination card clear out as soon as the descent starts.
     s.setProperty("--hud-opacity", (1 - ss(0.01, 0.18, v)).toFixed(4));
     s.setProperty("--grade-opacity", (1 - ss(0.5, 0.72, v) * 0.5).toFixed(4));
+
+    syncVideo(v);
   };
 
   useMotionValueEvent(p, "change", paint);
@@ -130,24 +159,30 @@ export default function Hero({
   // Paint once on mount so a restored scroll position renders correctly.
   useEffect(paint, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Playback is driven here rather than by an `autoPlay` attribute:
-  // `reduced` resolves after the first render, so the attribute would let
-  // the video start before we learned the user asked for no motion.
+  // Playback is driven from scroll progress rather than an `autoPlay`
+  // attribute, so it can be withheld entirely for reduced-motion users and
+  // deferred for everyone else until the scene is about to appear.
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    // Muted must be set on the element, not only as a prop — browsers refuse
-    // autoplay for anything that could make noise.
-    v.muted = true;
-    if (reduced) {
-      v.pause();
-      return;
-    }
-    // Autoplay can still be refused (low-power mode, data saver). The poster
-    // stays up in that case, which is fine; what matters is not leaving the
-    // rejection as an unhandled promise.
-    void v.play().catch(() => {});
-  }, [reduced]);
+    const vid = videoRef.current;
+    const section = sectionRef.current;
+    if (!vid || !section) return;
+    // Muted has to be set on the element, not only as a prop — browsers
+    // refuse autoplay for anything that could make noise.
+    vid.muted = true;
+
+    // Stop decoding once the hero is off screen; `loop` would otherwise run
+    // it for the rest of the visit.
+    const io = new IntersectionObserver(
+      (entries) => {
+        heroOnScreenRef.current = entries[0].isIntersecting;
+        syncVideo(p.get());
+      },
+      { threshold: 0 },
+    );
+    io.observe(section);
+    syncVideo(p.get());
+    return () => io.disconnect();
+  }, [reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (reduced) return;
@@ -175,7 +210,7 @@ export default function Hero({
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="none"
             aria-hidden="true"
           >
             <source src="/video/camp-hero.webm" type="video/webm" />
