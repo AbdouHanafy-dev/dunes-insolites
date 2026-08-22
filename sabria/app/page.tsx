@@ -42,8 +42,10 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Hero stats={stats} activities={activities} />
-      <Activities />
+      {/* Stays lead: the nuitée is the product being sold, and the rides are
+          add-ons to it. Showing the rides first framed them as the offer. */}
       <Stays />
+      <Activities />
       <Steps />
       <Experience />
       <ReviewsShowcase />
