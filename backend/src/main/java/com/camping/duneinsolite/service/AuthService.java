@@ -4,6 +4,11 @@ package com.camping.duneinsolite.service;
 
 import com.camping.duneinsolite.dto.request.LoginRequest;
 import com.camping.duneinsolite.dto.response.LoginResponse;
+import com.camping.duneinsolite.exception.AuthenticationFailedException;
+import com.camping.duneinsolite.exception.ExternalServiceException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
+import java.text.ParseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,11 +86,26 @@ public class AuthService {
                 );
             }
 
-            throw new RuntimeException("Login failed: empty response from Keycloak");
+            throw new ExternalServiceException("Authentication", null);
 
-        } catch (Exception e) {
-            log.error("Login failed for user {}: {}", request.getEmail(), e.getMessage());
-            throw new RuntimeException("Invalid credentials");
+        } catch (HttpClientErrorException e) {
+            // Keycloak answered and rejected the credentials - a real 401.
+            log.warn("Login rejected for {}: {}", request.getEmail(), e.getStatusCode());
+            throw new AuthenticationFailedException();
+
+        } catch (RestClientException e) {
+            // Keycloak could not be reached, or failed. This is NOT a bad
+            // password: telling the user their credentials are wrong during an
+            // outage sends them to reset a password that was never the problem.
+            log.error("Keycloak unreachable during login for {}: {}",
+                    request.getEmail(), e.getMessage());
+            throw new ExternalServiceException("Authentication", e);
+
+        } catch (ParseException e) {
+            // The token came back but could not be decoded - that is our defect,
+            // not the caller's. Let it surface as a 500 with a generic message.
+            log.error("Could not parse the access token returned for {}", request.getEmail(), e);
+            throw new IllegalStateException("Malformed access token from the identity provider", e);
         }
     }
 

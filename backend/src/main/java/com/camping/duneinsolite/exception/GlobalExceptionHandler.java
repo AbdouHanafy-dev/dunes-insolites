@@ -56,11 +56,40 @@ public class GlobalExceptionHandler {
         );
     }
 
-    // ── Handle business logic errors (RuntimeException) ───────────────
-    // This catches all the throw new RuntimeException(...) in your services
+    // ── Contract errors: the caller did something the domain disallows ──
+    // Each BusinessException carries its own status, so a failed login is 401,
+    // a missing record is 404 and an upstream outage is 503 - rather than
+    // everything collapsing to 400. Spring dispatches to the most specific
+    // handler, so this wins over handleRuntimeException below.
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Map<String, Object>> handleBusinessException(BusinessException ex) {
+        // Logged at WARN, not ERROR: these are expected outcomes, not defects.
+        log.warn("Business rule rejected the request [{}]: {}",
+                ex.getClass().getSimpleName(), ex.getMessage());
+
+        return buildResponse(ex.getStatus(), ex.getMessage(), null);
+    }
+
+    // ── TRANSITIONAL: the old catch-all for bare RuntimeExceptions ──────
+    //
+    // Roughly 37 `throw new RuntimeException(...)` sites in the services still
+    // rely on this mapping to 400. It stays until each is reclassified as a
+    // BusinessException subclass with a correct status.
+    //
+    // It is not safe to simply delete: without it those sites would fall to the
+    // 500 handler below, turning working business errors into server errors for
+    // the Angular apps in production. Shrink it by migrating throw sites, then
+    // remove it once nothing depends on it.
+    //
+    // Note the leak this still permits: ex.getMessage() on an unclassified
+    // exception reaches the client. That is precisely why it is temporary.
+    @Deprecated
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(
             RuntimeException ex) {
+
+        log.warn("Unclassified RuntimeException mapped to 400 - should be a "
+                + "BusinessException [{}]: {}", ex.getClass().getName(), ex.getMessage());
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,

@@ -1,0 +1,25 @@
+{
+  "name": "dunes-insolites",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dunes Insolites — public site, backoffice and API in one workspace.",
+  "workspaces": [
+    "frontend",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace frontend",
+    "start": "npm run start --workspace frontend",
+    "lint": "npm run lint --workspace frontend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "backend:compile": "node scripts/mvn.mjs -q compile",
+    "backend:test": "node scripts/mvn.mjs test",
+    "backend:run": "node scripts/mvn.mjs spring-boot:run",
+    "backend:package": "node scripts/mvn.mjs -q package -DskipTests",
+    "verify": "npm run typecheck && npm run lint && npm run backend:compile"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
