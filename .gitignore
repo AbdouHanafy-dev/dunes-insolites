@@ -29,3 +29,11 @@ Thumbs.db
 *.log
 npm-debug.log*
 yarn-error.log*
+
+# ── Leftovers from the monorepo restructure ──────────────────
+# Both are empty/superseded; a stale VS Code watcher handle prevents
+# deleting them right now. Remove after restarting VS Code, then delete
+# these two lines. Backups live in ../_dunes_old_repos/.
+/backend/duneinsolite/
+/dunes insolites/
+.qodo/
