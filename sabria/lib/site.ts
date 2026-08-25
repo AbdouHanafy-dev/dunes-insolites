@@ -6,7 +6,15 @@ export const site = {
   tagline: "Where the Sahara feels endless.",
   description:
     "Camel treks, quad safaris, and sandboarding across the Sahara at sunset. Book your Sabria desert adventure.",
-  url: "https://dunes-insolites.example",
+  /**
+   * The real canonical host, with `www` — that is what the live site's own
+   * sitemap declares, so canonicals must match it exactly or they self-conflict.
+   *
+   * This feeds `metadataBase`, which in turn feeds every canonical, Open Graph
+   * URL, sitemap entry, robots.txt Sitemap directive and JSON-LD image URL.
+   * While it was a placeholder, none of those pointed at a real domain.
+   */
+  url: "https://www.dunes-insolites.com",
   email: "hello@dunes-insolites.tn",
   /** Taken from the live site, dunes-insolites.com. */
   phone: "+216 27 391 501",
