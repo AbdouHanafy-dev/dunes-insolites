@@ -1,0 +1,1060 @@
+{
+  "info": {
+    "name": "Dune Insolite - Tour/TourType/Extra Attributes + Reviews",
+    "description": "Covers every endpoint that is new or changed across this whole thread of work: POST/PUT on /api/tours, /api/tour-types, /api/extras (new fields: aboutText, highlights, includedItems, notIncludedItems, programSteps, meetingPoint, location, groupSizeType, languages, cancellationPolicy, coverPhotoUrl, photos, plus extraDuration on Extra only, plus isActive now exposed on TourType too); the /api/reviews subsystem; GetById/GetAll on all three now being public (no auth); the new PATCH .../deactivate soft-delete endpoints; and the ownership fix on GET /api/reservations/user/{userId}.\n\nRun order matters for chaining (IDs/tokens are captured automatically via test scripts into collection variables): Auth -> Tours -> Tour Types -> Extras -> Reviews -> Deactivate -> Reservations -> Cleanup (deletes last, on purpose, so you can see review cascade-delete happen).\n\nBefore running: fill in adminEmail/adminPassword/clientAEmail/clientAPassword/clientBEmail/clientBPassword collection variables (or run the Register requests in the Auth folder first to create fresh test users), and make sure the backend is running on {{baseUrl}} against a live Postgres + Keycloak.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://79.143.185.33:8080" },
+    { "key": "adminEmail", "value": "" },
+    { "key": "adminPassword", "value": "" },
+    { "key": "clientAEmail", "value": "" },
+    { "key": "clientAPassword", "value": "" },
+    { "key": "clientBEmail", "value": "" },
+    { "key": "clientBPassword", "value": "" },
+    { "key": "adminAccessToken", "value": "" },
+    { "key": "clientAAccessToken", "value": "" },
+    { "key": "clientBAccessToken", "value": "" },
+    { "key": "adminUserId", "value": "" },
+    { "key": "clientAUserId", "value": "" },
+    { "key": "clientBUserId", "value": "" },
+    { "key": "tourId", "value": "" },
+    { "key": "tourTypeId", "value": "" },
+    { "key": "extraId", "value": "" },
+    { "key": "reviewIdOnTour", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Register Admin (optional, skip if you already have one)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Test Admin\",\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\",\n  \"phone\": \"20000000\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Public endpoint. Creates the user directly in Keycloak + a local User row. `role` is required (no default) - must be exactly one of CLIENT, PARTENAIRE, CAMPING, ADMIN. Set adminEmail/adminPassword collection variables first."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201 Created', () => pm.response.to.have.status(201));"] }
+            }
+          ]
+        },
+        {
+          "name": "Register Client A (optional)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Test Client A\",\n  \"email\": \"{{clientAEmail}}\",\n  \"password\": \"{{clientAPassword}}\",\n  \"phone\": \"20000001\",\n  \"role\": \"CLIENT\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Client A will be the one submitting reviews and testing the reservation ownership check. Set clientAEmail/clientAPassword collection variables first."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201 Created', () => pm.response.to.have.status(201));"] }
+            }
+          ]
+        },
+        {
+          "name": "Register Client B (optional, needed for the 403 ownership tests)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Test Client B\",\n  \"email\": \"{{clientBEmail}}\",\n  \"password\": \"{{clientBPassword}}\",\n  \"phone\": \"20000002\",\n  \"role\": \"CLIENT\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Client B exists to prove Client B cannot edit Client A's review, and cannot read Client A's reservations (expect 403 both times). Skip this + those tests if you don't need that coverage."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201 Created', () => pm.response.to.have.status(201));"] }
+            }
+          ]
+        },
+        {
+          "name": "Login as Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Public endpoint - proxies to Keycloak server-side, so you never need the Keycloak client secret. Captures accessToken + userId into collection variables automatically."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('adminAccessToken', json.accessToken);",
+                  "pm.collectionVariables.set('adminUserId', json.userId);",
+                  "pm.test('accessToken present', () => pm.expect(json.accessToken).to.be.a('string').and.not.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Client A",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"{{clientAEmail}}\",\n  \"password\": \"{{clientAPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Captures accessToken into {{clientAAccessToken}} and userId into {{clientAUserId}} (needed for the reservation-ownership tests)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('clientAAccessToken', json.accessToken);",
+                  "pm.collectionVariables.set('clientAUserId', json.userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Client B",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"{{clientBEmail}}\",\n  \"password\": \"{{clientBPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Captures accessToken into {{clientBAccessToken}} and userId into {{clientBUserId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('clientBAccessToken', json.accessToken);",
+                  "pm.collectionVariables.set('clientBUserId', json.userId);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Tours (/api/tours)",
+      "item": [
+        {
+          "name": "Create Tour (ADMIN) - all new fields populated",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Circuit Desert 2 Jours (Postman Test)\",\n  \"description\": \"Circuit 2 jours/1 nuit avec bivouac\",\n  \"duration\": \"2 Jours / 1 Nuit\",\n  \"passengerAdultPrice\": 180,\n  \"passengerChildPrice\": 90,\n  \"partnerAdultPrice\": 150,\n  \"partnerChildPrice\": 75,\n  \"isActive\": true,\n  \"tva\": 13,\n  \"aboutText\": \"Explorez le Sahara tunisien lors d'un circuit complet de 2 jours, des dunes de Sabria aux villages berberes.\",\n  \"highlights\": [\n    \"Nuit en bivouac sous les etoiles\",\n    \"Visite de villages berberes\",\n    \"Guide francophone experimente\"\n  ],\n  \"includedItems\": [\n    \"Transport 4x4 tout le circuit\",\n    \"Guide francophone\",\n    \"Tous les repas\"\n  ],\n  \"notIncludedItems\": [\n    \"Boissons alcoolisees\",\n    \"Pourboires\"\n  ],\n  \"programSteps\": [\n    { \"label\": \"Jour 1\", \"title\": \"Douz - Villages Berberes - Bivouac\", \"description\": \"Depart matinal de Douz, traversee du desert en 4x4, installation du bivouac.\" },\n    { \"label\": \"Jour 2\", \"title\": \"Lever du soleil - Oasis - Retour\", \"description\": \"Reveil pour le lever du soleil, visite d'une oasis cachee, retour en fin d'apres-midi.\" }\n  ],\n  \"meetingPoint\": \"Campement Dunes Insolites, Sabria - 30km de Douz\",\n  \"location\": \"Sabria, Douz, Sahara Tunisien\",\n  \"groupSizeType\": \"TOUTES_TAILLES\",\n  \"languages\": [\"FR\", \"EN\", \"AR\"],\n  \"cancellationPolicy\": { \"freeCancellation\": true, \"hoursBeforeDeadline\": 48 },\n  \"coverPhotoUrl\": \"https://example.com/images/circuit-2j-cover.jpg\",\n  \"photos\": [\n    { \"url\": \"https://example.com/images/circuit-2j-1.jpg\", \"caption\": \"Bivouac sous les etoiles\" },\n    { \"url\": \"https://example.com/images/circuit-2j-2.jpg\", \"caption\": \"Village berbere\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/tours",
+            "description": "Requires ADMIN role (unchanged - only reads became public, not writes). On success, captures tourId into {{tourId}} for every later request in this collection."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('tourId', json.tourId);",
+                  "pm.test('location round-tripped', () => pm.expect(json.location).to.eql('Sabria, Douz, Sahara Tunisien'));",
+                  "pm.test('highlights round-tripped', () => pm.expect(json.highlights).to.include('Nuit en bivouac sous les etoiles'));",
+                  "pm.test('programSteps round-tripped with title', () => pm.expect(json.programSteps[0].title).to.eql('Douz - Villages Berberes - Bivouac'));",
+                  "pm.test('cancellationPolicy round-tripped', () => pm.expect(json.cancellationPolicy.hoursBeforeDeadline).to.eql(48));",
+                  "pm.test('legacy duration field untouched', () => pm.expect(json.duration).to.eql('2 Jours / 1 Nuit'));",
+                  "pm.test('averageRating starts null, reviewCount starts 0', () => { pm.expect(json.averageRating).to.be.null; pm.expect(json.reviewCount).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Tour by ID (now PUBLIC - called with no auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}",
+            "description": "Deliberately sent with NO Authorization header to prove this is now public. Confirms all new fields (including location) are returned."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 with no auth header', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('location present', () => pm.expect(json.location).to.eql('Sabria, Douz, Sahara Tunisien'));",
+                  "pm.test('photos array present', () => pm.expect(json.photos).to.have.lengthOf(2));",
+                  "pm.test('languages present', () => pm.expect(json.languages).to.include.members(['FR','EN','AR']));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Tours (now PUBLIC - called with no auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours",
+            "description": "Deliberately sent with NO Authorization header to prove this is now public."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200 with no auth header', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Get Active Tours (still requires auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/tours/active",
+            "description": "Deliberately NOT made public - only GetById/GetAll were. Still requires a valid token."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Get Active Tours with NO auth - expect 401",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours/active",
+            "description": "Negative test proving /active did NOT accidentally become public via the {tourId} wildcard permitAll rule (ordering in SecurityConfig matters here - this is exactly the case that ordering was written to protect)."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"] } }]
+        },
+        {
+          "name": "Update Tour (ADMIN) - change a new field",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Circuit Desert 2 Jours (Postman Test)\",\n  \"description\": \"Circuit 2 jours/1 nuit avec bivouac\",\n  \"duration\": \"2 Jours / 1 Nuit\",\n  \"passengerAdultPrice\": 180,\n  \"passengerChildPrice\": 90,\n  \"partnerAdultPrice\": 150,\n  \"partnerChildPrice\": 75,\n  \"isActive\": true,\n  \"tva\": 13,\n  \"groupSizeType\": \"PRIVATIF\",\n  \"meetingPoint\": \"Nouveau point de rendez-vous, Douz centre\",\n  \"location\": \"Douz, Sahara Tunisien\",\n  \"cancellationPolicy\": { \"freeCancellation\": false, \"hoursBeforeDeadline\": 24 }\n}"
+            },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}",
+            "description": "Uses TourUpdateRequest (a full replace, not a patch - this is this endpoint's existing behavior, unchanged by this work). Fields omitted here (highlights, photos, etc.) will be overwritten to null/empty since this is TourMapper.updateEntity doing a full field copy."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('groupSizeType updated', () => pm.expect(json.groupSizeType).to.eql('PRIVATIF'));",
+                  "pm.test('location updated', () => pm.expect(json.location).to.eql('Douz, Sahara Tunisien'));",
+                  "pm.test('cancellationPolicy updated', () => pm.expect(json.cancellationPolicy.freeCancellation).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Tour Types (/api/tour-types)",
+      "item": [
+        {
+          "name": "Create Tour Type (ADMIN or CAMPING)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Tente Suite Luxe (Postman Test)\",\n  \"description\": \"Tente suite luxueuse avec demi-pension\",\n  \"duration\": \"1 Nuit\",\n  \"passengerAdultPrice\": 150,\n  \"passengerChildPrice\": 75,\n  \"partnerAdultPrice\": 120,\n  \"partnerChildPrice\": 60,\n  \"tva\": 13,\n  \"isActive\": true,\n  \"aboutText\": \"Offrez-vous le summum du confort dans le desert.\",\n  \"highlights\": [\"Lit king-size\", \"Climatisation/chauffage\", \"Service en chambre\"],\n  \"includedItems\": [\"Diner gastronomique\", \"Petit-dejeuner premium\"],\n  \"notIncludedItems\": [\"Transport\", \"Massages et spa\"],\n  \"programSteps\": [\n    { \"label\": \"Soiree\", \"title\": null, \"description\": \"Installation, diner gastronomique, coucher de soleil.\" }\n  ],\n  \"meetingPoint\": \"Campement Dunes Insolites, Sabria\",\n  \"location\": \"Sabria, Douz, Sahara Tunisien\",\n  \"groupSizeType\": \"PETIT_GROUPE\",\n  \"languages\": [\"FR\", \"EN\"],\n  \"cancellationPolicy\": { \"freeCancellation\": true, \"hoursBeforeDeadline\": 48 },\n  \"coverPhotoUrl\": \"https://example.com/images/suite-luxe-cover.jpg\",\n  \"photos\": [ { \"url\": \"https://example.com/images/suite-luxe-1.jpg\", \"caption\": \"Interieur de la suite\" } ]\n}"
+            },
+            "url": "{{baseUrl}}/api/tour-types",
+            "description": "Requires ADMIN or CAMPING role. isActive is a newly-exposed field on this DTO (was a pre-existing entity column never surfaced before - closed for the soft-delete feature to make sense). Captures tourTypeId into {{tourTypeId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('tourTypeId', json.tourTypeId);",
+                  "pm.test('groupSizeType round-tripped', () => pm.expect(json.groupSizeType).to.eql('PETIT_GROUPE'));",
+                  "pm.test('location round-tripped', () => pm.expect(json.location).to.eql('Sabria, Douz, Sahara Tunisien'));",
+                  "pm.test('isActive defaults true', () => pm.expect(json.isActive).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Tour Type by ID (now PUBLIC - called with no auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tour-types/{{tourTypeId}}",
+            "description": "Deliberately sent with NO Authorization header to prove this is now public."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 with no auth header', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('location present', () => pm.expect(json.location).to.eql('Sabria, Douz, Sahara Tunisien'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Tour Types (now PUBLIC - called with no auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tour-types",
+            "description": "Deliberately sent with NO Authorization header to prove this is now public."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200 with no auth header', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Update Tour Type (ADMIN or CAMPING) - uses mapper.updateEntity",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Tente Suite Luxe (Postman Test)\",\n  \"description\": \"Tente suite luxueuse avec demi-pension\",\n  \"duration\": \"1 Nuit\",\n  \"passengerAdultPrice\": 160,\n  \"passengerChildPrice\": 80,\n  \"partnerAdultPrice\": 120,\n  \"partnerChildPrice\": 60,\n  \"tva\": 13,\n  \"isActive\": true,\n  \"location\": \"Sabria, Sahara Tunisien\",\n  \"languages\": [\"FR\", \"EN\", \"AR\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/tour-types/{{tourTypeId}}",
+            "description": "This endpoint used to manually copy each field one by one in TourTypeServiceImpl - it's now TourTypeMapper.updateEntity(), same as Tour already worked. Verifies that refactor didn't drop any field, including the newly-added isActive/location."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('price updated', () => pm.expect(json.passengerAdultPrice).to.eql(160));",
+                  "pm.test('location updated', () => pm.expect(json.location).to.eql('Sabria, Sahara Tunisien'));",
+                  "pm.test('languages updated', () => pm.expect(json.languages).to.include.members(['FR','EN','AR']));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Extras (/api/extras)",
+      "item": [
+        {
+          "name": "Create Extra (ADMIN or CAMPING) - includes extraDuration",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Diner Bedouin Sous les Etoiles (Postman Test)\",\n  \"description\": \"Diner traditionnel bedouin sous les etoiles\",\n  \"duration\": \"2h (19h - 21h)\",\n  \"unitPrice\": 45,\n  \"isActive\": true,\n  \"tva\": 13,\n  \"aboutText\": \"Savourez un festin bedouin authentique sous un ciel etoile exceptionnel.\",\n  \"highlights\": [\"Diner complet 5 plats\", \"Spectacle de musique et danse\"],\n  \"includedItems\": [\"Couscous traditionnel\", \"The a la menthe illimite\"],\n  \"notIncludedItems\": [\"Boissons alcoolisees\"],\n  \"programSteps\": [\n    { \"label\": \"19h00\", \"title\": null, \"description\": \"Accueil et installation\" },\n    { \"label\": \"19h30\", \"title\": null, \"description\": \"Service du diner\" },\n    { \"label\": \"21h00\", \"title\": null, \"description\": \"Fin de la soiree\" }\n  ],\n  \"meetingPoint\": \"Campement Dunes Insolites, Sabria\",\n  \"location\": \"Sabria, Sahara Tunisien\",\n  \"groupSizeType\": \"TOUTES_TAILLES\",\n  \"languages\": [\"FR\", \"EN\"],\n  \"cancellationPolicy\": { \"freeCancellation\": true, \"hoursBeforeDeadline\": 24 },\n  \"extraDuration\": { \"startTime\": \"19:00:00\", \"endTime\": \"21:00:00\" },\n  \"coverPhotoUrl\": \"https://example.com/images/diner-bedouin-cover.jpg\",\n  \"photos\": [ { \"url\": \"https://example.com/images/diner-bedouin-1.jpg\", \"caption\": \"Table dressee sous les etoiles\" } ]\n}"
+            },
+            "url": "{{baseUrl}}/api/extras",
+            "description": "Requires ADMIN or CAMPING role. extraDuration is the one field that ONLY exists on Extra, not Tour/TourType - LocalTime serializes as an ISO string (\"HH:mm:ss\"). Captures extraId into {{extraId}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('extraId', json.extraId);",
+                  "pm.test('location round-tripped', () => pm.expect(json.location).to.eql('Sabria, Sahara Tunisien'));",
+                  "pm.test('extraDuration round-tripped', () => { pm.expect(json.extraDuration.startTime).to.eql('19:00:00'); pm.expect(json.extraDuration.endTime).to.eql('21:00:00'); });",
+                  "pm.test('legacy duration string untouched', () => pm.expect(json.duration).to.eql('2h (19h - 21h)'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Extra by ID (now PUBLIC - called with no auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/extras/{{extraId}}",
+            "description": "Deliberately sent with NO Authorization header to prove this is now public."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 with no auth header', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('location present', () => pm.expect(json.location).to.eql('Sabria, Sahara Tunisien'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Extras (now PUBLIC - called with no auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/extras",
+            "description": "Deliberately sent with NO Authorization header to prove this is now public."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200 with no auth header', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Get Active Extras (still requires auth)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/extras/active",
+            "description": "Deliberately NOT made public - only GetById/GetAll were."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Get Active Extras with NO auth - expect 401",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/extras/active",
+            "description": "Negative test proving /active did NOT accidentally become public via the {extraId} wildcard permitAll rule."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"] } }]
+        },
+        {
+          "name": "Update Extra (ADMIN or CAMPING) - uses mapper.updateEntity",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Diner Bedouin Sous les Etoiles (Postman Test)\",\n  \"description\": \"Diner traditionnel bedouin sous les etoiles\",\n  \"duration\": \"2h (19h - 21h)\",\n  \"unitPrice\": 50,\n  \"isActive\": true,\n  \"tva\": 13,\n  \"location\": \"Douz, Sahara Tunisien\",\n  \"extraDuration\": { \"startTime\": \"19:30:00\", \"endTime\": \"21:30:00\" }\n}"
+            },
+            "url": "{{baseUrl}}/api/extras/{{extraId}}",
+            "description": "Verifies ExtraServiceImpl's refactored update (mapper.updateEntity instead of manual field copy) still applies isActive/tva correctly alongside the new location/extraDuration fields."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('unitPrice updated', () => pm.expect(json.unitPrice).to.eql(50));",
+                  "pm.test('location updated', () => pm.expect(json.location).to.eql('Douz, Sahara Tunisien'));",
+                  "pm.test('extraDuration updated', () => pm.expect(json.extraDuration.startTime).to.eql('19:30:00'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Reviews (/api/reviews) - new subsystem",
+      "item": [
+        {
+          "name": "Create Review on Tour (Client A)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"productId\": \"{{tourId}}\",\n  \"productType\": \"TOUR\",\n  \"rating\": 5,\n  \"comment\": \"Experience inoubliable, guide excellent !\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews",
+            "description": "Any authenticated user. Author comes from the JWT (jwt.getSubject()), never from the request body. Saved immediately - no moderation/status step. Captures reviewIdOnTour."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('reviewIdOnTour', json.reviewId);",
+                  "pm.test('userName is populated (denormalized from User)', () => pm.expect(json.userName).to.be.a('string').and.not.empty);",
+                  "pm.test('rating is 5', () => pm.expect(json.rating).to.eql(5));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify averageRating/reviewCount updated on the Tour",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}",
+            "description": "Re-fetches the Tour after the review above. This is the denormalized aggregate that gets recomputed on every review create/update/delete."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('averageRating is now 5', () => pm.expect(json.averageRating).to.eql(5.0));",
+                  "pm.test('reviewCount is now 1', () => pm.expect(json.reviewCount).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Duplicate Review on same Tour (Client A again) - expect 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"productId\": \"{{tourId}}\",\n  \"productType\": \"TOUR\",\n  \"rating\": 3,\n  \"comment\": \"Trying to review the same tour twice\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews",
+            "description": "One review per (user, product) is enforced both in the service (friendly check) and at the DB level (unique constraint on user_id+product_id+product_type). Plain RuntimeException -> GlobalExceptionHandler maps it to 400 Bad Request with your message in the body."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('message mentions already reviewed', () => pm.expect(json.message).to.include('already reviewed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Review with invalid rating (6) - expect 400 validation error",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientBAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"productId\": \"{{tourTypeId}}\",\n  \"productType\": \"TOURTYPE\",\n  \"rating\": 6,\n  \"comment\": \"Rating out of range\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews",
+            "description": "@Min(1)/@Max(5) on ReviewRequest.rating -> MethodArgumentNotValidException -> 400 with an `errors` field map (different body shape than the plain-RuntimeException 400 above - has a nested `errors.rating` message)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('field error present for rating', () => pm.expect(json.errors).to.have.property('rating'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Review on nonexistent product - expect 400",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientBAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"productId\": \"00000000-0000-0000-0000-000000000000\",\n  \"productType\": \"EXTRA\",\n  \"rating\": 4,\n  \"comment\": \"Reviewing something that doesn't exist\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews",
+            "description": "Since Review.productId has no DB foreign key (mirrors the UserProductRemise/ProductType pattern already used elsewhere in this codebase), existence is checked in ReviewServiceImpl via existsById dispatched on productType before saving."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('message mentions product not found', () => pm.expect(json.message).to.include('not found'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Reviews for Tour (paginated)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reviews?productId={{tourId}}&productType=TOUR&page=0&size=10",
+            "description": "Standard Spring Pageable query params (page/size/sort), @PageableDefault(size=10), same convention already used by /api/reservations. All reviews are visible immediately - there is no approved/pending filter."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('page has 1 review', () => pm.expect(json.content).to.have.lengthOf(1));",
+                  "pm.test('is a Page object', () => pm.expect(json).to.have.property('totalElements'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Review by ID",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reviews/{{reviewIdOnTour}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Update Own Review (Client A changes rating to 4)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Updating my review - still great but noise from a nearby group.\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews/{{reviewIdOnTour}}",
+            "description": "ReviewUpdateRequest only has rating+comment - reviewId/user/productId/productType/createdAt cannot be changed through this endpoint. Ownership is checked in the service (AccessDeniedException if not yours)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('rating updated to 4', () => pm.expect(json.rating).to.eql(4));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify averageRating updated on the Tour after edit",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('averageRating recomputed to 4', () => pm.expect(json.averageRating).to.eql(4.0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Someone Else's Review (Client B on Client A's review) - expect 403",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientBAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"rating\": 1,\n  \"comment\": \"Trying to hijack someone else's review\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews/{{reviewIdOnTour}}",
+            "description": "Endpoint-level @PreAuthorize is just isAuthenticated() - ownership is enforced inside ReviewServiceImpl.updateReview via AccessDeniedException, which GlobalExceptionHandler already maps to 403 (no new handler was needed for this)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 403 Forbidden', () => pm.response.to.have.status(403));"] }
+            }
+          ]
+        },
+        {
+          "name": "Delete Review (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reviews/{{reviewIdOnTour}}",
+            "description": "Only ADMIN can delete a review directly (no moderation queue - this is the cleanup/abuse-removal path). Recomputes the parent Tour's aggregate afterward."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"] } }]
+        },
+        {
+          "name": "Verify averageRating cleared on the Tour after review deleted",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('averageRating is null again (no reviews left)', () => pm.expect(json.averageRating).to.be.null);",
+                  "pm.test('reviewCount is 0', () => pm.expect(json.reviewCount).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Deactivate (soft delete)",
+      "item": [
+        {
+          "name": "Deactivate Tour (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}/deactivate",
+            "description": "Sets isActive=false and saves - does NOT delete the row. ADMIN only, same as the hard DELETE."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('isActive is now false', () => pm.expect(json.isActive).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Tour still exists (soft-deleted, not hard-deleted)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}",
+            "description": "Proves this was a soft delete: the row is still fetchable by ID, just with isActive=false. It will also no longer appear in GET /api/tours/active."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 - record still exists', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('isActive is false', () => pm.expect(json.isActive).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate Tour Type (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/tour-types/{{tourTypeId}}/deactivate",
+            "description": "Same pattern as Tour. This is also the first time TourType's isActive is reachable at all through the API, since it's now exposed on TourTypeResponse."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('isActive is now false', () => pm.expect(json.isActive).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Tour Type still exists (soft-deleted, not hard-deleted)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/tour-types/{{tourTypeId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 - record still exists', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('isActive is false', () => pm.expect(json.isActive).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate Extra (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/extras/{{extraId}}/deactivate"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('isActive is now false', () => pm.expect(json.isActive).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Extra still exists (soft-deleted, not hard-deleted)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": "{{baseUrl}}/api/extras/{{extraId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 - record still exists', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('isActive is false', () => pm.expect(json.isActive).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Reservations - ownership check on /api/reservations/user/{userId}",
+      "item": [
+        {
+          "name": "Client A gets own reservations - expect 200",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reservations/user/{{clientAUserId}}",
+            "description": "userId in the path equals the caller's own JWT subject, so this passes the new @PreAuthorize ownership check regardless of whether Client A has any reservations yet (an empty list is still 200 - this test is about authorization, not data)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200 - own reservations allowed', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        },
+        {
+          "name": "Client A gets Client B's reservations - expect 403",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reservations/user/{{clientBUserId}}",
+            "description": "This is the exact gap that was fixed: before, any CLIENT/PARTENAIRE could pass an arbitrary userId and see someone else's full reservation history. Now the @PreAuthorize SpEL expression `hasAnyRole('ADMIN','CAMPING') or #userId.toString() == authentication.name` denies this."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 403 Forbidden - cannot view another user\\'s reservations', () => pm.response.to.have.status(403));"] }
+            }
+          ]
+        },
+        {
+          "name": "Admin gets Client A's reservations - expect 200",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reservations/user/{{clientAUserId}}",
+            "description": "ADMIN bypasses the ownership check entirely - can fetch any userId's reservations."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200 - ADMIN can view any user', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        },
+        {
+          "name": "Admin gets Client B's reservations - expect 200",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reservations/user/{{clientBUserId}}",
+            "description": "Same as above, different target userId - confirms the ADMIN bypass isn't accidentally hardcoded to one specific user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200 - ADMIN can view any user', () => pm.response.to.have.status(200));"] }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Cleanup (run last - proves review cascade-delete)",
+      "item": [
+        {
+          "name": "Create one more Review on the Tour (to prove cascade on delete)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientBAccessToken}}", "type": "string" }] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"productId\": \"{{tourId}}\",\n  \"productType\": \"TOUR\",\n  \"rating\": 3,\n  \"comment\": \"About to delete this tour to test cascade\"\n}"
+            },
+            "url": "{{baseUrl}}/api/reviews",
+            "description": "Client B (not Client A, who already has a deleted one) leaves a fresh review so there's something for the Delete Tour request below to cascade-delete. Works even though the Tour was deactivated earlier - deactivate only flips isActive, reviews are unaffected."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201 Created', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "Delete Tour (ADMIN) - also deletes its remaining reviews",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/tours/{{tourId}}",
+            "description": "TourServiceImpl.deleteTour now also calls reviewRepository.deleteAllByProductIdAndProductType(tourId, TOUR) right alongside the pre-existing userProductRemiseRepository cleanup call. This is the hard delete - separate from the deactivate (soft delete) tested above."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"] } }]
+        },
+        {
+          "name": "Verify the Tour's reviews are gone (list returns empty)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{clientAAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/reviews?productId={{tourId}}&productType=TOUR&page=0&size=10",
+            "description": "The Tour itself is gone (previous request), but this call still succeeds since GET /api/reviews doesn't validate product existence - it should just come back with an empty page, proving the cascade delete worked."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('no reviews left for the deleted tour', () => pm.expect(json.content).to.have.lengthOf(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Tour Type (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/tour-types/{{tourTypeId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"] } }]
+        },
+        {
+          "name": "Delete Extra (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/api/extras/{{extraId}}"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 204 No Content', () => pm.response.to.have.status(204));"] } }]
+        }
+      ]
+    }
+  ]
+}

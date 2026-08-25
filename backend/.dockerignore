@@ -1,0 +1,15 @@
+target/
+docker/
+docs/
+postman/
+.git/
+.idea/
+.gitattributes
+.gitignore
+HELP.md
+README.md
+docker-compose.yml
+.env
+.env.example
+*.iml
+.vscode/
