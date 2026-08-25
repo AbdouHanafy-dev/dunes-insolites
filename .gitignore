@@ -37,4 +37,3 @@ yarn-error.log*
 /backend/duneinsolite/
 /dunes insolites/
 .qodo/
-/package-lock.json
