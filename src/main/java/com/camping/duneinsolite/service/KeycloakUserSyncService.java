@@ -51,12 +51,24 @@ public class KeycloakUserSyncService {
     private String realm;
 
     // ─────────────────────────────────────────────────────────────────────
-    // PUBLIC SELF-REGISTRATION (CLIENT or PARTENAIRE registers themselves)
-    // Called from POST /api/auth/register
+    // REGISTRATION (password supplied by whoever is registering)
+    // Called from POST /api/auth/register — always as CLIENT — and from the
+    // seeder, which is trusted server-side code and may ask for other roles.
+    //
+    // The role is a PARAMETER, never a field on RegisterRequest. The register
+    // endpoint is permitAll(), so a caller-supplied role would let anyone on
+    // the internet grant themselves ADMIN.
     // ─────────────────────────────────────────────────────────────────────
 
     @Transactional
-    public User registerUser(RegisterRequest request) {
+    public User registerUser(RegisterRequest request, UserRole role) {
+        // Reject duplicates BEFORE touching Keycloak. @Transactional rolls back
+        // Postgres but has no authority over Keycloak, so creating there first
+        // would leave an orphaned, role-bearing account behind on every retry.
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyInUseException(request.getEmail());
+        }
+
         // Password comes from the request — user chose it themselves
         String keycloakUserId = createKeycloakUser(
                 request.getEmail(),
@@ -64,23 +76,19 @@ public class KeycloakUserSyncService {
                 request.getPassword()
         );
 
-        assignRole(keycloakUserId, request.getRole().name());
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User already exists in local DB: " + request.getEmail());
-        }
+        assignRole(keycloakUserId, role.name());
 
         User user = User.builder()
                 .userId(UUID.fromString(keycloakUserId))
                 .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
-                .role(request.getRole())
+                .role(role)
                 .loyaltyPoints(0)
                 .loyaltyTier(LoyaltyTier.BRONZE)
                 // PARTENAIRE fields
-                .matriculeFiscal(request.getRole() == UserRole.PARTENAIRE ? request.getMatriculeFiscal() : null)
-                .agencyAddress(request.getRole()   == UserRole.PARTENAIRE ? request.getAgencyAddress()   : null)
+                .matriculeFiscal(role == UserRole.PARTENAIRE ? request.getMatriculeFiscal() : null)
+                .agencyAddress(role   == UserRole.PARTENAIRE ? request.getAgencyAddress()   : null)
                 .build();
 
         User savedUser = userRepository.save(user);

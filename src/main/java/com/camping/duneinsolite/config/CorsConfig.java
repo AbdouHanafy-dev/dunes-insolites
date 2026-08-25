@@ -40,12 +40,15 @@ public class CorsConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-    // add to SecurityConfig or any @Configuration class
-    @Bean
-    public org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer asyncConfigurer() {
-        org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer configurer =
-                new org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer();
-        configurer.setDefaultTimeout(-1); // no timeout for SSE
-        return configurer;
-    }
+
+    // NOTE: the SSE timeout is NOT configured here.
+    //
+    // There used to be an @Bean returning an AsyncSupportConfigurer. That did
+    // nothing: AsyncSupportConfigurer is a callback object Spring hands to
+    // WebMvcConfigurer.configureAsyncSupport(), not a bean it reads. Building
+    // one and returning it configured no timeout at all, so the notification
+    // stream was silently running on the container default.
+    //
+    // It is now set declaratively in application.yml:
+    //     spring.mvc.async.request-timeout: -1
 }

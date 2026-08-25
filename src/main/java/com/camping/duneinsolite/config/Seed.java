@@ -84,9 +84,12 @@ public class Seed implements CommandLineRunner {
         request.setEmail(email);
         request.setPassword(password);
         request.setPhone("00000000");
-        request.setRole(role);
 
-        keycloakUserSyncService.registerUser(request);
+        // The role is passed as an argument, not carried on the request — see
+        // KeycloakUserSyncService.registerUser. The seeder is trusted server-side
+        // code, so it is allowed to ask for ADMIN/CAMPING; the register endpoint
+        // is not.
+        keycloakUserSyncService.registerUser(request, role);
         log.info("Seed: created {} account {}", label, email);
     }
 

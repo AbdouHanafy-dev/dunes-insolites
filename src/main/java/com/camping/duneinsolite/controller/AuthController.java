@@ -31,12 +31,16 @@ public class AuthController {
 
     /**
      * POST /api/auth/register
-     * Creates user in Keycloak + saves in local DB
-     * Body: { name, email, password, phone, role, taxId?, commissionRate? }
+     * Public self-registration. Creates the user in Keycloak + the local DB.
+     * Body: { name, email, password, phone }
+     *
+     * The role is NOT taken from the request — this endpoint is permitAll(),
+     * so self-registration is always CLIENT. Staff and partner accounts are
+     * created through POST /api/users/add, behind hasRole('ADMIN').
      */
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody RegisterRequest request) {
-        User createdUser = keycloakUserSyncService.registerUser(request);
+        User createdUser = keycloakUserSyncService.registerUser(request, UserRole.CLIENT);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 

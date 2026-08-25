@@ -37,6 +37,13 @@ spring:
           # anyway for consistency/future-proofing.
           issuer-uri: ${KEYCLOAK_SERVER_URL:http://79.143.185.33:8180}/realms/${KEYCLOAK_REALM:duneinsolite}
 
+  mvc:
+    async:
+      # SSE streams (/api/notifications/subscribe) must not be timed out by the
+      # container. Replaces a dead AsyncSupportConfigurer @Bean in CorsConfig
+      # that never took effect.
+      request-timeout: -1
+
   mail:
     host: smtp.gmail.com
     port: 587

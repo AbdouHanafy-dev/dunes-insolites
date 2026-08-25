@@ -1,17 +1,26 @@
 package com.camping.duneinsolite.dto.request;
 
-import com.camping.duneinsolite.model.enums.UserRole;
 import lombok.Data;
 
+/**
+ * Public self-registration payload.
+ *
+ * There is deliberately no `role` field. The role is decided by the server —
+ * AuthController always registers a CLIENT — because this endpoint is
+ * permitAll(), and a caller-supplied role here meant anyone on the internet
+ * could POST {"role":"ADMIN"} and be granted a Keycloak realm admin account.
+ *
+ * Privileged accounts are created only through POST /api/users/add, which is
+ * behind hasRole('ADMIN').
+ */
 @Data
 public class RegisterRequest {
     private String name;
     private String email;
     private String password;
     private String phone;
-    private UserRole role; // CLIENT, PARTENAIRE, CAMPING, ADMIN
 
-    // Only relevant when role = PARTENAIRE
+    // Only relevant when the server registers a PARTENAIRE (not via self-registration)
     private String matriculeFiscal;
     private String agencyAddress;
 }
