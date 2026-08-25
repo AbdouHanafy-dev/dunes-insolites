@@ -1,81 +1,78 @@
 @AGENTS.md
 
-# Dunes Insolites — project notes
+# Frontend — espace client
 
-## The business, correctly
+Supplements the root [`../CLAUDE.md`](../CLAUDE.md), which holds the business
+model, the non-negotiable rules and the commands. **Read that first.** This file
+covers only what is specific to this app.
 
-Dunes Insolites runs everything on-site at its camp in Sabria, Tunisia.
-**There is no multi-day touring product** — that's a different business
-(Route Insolite). Don't reintroduce "tours" as a concept; it's been asked
-for and explicitly corrected once already.
+---
 
-The real product is the **nuitée** (overnight stay), reserved directly:
+## Where things are
 
-- **`nuitee-campement`** — the fixed camp. Guests pick one accommodation:
-  Desert Tent / Desert Room / Dune Suite (`Stay.accommodations`).
-- **`nuitee-bivouac`** — a simpler night further into the dunes. No
-  accommodation choice.
+```
+app/          App Router. app/api/* are local stand-ins for the backend.
+components/   ~55 components; 14 are "use client".
+lib/
+  api.ts      THE seam to the backend. Nothing else fetches.
+  types.ts    re-exports @dunes/api-types + presentation labels.
+  data/       seed content. Imported ONLY by lib/api.ts.
+  site.ts     brand config — name, URL, nav, locales.
+```
 
-Camel trek / quad safari / sandboarding are **optional add-ons** ("rides")
-to a nuitée booking, not their own bookable product line — a guest picks
-which rides they want in the reservation form; there's no time-of-day
-picker, since the camp confirms the exact hour with the guest on arrival
-depending on who else is booked in that day.
+> The app used to live under `sabria/` in a nested repo. It is now `frontend/`
+> in the monorepo. Any doc or comment saying `sabria/` is stale.
 
-## Repo layout
+---
 
-Git root is `dunes-insolites/`, one level above the app. The actual Next.js
-project lives in **`sabria/`** — always work from there (`cd sabria` or use
-`sabria/`-relative paths).
+## The data seam
 
-## Architecture
+Every page and component reads and writes through `lib/api.ts`. Setting
+`NEXT_PUBLIC_API_URL` switches the whole site from seed data plus `app/api/*`
+route handlers to the real backend, with no other code change.
 
-- **`lib/api.ts` is the single seam** to a future backend. Every page and
-  component reads/writes through it — nothing imports `lib/data/*`
-  directly outside that file. Setting `NEXT_PUBLIC_API_URL` switches the
-  whole site from local seed data + `app/api/*` route handlers to a real
-  backend, with no other code changes.
-- **`API_CONTRACT.md`** documents the exact JSON shapes and endpoints the
-  frontend expects, written for whoever builds the Spring Boot backend.
-  **Keep it in sync whenever a type or endpoint changes** — it already
-  drifted out of date once this session (documented `Activity`/`Booking`
-  but not `Stay`/`Accommodation`/`StayBooking` for a long stretch after
-  they shipped). Update the doc in the same change that touches
-  `lib/types.ts` or `app/api/*`, not as an afterthought.
-- In-memory `Map` stores (`lib/bookings.ts`, `lib/stayBookings.ts`) stand
-  in for a database — booking data doesn't persist across a server
-  restart, by design, until a real backend exists.
+Wire shapes come from `@dunes/api-types`. `lib/types.ts` re-exports them and adds
+only presentation — `SLOT_LABELS`, `REVIEW_SOURCE_LABELS`. Keep that split:
+those become translated strings, and translations do not belong in a contract
+shared with a Java service.
+
+[`API_CONTRACT.md`](API_CONTRACT.md) documents endpoints and payloads. The
+**types** in it are superseded by `@dunes/api-types` — that package is
+authoritative. The endpoint documentation is still current.
+
+### Two things that will bite
+
+**Seed fallback is silent.** `get()` catches every failure and returns seed data.
+A dead backend renders stale marketing prices as though live — no log, no signal.
+Must be gated on `NODE_ENV` before launch (roadmap DI-031).
+
+**In-memory stores.** `lib/bookings.ts` keeps bookings in a `Map` that dies on
+restart and is per-instance on serverless. Availability is computed from a *hash
+of the date string* — deterministic fake data. Both are placeholders until the
+backend lands (roadmap DI-013).
+
+---
 
 ## Reviews
 
-A `Review` can be tied to a `staySlug`, an `activitySlug`, or neither (a
-general review of the camp) — most real reviews from GetYourGuide/
-Airbnb/Booking.com are general, not about one specific ride. Stay pages
-show reviews for that stay *plus* general ones; activity pages stay
-narrowly filtered; the homepage shows everything grouped by platform.
+A `Review` ties to a `staySlug`, an `activitySlug`, or neither — most real
+reviews from GetYourGuide, Airbnb and Booking.com are general rather than about
+one ride. Stay pages show that stay's reviews **plus** general ones; activity
+pages stay narrowly filtered; the homepage shows everything grouped by platform.
 
-**Never fabricate a review or an aggregate rating number.** Publishing
-invented reviews as real is illegal in the EU and most markets. Real
-reviews get entered by hand from what the user pastes in — there's no
-public API for pulling reviews off GetYourGuide/Airbnb/Booking.com/WeTravel
-(Google and TripAdvisor are the exception; that's why those two sources
-existed first). Keep a review's `body` in the guest's original language —
-translating it misrepresents what they actually said. `lib/data/reviews.ts`
-still has a handful of invented placeholder reviews flagged in its own
-top-of-file comment for replacement before launch.
+**Never fabricate a review or an aggregate rating.** See the root `CLAUDE.md`.
+`lib/data/reviews.ts` still contains placeholder reviews flagged in its own
+header for replacement before launch.
 
-## Working style established in this repo
+---
 
-- Run `npx tsc --noEmit` and `npx eslint <changed files>` after every
-  change, before calling it done.
-- Verify UI claims by actually rendering the page (dev server + Playwright
-  screenshots), not by reading the code and assuming it works. Several real
-  bugs this session were only caught by looking at the rendered output
-  (a `display: none` silently killing a whole section; a CSS specificity
-  clash making button text the same color as its background).
-- Playwright's high-level actionability checks (`scrollIntoViewIfNeeded`,
-  auto-waiting clicks) are flaky against `Reveal`-animated elements (opacity
-  transitions read as "not stable"). Prefer
-  `page.evaluate(el => el.scrollIntoView())` and an explicit short wait.
-- `AGENTS.md` is regenerated by `next dev` itself — don't hand-edit it;
-  seeing it show up in `git status` after running the dev server is normal.
+## Working style
+
+- Run `npm run verify` from the repo root before calling a change done.
+- **Verify UI by rendering it**, not by reading the code. Real bugs here were
+  only caught by looking at output — a `display:none` silently killing a section,
+  a specificity clash making button text match its background.
+- Playwright's actionability checks are flaky against `Reveal`-animated elements
+  (opacity transitions read as "not stable"). Prefer
+  `page.evaluate(el => el.scrollIntoView())` plus a short explicit wait.
+- `AGENTS.md` is regenerated by `next dev` — do not hand-edit it.

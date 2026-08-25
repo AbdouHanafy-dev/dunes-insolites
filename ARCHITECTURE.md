@@ -538,24 +538,39 @@ which are operational records.
 ```mermaid
 graph TD
     TO["TravelOrder — commercial<br/>one trip · one checkout · one payment"]
-    OI1["OrderItem: Circuit<br/>owner: ROUTE_INSOLITE"]
-    OI2["OrderItem: Accommodation<br/>owner: DUNES_INSOLITES"]
-    OI3["OrderItem: Activity<br/>owner: DUNES_INSOLITES"]
-    R1["Reservation — operational"]
-    R2["Reservation — operational"]
-    R3["Reservation — operational"]
+    R1["Reservation: Circuit<br/>ROUTE_INSOLITE"]
+    R2["Reservation: Camp<br/>DUNES_INSOLITES"]
+    R3["Reservation: Quad<br/>DUNES_INSOLITES"]
     SET["Settlement<br/>allocates between entities"]
 
-    TO --> OI1 --> R1
-    TO --> OI2 --> R2
-    TO --> OI3 --> R3
+    TO --> R1
+    TO --> R2
+    TO --> R3
     TO --> SET
 ```
 
-**`Reservation` is not replaced.** It becomes the operational booking record
-beneath `OrderItem` — which is also the honest way to shrink a 1,788-line
-service class. Nothing existing is deleted; three Angular applications depend on
-`/api/reservations`.
+**Two layers, not three.** There is no `OrderItem` — `Reservation` already is
+the line-item container, holding `tourTypes`, `tours`, `extras` and
+`participants`. An intermediate layer would duplicate price, quantity, product
+reference and status in a parallel structure.
+
+**`Reservation` is not replaced.** It gains two nullable columns and becomes the
+operational record beneath `TravelOrder`:
+
+```
+Reservation
+├── travelOrderId   ← nullable FK. NULL = a trip of one
+└── companyType     ← nullable, backfilled to DUNES_INSOLITES
+```
+
+The migration is therefore **strictly additive**: existing reservations stay
+valid as trips of one, and the three Angular applications consuming
+`/api/reservations` are unaffected. That is what makes it shippable
+incrementally rather than as a big-bang release.
+
+Shrinking `Reservation`'s responsibilities is also the honest way to break up a
+1,788-line service class — it is currently doing both the commercial and the
+operational job.
 
 **Sequencing is deliberately the inverse of the source proposal.** That document
 puts `TravelOrder` first and money types fourth. Introducing a new commercial
