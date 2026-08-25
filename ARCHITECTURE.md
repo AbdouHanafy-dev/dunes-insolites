@@ -525,6 +525,56 @@ line references, is in `docs/`.
 Direction, in dependency order. Sequencing and estimates live in
 `docs/SPRINT_PLAN.pdf`.
 
+### 13.1 The commercial layer — accepted, not yet built
+
+[ADR-0001](docs/adr/0001-travel-order-and-settlement.md) accepts a
+**`TravelOrder`** aggregate sitting *above* `Reservation`.
+
+The problem it solves: a customer buying a Route Insolite circuit that overnights
+at the Dunes camp is buying from two legal entities, and should not have to know
+that. Today there is no object representing "one trip" — only reservations,
+which are operational records.
+
+```mermaid
+graph TD
+    TO["TravelOrder — commercial<br/>one trip · one checkout · one payment"]
+    OI1["OrderItem: Circuit<br/>owner: ROUTE_INSOLITE"]
+    OI2["OrderItem: Accommodation<br/>owner: DUNES_INSOLITES"]
+    OI3["OrderItem: Activity<br/>owner: DUNES_INSOLITES"]
+    R1["Reservation — operational"]
+    R2["Reservation — operational"]
+    R3["Reservation — operational"]
+    SET["Settlement<br/>allocates between entities"]
+
+    TO --> OI1 --> R1
+    TO --> OI2 --> R2
+    TO --> OI3 --> R3
+    TO --> SET
+```
+
+**`Reservation` is not replaced.** It becomes the operational booking record
+beneath `OrderItem` — which is also the honest way to shrink a 1,788-line
+service class. Nothing existing is deleted; three Angular applications depend on
+`/api/reservations`.
+
+**Sequencing is deliberately the inverse of the source proposal.** That document
+puts `TravelOrder` first and money types fourth. Introducing a new commercial
+aggregate on top of `Double` money and a shared invoice sequence would bake both
+defects into a second model. Foundation first:
+
+1. Financial correctness — `BigDecimal`, per-company invoice sequences, audit log
+2. Flyway + tests
+3. Company as a first-class dimension
+4. `TravelOrder` + `OrderItem` + price snapshots
+5. Payment provider, webhooks, availability holds
+6. `Settlement` + inter-company invoices
+
+Read ADR-0001 before starting any of it — it records four open questions that
+are the business's to answer, not a developer's, including who is merchant of
+record for a mixed package.
+
+### 13.2 Platform direction
+
 ```mermaid
 graph TD
     A["Company as a first-class dimension<br/>reservations · catalogue · stats · roles"]
