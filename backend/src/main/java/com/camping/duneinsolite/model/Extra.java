@@ -26,6 +26,12 @@ public class Extra {
     @Column(name = "name", nullable = false)
     private String name;
 
+    // Public route key for the vitrine - carries the legacy WordPress slug so
+    // the SEO migration doesn't change URLs. Nullable: existing rows predate
+    // this column and are backfilled as each product goes public.
+    @Column(name = "slug", unique = true)
+    private String slug;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
@@ -112,4 +118,10 @@ public class Extra {
     @Column(name = "review_count")
     @Builder.Default
     private Integer reviewCount = 0;
+
+    // Non-French marketing copy - name/description/aboutText/etc. columns
+    // above are the French source of truth. See ContentLocale.
+    @OneToMany(mappedBy = "extra", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ExtraTranslation> translations = new ArrayList<>();
 }

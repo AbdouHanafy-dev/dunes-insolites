@@ -1,33 +1,23 @@
+import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 
-const steps = [
-  {
-    n: "01",
-    title: "Pick your adventure",
-    body: "Choose a single activity or bundle camel, quad, and board into one sunset expedition.",
-  },
-  {
-    n: "02",
-    title: "Book your window",
-    body: "Reserve a morning or golden-hour slot. Gear, guides, and transfers are all included.",
-  },
-  {
-    n: "03",
-    title: "Meet at the gate",
-    body: "Arrive at the Sabria gate, meet your guide, and head out across the open Sahara.",
-  },
-];
+export default async function Steps() {
+  const t = await getTranslations("steps");
+  const steps = [
+    { n: "01", title: t("step1Title"), body: t("step1Body") },
+    { n: "02", title: t("step2Title"), body: t("step2Body") },
+    { n: "03", title: t("step3Title"), body: t("step3Body") },
+  ];
 
-export default function Steps() {
   return (
     <section className="block steps" id="steps">
       <div className="wrap">
         <Reveal>
-          <p className="sect-eyebrow">How it works</p>
+          <p className="sect-eyebrow">{t("eyebrow")}</p>
           <h2 className="sect-title">
-            From booking
+            {t("titleLine1")}
             <br />
-            to the dunes.
+            {t("titleLine2")}
           </h2>
         </Reveal>
         <div className="grid">

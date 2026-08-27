@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 import { login, register } from "@/lib/api";
+import { adminAppUrl } from "@/lib/site";
 
 type Mode = "login" | "signup";
 
@@ -44,9 +44,18 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       : await login({ email: email.trim(), password });
 
     if (result.ok) {
+      // Staff/partner roles have no home in this app yet (the real
+      // backoffice is R3, docs/ROADMAP.md) — send them to the existing
+      // Angular admin app rather than into the client-only account area.
+      // A full navigation (not the i18n router) since this is a different
+      // origin/app entirely.
+      if (result.data.role !== "CLIENT") {
+        window.location.href = adminAppUrl;
+        return;
+      }
       // refresh() re-runs the server components so they see the session
       // cookie the backend just set.
-      router.push("/");
+      router.push("/account");
       router.refresh();
       return;
     }

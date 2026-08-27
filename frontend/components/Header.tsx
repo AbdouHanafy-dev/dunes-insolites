@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { logout } from "@/lib/api";
 import { nav, site } from "@/lib/site";
 import type { Activity, Stay } from "@/lib/types";
 
@@ -20,8 +21,29 @@ export default function Header({
   activities: Activity[];
   stays: Stay[];
 }) {
+  const t = useTranslations("nav");
+  const tAccount = useTranslations("account");
   const pathname = usePathname();
+  const router = useRouter();
   const isLanding = pathname === "/";
+
+  // Client-only check: whether the httpOnly session cookie is set. Never
+  // reads the token itself (route handler strips it, see lib/session.ts) -
+  // this is purely to decide which links the header shows.
+  const [loggedIn, setLoggedIn] = useState(false);
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => setLoggedIn(!!d.session))
+      .catch(() => setLoggedIn(false));
+  }, [pathname]);
+
+  async function onLogout() {
+    await logout();
+    setLoggedIn(false);
+    router.push("/");
+    router.refresh();
+  }
 
   // Two independent states. `scrolled` controls contrast (the landing hero is
   // the only place the bar may go translucent). `condensed` collapses the
@@ -112,13 +134,13 @@ export default function Header({
       })),
       hrefPrefix: "/activities",
       seeAllHref: "/activities",
-      seeAllLabel: "See all experiences →",
+      seeAllLabel: t("seeAllExperiences"),
     },
     stays: {
       items: stays.map((s) => ({ slug: s.slug, title: s.title, tagline: s.tagline, image: s.image })),
       hrefPrefix: "/camp",
       seeAllHref: "/camp",
-      seeAllLabel: "See all stays →",
+      seeAllLabel: t("seeAllStays"),
     },
   };
 
@@ -145,12 +167,25 @@ export default function Header({
           <div className="u-group">
             <LanguageSwitcher panelAnchor="header" />
             <span className="u-sep" aria-hidden="true" />
-            <Link className="u-link" href="/login">
-              Log in
-            </Link>
-            <Link className="u-link u-strong" href="/signup">
-              Sign up
-            </Link>
+            {loggedIn ? (
+              <>
+                <Link className="u-link" href="/account">
+                  {tAccount("tabAccount")}
+                </Link>
+                <button type="button" className="u-link u-strong" onClick={onLogout} style={{ background: "none", border: 0, cursor: "pointer", font: "inherit" }}>
+                  {tAccount("logout")}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link className="u-link" href="/login">
+                  {t("logIn")}
+                </Link>
+                <Link className="u-link u-strong" href="/signup">
+                  {t("signUp")}
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
@@ -184,7 +219,7 @@ export default function Header({
                 return (
                   <div key={item.href} className="nav-item">
                     <Link href={item.href} data-active={isActive(item.href)}>
-                      {item.label}
+                      {t(item.labelKey)}
                     </Link>
                   </div>
                 );
@@ -196,23 +231,23 @@ export default function Header({
                 <div
                   key={item.href}
                   className="nav-item has-menu"
-                  onMouseEnter={() => hoverOpen(item.label)}
+                  onMouseEnter={() => hoverOpen(item.labelKey)}
                   onMouseLeave={hoverClose}
                 >
                   <Link
                     href={item.href}
                     data-active={isActive(item.href)}
-                    aria-expanded={menu === item.label}
+                    aria-expanded={menu === item.labelKey}
                     aria-haspopup="true"
-                    onFocus={() => hoverOpen(item.label)}
+                    onFocus={() => hoverOpen(item.labelKey)}
                     onClick={() => setMenu(null)}
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                     <span className="chev" aria-hidden="true" />
                   </Link>
 
-                  {menu === item.label && (
-                    <div className="mega" onMouseEnter={() => hoverOpen(item.label)}>
+                  {menu === item.labelKey && (
+                    <div className="mega" onMouseEnter={() => hoverOpen(item.labelKey)}>
                       <div className="mega-grid">
                         {items.map((i) => (
                           <Link key={i.slug} href={`${hrefPrefix}/${i.slug}`} className="mega-card">
@@ -243,7 +278,7 @@ export default function Header({
           </nav>
 
           <Link href="/book" className="header-cta">
-            Book direct
+            {t("bookDirect")}
           </Link>
 
           {/* Grouped with the burger so the pair sits together at the right
@@ -257,7 +292,7 @@ export default function Header({
 
             <button
               className="burger"
-              aria-label={open ? "Close menu" : "Open menu"}
+              aria-label={open ? t("closeMenu") : t("openMenu")}
               aria-expanded={open}
               aria-controls="mobile-drawer"
               onClick={() => setOpen(!open)}
@@ -274,7 +309,7 @@ export default function Header({
         <div className="drawer-scroll">
           {nav.map((item) => (
             <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
-              {item.label}
+              {t(item.labelKey)}
               <span className="nav-arrow" aria-hidden="true">
                 →
               </span>
@@ -282,16 +317,34 @@ export default function Header({
           ))}
 
           <div className="drawer-auth">
-            <Link href="/login" tabIndex={open ? 0 : -1}>
-              Log in
-            </Link>
-            <Link href="/signup" tabIndex={open ? 0 : -1}>
-              Sign up
-            </Link>
+            {loggedIn ? (
+              <>
+                <Link href="/account" tabIndex={open ? 0 : -1}>
+                  {tAccount("tabAccount")}
+                </Link>
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  tabIndex={open ? 0 : -1}
+                  style={{ background: "none", border: 0, cursor: "pointer", font: "inherit", color: "inherit" }}
+                >
+                  {tAccount("logout")}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" tabIndex={open ? 0 : -1}>
+                  {t("logIn")}
+                </Link>
+                <Link href="/signup" tabIndex={open ? 0 : -1}>
+                  {t("signUp")}
+                </Link>
+              </>
+            )}
           </div>
 
           <Link href="/book" className="header-cta drawer-cta" tabIndex={open ? 0 : -1}>
-            Book direct
+            {t("bookDirect")}
             <span className="drawer-cta-arrow" aria-hidden="true">
               →
             </span>
@@ -311,7 +364,7 @@ export default function Header({
               </svg>
             </span>
             <span>
-              WhatsApp <strong>{site.whatsapp}</strong>
+              {t("whatsapp")} <strong>{site.whatsapp}</strong>
             </span>
           </a>
         </div>

@@ -36,7 +36,7 @@ Four cuts, ~34–44 days removed, all reversible:
 |---|---|---|
 | **Backoffice deferred to R3** | 25–35 d | None — `admin-app` is deployed and in daily use |
 | **Blog stays on WordPress** behind an nginx split | 4 d | Two systems briefly; a visual seam until R2 |
-| **French only** — no `next-intl` at launch | 3 d | English visitors get French for six weeks; EN blog still serves from WordPress |
+| ~~**French only** — no `next-intl` at launch~~ **Reversed 26 Aug** — see [Languages](OPEN-QUESTIONS.md#-languages--all-6-french-default-at-root) | ~~3 d~~ | `next-intl` landed early: all 6 locales route, sitewide chrome is translated. Page-body content (activities/stays/legal/about/safety/contact) is still French/English-only — that work is now unscheduled extra scope, not covered by this plan's day counts |
 | **Booking as request** — `PENDING`, staff confirm | 2 d | No instant confirmation; a manual step per booking |
 
 Booking-as-request has a second benefit: the vitrine never triggers automatic
@@ -52,18 +52,28 @@ facture generation, so it adds no volume to the invoice sequence that
 | DI-002 | ⚠️ | Rotate secrets; untrack `.env` — **rotation still outstanding** | 0.5 |
 | DI-003 | ✅ | Apply `.cors(...)`; remove dead `AsyncSupportConfigurer` | 0.25 |
 | DI-004 | ✅ | `@PreAuthorize` on Chauffeur, Guide, Source | 0.5 |
-| DI-005 | ☐ | **Archive SEO baseline** — crawl + Search Console export | 0.5 |
+| DI-005 | ⚠️ | **Archive SEO baseline** — crawl done ([`docs/seo-baseline/`](seo-baseline/)); Search Console export still needs your Google account | 0.5 |
 | DI-006 | ✅ | `site.url` → real canonical host | 0.25 |
-| DI-007 | ☐ | Staging environment | 0.75 |
+| DI-007 | ⚠️ | Staging environment — compose overlay + profile ready ([`backend/docker-compose.staging.yml`](../backend/docker-compose.staging.yml)); still needs a real host/domain to deploy to | 0.75 |
 
 ### Sprint 1 — Mon 31 Aug → Fri 4 Sep · 5 d
 *The vitrine reads and writes real data.*
 
-DI-010 legacy French slugs on `Tour`/`TourType`/`Extra` · DI-011
-`controller.publicapi` with dedicated DTOs · DI-012 public reads for stays and
-activities · DI-013 booking → real `PENDING` reservation, **server-side pricing
-authoritative** · DI-014 confirmation email over RabbitMQ · DI-015 rate-limit
-public writes · DI-016 brand config by hostname.
+✅ DI-010 legacy French slugs on `Tour`/`TourType`/`Extra` (scoped to the
+catalog rows that exist in `Seed.java` today — the rest backfill as products
+are entered) · ✅ DI-011 `controller.publicapi` with dedicated DTOs · ✅ DI-012
+public reads for stays and activities (marketing-copy fields not stored
+server-side are derived, not invented — see `PublicCatalogText`) · ✅ DI-013
+booking → real `PENDING` reservation, **server-side pricing authoritative**
+(guest checkout via silent account creation — no login step; see
+`PublicBookingServiceImpl`) · ✅ DI-014 confirmation email over RabbitMQ
+(separate `email.queue` bound to `reservation.created`, see
+`ReservationEmailConsumer`) · ✅ DI-015 rate-limit public writes (in-memory,
+single-instance — `RateLimitFilter`) · ✅ DI-016 brand config by hostname
+(`lib/site.ts` is now a `BrandConfig` record + `resolveBrand()`; still
+statically defaults to Dunes Insolites everywhere — nothing calls
+`resolveBrand()` per-request yet, that wiring is R4's job once a second
+brand actually exists).
 
 > **DI-016 is the half-day that makes R4 cheap.** Turn `lib/site.ts` into a brand
 > record selected by hostname. R4 becomes a configuration plus content instead of
@@ -72,9 +82,40 @@ public writes · DI-016 brand config by hostname.
 ### Sprint 2 — Mon 7 → Fri 11 Sep · 5 d
 *French, and every legacy URL answers.*
 
-DI-020 `trailingSlash: true` + `lang="fr"` · DI-021 French content · DI-022
-legacy slugs routed · DI-023 nginx blog split · DI-024 301 map · DI-025 sitemap
-from live data · DI-026 schema *(first to cut if the sprint slips)*.
+✅ DI-020 `trailingSlash: true` + `lang="fr"` (verified live: no-slash 308s,
+lang attribute renders `fr`; superseded 26 Aug — `lang` is now dynamic per
+locale, see the Languages decision reversal above) · ⚠️ DI-021 French
+content — **partially done, out of the original scope.** The multi-language
+rollout (26 Aug) shipped `next-intl` for all 6 locales plus translated
+sitewide chrome; long-form page content (activities, stays, legal, about,
+safety, contact) is still French/English-only and remains commissioned-copy
+work, now for 6 languages instead of 1 (see the risk table below) ·
+⚠️ DI-022 legacy slugs routed —
+product-page rewrites done and build-verified (9 legacy URLs → real content,
+each one's `<link rel="canonical">` now correctly points at the flat legacy
+URL rather than the nested route — `lib/legacySlugs.ts` is the single
+source of truth the rewrites, the canonical tags and the sitemap all read
+from); blog/informational/brand-landing pages still have nowhere to land,
+that's DI-021/DI-026 content, not routing · ⚠️ DI-023 nginx blog split —
+**draft only, unverified** (`nginx/dunes-insolites.com.conf` +
+`nginx/README.md`; nginx isn't in this repo, runs on the host, was written
+blind and needs review + `nginx -t` on the real server before deploy) ·
+DI-024 301 map — **blocked on [Q6](OPEN-QUESTIONS.md)** · ✅ DI-025 sitemap from
+live data (rebuilt from `lib/api`, includes stays + accommodations,
+canonical-consistent, no more fabricated `lastModified`) · ✅ DI-026 schema
+*(first to cut if the sprint slips)* — `LodgingBusiness` sitewide,
+`BreadcrumbList` on every detail page, `FAQPage` on `/safety` (real existing
+Q&A, not invented for the schema); `sameAs` deliberately still omitted —
+`site.social` links are placeholders, not this business's real profiles,
+and emitting them would be wrong data, not just incomplete.
+
+> **Found while verifying DI-022, unrelated to it:** `next.config.ts`'s
+> `turbopack.root: __dirname` broke `next build`/`next dev` outright on any
+> fresh `npm install` from the repo root (the documented install command) —
+> Turbopack couldn't resolve the hoisted `next` package one directory up.
+> Fixed to point at the monorepo root instead. Anyone who had a working dev
+> server before this was likely running on a stale `frontend/node_modules`
+> from before the monorepo restructure.
 
 > `trailingSlash: true` is the most commonly missed step in a WordPress → Next
 > migration. Without it all 53 legacy URLs become redirects.

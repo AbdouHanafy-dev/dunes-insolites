@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 
 /**
@@ -12,54 +13,36 @@ import Reveal from "@/components/Reveal";
  */
 const DIRECT_DISCOUNT = "15%";
 
-const here = [
-  "Best price — no platform commission on top",
-  "Talk to the guide who runs your trip, not a call centre",
-  "Free cancellation up to 24 hours before",
-  "Pay at the gate — nothing charged to book",
-  "Flexible pickup from your hotel in Douz or Kebili",
-  "Your photos and video sent the next morning",
-];
+export default async function BookDirect() {
+  const t = await getTranslations("bookDirect");
+  const here = [t("here1"), t("here2"), t("here3"), t("here4"), t("here5"), t("here6")];
+  const there = [t("there1"), t("there2"), t("there3"), t("there4"), t("there5"), t("there6")];
 
-const there = [
-  "Platform adds its commission to the price",
-  "Messages go through the platform's support desk",
-  "Cancellation terms set by the platform",
-  "Card charged at the time of booking",
-  "Fixed meeting point only",
-  "No photos included",
-];
-
-export default function BookDirect() {
   return (
     <section className="block direct" id="book-direct">
       <div className="wrap">
         <Reveal>
-          <p className="sect-eyebrow">Book direct</p>
+          <p className="sect-eyebrow">{t("eyebrow")}</p>
           <h2 className="sect-title" style={{ fontSize: "clamp(32px,4.4vw,64px)" }}>
-            Same dunes.
+            {t("titleLine1")}
             <br />
-            {DIRECT_DISCOUNT} less.
+            {DIRECT_DISCOUNT} {t("titleDiscountSuffix")}
           </h2>
-          <p className="lead">
-            We run every trip on this page ourselves. Booking here means no platform takes a cut —
-            so the saving goes to you, and your questions come straight to the people who will be
-            standing at the gate.
-          </p>
+          <p className="lead">{t("lead")}</p>
         </Reveal>
 
         <Reveal>
           <div className="compare">
             <div className="col here">
-              <span className="tag">Booking here</span>
-              <h3>Direct with Dunes Insolites</h3>
+              <span className="tag">{t("tagHere")}</span>
+              <h3>{t("headingHere")}</h3>
               <ul>
-                {here.map((t) => (
-                  <li key={t}>
+                {here.map((text) => (
+                  <li key={text}>
                     <span className="mark yes" aria-hidden="true">
                       ✓
                     </span>
-                    <span>{t}</span>
+                    <span>{text}</span>
                   </li>
                 ))}
               </ul>
@@ -67,16 +50,16 @@ export default function BookDirect() {
 
             <div className="col">
               <span className="tag" style={{ color: "rgba(253,241,225,.5)" }}>
-                Booking elsewhere
+                {t("tagThere")}
               </span>
-              <h3>Through a booking platform</h3>
+              <h3>{t("headingThere")}</h3>
               <ul>
-                {there.map((t) => (
-                  <li key={t}>
+                {there.map((text) => (
+                  <li key={text}>
                     <span className="mark no" aria-hidden="true">
                       ·
                     </span>
-                    <span>{t}</span>
+                    <span>{text}</span>
                   </li>
                 ))}
               </ul>
@@ -87,7 +70,7 @@ export default function BookDirect() {
         <Reveal>
           <div style={{ marginTop: 48 }}>
             <Link href="/book" className="btn-accent">
-              Book direct now
+              {t("cta")}
             </Link>
           </div>
         </Reveal>

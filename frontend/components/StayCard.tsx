@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { Stay } from "@/lib/types";
 
 export default function StayCard({ stay }: { stay: Stay }) {

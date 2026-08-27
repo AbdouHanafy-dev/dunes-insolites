@@ -2,10 +2,15 @@ package com.camping.duneinsolite.config;
 
 import com.camping.duneinsolite.dto.request.RegisterRequest;
 import com.camping.duneinsolite.model.Extra;
+import com.camping.duneinsolite.model.ExtraTranslation;
 import com.camping.duneinsolite.model.Source;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourType;
+import com.camping.duneinsolite.model.TourTypeTranslation;
+import com.camping.duneinsolite.model.enums.ContentLocale;
 import com.camping.duneinsolite.model.enums.UserRole;
+
+import java.util.Map;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.SourceRepository;
 import com.camping.duneinsolite.repository.TourRepository;
@@ -109,8 +114,10 @@ public class Seed implements CommandLineRunner {
         String name = "Une Nuitee En Bivouac a Sabria Tunisie";
         if (tourTypeRepository.existsByName(name)) return;
 
-        tourTypeRepository.save(TourType.builder()
+        TourType tourType = tourTypeRepository.save(TourType.builder()
                 .name(name)
+                // Legacy WordPress slug - keep verbatim, it carries the ranking (docs/SEO_PLAN.pdf).
+                .slug("bivouac-desert-tunisie")
                 .description("Decouvrez une experience inoubliable lors de notre excursion d'une nuitee " +
                         "en bivouac dans le desert, au depart du campement Dunes Insolites a Sabria Kebili Tunisie.")
                 .duration("1 Nuitee")
@@ -123,6 +130,30 @@ public class Seed implements CommandLineRunner {
                 .tva(13.0)
                 .isActive(true)
                 .build());
+
+        // Matches the copy already translated on the frontend for this same
+        // slug (lib/data/stays-i18n) - kept in sync by hand until an admin
+        // translation UI exists.
+        Map<ContentLocale, String[]> bivouacTranslations = Map.of(
+                ContentLocale.EN, new String[]{"Bivouac Under the Stars",
+                        "No walls, no electricity — a rustic camp set up fresh each evening on a high dune, " +
+                                "mattresses under the stars or a simple tent if the wind picks up."},
+                ContentLocale.DE, new String[]{"Biwak unter den Sternen",
+                        "Keine Wände, kein Strom — ein rustikales Lager, das jeden Abend frisch auf einer hohen " +
+                                "Düne aufgebaut wird, Matratzen unter den Sternen oder ein einfaches Zelt, falls der Wind auffrischt."},
+                ContentLocale.IT, new String[]{"Bivacco sotto le stelle",
+                        "Niente pareti, niente elettricità — un campo rustico allestito ogni sera su una duna " +
+                                "alta, materassi sotto le stelle o una tenda semplice se si alza il vento."},
+                ContentLocale.DA, new String[]{"Bivuak under stjernerne",
+                        "Ingen vægge, ingen elektricitet — en rustik lejr, der sættes op på ny hver aften på en " +
+                                "høj klit, madrasser under stjernerne eller et enkelt telt, hvis vinden tager til."},
+                ContentLocale.AR, new String[]{"مبيت تحت النجوم",
+                        "لا جدران، لا كهرباء — مخيم بسيط يُنصب من جديد كل مساء على كثيب مرتفع، مراتب تحت " +
+                                "النجوم أو خيمة بسيطة إن اشتدت الرياح."}
+        );
+        bivouacTranslations.forEach((locale, text) -> tourType.getTranslations().add(
+                TourTypeTranslation.builder().tourType(tourType).locale(locale).name(text[0]).description(text[1]).build()));
+        tourTypeRepository.save(tourType);
         log.info("Seed: created tour type {}", name);
     }
 
@@ -133,6 +164,9 @@ public class Seed implements CommandLineRunner {
 
         tourRepository.save(Tour.builder()
                 .name(name)
+                // Legacy WordPress slug - Route Insolite's product per docs/SEO_PLAN.pdf's
+                // territory split, kept verbatim; not exposed on the Dunes public API.
+                .slug("excursion-tataouine-chenini-desert-tunisien-star-wars")
                 .description("Decouvrez le charme authentique du sud tunisien avec cette excursion " +
                         "exceptionnelle de Djerba vers Tataouine et Chenini. Entre paysages desertiques " +
                         "fascinants, villages berberes perches, et sites iconiques de tournage de Star Wars, " +
@@ -153,8 +187,10 @@ public class Seed implements CommandLineRunner {
         String name = "30 min Quad";
         if (extraRepository.existsByName(name)) return;
 
-        extraRepository.save(Extra.builder()
+        Extra extra = extraRepository.save(Extra.builder()
                 .name(name)
+                // Legacy WordPress slug - keep verbatim, it carries the ranking (docs/SEO_PLAN.pdf).
+                .slug("quad-desert")
                 .description("Session de quad de 30 minutes dans le desert autour du campement.")
                 .duration("30 minute")
                 // Best-effort placeholder - verify/adjust the real unit price via Catalogue.
@@ -162,6 +198,25 @@ public class Seed implements CommandLineRunner {
                 .tva(13.0)
                 .isActive(true)
                 .build());
+
+        // Matches the copy already translated on the frontend for this same
+        // slug (lib/data/activities-i18n) - kept in sync by hand until an
+        // admin translation UI exists.
+        Map<ContentLocale, String[]> quadTranslations = Map.of(
+                ContentLocale.EN, new String[]{"Quad Safari",
+                        "Open-throttle laps across the sand sea with a lead rider and full kit."},
+                ContentLocale.DE, new String[]{"Quad-Safari",
+                        "Fahrten mit Vollgas über das Sandmeer mit einem Vorausfahrer und kompletter Ausrüstung."},
+                ContentLocale.IT, new String[]{"Safari in quad",
+                        "Giri a tutta velocità sul mare di sabbia con una guida in testa e attrezzatura completa."},
+                ContentLocale.DA, new String[]{"Quad-safari",
+                        "Fuld gas hen over sandhavet med en forankørende guide og fuldt udstyr."},
+                ContentLocale.AR, new String[]{"رحلة سفاري بالدراجة الرباعية",
+                        "جولات بأقصى سرعة عبر بحر الرمال برفقة مرشد يقود المجموعة وتجهيزات كاملة."}
+        );
+        quadTranslations.forEach((locale, text) -> extra.getTranslations().add(
+                ExtraTranslation.builder().extra(extra).locale(locale).name(text[0]).description(text[1]).build()));
+        extraRepository.save(extra);
         log.info("Seed: created extra {}", name);
     }
 }

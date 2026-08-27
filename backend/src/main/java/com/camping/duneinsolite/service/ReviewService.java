@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface ReviewService {
     ReviewResponse createReview(UUID userId, ReviewRequest request);
     Page<ReviewResponse> getReviewsForProduct(UUID productId, ProductType productType, Pageable pageable);
+    Page<ReviewResponse> getMyReviews(UUID userId, Pageable pageable);
     ReviewResponse getReviewById(UUID reviewId);
     ReviewResponse updateReview(UUID reviewId, UUID currentUserId, ReviewUpdateRequest request);
     void deleteReview(UUID reviewId);

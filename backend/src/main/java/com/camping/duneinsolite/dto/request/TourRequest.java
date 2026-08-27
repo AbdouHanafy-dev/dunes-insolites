@@ -17,6 +17,8 @@ public class TourRequest {
     @NotBlank(message = "Tour name is required")
     private String name;
 
+    private String slug;
+
     private String description;
 
     private String duration;

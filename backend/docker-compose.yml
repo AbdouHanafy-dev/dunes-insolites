@@ -35,13 +35,13 @@ services:
     restart: unless-stopped
     command: start-dev
     environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      KC_HOSTNAME: 79.143.185.33
+      KC_HOSTNAME: ${KC_HOSTNAME}
       KC_HOSTNAME_PORT: 8180
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
@@ -64,7 +64,7 @@ services:
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: duneinsolite
-      RABBITMQ_DEFAULT_PASS: duneinsolite123
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     ports:
       - "127.0.0.1:5672:5672"     # AMQP - host-only, only backend needs this over the internal docker network
       - "127.0.0.1:15672:15672"   # Management UI - host-only, reached via nginx (mq.dunesinsolites.com)
@@ -87,10 +87,13 @@ services:
     container_name: duneinsolite-backend
     restart: unless-stopped
     environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duneinsolite
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       KEYCLOAK_SERVER_URL: http://keycloak:8180
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}

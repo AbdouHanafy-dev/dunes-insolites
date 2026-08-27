@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.response;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.ExtraDuration;
 import com.camping.duneinsolite.model.Photo;
@@ -16,6 +17,7 @@ import java.util.UUID;
 public class ExtraResponse {
     private UUID extraId;
     private String name;
+    private String slug;
     private String description;
     private String duration;
     private Double unitPrice;
@@ -37,4 +39,5 @@ public class ExtraResponse {
     private List<Photo> photos;
     private Double averageRating;
     private Integer reviewCount;
+    private List<CatalogTranslationDto> translations;
 }

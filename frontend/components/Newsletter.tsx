@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { subscribe } from "@/lib/api";
 
 export default function Newsletter() {
+  const t = useTranslations("newsletter");
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
@@ -19,14 +21,14 @@ export default function Newsletter() {
       setEmail("");
       return;
     }
-    setError(result.errors?.email ?? result.message ?? "Something went wrong. Try again.");
+    setError(result.errors?.email ?? result.message ?? t("genericError"));
     setState("error");
   }
 
   if (state === "done") {
     return (
       <p style={{ marginTop: 22, fontSize: ".95rem", color: "#f0a558" }}>
-        You&apos;re on the list — we&apos;ll write when new dates open.
+        {t("subscribed")}
       </p>
     );
   }
@@ -44,7 +46,7 @@ export default function Newsletter() {
           opacity: 0.75,
         }}
       >
-        Dune dispatch
+        {t("label")}
       </label>
       <div style={{ display: "flex", gap: 8 }}>
         <input
@@ -53,7 +55,7 @@ export default function Newsletter() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@email.com"
+          placeholder={t("placeholder")}
           style={{
             flex: 1,
             minWidth: 0,
@@ -73,7 +75,7 @@ export default function Newsletter() {
           className="header-cta"
           style={{ padding: "12px 18px" }}
         >
-          {state === "sending" ? "…" : "Join"}
+          {state === "sending" ? "…" : t("joinButton")}
         </button>
       </div>
       {error && (

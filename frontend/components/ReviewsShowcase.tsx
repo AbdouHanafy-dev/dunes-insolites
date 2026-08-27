@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
 import PlatformBadge from "@/components/PlatformBadge";
@@ -23,7 +24,7 @@ const SOURCE_ORDER: Review["source"][] = [
  * this is the one place all platforms get shown side by side.
  */
 export default async function ReviewsShowcase() {
-  const all = await getReviews();
+  const [all, t] = await Promise.all([getReviews(), getTranslations("reviewsShowcase")]);
   if (!all.length) return null;
 
   const groups = SOURCE_ORDER.map((source) => ({
@@ -37,16 +38,17 @@ export default async function ReviewsShowcase() {
     <section className="block reviews-showcase" id="reviews">
       <div className="wrap">
         <Reveal>
-          <p className="sect-eyebrow">Reviews</p>
+          <p className="sect-eyebrow">{t("eyebrow")}</p>
           <h2 className="sect-title" style={{ fontSize: "clamp(32px,4vw,60px)" }}>
-            Why people love us.
+            {t("title")}
           </h2>
           <div className="rating-line">
             <span className="score">{avg}</span>
             <Stars n={Math.round(Number(avg))} />
             <span className="of">
-              from {all.length} review{all.length === 1 ? "" : "s"} across every platform we book
-              through
+              {all.length === 1
+                ? t("reviewCountOne", { count: all.length })
+                : t("reviewCountOther", { count: all.length })}
             </span>
           </div>
         </Reveal>
@@ -61,7 +63,9 @@ export default async function ReviewsShowcase() {
                   <div className="platform-rating">
                     <Stars n={Math.round(Number(groupAvg))} />
                     <span>
-                      {groupAvg} · {reviews.length} review{reviews.length === 1 ? "" : "s"}
+                      {reviews.length === 1
+                        ? t("platformRatingOne", { avg: groupAvg, count: reviews.length })
+                        : t("platformRatingOther", { avg: groupAvg, count: reviews.length })}
                     </span>
                   </div>
                 </div>

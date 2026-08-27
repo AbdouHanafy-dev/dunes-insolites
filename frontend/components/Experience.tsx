@@ -1,9 +1,10 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import { getStats } from "@/lib/api";
 
 export default async function Experience() {
-  const stats = await getStats();
+  const [stats, t] = await Promise.all([getStats(), getTranslations("experience")]);
 
   return (
     <section className="block exp" id="experience">
@@ -17,23 +18,20 @@ export default async function Experience() {
         />
       </div>
       <Reveal className="wrap">
-        <h2 className="serif">The desert, the way it was meant to be felt.</h2>
-        <p>
-          Small groups, local guides, and no rush. Every Sabria trip is timed so the sand still
-          holds the day&apos;s warmth and the sky is on fire.
-        </p>
+        <h2 className="serif">{t("heading")}</h2>
+        <p>{t("body")}</p>
         <div className="stats">
           <div className="stat">
             <div className="v serif">{stats.guestsGuided}</div>
-            <div className="k">Guests guided</div>
+            <div className="k">{t("guestsGuided")}</div>
           </div>
           <div className="stat">
             <div className="v serif">{stats.avgRating}</div>
-            <div className="k">Average rating</div>
+            <div className="k">{t("averageRating")}</div>
           </div>
           <div className="stat">
             <div className="v serif">{stats.yearsRunning}</div>
-            <div className="k">On the dunes</div>
+            <div className="k">{t("onTheDunes")}</div>
           </div>
         </div>
       </Reveal>

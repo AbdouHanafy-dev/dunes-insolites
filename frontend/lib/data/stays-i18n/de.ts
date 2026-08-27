@@ -1,0 +1,82 @@
+import type { Stay } from "@/lib/types";
+
+export const staysDe: Stay[] = [
+  {
+    slug: "nuitee-campement-desert",
+    title: "Eine Nacht bei Dunes Insolites",
+    kicker: "01 — CAMPEMENT",
+    tagline: "Wüstentraditionen, Abendessen unter den Sternen und eine friedliche Nacht zwischen den Dünen.",
+    description: "Eine vollständige Nacht im Lager von Sabria — Abendessen unter den Sternen, ein richtiges Bett in einem Segeltuchzelt, und die Dünen direkt vor der Tür.",
+    longDescription: [
+      "Eingebettet in die Stille der tunesischen Sahara ist Dunes Insolites ein Ort zum Entschleunigen. Kommen Sie an, während die Dünen glühen, richten Sie sich in Ihrem Zelt ein und lassen Sie den Lärm des Alltags hinter sich.",
+      "Nach dem Abendessen bleibt das Feuer lange nach Einbruch der Dunkelheit brennen. Die meisten Gäste sitzen einfach dabei — für den Abend gibt es darüber hinaus keinen Zeitplan.",
+      "Ihr Zelt ist mit hochwertiger Bettwäsche und sanftem Licht für Komfort vorbereitet. Wachen Sie mit der Wüste auf, genießen Sie das Frühstück und lassen Sie sich Zeit, bevor Sie zurückfahren.",
+    ],
+    image: "/images/under-hero.jpg",
+    gallery: ["/images/under-hero.jpg", "/images/gate.jpg"],
+    priceFrom: 95,
+    groupSize: "2–20 Gäste",
+    included: [
+      "Privates Segeltuchzelt für die Nacht",
+      "Abendessen und Frühstück",
+      "Lagerfeuer und Minztee",
+      "Rücktransfer von Douz oder Kebili",
+    ],
+    notIncluded: ["Aktivitäten (Kamel, Quad, Sandboarding — unten hinzufügen)", "Trinkgelder", "Reiseversicherung"],
+    practicalInfo: [
+      "Nächte in der Wüste sind auch im Sommer kalt — bringen Sie eine warme Schicht mit",
+      "Keine körperliche Fitness erforderlich; geeignet für alle Altersgruppen",
+      "Duschen und Toiletten werden gemeinsam genutzt, ein kurzer Weg von den Zelten entfernt",
+    ],
+    arrivalTime: "15:00",
+    departureTime: "09:00",
+    itinerary: [
+      { time: "15:00", title: "Willkommen im Lager", description: "Lernen Sie das Team kennen, richten Sie sich in Ihrem traditionellen Zelt ein und genießen Sie die Stille der Dünen." },
+      { time: "Später Nachmittag", title: "Machen Sie die Wüste zu Ihrem Spielplatz", description: "Wählen Sie optional einen Kamelritt, eine 4x4- oder Quad-Tour oder eine Sandboarding-Session vor Sonnenuntergang." },
+      { time: "Sonnenuntergang", title: "Tee, Farben und Sandbrot", description: "Beobachten Sie, wie sich der Himmel über der Sahara kupferfarben färbt, bei Minztee und einer Vorführung von im Sand gebackenem Brot." },
+      { time: "Abend", title: "Abendessen und Musik unter den Sternen", description: "Genießen Sie Harira, tunesischen Salat, Brik, am Feuer gegartes Fleisch und lokale Süßigkeiten, bevor Sie sich um das Lagerfeuer versammeln." },
+      { time: "Morgen", title: "Aufwachen mit den Dünen", description: "Schlafen Sie tief in Ihrem Zelt, beginnen Sie den Tag dann mit einem entspannten Frühstück und dem ersten Licht über dem Sand." },
+    ],
+    accommodations: [
+      { slug: "desert-tent", title: "Wüstenzelt", tagline: "Ein privates Segeltuchzelt nahe am Feuerkreis.", description: "Die klassische Dunes-Insolites-Nacht: ein privates Zelt, ordentliche Bettwäsche und die Dünen direkt vor Ihrer Tür.", image: "/images/under-hero.jpg", priceFrom: 95, sleeps: "Bis zu 2 Gäste", features: ["Privates Segeltuchzelt", "Hochwertige Bettwäsche", "Gemeinsame Lagerduschen und -toiletten", "Abendessen und Frühstück inklusive"] },
+      { slug: "desert-room", title: "Wüstenzimmer", tagline: "Eine geschlossenere, komfortablere Basis im Lager.", description: "Für Gäste, die die Wüstenatmosphäre mit etwas mehr Privatsphäre und einer ruhigeren Nacht im festen Lager wünschen.", image: "/images/gate.jpg", priceFrom: 125, sleeps: "Bis zu 3 Gäste", features: ["Geschlossenes Zimmer", "Privater Schlafbereich", "Hochwertige Bettwäsche", "Abendessen und Frühstück inklusive"] },
+      { slug: "dune-suite", title: "Dünen-Suite", tagline: "Unsere geräumigste und privateste Übernachtungsart.", description: "Ein großzügiger Wüstenaufenthalt für Paare oder Familien, mit zusätzlichem Platz zum Entspannen nach einem Abend unter den Sternen.", image: "/images/hero-combined.jpg", priceFrom: 165, sleeps: "Bis zu 4 Gäste", features: ["Geräumige private Suite", "Hochwertige Bettwäsche", "Zusätzlicher Sitzbereich", "Abendessen und Frühstück inklusive"] },
+    ],
+  },
+  {
+    slug: "bivouac-desert-tunisie",
+    title: "Biwak unter den Sternen",
+    kicker: "02 — BIWAK",
+    tagline: "Ein Kamelritt in die Sahara, ein Abendessen am Lagerfeuer und eine Nacht unter einem sternenübersäten Himmel.",
+    description: "Keine Wände, kein Strom — ein rustikales Lager, das jeden Abend frisch auf einer hohen Düne aufgebaut wird, Matratzen unter den Sternen oder ein einfaches Zelt, falls der Wind auffrischt.",
+    longDescription: [
+      "Ein Kamel oder ein 4x4 bringt Sie über das feste Lager hinaus, weiter in den Dünengürtel, zu dem jeweiligen Ort des Abends. Sie beobachten, wie das Team aufbaut, während die Sonne sinkt — Matratzen auf dem Sand ausgelegt, ein Feuer entzündet, das Abendessen im Gange.",
+      "Es gibt hier keine andere Speisekarte als das, was auf der Glut kocht, und kein anderes Licht als das Feuer und das, was der Mond an diesem Abend tut. Es ist die schlichteste Version einer Wüstennacht, die wir anbieten, und diejenige, nach der Stammgäste namentlich fragen.",
+      "Sie schlafen unter freiem Himmel oder in einem einfachen Zelt, falls der Wind auffrischt, und wachen mit der Düne ganz für sich allein auf, bevor es am nächsten Morgen zurückgeht.",
+    ],
+    image: "/images/hero-combined.jpg",
+    gallery: ["/images/hero-combined.jpg", "/images/under-hero.jpg"],
+    priceFrom: 85,
+    groupSize: "2–12 Gäste",
+    included: [
+      "Erfahrener Guide und Kameltrekking in die Dünen",
+      "Am Biwak zubereitetes Abendessen und Frühstück",
+      "Eine Nacht im Zelt oder unter freiem Himmel",
+      "Matratze und Decken für die Nacht",
+      "Rückkehr zu Dunes Insolites am nächsten Morgen",
+    ],
+    notIncluded: ["Aktivitäten (Kamel, Quad, Sandboarding — unten hinzufügen)", "Trinkgelder", "Privates Zelt (auf Anfrage verfügbar)"],
+    practicalInfo: [
+      "Der einfachste unserer Aufenthalte — rechnen Sie mit Sand, Wind und keinen Wänden",
+      "Bringen Sie Schichten mit; Biwaknächte sind kälter als im festen Lager",
+      "Nicht empfehlenswert, wenn Sie über Nacht eine private Toilette benötigen",
+    ],
+    arrivalTime: "17:00",
+    departureTime: "09:00",
+    itinerary: [
+      { time: "17:00", title: "Treffen Sie Ihr Kamel und brechen Sie auf", description: "Verlassen Sie Dunes Insolites mit Ihrem Guide und reisen Sie gemächlich durch die großen Dünen von Sabria." },
+      { time: "Sonnenuntergang", title: "Wählen Sie Ihr Lager und beobachten Sie den Sonnenuntergang", description: "Lassen Sie sich auf einer Düne oder in der Nähe einer Oase nieder und beobachten Sie, wie sich die Sahara golden, rosa und tiefblau färbt." },
+      { time: "Nacht & Morgen", title: "Lagerfeuer, Sterne und eine Wüstendämmerung", description: "Genießen Sie ein am Feuer gekochtes Abendessen, schlafen Sie im Zelt oder unter den Sternen und kehren Sie nach dem Frühstück um 9:00 Uhr zurück." },
+    ],
+  },
+];

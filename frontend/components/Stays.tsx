@@ -1,9 +1,10 @@
 import { getStays } from "@/lib/api";
+import { getLocale } from "next-intl/server";
 import StayCard from "@/components/StayCard";
 import Reveal from "@/components/Reveal";
 
 export default async function Stays() {
-  const stays = await getStays();
+  const stays = await getStays(await getLocale());
 
   return (
     <section className="block stays" id="stays">

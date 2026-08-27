@@ -43,6 +43,18 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsForProduct(productId, productType, pageable));
     }
 
+    // Self-service: the current user's own reviews, for the client account
+    // area. Declared as a literal segment - Spring MVC resolves it over
+    // /{reviewId} by specificity regardless of order, unlike SecurityConfig's
+    // first-match-wins URL rules, but it's kept above for readability anyway.
+    @GetMapping("/mine")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<ReviewResponse>> getMyReviews(@AuthenticationPrincipal Jwt jwt,
+                                                              @PageableDefault(size = 10) Pageable pageable) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(reviewService.getMyReviews(userId, pageable));
+    }
+
     @GetMapping("/{reviewId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ReviewResponse> getReviewById(@PathVariable UUID reviewId) {

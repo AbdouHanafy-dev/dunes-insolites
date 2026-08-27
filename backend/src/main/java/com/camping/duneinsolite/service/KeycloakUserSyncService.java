@@ -97,6 +97,36 @@ public class KeycloakUserSyncService {
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // GUEST CHECKOUT (vitrine booking, no login step)
+    // Called from PublicBookingServiceImpl. Reuses an existing account by
+    // email if one exists (returning guest, or an already-registered user);
+    // otherwise creates a CLIENT account with a random password the guest
+    // never sees - the booking flow itself needs no password.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public User findOrCreateGuestUser(String name, String email, String phone) {
+        return userRepository.findByEmail(email).orElseGet(() -> {
+            String keycloakUserId = createKeycloakUser(email, name, generateSecurePassword());
+            assignRole(keycloakUserId, UserRole.CLIENT.name());
+
+            User user = User.builder()
+                    .userId(UUID.fromString(keycloakUserId))
+                    .name(name)
+                    .email(email)
+                    .phone(phone)
+                    .role(UserRole.CLIENT)
+                    .loyaltyPoints(0)
+                    .loyaltyTier(LoyaltyTier.BRONZE)
+                    .build();
+
+            User savedUser = userRepository.save(user);
+            log.info("Guest booking created account for {} with id {}", email, savedUser.getUserId());
+            return savedUser;
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // ADMIN-CREATED USER (admin fills a form, password is generated)
     // Called from POST /api/users/add
     // ─────────────────────────────────────────────────────────────────────
@@ -219,6 +249,22 @@ public class KeycloakUserSyncService {
     // ─────────────────────────────────────────────────────────────────────
 
     /**
+     * Splits the app's single `name` field into Keycloak's firstName/lastName.
+     * Keycloak's default User Profile config marks lastName required; without
+     * it, direct-grant login fails with "Account is not fully set up" (found
+     * live: VERIFY_PROFILE kicks in on a missing required attribute even
+     * though nothing surfaces at registration time - user creation succeeds,
+     * only login fails). The domain model (User, RegisterRequest, UserRequest)
+     * deliberately has no separate lastName field, so it's derived here
+     * instead of plumbing a second field through every DTO.
+     */
+    private void applyName(UserRepresentation keycloakUser, String name) {
+        String[] parts = name.trim().split("\\s+", 2);
+        keycloakUser.setFirstName(parts[0]);
+        keycloakUser.setLastName(parts.length > 1 ? parts[1] : parts[0]);
+    }
+
+    /**
      * Creates a user in Keycloak and returns the new Keycloak user ID.
      * Throws if user already exists (409) or creation fails.
      */
@@ -234,7 +280,7 @@ public class KeycloakUserSyncService {
         UserRepresentation keycloakUser = new UserRepresentation();
         keycloakUser.setUsername(email);
         keycloakUser.setEmail(email);
-        keycloakUser.setFirstName(name);
+        applyName(keycloakUser, name);
         keycloakUser.setEnabled(true);
         keycloakUser.setEmailVerified(true);
         keycloakUser.setCredentials(List.of(credential));
@@ -353,7 +399,7 @@ public class KeycloakUserSyncService {
             // 3a. Update profile fields
             try {
                 UserRepresentation keycloakUser = keycloakUsers.get(0);
-                keycloakUser.setFirstName(request.getName());
+                applyName(keycloakUser, request.getName());
                 keycloakUser.setEmail(request.getEmail());
               //  keycloakUser.setUsername(request.getEmail()); // keep username = email
                 keycloakUser.setEmailVerified(true);          // prevent 400 on email update

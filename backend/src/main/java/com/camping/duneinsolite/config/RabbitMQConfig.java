@@ -16,6 +16,13 @@ public class RabbitMQConfig {
     public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
     public static final String DLQ_EXCHANGE          = "notification.dlq.exchange";
 
+    // Separate queue, same exchange - the topic exchange fans the same
+    // published message out to both this queue and notification.queue.
+    // Bound narrowly to reservation.created only (see notificationBinding's
+    // "#" vs this one) because a confirmation email only exists for that
+    // one event so far - no template exists yet for payment/staff events.
+    public static final String EMAIL_QUEUE = "email.queue";
+
     // ── 2. Routing keys ───────────────────────────────────────────
     public static final String RESERVATION_CREATED   = "reservation.created";
     public static final String RESERVATION_CONFIRMED = "reservation.confirmed";
@@ -67,6 +74,21 @@ public class RabbitMQConfig {
     @Bean
     public Binding notificationBinding() {
         return BindingBuilder.bind(notificationQueue()).to(notificationExchange()).with("#");
+    }
+
+    // ── 6b. Email queue - reservation.created only (DI-014) ────────
+    @Bean
+    public Queue emailQueue() {
+        return QueueBuilder
+                .durable(EMAIL_QUEUE)
+                .withArgument("x-dead-letter-exchange", DLQ_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", NOTIFICATION_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Binding emailBinding() {
+        return BindingBuilder.bind(emailQueue()).to(notificationExchange()).with(RESERVATION_CREATED);
     }
 
     // ── 7. JSON Converter ─────────────────────────────────────────

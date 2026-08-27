@@ -27,6 +27,12 @@ public class Tour {
     @Column(name = "name", nullable = false)
     private String name;
 
+    // Public route key for the vitrine - carries the legacy WordPress slug so
+    // the SEO migration doesn't change URLs. Nullable: existing rows predate
+    // this column and are backfilled as each product goes public.
+    @Column(name = "slug", unique = true)
+    private String slug;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 

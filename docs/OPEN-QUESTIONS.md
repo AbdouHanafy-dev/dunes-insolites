@@ -166,9 +166,24 @@ defensible if challenged.
 *Answered 25 Aug 2026.* With `www`, matching the legacy sitemap's declared
 canonical host. The new vitrine replaces the existing WordPress site.
 
-### ✅ Languages — French default, English secondary
-*Answered 25 Aug 2026.* French at the root, where every existing ranking is.
-English under `/en`. September ships French-only; English lands in R2.
+### ✅ Languages — all 6, French default at root
+*Answered 25 Aug 2026, revised 26 Aug 2026.* Originally French-only at
+launch with English deferred to R2 (below, struck through). Revised: all 6
+locales already listed in `frontend/lib/site.ts` ship now —
+fr (default, unprefixed root, where every existing ranking is), en, de, it,
+da, ar (RTL). `next-intl` infrastructure, routing, hreflang, RTL layout
+support, and the language switcher are live. Translations for the sitewide
+chrome (nav, header, footer, cookie consent) are done in all 6 languages;
+long-form page content (activity/stay descriptions, legal pages, about/
+safety/contact prose) is still English/French-only pending translation —
+see `frontend/messages/*.json` for what's covered so far. All translations
+so far are AI-produced drafts, not commissioned/professionally reviewed —
+flag this to a native speaker before treating any of it as final, and
+**especially** get a qualified legal review before the Privacy/Terms pages
+are translated, given real cross-border consumer-protection exposure.
+
+~~French at the root, where every existing ranking is. English under `/en`.
+September ships French-only; English lands in R2.~~
 
 ### ✅ Backoffice — new Next.js app
 *Answered 25 Aug 2026.* Retires the Angular `admin-app`. One stack, shared types

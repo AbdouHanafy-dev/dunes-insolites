@@ -1,0 +1,30 @@
+# Staging overlay - production-shaped config on a separate host/IP, so R1
+# sprint work can be verified before it touches the real domain (DI-007).
+#
+# Usage:
+#   cp .env.staging.example .env.staging   # fill in real values
+#   docker compose -f docker-compose.yml -f docker-compose.staging.yml \
+#     --env-file .env.staging up -d --build
+#
+# Deliberately does NOT touch the Angular apps (partner/admin/camping) - they
+# stay pointed at production until the backoffice work in R3 replaces them.
+
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5435:5432"   # distinct host port so staging can run beside prod on one box
+
+  keycloak:
+    ports:
+      - "127.0.0.1:8181:8180"
+
+  rabbitmq:
+    ports:
+      - "127.0.0.1:5673:5672"
+      - "127.0.0.1:15673:15672"
+
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+    ports:
+      - "127.0.0.1:8081:8080"

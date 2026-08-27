@@ -1,11 +1,13 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getActivities } from "@/lib/api";
 import { site } from "@/lib/site";
 import Newsletter from "@/components/Newsletter";
 
 export default async function Footer() {
-  const activities = await getActivities();
+  const locale = await getLocale();
+  const [activities, t] = await Promise.all([getActivities(locale), getTranslations("footer")]);
 
   return (
     <footer className="site-footer">
@@ -19,12 +21,12 @@ export default async function Footer() {
                 <span className="bl">{site.brandLine}</span>
               </span>
             </Link>
-            <p>Camel treks, quad safaris, and sandboarding across the Sahara at sunset.</p>
+            <p>{t("tagline")}</p>
             <Newsletter />
           </div>
           <div className="cols">
             <div>
-              <h5>Adventures</h5>
+              <h5>{t("adventures")}</h5>
               <ul>
                 {activities.map((a) => (
                   <li key={a.slug}>
@@ -32,29 +34,29 @@ export default async function Footer() {
                   </li>
                 ))}
                 <li>
-                  <Link href="/activities">All experiences</Link>
+                  <Link href="/activities">{t("allExperiences")}</Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h5>Company</h5>
+              <h5>{t("company")}</h5>
               <ul>
                 <li>
-                  <Link href="/about">About</Link>
+                  <Link href="/about">{t("about")}</Link>
                 </li>
                 <li>
-                  <Link href="/about#guides">Guides</Link>
+                  <Link href="/about#guides">{t("guides")}</Link>
                 </li>
                 <li>
-                  <Link href="/safety">Safety</Link>
+                  <Link href="/safety">{t("safety")}</Link>
                 </li>
                 <li>
-                  <Link href="/contact">Contact</Link>
+                  <Link href="/contact">{t("contact")}</Link>
                 </li>
               </ul>
             </div>
             <div>
-              <h5>Follow</h5>
+              <h5>{t("follow")}</h5>
               <ul>
                 {site.social.map((s) => (
                   <li key={s.label}>
@@ -70,10 +72,10 @@ export default async function Footer() {
         <div className="bar">
           <span>© {new Date().getFullYear()} {site.legalName}.</span>
           <span style={{ display: "flex", gap: 18 }}>
-            <Link href="/legal/privacy">Privacy</Link>
-            <Link href="/legal/terms">Terms</Link>
+            <Link href="/legal/privacy">{t("privacy")}</Link>
+            <Link href="/legal/terms">{t("terms")}</Link>
           </span>
-          <span>Sahara · Tunisia</span>
+          <span>{t("location")}</span>
         </div>
       </div>
     </footer>

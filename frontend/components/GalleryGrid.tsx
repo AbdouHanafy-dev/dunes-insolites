@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GalleryItem } from "@/lib/types";
 
@@ -11,6 +12,7 @@ export default function GalleryGrid({
   items: GalleryItem[];
   tags: string[];
 }) {
+  const t = useTranslations("galleryGrid");
   const [tag, setTag] = useState("All");
   // The lightbox index is stored with the filter it belongs to, so switching
   // filters closes it without an effect having to reset anything.
@@ -90,12 +92,12 @@ export default function GalleryGrid({
           aria-label={current.alt}
           onClick={() => setOpen(null)}
         >
-          <button className="close" aria-label="Close" onClick={() => setOpen(null)}>
+          <button className="close" aria-label={t("close")} onClick={() => setOpen(null)}>
             ✕
           </button>
           <button
             className="nav-btn prev"
-            aria-label="Previous image"
+            aria-label={t("previousImage")}
             onClick={(e) => {
               e.stopPropagation();
               step(-1);
@@ -108,7 +110,7 @@ export default function GalleryGrid({
           </div>
           <button
             className="nav-btn next"
-            aria-label="Next image"
+            aria-label={t("nextImage")}
             onClick={(e) => {
               e.stopPropagation();
               step(1);

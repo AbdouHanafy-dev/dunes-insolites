@@ -1,0 +1,82 @@
+import type { Stay } from "@/lib/types";
+
+export const staysIt: Stay[] = [
+  {
+    slug: "nuitee-campement-desert",
+    title: "Una notte a Dunes Insolites",
+    kicker: "01 — ACCAMPAMENTO",
+    tagline: "Tradizioni del deserto, cena sotto le stelle e una notte tranquilla tra le dune.",
+    description: "Una notte intera all'accampamento di Sabria — cena sotto le stelle, un vero letto in una tenda di tela, e le dune proprio fuori dalla porta.",
+    longDescription: [
+      "Immerso nella quiete del Sahara tunisino, Dunes Insolites è un luogo dove rallentare. Arrivate mentre le dune si illuminano, sistematevi nella vostra tenda e lasciatevi alle spalle il rumore della vita quotidiana.",
+      "Dopo cena il fuoco resta acceso ben oltre il buio. La maggior parte degli ospiti si limita a sedersi accanto ad esso — non c'è un programma per la serata al di là di questo.",
+      "La vostra tenda è allestita per il comfort con biancheria di qualità e luce soffusa. Svegliatevi con il deserto, godetevi la colazione e prendetevi il vostro tempo prima di ripartire.",
+    ],
+    image: "/images/under-hero.jpg",
+    gallery: ["/images/under-hero.jpg", "/images/gate.jpg"],
+    priceFrom: 95,
+    groupSize: "2–20 ospiti",
+    included: [
+      "Tenda di tela privata per la notte",
+      "Cena e colazione",
+      "Fuoco da campo e tè alla menta",
+      "Transfer di ritorno da Douz o Kebili",
+    ],
+    notIncluded: ["Attività (cammello, quad, sandboarding — da aggiungere qui sotto)", "Mance", "Assicurazione di viaggio"],
+    practicalInfo: [
+      "Le notti nel deserto sono fredde anche in estate — portate uno strato caldo",
+      "Nessun requisito fisico; adatto a tutte le età",
+      "Docce e servizi igienici sono in comune, a pochi passi dalle tende",
+    ],
+    arrivalTime: "15:00",
+    departureTime: "09:00",
+    itinerary: [
+      { time: "15:00", title: "Benvenuti all'accampamento", description: "Incontrate il team, sistematevi nella vostra tenda tradizionale e godetevi la quiete delle dune." },
+      { time: "Tardo pomeriggio", title: "Fate del deserto il vostro parco giochi", description: "Scegliete facoltativamente un giro in cammello, un'uscita in 4x4 o in quad, oppure una sessione di sandboarding prima del tramonto." },
+      { time: "Tramonto", title: "Tè, colori e pane di sabbia", description: "Guardate il cielo del Sahara diventare color rame con un tè alla menta e una dimostrazione di pane cotto sotto la sabbia." },
+      { time: "Sera", title: "Cena e musica sotto le stelle", description: "Condividete harira, insalata tunisina, brik, carne cotta sul fuoco e dolci locali prima di riunirvi intorno al fuoco da campo." },
+      { time: "Mattina", title: "Svegliarsi tra le dune", description: "Dormite profondamente nella vostra tenda, poi iniziate la giornata con una colazione rilassata e la prima luce sulla sabbia." },
+    ],
+    accommodations: [
+      { slug: "desert-tent", title: "Tenda del deserto", tagline: "Una tenda di tela privata vicino al cerchio del fuoco.", description: "La notte classica di Dunes Insolites: una tenda privata, biancheria adeguata e le dune appena oltre la vostra porta.", image: "/images/under-hero.jpg", priceFrom: 95, sleeps: "Fino a 2 ospiti", features: ["Tenda di tela privata", "Biancheria di qualità", "Docce e servizi igienici del campo in comune", "Cena e colazione incluse"] },
+      { slug: "desert-room", title: "Camera del deserto", tagline: "Una base più chiusa e confortevole nell'accampamento.", description: "Per gli ospiti che desiderano l'atmosfera del deserto con un po' più di privacy e una notte più tranquilla nell'accampamento fisso.", image: "/images/gate.jpg", priceFrom: 125, sleeps: "Fino a 3 ospiti", features: ["Camera chiusa", "Spazio notte privato", "Biancheria di qualità", "Cena e colazione incluse"] },
+      { slug: "dune-suite", title: "Suite delle dune", tagline: "La nostra formula più spaziosa e privata.", description: "Un soggiorno nel deserto generoso per coppie o famiglie, con spazio extra per rilassarsi dopo una serata sotto le stelle.", image: "/images/hero-combined.jpg", priceFrom: 165, sleeps: "Fino a 4 ospiti", features: ["Suite privata spaziosa", "Biancheria di alta qualità", "Spazio salotto extra", "Cena e colazione incluse"] },
+    ],
+  },
+  {
+    slug: "bivouac-desert-tunisie",
+    title: "Bivacco sotto le stelle",
+    kicker: "02 — BIVACCO",
+    tagline: "Un trekking in cammello nel Sahara, una cena al fuoco da campo e una notte sotto un cielo pieno di stelle.",
+    description: "Niente pareti, niente elettricità — un campo rustico allestito ogni sera su una duna alta, materassi sotto le stelle o una tenda semplice se si alza il vento.",
+    longDescription: [
+      "Un cammello o un 4x4 vi porta oltre l'accampamento fisso, più in profondità nella cintura di dune, fino al sito di quella sera. Guardate la squadra allestire il campo mentre il sole scende — materassi stesi sulla sabbia, un fuoco acceso, la cena in preparazione.",
+      "Qui non c'è altro menu se non ciò che cuoce sulla brace, e nessun'altra luce oltre al fuoco e a ciò che fa la luna quella sera. È la versione più essenziale della notte nel deserto che offriamo, quella che gli habitué chiedono per nome.",
+      "Dormite sotto il cielo aperto, o in una tenda semplice se si alza il vento, e vi svegliate con la duna tutta per voi prima del trasferimento di ritorno la mattina seguente.",
+    ],
+    image: "/images/hero-combined.jpg",
+    gallery: ["/images/hero-combined.jpg", "/images/under-hero.jpg"],
+    priceFrom: 85,
+    groupSize: "2–12 ospiti",
+    included: [
+      "Guida esperta e trekking in cammello tra le dune",
+      "Cena e colazione preparate al bivacco",
+      "Una notte in tenda o sotto il cielo aperto",
+      "Materasso e coperte per la notte",
+      "Ritorno a Dunes Insolites la mattina seguente",
+    ],
+    notIncluded: ["Attività (cammello, quad, sandboarding — da aggiungere qui sotto)", "Mance", "Tenda privata (disponibile su richiesta)"],
+    practicalInfo: [
+      "Il più semplice dei nostri soggiorni — aspettatevi sabbia, vento e nessuna parete",
+      "Portate strati caldi; le notti in bivacco sono più fredde rispetto all'accampamento fisso",
+      "Non consigliato se avete bisogno di un bagno privato durante la notte",
+    ],
+    arrivalTime: "17:00",
+    departureTime: "09:00",
+    itinerary: [
+      { time: "17:00", title: "Incontrate il vostro cammello e partite", description: "Lasciate Dunes Insolites con la vostra guida e attraversate con calma le grandi dune di Sabria." },
+      { time: "Tramonto", title: "Scegliete il vostro campo e guardate il tramonto", description: "Sistematevi su una duna o vicino a un'oasi, poi guardate il Sahara tingersi d'oro, rosa e blu profondo." },
+      { time: "Notte e mattina", title: "Fuoco da campo, stelle e un'alba nel deserto", description: "Condividete una cena cotta sul fuoco, dormite in tenda o sotto le stelle, poi ripartite dopo la colazione alle 9:00." },
+    ],
+  },
+];

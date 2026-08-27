@@ -1,5 +1,5 @@
 import { getStay } from "@/lib/data/stays";
-import { activities } from "@/lib/data/activities";
+import { getActivities } from "@/lib/data/activities";
 import { isFutureDate, makeId } from "@/lib/bookings";
 import { MAX_PARTY_SIZE, type StayBooking, type StayBookingInput } from "@/lib/types";
 
@@ -11,7 +11,10 @@ import { MAX_PARTY_SIZE, type StayBooking, type StayBookingInput } from "@/lib/t
  */
 const store = new Map<string, StayBooking>();
 
-const activitySlugs = new Set(activities.map((a) => a.slug));
+// Slugs are identical across every locale's activity list - any one works
+// for validation, so the default (French) is used rather than threading a
+// locale through this in-memory-store validator.
+const activitySlugs = new Set(getActivities().map((a) => a.slug));
 
 export type ValidationResult = { ok: true } | { ok: false; errors: Record<string, string> };
 

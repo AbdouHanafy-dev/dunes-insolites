@@ -1,9 +1,10 @@
 import { getActivities } from "@/lib/api";
+import { getLocale } from "next-intl/server";
 import ActivityCard from "@/components/ActivityCard";
 import Reveal from "@/components/Reveal";
 
 export default async function Activities() {
-  const activities = await getActivities();
+  const activities = await getActivities(await getLocale());
 
   return (
     <section className="block activities" id="activities">

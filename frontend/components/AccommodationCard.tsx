@@ -1,14 +1,17 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import type { Accommodation } from "@/lib/types";
 
-export default function AccommodationCard({
+export default async function AccommodationCard({
   staySlug,
   accommodation,
 }: {
   staySlug: string;
   accommodation: Accommodation;
 }) {
+  const t = await getTranslations("accommodationCard");
+
   return (
     <article className="accommodation-card">
       <div className="accommodation-image">
@@ -24,7 +27,7 @@ export default function AccommodationCard({
           target="_blank"
           rel="noopener noreferrer"
         >
-          Explore this stay ↗
+          {t("exploreThisStay")}
         </Link>
       </div>
     </article>

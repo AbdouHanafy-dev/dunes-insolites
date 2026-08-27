@@ -15,6 +15,7 @@ import java.util.UUID;
 public class TourResponse {
     private UUID tourId;
     private String name;
+    private String slug;
     private String description;
     private String duration;
     private Double passengerAdultPrice;

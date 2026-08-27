@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.response;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class TourTypeResponse {
     private UUID tourTypeId;
     private String name;
+    private String slug;
     private String description;
     private String duration;
     private Double passengerAdultPrice;
@@ -38,4 +40,5 @@ public class TourTypeResponse {
     private List<Photo> photos;
     private Double averageRating;
     private Integer reviewCount;
+    private List<CatalogTranslationDto> translations;
 }

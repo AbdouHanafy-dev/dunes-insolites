@@ -49,6 +49,11 @@ function url(path: string): string {
   return BASE ? `${BASE}${path}` : `/api${path}`;
 }
 
+/** `?locale=de` for the real backend's public catalog endpoints; omitted for French/unset (its own fallback). */
+function localeQuery(locale?: string): string {
+  return locale && locale !== "fr" ? `?locale=${encodeURIComponent(locale)}` : "";
+}
+
 type FetchOpts = { revalidate?: number; signal?: AbortSignal };
 
 async function get<T>(path: string, fallback: T, opts: FetchOpts = {}): Promise<T> {
@@ -71,24 +76,36 @@ async function get<T>(path: string, fallback: T, opts: FetchOpts = {}): Promise<
 
 /* ------------------------------------------------------------------ reads */
 
-export async function getActivities(): Promise<Activity[]> {
+// `locale` is a plain passthrough parameter here, not resolved via
+// next-intl's `getLocale()` - that import is server-only, and this module
+// is also imported by several Client Components (BookingFlow, AuthForm,
+// etc.) for the write/auth functions further down. A top-level server-only
+// import here would break their client bundle. Server Component callers
+// resolve the current locale themselves (via `getLocale()` or their own
+// `params`) and pass it in.
+export async function getActivities(locale?: string): Promise<Activity[]> {
   const data = await get<{ activities: Activity[] }>(
-    "/activities",
-    { activities: seedActivities() },
+    `/public/activities${localeQuery(locale)}`,
+    { activities: seedActivities(locale) },
     { revalidate: 300 },
   );
-  return data.activities ?? seedActivities();
+  return data.activities ?? seedActivities(locale);
 }
 
-export async function getActivity(slug: string): Promise<Activity | undefined> {
-  if (!BASE) return seedActivity(slug);
-  const all = await getActivities();
-  return all.find((a) => a.slug === slug);
+export async function getActivity(slug: string, locale?: string): Promise<Activity | undefined> {
+  if (!BASE) return seedActivity(slug, locale);
+  // A dedicated endpoint per DI-012 - no need to fetch the whole collection
+  // and filter client-side for a single lookup. Falls back to seed on a
+  // backend hiccup rather than 404ing, matching every other read here.
+  return get<Activity | undefined>(
+    `/public/activities/${encodeURIComponent(slug)}${localeQuery(locale)}`,
+    seedActivity(slug, locale),
+  );
 }
 
-export async function getRelatedActivities(slug: string): Promise<Activity[]> {
-  if (!BASE) return seedRelated(slug);
-  const all = await getActivities();
+export async function getRelatedActivities(slug: string, locale?: string): Promise<Activity[]> {
+  if (!BASE) return seedRelated(slug, locale);
+  const all = await getActivities(locale);
   return all.filter((a) => a.slug !== slug);
 }
 
@@ -96,24 +113,29 @@ export async function getStats(): Promise<Stats> {
   return get<Stats>("/stats", seedStats, { revalidate: 3600 });
 }
 
-export async function getStays(): Promise<Stay[]> {
+export async function getStays(locale?: string): Promise<Stay[]> {
   const data = await get<{ stays: Stay[] }>(
-    "/stays",
-    { stays: seedStays() },
+    `/public/stays${localeQuery(locale)}`,
+    { stays: seedStays(locale) },
     { revalidate: 300 },
   );
-  return data.stays ?? seedStays();
+  return data.stays ?? seedStays(locale);
 }
 
-export async function getStay(slug: string): Promise<Stay | undefined> {
-  if (!BASE) return seedStay(slug);
-  const all = await getStays();
-  return all.find((s) => s.slug === slug);
+export async function getStay(slug: string, locale?: string): Promise<Stay | undefined> {
+  if (!BASE) return seedStay(slug, locale);
+  // A dedicated endpoint per DI-012 - no need to fetch the whole collection
+  // and filter client-side for a single lookup. Falls back to seed on a
+  // backend hiccup rather than 404ing, matching every other read here.
+  return get<Stay | undefined>(
+    `/public/stays/${encodeURIComponent(slug)}${localeQuery(locale)}`,
+    seedStay(slug, locale),
+  );
 }
 
-export async function getRelatedStays(slug: string): Promise<Stay[]> {
-  if (!BASE) return seedRelatedStays(slug);
-  const all = await getStays();
+export async function getRelatedStays(slug: string, locale?: string): Promise<Stay[]> {
+  if (!BASE) return seedRelatedStays(slug, locale);
+  const all = await getStays(locale);
   return all.filter((s) => s.slug !== slug);
 }
 
@@ -202,13 +224,18 @@ async function post<T>(path: string, body: unknown): Promise<WriteResult<T>> {
 }
 
 export function createBooking(input: BookingInput): Promise<WriteResult<Booking>> {
-  return post<Booking>("/bookings", input);
+  // Real backend has this under /public/bookings (guest checkout, DI-013);
+  // the local route handler stand-in keeps the shorter /bookings path.
+  return post<Booking>(usingRemoteApi ? "/public/bookings" : "/bookings", input);
 }
 
 export function createStayBooking(
   input: StayBookingInput,
 ): Promise<WriteResult<StayBooking>> {
-  return post<StayBooking>("/stay-bookings", input);
+  return post<StayBooking>(
+    usingRemoteApi ? "/public/stay-bookings" : "/stay-bookings",
+    input,
+  );
 }
 
 export function sendContact(input: {
@@ -226,19 +253,44 @@ export function subscribe(email: string): Promise<WriteResult<{ ok: true }>> {
 
 /* ------------------------------------------------------------------- auth */
 
-export type AuthUser = { id: string; name: string; email: string };
+export type AuthUser = { id: string; name: string; email: string; role: string };
 
 /**
- * No session handling lives in this frontend on purpose. Spring Boot should
- * answer these by setting an httpOnly, Secure, SameSite cookie — a token
- * handed back in JSON and parked in localStorage is readable by any injected
- * script. See API_CONTRACT.md.
+ * Always same-origin (`/api/auth/...`), never the direct-to-backend branch
+ * `post()`/`url()` take when NEXT_PUBLIC_API_URL is set. Login/register have
+ * to go through our own Next.js route handlers, not straight to the Spring
+ * Boot backend, because only our own route handler can set the httpOnly
+ * session cookie on our own origin — see lib/session.ts.
+ */
+async function postLocal<T>(path: string, body: unknown): Promise<WriteResult<T>> {
+  try {
+    const res = await fetch(`/api${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, data: data as T };
+    return {
+      ok: false,
+      errors: (data as { errors?: Record<string, string> }).errors,
+      message: (data as { error?: string }).error,
+    };
+  } catch {
+    return { ok: false, message: "Network error. Try again." };
+  }
+}
+
+/**
+ * No token ever reaches this module or client JS — the Next.js route handler
+ * at app/api/auth/login sets an httpOnly session cookie itself and only
+ * returns { id, name, email, role }. See lib/session.ts for why.
  */
 export function login(input: {
   email: string;
   password: string;
 }): Promise<WriteResult<AuthUser>> {
-  return post<AuthUser>("/auth/login", input);
+  return postLocal<AuthUser>("/auth/login", input);
 }
 
 export function register(input: {
@@ -246,5 +298,109 @@ export function register(input: {
   email: string;
   password: string;
 }): Promise<WriteResult<AuthUser>> {
-  return post<AuthUser>("/auth/register", input);
+  return postLocal<AuthUser>("/auth/register", input);
+}
+
+export function logout(): Promise<void> {
+  return fetch("/api/auth/logout", { method: "POST" }).then(() => undefined);
+}
+
+/* ------------------------------------------------------------ account area */
+
+// Real backend shapes (ReservationResponse/ReviewResponse), not the vitrine's
+// simplified Booking/Review — the account area reads the account owner's own
+// data straight from the Spring Boot API, so it's typed against what that
+// API actually returns rather than the seed-data model the public vitrine
+// pages use. No seed fallback exists for these: without a real backend
+// there's no session to have gotten here with in the first place.
+
+// `catalogTourTypeId`/`catalogTourId`/`catalogExtraId` are the real catalog
+// product's UUID — the same id ProductType-scoped review endpoints expect.
+// The public vitrine's Activity/Stay types key on `slug` instead, which the
+// review endpoints don't accept, so past reservations (which do carry these
+// ids) are the only current path to "leave a review" — see the reviews page.
+export type MyReservationLine = { catalogTourTypeId?: string; catalogTourId?: string; name: string; totalPrice: number };
+export type MyReservationExtraLine = { catalogExtraId: string; name: string; totalPrice: number };
+
+export type MyPaymentSummary = {
+  originalTotalAmount: number;
+  totalPaid: number;
+  remainingTotal: number;
+  paymentStatus: string;
+};
+
+export type MyTransaction = {
+  transactionId: string;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  status: string;
+  transactionDate: string;
+};
+
+export type MyReservation = {
+  reservationId: string;
+  reservationType: string;
+  status: string;
+  checkInDate: string | null;
+  checkOutDate: string | null;
+  serviceDate: string | null;
+  totalAmount: number;
+  currency: string;
+  createdAt: string;
+  tourTypes: MyReservationLine[];
+  tours: MyReservationLine[];
+  extras: MyReservationExtraLine[];
+  paymentSummary: MyPaymentSummary | null;
+  transactions: MyTransaction[];
+};
+
+export type MyReview = {
+  reviewId: string;
+  productId: string;
+  productType: "TOUR" | "TOURTYPE" | "EXTRA";
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+};
+
+async function authedGet<T>(path: string, accessToken: string, fallback: T): Promise<T> {
+  if (!BASE) return fallback;
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return fallback;
+    return (await res.json()) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+export function getMyReservations(accessToken: string): Promise<MyReservation[]> {
+  return authedGet<MyReservation[]>("/reservations/my-reservations", accessToken, []);
+}
+
+export function getMyReviews(accessToken: string): Promise<{ content: MyReview[] }> {
+  return authedGet<{ content: MyReview[] }>("/reviews/mine", accessToken, { content: [] });
+}
+
+export async function createMyReview(
+  accessToken: string,
+  input: { productId: string; productType: "TOUR" | "TOURTYPE" | "EXTRA"; rating: number; comment: string },
+): Promise<WriteResult<MyReview>> {
+  if (!BASE) return { ok: false, message: "Accounts aren't connected yet." };
+  try {
+    const res = await fetch(`${BASE}/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify(input),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, data: data as MyReview };
+    return { ok: false, message: (data as { message?: string }).message ?? "Could not submit the review." };
+  } catch {
+    return { ok: false, message: "Network error. Try again." };
+  }
 }

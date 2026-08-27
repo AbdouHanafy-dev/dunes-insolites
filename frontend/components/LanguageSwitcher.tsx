@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import Flag from "@/components/Flag";
 import { locales } from "@/lib/site";
 
 /**
- * The control is real, the locales are not — only English exists until
- * next-intl is wired up. Pending languages render as disabled rather than as
- * working options, so nothing silently does nothing when clicked.
+ * All 6 locales are real routes now (multi-language rollout) — switching
+ * navigates to the same page in the chosen language via next-intl's
+ * locale-aware router, rather than the old disabled/"Soon" placeholder
+ * state this control used to render.
  */
 export default function LanguageSwitcher({
   panelAnchor = "self",
@@ -21,10 +24,15 @@ export default function LanguageSwitcher({
    */
   panelAnchor?: "self" | "header";
 }) {
+  const t = useTranslations("languageSwitcher");
+  const activeLocale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
+
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties | undefined>();
   const ref = useRef<HTMLDivElement>(null);
-  const active = locales.find((l) => l.available) ?? locales[0];
+  const active = locales.find((l) => l.code === activeLocale) ?? locales[0];
 
   useEffect(() => {
     if (!open) return;
@@ -50,14 +58,21 @@ export default function LanguageSwitcher({
       const header = document.getElementById("header");
       const headerRect = (header ?? ref.current).getBoundingClientRect();
       const btnRect = ref.current.getBoundingClientRect();
+      // Anchored to the reading-end edge (flips under RTL via `insetInlineEnd`).
       setPanelStyle({
         position: "fixed",
         top: headerRect.bottom + 10,
-        right: window.innerWidth - btnRect.right,
-        left: "auto",
+        insetInlineEnd: window.innerWidth - btnRect.right,
+        insetInlineStart: "auto",
       });
     }
     setOpen((v) => !v);
+  };
+
+  const switchTo = (code: string) => {
+    setOpen(false);
+    if (code === activeLocale) return;
+    router.replace(pathname, { locale: code });
   };
 
   return (
@@ -67,7 +82,7 @@ export default function LanguageSwitcher({
         className="lang-btn"
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={`Language: ${active.label}`}
+        aria-label={t("currentLanguage", { language: active.label })}
         onClick={toggle}
       >
         <Flag code={active.code} className="flag" />
@@ -75,15 +90,14 @@ export default function LanguageSwitcher({
       </button>
 
       {open && (
-        <ul className="lang-menu" style={panelStyle} role="listbox" aria-label="Language">
+        <ul className="lang-menu" style={panelStyle} role="listbox" aria-label={t("label")}>
           {locales.map((l) => (
             <li key={l.code}>
               <button
                 type="button"
                 role="option"
                 aria-selected={l.code === active.code}
-                disabled={!l.available}
-                onClick={() => setOpen(false)}
+                onClick={() => switchTo(l.code)}
               >
                 <Flag code={l.code} className="flag" />
                 <span className="name">{l.label}</span>
@@ -105,7 +119,6 @@ export default function LanguageSwitcher({
                     />
                   </svg>
                 )}
-                {!l.available && <span className="soon">Soon</span>}
               </button>
             </li>
           ))}

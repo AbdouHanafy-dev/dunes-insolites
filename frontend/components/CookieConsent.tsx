@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 
 const KEY = "di-cookie-choice";
@@ -33,6 +34,7 @@ function getServerSnapshot(): string {
 }
 
 export default function CookieConsent() {
+  const t = useTranslations("cookieConsent");
   const choice = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function choose(value: "all" | "essential") {
@@ -49,13 +51,14 @@ export default function CookieConsent() {
   return (
     <div
       role="dialog"
-      aria-label="Cookie choices"
+      aria-label={t("dialogLabel")}
       style={{
         position: "fixed",
-        left: 20,
+        insetInlineStart: 20,
         bottom: 20,
-        // Pinned left rather than centred so it never sits on top of the
-        // centred CTAs on the hero and CTA bands.
+        // Pinned to the reading-start edge (flips under RTL) rather than
+        // centred, so it never sits on top of the centred CTAs on the hero
+        // and CTA bands.
         width: "min(420px, calc(100vw - 40px))",
         zIndex: 50,
         background: "rgba(20,14,10,.92)",
@@ -69,15 +72,15 @@ export default function CookieConsent() {
       }}
     >
       <p style={{ fontSize: ".95rem", lineHeight: 1.55, opacity: 0.88 }}>
-        We use one cookie to remember this choice. Nothing else, no ad trackers.{" "}
+        {t("body")}{" "}
         <Link href="/legal/privacy" style={{ textDecoration: "underline" }}>
-          Privacy policy
+          {t("privacyPolicy")}
         </Link>
         .
       </p>
       <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
         <button className="header-cta" onClick={() => choose("all")}>
-          Fine by me
+          {t("acceptAll")}
         </button>
         <button
           className="header-cta"
@@ -88,7 +91,7 @@ export default function CookieConsent() {
             boxShadow: "none",
           }}
         >
-          Essential only
+          {t("essentialOnly")}
         </button>
       </div>
     </div>

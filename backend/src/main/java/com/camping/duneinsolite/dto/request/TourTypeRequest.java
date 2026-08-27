@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.request;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
@@ -17,6 +18,8 @@ public class TourTypeRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
+    private String slug;
+
     private String description;
     private String duration;
 
@@ -33,6 +36,11 @@ public class TourTypeRequest {
     private CancellationPolicy cancellationPolicy;
     private String coverPhotoUrl;
     private List<Photo> photos;
+
+    // Non-French copy, one entry per locale. Fields above stay the French
+    // source of truth - see ContentLocale. Omitted locales simply fall back
+    // to the French text at read time; this list doesn't need to be complete.
+    private List<CatalogTranslationDto> translations;
 
     @NotNull(message = "Passenger adult price is required")
     @Positive(message = "Price must be positive")

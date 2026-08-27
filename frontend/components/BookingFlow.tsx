@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "@/lib/api";
 import { formatDuration } from "@/lib/data/activities";

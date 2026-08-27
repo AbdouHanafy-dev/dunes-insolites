@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { sendContact } from "@/lib/api";
 
 export default function ContactForm() {
+  const t = useTranslations("contactForm");
   const [values, setValues] = useState({ name: "", email: "", subject: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
@@ -24,15 +26,14 @@ export default function ContactForm() {
       return;
     }
     setErrors(result.errors ?? {});
-    setFormError(result.errors ? "" : (result.message ?? "We couldn't send that. Try again."));
+    setFormError(result.errors ? "" : (result.message ?? t("genericError")));
     setState("idle");
   }
 
   if (state === "sent") {
     return (
       <div className="alert ok" style={{ marginTop: 0 }}>
-        <strong>Message sent.</strong> We reply within a day — usually a lot sooner. If it&apos;s
-        urgent, call us on the number to the right.
+        <strong>{t("sentTitle")}</strong> {t("sentBody")}
       </div>
     );
   }
@@ -41,12 +42,12 @@ export default function ContactForm() {
     <form onSubmit={onSubmit} noValidate>
       <div className="form-grid" style={{ marginTop: 0 }}>
         <div className="field" data-invalid={!!errors.name}>
-          <label htmlFor="c-name">Your name</label>
+          <label htmlFor="c-name">{t("nameLabel")}</label>
           <input id="c-name" value={values.name} onChange={set("name")} autoComplete="name" />
           {errors.name && <span className="err">{errors.name}</span>}
         </div>
         <div className="field" data-invalid={!!errors.email}>
-          <label htmlFor="c-email">Email</label>
+          <label htmlFor="c-email">{t("emailLabel")}</label>
           <input
             id="c-email"
             type="email"
@@ -57,16 +58,16 @@ export default function ContactForm() {
           {errors.email && <span className="err">{errors.email}</span>}
         </div>
         <div className="field span-2">
-          <label htmlFor="c-subject">Subject (optional)</label>
+          <label htmlFor="c-subject">{t("subjectLabel")}</label>
           <input
             id="c-subject"
             value={values.subject}
             onChange={set("subject")}
-            placeholder="Private group, dates, dietary needs…"
+            placeholder={t("subjectPlaceholder")}
           />
         </div>
         <div className="field span-2" data-invalid={!!errors.message}>
-          <label htmlFor="c-message">Message</label>
+          <label htmlFor="c-message">{t("messageLabel")}</label>
           <textarea id="c-message" value={values.message} onChange={set("message")} />
           {errors.message && <span className="err">{errors.message}</span>}
         </div>
@@ -76,7 +77,7 @@ export default function ContactForm() {
 
       <div className="book-actions">
         <button type="submit" className="btn-accent" disabled={state === "sending"}>
-          {state === "sending" ? "Sending…" : "Send message"}
+          {state === "sending" ? t("sendingButton") : t("sendButton")}
         </button>
       </div>
     </form>

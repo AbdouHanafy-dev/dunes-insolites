@@ -1,15 +1,29 @@
+import { backendConfigured, backendLogin } from "@/lib/authProxy";
+
 /**
- * Placeholder. Real authentication belongs in the Spring Boot backend —
- * password hashing, session issuance, rate limiting and lockout are all
- * server concerns, and none of them should be faked here.
+ * Proxies to the real backend server-to-server (no CORS involved - this runs
+ * on the Next.js server, not in the browser) and sets an httpOnly cookie
+ * from the access token it gets back, instead of ever handing the token to
+ * client JS. See lib/session.ts for why.
  *
- * Until NEXT_PUBLIC_API_URL points at that backend, this returns 501 so the
- * UI says plainly that accounts are not connected yet, rather than pretending
- * someone is signed in.
+ * Without a backend configured, this stays the original placeholder: accounts
+ * aren't connected yet, so nothing pretends to sign anyone in.
  */
-export async function POST() {
-  return Response.json(
-    { error: "Accounts aren't connected yet — the backend isn't wired up." },
-    { status: 501 },
-  );
+export async function POST(request: Request) {
+  if (!backendConfigured()) {
+    return Response.json(
+      { error: "Accounts aren't connected yet — the backend isn't wired up." },
+      { status: 501 },
+    );
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const result = await backendLogin(body.email, body.password);
+
+  if (!result.ok) {
+    return Response.json({ error: result.message }, { status: result.status });
+  }
+
+  const { id, name, email, role } = result;
+  return Response.json({ id, name, email, role });
 }

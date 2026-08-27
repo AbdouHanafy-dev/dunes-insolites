@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import {
   useMotionValue,
@@ -14,10 +15,10 @@ import { site } from "@/lib/site";
 import type { Activity, Stats } from "@/lib/types";
 
 /** Shared so the real button and its two inert spacer copies stay pixel-identical. */
-function ExploreLabel() {
+function ExploreLabel({ label }: { label: string }) {
   return (
     <>
-      Explore experiences
+      {label}
       <span className="cta-arrow" aria-hidden="true">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
           <path
@@ -47,6 +48,7 @@ export default function Hero({
   stats: Stats;
   activities: Activity[];
 }) {
+  const t = useTranslations("hero");
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -238,9 +240,9 @@ export default function Hero({
           <p className="hero-sub">{site.tagline}</p>
           <div className="hero-ctas">
             <span className="cta-primary">
-              <ExploreLabel />
+              <ExploreLabel label={t("exploreExperiences")} />
             </span>
-            <span className="cta-ghost">Discover Sabria</span>
+            <span className="cta-ghost">{t("discoverSabria")}</span>
           </div>
         </div>
 
@@ -266,9 +268,9 @@ export default function Hero({
           <p className="hero-sub">{site.tagline}</p>
           <div className="hero-ctas">
             <span className="cta-primary">
-              <ExploreLabel />
+              <ExploreLabel label={t("exploreExperiences")} />
             </span>
-            <span className="cta-ghost">Discover Sabria</span>
+            <span className="cta-ghost">{t("discoverSabria")}</span>
           </div>
         </div>
 
@@ -288,10 +290,10 @@ export default function Hero({
           <p className="hero-sub">{site.tagline}</p>
           <div className="hero-ctas">
             <Link href="/activities" className="cta-primary">
-              <ExploreLabel />
+              <ExploreLabel label={t("exploreExperiences")} />
             </Link>
             <Link href="/about" className="cta-ghost">
-              Discover Sabria
+              {t("discoverSabria")}
             </Link>
           </div>
         </div>
@@ -300,17 +302,17 @@ export default function Hero({
         <dl className="hero-stats">
           <div className="s">
             <dt className="v">{stats.guestsGuided}</dt>
-            <dd className="k">Guests guided</dd>
+            <dd className="k">{t("guestsGuided")}</dd>
           </div>
           <div className="rule" aria-hidden="true" />
           <div className="s">
             <dt className="v">{stats.avgRating}</dt>
-            <dd className="k">Average rating</dd>
+            <dd className="k">{t("averageRating")}</dd>
           </div>
           <div className="rule" aria-hidden="true" />
           <div className="s">
-            <dt className="v">{years}+ Years</dt>
-            <dd className="k">Of experience</dd>
+            <dt className="v">{years}+ {t("yearsSuffix")}</dt>
+            <dd className="k">{t("ofExperience")}</dd>
           </div>
         </dl>
 
@@ -321,7 +323,7 @@ export default function Hero({
         <div className="boot" />
 
         <div className="cue">
-          <span className="cue-label">Scroll</span>
+          <span className="cue-label">{t("scroll")}</span>
           <span className="dot" />
         </div>
       </div>

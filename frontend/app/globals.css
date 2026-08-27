@@ -222,7 +222,7 @@ body:has(.auth-page) .site-header {
 .chev {
   width: 6px;
   height: 6px;
-  border-right: 1.4px solid currentColor;
+  border-inline-end: 1.4px solid currentColor;
   border-bottom: 1.4px solid currentColor;
   transform: rotate(45deg) translate(-1px, -1px);
   opacity: 0.7;
@@ -273,7 +273,7 @@ body:has(.auth-page) .site-header {
   font-size: 12.5px;
   color: var(--paper);
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: background 0.15s ease;
 }
 .lang-menu button:hover:not(:disabled) {
@@ -1960,7 +1960,7 @@ footer.site-footer .bar {
 }
 .prose ul li {
   position: relative;
-  padding-left: 26px;
+  padding-inline-start: 26px;
   color: var(--muted);
   font-size: 1.02rem;
   line-height: 1.55;
@@ -2094,9 +2094,9 @@ footer.site-footer .bar {
 .night-journal h2 { max-width: 13ch; margin-top: 14px; font-family: var(--font-display), sans-serif; font-size: clamp(36px, 5vw, 64px); font-weight: 600; line-height: .98; }
 .night-journal-intro > p { max-width: 38ch; color: rgba(253, 241, 225, .72); font-size: 1.05rem; line-height: 1.65; }
 .night-journal-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin-top: 64px; border-top: 1px solid rgba(253, 241, 225, .24); }
-.night-chapter { min-height: 270px; padding: 26px 22px 18px; border-right: 1px solid rgba(253, 241, 225, .18); transition: background .25s, transform .25s; }
-.night-chapter:first-child { padding-left: 0; }
-.night-chapter:last-child { border-right: 0; }
+.night-chapter { min-height: 270px; padding: 26px 22px 18px; border-inline-end: 1px solid rgba(253, 241, 225, .18); transition: background .25s, transform .25s; }
+.night-chapter:first-child { padding-inline-start: 0; }
+.night-chapter:last-child { border-inline-end: 0; }
 .night-chapter:hover { background: rgba(253, 241, 225, .08); transform: translateY(-6px); }
 .night-chapter-top { display: flex; flex-direction: column; gap: 26px; }
 .night-chapter-top span { color: var(--color-ember); font-family: var(--font-display), sans-serif; font-size: 2rem; line-height: 1; }
@@ -2189,7 +2189,7 @@ footer.site-footer .bar {
 .accommodation-hero .wrap > p:last-child { max-width: 48ch; margin-top: 18px; font-size: 1.12rem; line-height: 1.55; }
 .back-link { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
 .feature-list { list-style: none; padding: 0; margin: 28px 0 0; }
-.feature-list li { margin-top: 12px; padding-left: 28px; position: relative; }
+.feature-list li { margin-top: 12px; padding-inline-start: 28px; position: relative; }
 .feature-list li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
 .detail-grid {
   display: grid;
@@ -2428,7 +2428,7 @@ footer.site-footer .bar {
 }
 .pick {
   position: relative;
-  text-align: left;
+  text-align: start;
   border: 1px solid rgba(42, 21, 16, 0.14);
   background: rgba(255, 255, 255, 0.5);
   border-radius: 18px;
@@ -2485,7 +2485,7 @@ footer.site-footer .bar {
   margin-top: 12px;
 }
 .slot {
-  text-align: left;
+  text-align: start;
   padding: 18px 20px;
   border-radius: 14px;
   border: 1px solid rgba(42, 21, 16, 0.16);
@@ -2597,6 +2597,40 @@ footer.site-footer .bar {
 .ticket .rows .v {
   margin-top: 6px;
   font-size: 1.05rem;
+}
+
+/* ---------- client account area ---------- */
+.account-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+.account-tabs a {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(42, 21, 16, 0.18);
+  background: transparent;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.account-tabs a[data-active="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--paper);
+}
+.account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.account-empty {
+  color: var(--muted);
+  font-style: italic;
+  padding: 8px 0 4px;
 }
 
 /* ---------- gallery page ---------- */
@@ -3247,7 +3281,7 @@ body:has(.drawer[data-open="true"]) .wa-float {
   position: relative;
 }
 .auth-form .pw input {
-  padding-right: 76px;
+  padding-inline-end: 76px;
 }
 .pw-toggle {
   position: absolute;
@@ -3478,7 +3512,7 @@ body:has(.drawer[data-open="true"]) .wa-float {
   .night-journal { margin-top: 64px; padding: 32px 24px; border-radius: 20px; }
   .night-journal-intro { grid-template-columns: 1fr; gap: 18px; }
   .night-journal-list { grid-template-columns: 1fr; margin-top: 38px; }
-  .night-chapter, .night-chapter:first-child { min-height: 0; padding: 24px 0; border-right: 0; border-bottom: 1px solid rgba(253, 241, 225, .18); }
+  .night-chapter, .night-chapter:first-child { min-height: 0; padding: 24px 0; border-inline-end: 0; border-bottom: 1px solid rgba(253, 241, 225, .18); }
   .night-chapter:last-child { border-bottom: 0; }
   .night-chapter-top { display: flex; flex-direction: row; align-items: center; gap: 14px; }
   .night-chapter h3 { margin-top: 16px; }

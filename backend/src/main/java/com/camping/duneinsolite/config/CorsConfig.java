@@ -1,21 +1,30 @@
 package com.camping.duneinsolite.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 public class CorsConfig {
 
+    // Staging/preview hosts, comma-separated - never the production domains,
+    // which stay hardcoded below so this env var can't accidentally widen
+    // production CORS by being misconfigured.
+    @Value("${app.cors.extra-origins:}")
+    private String extraOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
+        List<String> origins = new ArrayList<>(List.of(
                 "http://79.143.185.33:4200",  // partner-app (IP, pre-domain testing)
                 "http://79.143.185.33:4201",  // admin-app (IP, pre-domain testing)
                 "http://79.143.185.33:4202",  // camping-app (IP, pre-domain testing)
@@ -30,6 +39,10 @@ public class CorsConfig {
                 "https://www.dunes-insolites.com",  // separate, already-deployed platform
                 "https://dunes-insolites.com"
         ));
+        if (!extraOrigins.isBlank()) {
+            origins.addAll(Arrays.stream(extraOrigins.split(",")).map(String::trim).toList());
+        }
+        config.setAllowedOrigins(origins);
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

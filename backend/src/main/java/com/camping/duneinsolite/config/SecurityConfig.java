@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
@@ -34,6 +35,10 @@ public class SecurityConfig {
     @Value("${keycloak.realm}")
     private String realm;
 
+    // Not a @Component - see RateLimitFilter's class comment for why it's
+    // instantiated here rather than autowired.
+    private final RateLimitFilter rateLimitFilter = new RateLimitFilter();
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -42,6 +47,7 @@ public class SecurityConfig {
                 // opts in. Every browser cross-origin request was being rejected.
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+                .addFilterBefore(rateLimitFilter, BearerTokenAuthenticationFilter.class)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -62,6 +68,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tours", "/api/tours/{tourId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tour-types", "/api/tour-types/{tourTypeId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/extras", "/api/extras/{extraId}").permitAll()
+
+                        // Vitrine-shaped reads (DI-012) - read-only, no {id} vs "active"
+                        // wildcard ambiguity to worry about here, unlike the block above.
+                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+
+                        // Guest checkout (DI-013) - no login step. Finds/creates the
+                        // account server-side; see PublicBookingServiceImpl.
+                        .requestMatchers(HttpMethod.POST, "/api/public/bookings", "/api/public/stay-bookings").permitAll()
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 

@@ -1,10 +1,15 @@
 package com.camping.duneinsolite.service.impl;
 
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.dto.request.TourTypeRequest;
 import com.camping.duneinsolite.dto.response.TourTypeResponse;
+import com.camping.duneinsolite.dto.response.publicapi.PublicStayResponse;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourTypeMapper;
+import com.camping.duneinsolite.mapper.publicapi.PublicStayMapper;
 import com.camping.duneinsolite.model.TourType;
+import com.camping.duneinsolite.model.TourTypeTranslation;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
@@ -23,6 +28,7 @@ public class TourTypeServiceImpl implements TourTypeService {
 
     private final TourTypeRepository tourTypeRepository;
     private final TourTypeMapper tourTypeMapper;
+    private final PublicStayMapper publicStayMapper;
     private final UserProductRemiseRepository userProductRemiseRepository;
     private final ReviewRepository reviewRepository;
 
@@ -35,6 +41,7 @@ public class TourTypeServiceImpl implements TourTypeService {
         if (tourType.getIsActive() == null) {
             tourType.setIsActive(true);
         }
+        syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));
     }
 
@@ -55,7 +62,29 @@ public class TourTypeServiceImpl implements TourTypeService {
     public TourTypeResponse updateTourType(UUID tourTypeId, TourTypeRequest request) {
         TourType tourType = findById(tourTypeId);
         tourTypeMapper.updateEntity(request, tourType);
+        syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));
+    }
+
+    // Replaces the whole translation set on every save rather than diffing -
+    // the admin form always submits the complete per-locale list, and
+    // orphanRemoval on TourType.translations cleans up the rows that drop out.
+    private void syncTranslations(TourType tourType, List<CatalogTranslationDto> dtos) {
+        tourType.getTranslations().clear();
+        if (dtos == null) return;
+        for (CatalogTranslationDto dto : dtos) {
+            TourTypeTranslation translation = new TourTypeTranslation();
+            translation.setTourType(tourType);
+            translation.setLocale(dto.getLocale());
+            translation.setName(dto.getName());
+            translation.setDescription(dto.getDescription());
+            translation.setAboutText(dto.getAboutText());
+            translation.setHighlights(dto.getHighlights());
+            translation.setIncludedItems(dto.getIncludedItems());
+            translation.setNotIncludedItems(dto.getNotIncludedItems());
+            translation.setProgramSteps(dto.getProgramSteps());
+            tourType.getTranslations().add(translation);
+        }
     }
 
     @Override
@@ -75,5 +104,20 @@ public class TourTypeServiceImpl implements TourTypeService {
     private TourType findById(UUID tourTypeId) {
         return tourTypeRepository.findById(tourTypeId)
                 .orElseThrow(() -> new RuntimeException("TourType not found: " + tourTypeId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublicStayResponse> getPublicStays(String locale) {
+        return tourTypeRepository.findByIsActiveTrue().stream()
+                .map(tourType -> publicStayMapper.toResponse(tourType, locale)).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PublicStayResponse getPublicStayBySlug(String slug, String locale) {
+        TourType tourType = tourTypeRepository.findBySlugAndIsActiveTrue(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Stay not found: " + slug));
+        return publicStayMapper.toResponse(tourType, locale);
     }
 }

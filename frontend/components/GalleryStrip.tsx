@@ -1,17 +1,18 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import { getGalleryStrip } from "@/lib/api";
 
 export default async function GalleryStrip() {
-  const galleryItems = await getGalleryStrip();
+  const [galleryItems, t] = await Promise.all([getGalleryStrip(), getTranslations("galleryStrip")]);
 
   return (
     <section className="block gallery" id="gallery">
       <div className="wrap">
         <Reveal>
-          <p className="sect-eyebrow">From the sand</p>
-          <h2 className="sect-title">Golden hour, every time.</h2>
+          <p className="sect-eyebrow">{t("eyebrow")}</p>
+          <h2 className="sect-title">{t("title")}</h2>
         </Reveal>
         <Reveal className="strip">
           {galleryItems.map((item, i) => (
@@ -28,7 +29,7 @@ export default async function GalleryStrip() {
         </Reveal>
         <div style={{ marginTop: 40 }}>
           <Link href="/gallery" className="btn-quiet">
-            See the full gallery →
+            {t("cta")}
           </Link>
         </div>
       </div>

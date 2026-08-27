@@ -1,0 +1,82 @@
+import type { Stay } from "@/lib/types";
+
+export const staysDa: Stay[] = [
+  {
+    slug: "nuitee-campement-desert",
+    title: "En nat hos Dunes Insolites",
+    kicker: "01 — LEJR",
+    tagline: "Ørkentraditioner, middag under stjernerne og en fredfyldt nat blandt klitterne.",
+    description: "En hel nat i Sabria-lejren — middag under stjernerne, en rigtig seng i et lærredstelt, og klitterne lige uden for døren.",
+    longDescription: [
+      "Dunes Insolites ligger i den tunesiske Saharas stilhed og er et sted at sænke tempoet. Ankom mens klitterne gløder, slå dig ned i dit telt, og læg hverdagens støj bag dig.",
+      "Efter aftensmaden holdes bålet tændt langt ud på natten. De fleste gæster sidder bare ved det — der er ikke noget program for aftenen ud over det.",
+      "Dit telt er indrettet til komfort med kvalitetssengetøj og blødt lys. Vågn op med ørkenen, nyd morgenmaden, og tag dig god tid, før du tager tilbage.",
+    ],
+    image: "/images/under-hero.jpg",
+    gallery: ["/images/under-hero.jpg", "/images/gate.jpg"],
+    priceFrom: 95,
+    groupSize: "2–20 gæster",
+    included: [
+      "Privat lærredstelt for natten",
+      "Aftensmad og morgenmad",
+      "Lejrbål og mynteté",
+      "Returtransport fra Douz eller Kebili",
+    ],
+    notIncluded: ["Aktiviteter (kamel, quad, sandboarding — tilføjes nedenfor)", "Drikkepenge", "Rejseforsikring"],
+    practicalInfo: [
+      "Nætter i ørkenen er kolde selv om sommeren — medbring et varmt lag",
+      "Intet fitnesskrav; passer til alle aldre",
+      "Brusere og toiletter er fælles, en kort gåtur fra teltene",
+    ],
+    arrivalTime: "15:00",
+    departureTime: "09:00",
+    itinerary: [
+      { time: "15:00", title: "Velkommen til lejren", description: "Mød teamet, slå dig ned i dit traditionelle telt, og nyd klitternes stilhed." },
+      { time: "Sen eftermiddag", title: "Gør ørkenen til din legeplads", description: "Vælg eventuelt en kameltur, en 4x4- eller quadtur, eller en sandboarding-session inden solnedgang." },
+      { time: "Solnedgang", title: "Te, farver og sandbrød", description: "Se himlen over Sahara blive kobberfarvet under en kop mynteté og en demonstration af brød bagt under sandet." },
+      { time: "Aften", title: "Middag og musik under stjernerne", description: "Del harira, tunesisk salat, brik, bålstegt kød og lokale sødsager, før I samles omkring lejrbålet." },
+      { time: "Morgen", title: "Vågn op med klitterne", description: "Sov dybt i dit telt, og start dagen med en afslappet morgenmad og det første lys over sandet." },
+    ],
+    accommodations: [
+      { slug: "desert-tent", title: "Ørkentelt", tagline: "Et privat lærredstelt tæt på bålcirklen.", description: "Den klassiske Dunes Insolites-nat: et privat telt, ordentligt sengetøj, og klitterne lige uden for din dør.", image: "/images/under-hero.jpg", priceFrom: 95, sleeps: "Op til 2 gæster", features: ["Privat lærredstelt", "Kvalitetssengetøj", "Fælles lejrbrusere og -toiletter", "Aftensmad og morgenmad inkluderet"] },
+      { slug: "desert-room", title: "Ørkenværelse", tagline: "En mere lukket, komfortabel base i lejren.", description: "For gæster, der ønsker ørkenstemningen med lidt mere privatliv og en roligere nat i den faste lejr.", image: "/images/gate.jpg", priceFrom: 125, sleeps: "Op til 3 gæster", features: ["Lukket værelse", "Privat soveplads", "Kvalitetssengetøj", "Aftensmad og morgenmad inkluderet"] },
+      { slug: "dune-suite", title: "Klitsuite", tagline: "Vores mest rummelige og private overnatningsmulighed.", description: "Et generøst ørkenophold for par eller familier, med ekstra plads til at slappe af efter en aften under stjernerne.", image: "/images/hero-combined.jpg", priceFrom: 165, sleeps: "Op til 4 gæster", features: ["Rummelig privat suite", "Sengetøj i topkvalitet", "Ekstra siddeplads", "Aftensmad og morgenmad inkluderet"] },
+    ],
+  },
+  {
+    slug: "bivouac-desert-tunisie",
+    title: "Bivuak under stjernerne",
+    kicker: "02 — BIVUAK",
+    tagline: "En kameltur ind i Sahara, en middag ved lejrbålet, og en nat under en himmel fuld af stjerner.",
+    description: "Ingen vægge, ingen elektricitet — en rustik lejr, der sættes op på ny hver aften på en høj klit, madrasser under stjernerne eller et enkelt telt, hvis vinden tager til.",
+    longDescription: [
+      "En kamel eller en 4x4 tager dig forbi den faste lejr, længere ind i klittebæltet, til aftenens sted. Du ser holdet gøre klar, mens solen synker — madrasser lagt ud på sandet, et bål tændt, aftensmaden i gang.",
+      "Der er ingen anden menu her end det, der laves over gløderne, og intet andet lys end bålet og det, månen foretager sig den aften. Det er den enkleste udgave af en ørkennat, vi tilbyder, og den, faste gæster beder om ved navn.",
+      "Du sover under åben himmel, eller i et enkelt telt, hvis vinden tager til, og vågner op med klitten helt for dig selv, inden turen tilbage den næste morgen.",
+    ],
+    image: "/images/hero-combined.jpg",
+    gallery: ["/images/hero-combined.jpg", "/images/under-hero.jpg"],
+    priceFrom: 85,
+    groupSize: "2–12 gæster",
+    included: [
+      "Erfaren guide og kameltrekking ind i klitterne",
+      "Aftensmad og morgenmad tilberedt ved bivuakken",
+      "En nat i telt eller under åben himmel",
+      "Madras og tæpper til natten",
+      "Tilbagevenden til Dunes Insolites næste morgen",
+    ],
+    notIncluded: ["Aktiviteter (kamel, quad, sandboarding — tilføjes nedenfor)", "Drikkepenge", "Privat telt (kan fås efter aftale)"],
+    practicalInfo: [
+      "Den simpleste af vores overnatninger — forvent sand, blæst og ingen vægge",
+      "Medbring lag tøj; bivuaknætter er koldere end den faste lejr",
+      "Anbefales ikke, hvis du har brug for et privat toilet om natten",
+    ],
+    arrivalTime: "17:00",
+    departureTime: "09:00",
+    itinerary: [
+      { time: "17:00", title: "Mød din kamel og tag afsted", description: "Forlad Dunes Insolites med din guide og bevæg dig roligt gennem Sabrias store klitter." },
+      { time: "Solnedgang", title: "Vælg din lejrplads og se solnedgangen", description: "Slå dig ned på en klit eller nær en oase, og se Sahara skifte til guld, rosa og dyb blå." },
+      { time: "Nat & morgen", title: "Lejrbål, stjerner og en ørkendæmring", description: "Del en middag tilberedt over bålet, sov i telt eller under stjernerne, og tag tilbage efter morgenmad kl. 09:00." },
+    ],
+  },
+];

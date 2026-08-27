@@ -83,6 +83,141 @@ public class EmailService {
         }
     }
 
+    /**
+     * Sent once, right after a guest or client submits a booking request
+     * (DI-014) - a plain acknowledgement, not an invoice. This platform
+     * confirms bookings as a manual staff step ("booking as request"), so
+     * this deliberately promises nothing about timing or price finality.
+     * date/total may be null (not every reservation type prices the same
+     * way) - both are skipped from the email rather than shown blank.
+     */
+    @Async
+    public void sendReservationReceivedEmail(String to, String name, LocalDate date,
+                                              Double total, String currency) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Nous avons bien reçu votre demande de réservation");
+            helper.setText(buildReceivedPlainText(name, date, total, currency), false);
+            helper.setText(buildReceivedHtml(name, date, total, currency), true);
+
+            mailSender.send(message);
+            log.info("✅ Reservation-received email sent to: {}", to);
+
+        } catch (MessagingException e) {
+            log.error("❌ Failed to send reservation-received email to: {} — {}", to, e.getMessage());
+        }
+    }
+
+    private String buildReceivedPlainText(String name, LocalDate date, Double total, String currency) {
+        String dateLine = date != null
+                ? "\n  Date demandée : " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                : "";
+        String totalLine = total != null
+                ? "\n  Montant estimé : " + "%.2f %s".formatted(total, currency)
+                : "";
+
+        return """
+            Bonjour %s,
+
+            Nous avons bien reçu votre demande de réservation.
+            %s%s
+
+            Notre équipe la confirmera sous peu et vous recontactera par email ou téléphone.
+
+            Cordialement,
+            L'équipe Dune Insolite
+            """.formatted(name, dateLine, totalLine);
+    }
+
+    private String buildReceivedHtml(String name, LocalDate date, Double total, String currency) {
+        String dateRow = date != null
+                ? """
+                  <tr>
+                    <td style="font-size:13px;color:#9ca3af;font-weight:600;text-transform:uppercase;
+                               letter-spacing:0.5px;padding-right:16px;">Date demandée</td>
+                    <td style="font-size:15px;color:#111827;font-weight:500;">%s</td>
+                  </tr>
+                  """.formatted(date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                : "";
+        String totalRow = total != null
+                ? """
+                  <tr>
+                    <td style="font-size:13px;color:#9ca3af;font-weight:600;text-transform:uppercase;
+                               letter-spacing:0.5px;padding-right:16px;">Montant estimé</td>
+                    <td style="font-size:15px;color:#111827;font-weight:500;">%.2f %s</td>
+                  </tr>
+                  """.formatted(total, currency)
+                : "";
+
+        return """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0"
+                           style="background:#ffffff;border-radius:12px;overflow:hidden;
+                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
+                                   padding:36px 40px;text-align:center;">
+                          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;
+                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
+                          <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                            Demande de réservation reçue
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:40px 40px 24px;">
+                          <p style="margin:0 0 16px;font-size:16px;color:#374151;">
+                            Bonjour <strong>%s</strong>,
+                          </p>
+                          <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Nous avons bien reçu votre demande de réservation. Notre équipe la
+                            confirmera sous peu et vous recontactera par email ou téléphone.
+                          </p>
+                          <table width="100%%" cellpadding="0" cellspacing="0"
+                                 style="background:#fef9f0;border:1px solid #f0d9a8;
+                                        border-radius:8px;margin-bottom:8px;">
+                            <tr>
+                              <td style="padding:24px 28px;">
+                                <table cellpadding="6" cellspacing="0">
+                                  %s
+                                  %s
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
+                                   text-align:center;">
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                            Cet email a été envoyé automatiquement — merci de ne pas y répondre.<br>
+                            © 2025 Dune Insolite. Tous droits réservés.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(name, dateRow, totalRow);
+    }
+
     private String buildPaymentPlainText(String name, String groupName, double totalAmount, double minPaymentAmount,
                                           String currency, LocalDate dueDate, String paymentLink) {
         String deadlineLine = dueDate != null
