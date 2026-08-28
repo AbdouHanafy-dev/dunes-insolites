@@ -582,15 +582,67 @@ Utilisateurs (staff accounts, `ADMIN`/`CAMPING`) and Paramètres
 (`CampingSettingsController` — currently just `maxCapacity`) are plain CRUD,
 no caveats.
 
-**Still not built:** Blocks-as-a-reusable-collection, Navigation, Media
-Library, Rôles & permissions, Disponibilités, and the whole SEO group
-(Pages SEO/Redirections/Sitemap/Audit) — all still `soon: true` in
-`components/Sidebar.tsx`, all needing real backend work first, not just UI.
-
 - `admin/lib/api.ts` has its own request/response types, independent of
   `packages/api-types` — see [§4](#4-the-contract-layer). Drift risk exists
   but hasn't been paid for yet.
 - No test coverage of the BFF proxy or the session-cookie flow.
+
+### 10.6 The Pages CMS now actually reaches the vitrine
+
+Until this point, a page authored in the admin CMS produced no public URL —
+`frontend/` rendered `/about`, `/safety`, `/contact`, `/legal/*` from
+hardcoded components regardless. That's closed, on one route so far, as a
+proven pattern rather than a blanket cutover:
+
+- **New public endpoint**, following the existing `/api/public/**`
+  convention (`PublicStayController` etc.): `GET
+  /api/public/pages/{slug}?locale=FR&companyType=DUNES_INSOLITES` —
+  unauthenticated, only ever returns a `PUBLISHED` page (never a draft),
+  block `dataJson` parsed into real JSON rather than a string-of-a-string.
+- **`frontend/components/CmsBlocks.tsx`** renders the same block types the
+  admin's page builder can produce (hero/richText/cta/faq) using the
+  vitrine's own CSS (`.prose`, `.btn-accent`) rather than a parallel style
+  system. `accommodationShowcase` doesn't render publicly yet — no public
+  endpoint resolves the `TourType` ids it stores.
+- **`frontend/app/[locale]/legal/privacy/page.tsx`** is the one route wired
+  so far: it fetches `getCmsPage("legal-privacy", locale)` and, if a
+  published page with blocks exists, renders `<CmsBlocks>` instead of its
+  own hardcoded prose — SEO fields too, when the CMS page's own
+  `seoTitle`/`metaDescription` are filled in, else the existing translated
+  defaults. **With no CMS page published (true today — the test page used
+  to verify this was deleted after verification), the route renders
+  exactly what it did before this section existed.** Verified live both
+  directions: publishing a real page took over the route, unpublishing
+  reverted it — confirmed by inspecting rendered `<h1>`/`<h2>` tags, not a
+  naive text search (a first pass gave a false "still showing old content"
+  reading because next-intl serializes the *entire* locale message catalog
+  onto the page for client hydration, including translation strings never
+  actually rendered in this code path — a plain substring search matches
+  that JSON blob too).
+- **The 300s fetch cache is real and shared with the rest of the codebase**
+  (`getActivities`, `getStays`, etc. all use the same `revalidate: 300`
+  pattern) — an admin publishing or unpublishing a page can take up to 5
+  minutes to show on the live site. That surprised the first verification
+  pass (a killed-and-restarted dev server still showed stale content,
+  because Next's fetch cache persists to `.next/cache` on disk, not just
+  in memory) - not a bug, just worth knowing before assuming a change
+  didn't take.
+
+**Not done:** `about`, `safety`, `contact`, `legal/terms` still don't read
+from the CMS — this proves the mechanism works, it doesn't migrate every
+page. Doing that for real means: richer block types (About's guide photo/
+bio cards, Safety's FAQ list feeding the `FAQPage` JSON-LD, structured legal
+clauses beyond flat prose) and — the part that actually takes the time —
+manually re-entering the already-translated content for each page into the
+CMS across all 6 locales, since nothing auto-migrates the existing
+`messages/*.json` content into `Page`/`PageBlock` rows. Skipping that step
+and just flipping the switch would revert months of translation work to
+whatever's typed into the block editor.
+
+**Still not built:** Blocks-as-a-reusable-collection, Navigation, Media
+Library, Rôles & permissions, Disponibilités, and the whole SEO group
+(Pages SEO/Redirections/Sitemap/Audit) — all still `soon: true` in
+`components/Sidebar.tsx`, all needing real backend work first, not just UI.
 
 ---
 

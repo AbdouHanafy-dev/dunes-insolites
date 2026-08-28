@@ -74,6 +74,42 @@ async function get<T>(path: string, fallback: T, opts: FetchOpts = {}): Promise<
   }
 }
 
+/* -------------------------------------------------------------------- CMS */
+
+export type CmsBlock = { type: string; data: Record<string, unknown> };
+
+export type CmsPage = {
+  slug: string;
+  title: string;
+  locale: string;
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  noIndex: boolean;
+  noFollow: boolean;
+  ogTitle: string | null;
+  ogDescription: string | null;
+  ogImageUrl: string | null;
+  blocks: CmsBlock[];
+};
+
+/**
+ * A page authored in the admin CMS (Pages collection) — only ever returns a
+ * PUBLISHED page, `null` for a draft, a page that doesn't exist yet, or when
+ * no backend is configured at all. Callers fall back to their own hardcoded
+ * content when this is `null`, so an editor forgetting to publish never
+ * blanks a live route — see frontend/CLAUDE.md and the pages that call this.
+ */
+export async function getCmsPage(slug: string, locale?: string): Promise<CmsPage | null> {
+  if (!BASE) return null;
+  const loc = (locale ?? "fr").toUpperCase();
+  return get<CmsPage | null>(
+    `/public/pages/${encodeURIComponent(slug)}?locale=${loc}&companyType=DUNES_INSOLITES`,
+    null,
+    { revalidate: 300 },
+  );
+}
+
 /* ------------------------------------------------------------------ reads */
 
 // `locale` is a plain passthrough parameter here, not resolved via

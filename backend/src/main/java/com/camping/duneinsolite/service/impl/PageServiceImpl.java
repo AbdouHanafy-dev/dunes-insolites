@@ -6,6 +6,8 @@ import com.camping.duneinsolite.exception.PageSlugConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.PageMapper;
 import com.camping.duneinsolite.model.Page;
+import com.camping.duneinsolite.model.enums.CompanyType;
+import com.camping.duneinsolite.model.enums.PageLocale;
 import com.camping.duneinsolite.model.enums.PageStatus;
 import com.camping.duneinsolite.repository.PageRepository;
 import com.camping.duneinsolite.service.PageService;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -80,6 +83,14 @@ public class PageServiceImpl implements PageService {
         Page page = findById(pageId);
         page.setStatus(PageStatus.DRAFT);
         return pageMapper.toResponse(pageRepository.save(page));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<PageResponse> getPublishedPageBySlug(String slug, PageLocale locale, CompanyType companyType) {
+        return pageRepository.findBySlugAndLocaleAndCompanyType(slug, locale, companyType)
+                .filter(page -> page.getStatus() == PageStatus.PUBLISHED)
+                .map(pageMapper::toResponse);
     }
 
     private Page findById(UUID pageId) {

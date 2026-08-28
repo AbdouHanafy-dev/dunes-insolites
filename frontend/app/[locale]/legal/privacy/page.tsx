@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
+import CmsBlocks from "@/components/CmsBlocks";
 import { site } from "@/lib/site";
+import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+
+const CMS_SLUG = "legal-privacy";
 
 export async function generateMetadata({
   params,
@@ -10,18 +14,41 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "meta.legalPrivacy" });
+  const [t, cms] = await Promise.all([
+    getTranslations({ locale, namespace: "meta.legalPrivacy" }),
+    getCmsPage(CMS_SLUG, locale),
+  ]);
+  // A published CMS page's own SEO fields win when the editor filled them
+  // in; otherwise this falls back to the translated defaults exactly as
+  // before CMS wiring existed.
   return {
-    title: t("title"),
-    description: t("description"),
+    title: cms?.seoTitle || t("title"),
+    description: cms?.metaDescription || t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/legal/privacy")),
   };
 }
 
 export default async function PrivacyPage() {
-  const t = await getTranslations("legal.privacy");
-  const tLegal = await getTranslations("legal");
-  const tContact = await getTranslations("contact");
+  const locale = await getLocale();
+  const [t, tLegal, tContact, cms] = await Promise.all([
+    getTranslations("legal.privacy"),
+    getTranslations("legal"),
+    getTranslations("contact"),
+    getCmsPage(CMS_SLUG, locale),
+  ]);
+
+  // A published "legal-privacy" page in the admin CMS takes over this
+  // route entirely; with none published (the default — nothing has been
+  // authored there yet), this renders exactly the hardcoded content below,
+  // unchanged. See admin/ARCHITECTURE.md §10.5 and frontend/CLAUDE.md.
+  if (cms && cms.blocks.length > 0) {
+    return (
+      <>
+        <PageHead eyebrow={tLegal("eyebrow")} title={cms.title} lead="" />
+        <CmsBlocks blocks={cms.blocks} />
+      </>
+    );
+  }
 
   return (
     <>
