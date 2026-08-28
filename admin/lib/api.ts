@@ -267,6 +267,23 @@ export function getContentBlockById(
   return authedGet<AdminContentBlock | null>(`/content-blocks/${id}`, accessToken, null);
 }
 
+/* -------------------------------------------------------------------- media */
+
+export type AdminMediaAsset = {
+  assetId: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  /** Already absolute — see MediaController.absolute(). */
+  url: string;
+  companyType: CompanyType;
+  createdAt: string;
+};
+
+export function getAllMediaAssets(accessToken: string): Promise<AdminMediaAsset[]> {
+  return authedGet<AdminMediaAsset[]>("/media", accessToken, []);
+}
+
 /* --------------------------------------------------------------------- staff */
 
 export function searchStaff(

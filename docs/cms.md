@@ -367,11 +367,40 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 
 ## 13. What's not built
 
-- **Media Library, Rôles & permissions, Disponibilités** — still
-  `soon: true` in `components/Sidebar.tsx`. Media Library specifically
-  needs a storage decision (local disk vs. object storage) before any
-  code; the others need real backend work (new entities/controllers) that
-  doesn't exist yet.
+- **Rôles & permissions, Disponibilités** — still `soon: true` in
+  `components/Sidebar.tsx`. Both need real backend work (new
+  entities/controllers) that doesn't exist yet.
+- ~~**Media Library**~~ **Done.** Local-disk storage, deliberately —
+  `MediaAsset` (`assetId`, `filename`, `storedFilename` UUID-prefixed on
+  disk, `mimeType`, `sizeBytes`, `companyType`, `createdAt`), no
+  draft/publish, full CRUD at `/api/media` (ADMIN). `MediaServiceImpl`
+  enforces an 8 MB size cap and an image-only MIME allowlist
+  (jpeg/png/webp/gif/svg) at upload time — both also declared in
+  `application.yml`'s `spring.servlet.multipart` limits so a request over
+  the cap never reaches the service layer at all. Files are served
+  publicly and unauthenticated at `/media/**` via `WebConfig`'s
+  `addResourceHandlers` (`permitAll` for `GET` in `SecurityConfig`, right
+  after the `/api/public/**` rule) — a URL an editor copies into a block's
+  "Image (URL)" field has to actually resolve on the live site, so it
+  can't sit behind the ADMIN-only `/api/media` collection endpoint.
+  `MediaController` rewrites each response's relative `/media/xyz.jpg`
+  into an absolute URL via `ServletUriComponentsBuilder` before it ever
+  reaches the admin UI, so a copied link works regardless of which host
+  served the page.
+  `admin/app/api/proxy/media-upload/route.ts` is a **second**, dedicated
+  proxy route — the generic `app/api/proxy/[...path]/route.ts` passthrough
+  hardcodes `Content-Type: application/json` and reads the body as text,
+  which would corrupt a multipart upload. This one rebuilds a real
+  `FormData` and lets `fetch` set its own boundary.
+  One real bug found and fixed while verifying this: a request for a
+  missing/deleted file under `/media/**` returned 500, not 404. Spring's
+  own `NoResourceFoundException` (its default 404 for an unmatched static
+  resource) was being caught by `GlobalExceptionHandler`'s
+  `@ExceptionHandler(Exception.class)` catch-all before Spring's normal
+  404 resolution ran. Fixed with an explicit
+  `@ExceptionHandler(NoResourceFoundException.class)` returning 404,
+  placed before the generic handler — the same "most specific handler
+  wins" pattern the file's `BusinessException` comment already documents.
 - ~~**Blocks-as-a-reusable-collection**~~ **Done.** A `ContentBlock` entity
   (label, type, dataJson, locale, companyType — same shape as one `Page`
   block, plus an admin-only `label` so an editor can tell "Summer promo"

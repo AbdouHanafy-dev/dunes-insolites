@@ -110,6 +110,20 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // ── Handle missing static resources (e.g. /media/{deleted-or-unknown-file}) ──
+    // Spring throws this for any unmatched static-resource request and resolves
+    // it to 404 by default - but RestControllerAdvice's own catch-all Exception
+    // handler below runs first without this, turning a normal "file not found"
+    // into a misleading 500. Media Library (MediaController/WebConfig) is what
+    // first exercises this path: a stale/copied URL for a deleted upload must
+    // 404, not read as a server defect.
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+
+        return buildResponse(HttpStatus.NOT_FOUND, "Resource not found", null);
+    }
+
     // ── Handle any other unexpected error ─────────────────────────────
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {

@@ -37,3 +37,6 @@ build/
 ### Local secrets - never commit
 .env
 src/main/resources/application-local.yml
+
+### Media library uploads (local disk storage, see MediaServiceImpl)
+uploads/

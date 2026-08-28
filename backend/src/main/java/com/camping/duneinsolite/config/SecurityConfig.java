@@ -73,6 +73,12 @@ public class SecurityConfig {
                         // wildcard ambiguity to worry about here, unlike the block above.
                         .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
 
+                        // Uploaded media files themselves (WebConfig's static mapping) -
+                        // a page referencing one in a block image field needs it to load
+                        // for every visitor, not just staff. Managing the library
+                        // (upload/list/delete, under /api/media) still requires ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
+
                         // Guest checkout (DI-013) - no login step. Finds/creates the
                         // account server-side; see PublicBookingServiceImpl.
                         .requestMatchers(HttpMethod.POST, "/api/public/bookings", "/api/public/stay-bookings").permitAll()

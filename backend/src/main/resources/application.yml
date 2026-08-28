@@ -44,6 +44,11 @@ spring:
       # that never took effect.
       request-timeout: -1
 
+  servlet:
+    multipart:
+      max-file-size: 8MB   # matches MediaServiceImpl's own MAX_SIZE_BYTES check
+      max-request-size: 8MB
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -88,6 +93,7 @@ management:
 
 # ── App-level properties (used in EmailService) ─────────────────
 app:
+  upload-dir: ${APP_UPLOAD_DIR:uploads}   # local disk, see MediaServiceImpl/WebConfig
   mail:
     from: noreply@duneinsolite.com        # display sender address in outgoing emails
   frontend:
