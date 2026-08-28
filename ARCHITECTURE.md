@@ -628,6 +628,27 @@ proven pattern rather than a blanket cutover:
   in memory) - not a bug, just worth knowing before assuming a change
   didn't take.
 
+### 10.7 Live preview — Payload's split-pane pattern, for real
+
+The Pages editor now has a genuine live preview, not a "Preview" button that
+opens the published page in a new tab: `admin/components/pages/
+LivePreviewPane.tsx` embeds the actual vitrine in an iframe next to the
+form, and `frontend/components/LivePreview.tsx` renders whatever the editor
+posts via `window.postMessage` on every field change — title, blocks, all
+of it — before anything is saved. No preview token, no draft-fetch
+endpoint, no admin session shared with the vitrine: the iframe never talks
+to the backend at all in this mode, it just renders messages it receives.
+
+`LivePreviewPane` keeps a small, explicit map from CMS slug to vitrine path
+(today: only `legal-privacy` → `/legal/privacy`, matching [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
+Any other slug shows an honest "no live preview for this slug yet" message
+instead of an iframe pointed at nothing — extending the map is one line per
+route once that route's `page.tsx` reads from the CMS.
+
+Needs `NEXT_PUBLIC_FRONTEND_URL` set on `admin` in anything other than
+default local dev (falls back to `http://localhost:3000`, the frontend's
+own default port) — not yet wired into either app's `.env.example`.
+
 **Not done:** `about`, `safety`, `contact`, `legal/terms` still don't read
 from the CMS — this proves the mechanism works, it doesn't migrate every
 page. Doing that for real means: richer block types (About's guide photo/

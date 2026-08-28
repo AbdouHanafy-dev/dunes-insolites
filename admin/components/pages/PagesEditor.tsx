@@ -7,6 +7,7 @@ import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import PageBuilder from "./PageBuilder";
 import SeoEditor from "./SeoEditor";
+import LivePreviewPane from "./LivePreviewPane";
 import type { AdminPage, AdminTourType, PageBlock } from "@/lib/api";
 
 const BASE_PATH = "/content/pages";
@@ -118,7 +119,7 @@ export default function PagesEditor({
         </h1>
       </div>
 
-      <form onSubmit={onSave} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+      <form onSubmit={onSave} className="grid grid-cols-1 gap-6 xl:grid-cols-[400px_1fr_260px]">
         <div className="flex flex-col gap-4">
           {/* Tabs */}
           <div className="flex gap-1 rounded-xl border border-navy-700/10 bg-white p-1">
@@ -203,6 +204,13 @@ export default function PagesEditor({
               <SeoEditor form={form} onChange={patch} fallbackTitle={form.title} fallbackUrl={fallbackUrl} />
             )}
           </div>
+        </div>
+
+        {/* Live preview — the vitrine, embedded, updated on every edit before
+            anything is saved. See frontend/components/LivePreview.tsx and
+            ARCHITECTURE.md §10.6 for which slugs actually support this. */}
+        <div className="hidden min-h-[500px] xl:block">
+          <LivePreviewPane slug={form.slug} title={form.title} blocks={form.blocks} />
         </div>
 
         {/* Sidebar — status/publish live here, same pattern as CollectionEditor */}

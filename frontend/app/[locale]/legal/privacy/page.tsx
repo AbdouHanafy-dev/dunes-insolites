@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import CmsBlocks from "@/components/CmsBlocks";
+import LivePreview from "@/components/LivePreview";
 import { site } from "@/lib/site";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
@@ -28,11 +29,24 @@ export async function generateMetadata({
   };
 }
 
-export default async function PrivacyPage() {
+export default async function PrivacyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ livePreview?: string }>;
+}) {
+  const { livePreview } = await searchParams;
+  const tLegal = await getTranslations("legal");
+
+  // Embedded in an iframe by the admin's Pages editor — renders whatever
+  // unsaved form state the editor posts via postMessage, never the
+  // published page. See components/LivePreview.tsx.
+  if (livePreview === "1") {
+    return <LivePreview eyebrow={tLegal("eyebrow")} />;
+  }
+
   const locale = await getLocale();
-  const [t, tLegal, tContact, cms] = await Promise.all([
+  const [t, tContact, cms] = await Promise.all([
     getTranslations("legal.privacy"),
-    getTranslations("legal"),
     getTranslations("contact"),
     getCmsPage(CMS_SLUG, locale),
   ]);
