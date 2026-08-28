@@ -36,3 +36,4 @@ build/
 
 ### Local secrets - never commit
 .env
+src/main/resources/application-local.yml

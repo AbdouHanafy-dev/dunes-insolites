@@ -234,6 +234,40 @@ Done: role escalation closed, CORS applied, staff controllers locked down,
 `site.url` corrected, monorepo with shared contract, `BusinessException`
 hierarchy started.
 
-**Outstanding and blocking:** the leaked Gmail app password and Keycloak client
-secret are untracked but **not yet rotated**. Until they are, treat both as
-public.
+**Outstanding and blocking:**
+
+- **Keycloak client secret (local dev)** — rotated 28 Aug 2026. Regenerated via
+  the Keycloak Admin API against the local Docker realm; the value the leaked
+  `../duneinsolite/.env` (old GitLab-hosted pre-monorepo repo, commits
+  `b8849e0`/`a8c7889`) exposed is dead there. Verified end-to-end: login →
+  bearer token → authorized `/api/pages` call, all 200. `backend/.env` holds
+  the new value; local runs activate it via
+  `-Dspring.profiles.active=local` (new `application-local.yml`, gitignored —
+  see below).
+- **Keycloak client secret / any other host** — `application.yml`'s default
+  `KEYCLOAK_SERVER_URL` and `SPRING_DATASOURCE_URL` point at a remote IP
+  (`79.143.185.33`) unreachable from this dev machine. **Unverified whether
+  that host is live, and if so whether it uses the same leaked secret.** If
+  it is a real staging/demo deployment, its Keycloak client secret (and
+  whatever Gmail credential it uses) needs rotating separately, directly on
+  that host — not something done from here.
+- **Gmail app password — still not rotated.** Requires the Google account
+  owner: revoke the old app password (Google Account → Security → App
+  Passwords), then, if SMTP is still needed, generate a new one and put it
+  directly into the relevant `.env` yourself rather than pasting it into a
+  chat transcript. Local `backend/.env` currently has this empty, so mail
+  sending fails locally (`jakarta.mail.AuthenticationFailedException`) —
+  harmless for dev, but the leaked value is still live until revoked.
+
+Until the Gmail password is revoked and the remote host is checked, treat
+both as still public.
+
+**Local dev note:** `application-local.yml` (backend, gitignored) is now the
+supported way to run the backend against the docker-compose stack instead of
+the remote defaults — activate with
+`node scripts/mvn.mjs -q spring-boot:run -Dspring-boot.run.jvmArguments=-Dspring.profiles.active=local`.
+Passing multiple `-D`/env overrides directly on the command line does **not**
+reliably reach the forked JVM through `scripts/mvn.mjs`'s Windows `shell:
+true` spawn — args containing spaces get re-split by `cmd.exe` before Maven
+sees them. A single no-space flag (profile activation) sidesteps it; a
+config file is the fix, not more flags.
