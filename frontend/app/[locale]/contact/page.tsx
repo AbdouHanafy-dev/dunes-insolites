@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import ContactForm from "@/components/ContactForm";
 import PageHead from "@/components/PageHead";
+import LivePreview from "@/components/LivePreview";
 import { site } from "@/lib/site";
+import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+
+const CMS_SLUG = "contact";
 
 export async function generateMetadata({
   params,
@@ -11,10 +15,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "meta.contact" });
+  const [t, cms] = await Promise.all([
+    getTranslations({ locale, namespace: "meta.contact" }),
+    getCmsPage(CMS_SLUG, locale),
+  ]);
   return {
-    title: t("title"),
-    description: t("description"),
+    title: cms?.seoTitle || t("title"),
+    description: cms?.metaDescription || t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/contact")),
   };
 }
@@ -25,12 +32,36 @@ const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${
   site.coords.lat + 0.06
 }&layer=mapnik&marker=${site.coords.lat}%2C${site.coords.lng}`;
 
-export default async function ContactPage() {
-  const t = await getTranslations("contact");
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ livePreview?: string }>;
+}) {
+  const { livePreview } = await searchParams;
+
+  if (livePreview === "1") {
+    const t = await getTranslations("contact");
+    return <LivePreview eyebrow={t("eyebrow")} />;
+  }
+
+  const locale = await getLocale();
+  const [t, cms] = await Promise.all([getTranslations("contact"), getCmsPage(CMS_SLUG, locale)]);
+
+  // Only the header reads from the CMS here — the form, info cards and map
+  // are real functionality, not editorial content, and were never going to
+  // become CMS blocks (see ARCHITECTURE.md §10.6). A published "contact"
+  // page's hero block can override the title/lead; its eyebrow always comes
+  // from the translated default, since "hero" has no eyebrow field. With
+  // no CMS page published (true today), this is byte-for-byte what it was
+  // before this section existed.
+  const heroBlock = cms?.blocks.find((b) => b.type === "hero");
+  const heroData = heroBlock?.data ?? {};
+  const title = (typeof heroData.title === "string" && heroData.title) || t("title");
+  const lead = (typeof heroData.subtitle === "string" && heroData.subtitle) || t("lead");
 
   return (
     <>
-      <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/sandboard.jpg" />
+      <PageHead eyebrow={t("eyebrow")} title={title} lead={lead} image="/images/sandboard.jpg" />
 
       <section className="section-sand">
         <div className="wrap">

@@ -591,10 +591,13 @@ no caveats.
 
 Until this point, a page authored in the admin CMS produced no public URL —
 `frontend/` rendered `/about`, `/safety`, `/contact`, `/legal/*` from
-hardcoded components regardless. Closed on four routes now
-(`legal-privacy`, `legal-terms`, `safety`, `about`). `contact`'s core is a
-form and a map embed — never going to become CMS blocks — so it's the one
-deliberately left out; see the end of this section:
+hardcoded components regardless. Now all five do, in two different shapes:
+`legal-privacy`, `legal-terms`, `safety` and `about` let a published CMS
+page take over the editorial content entirely; `contact`'s core is a form
+and a map embed that were never going to become CMS blocks, so only its
+hero title/lead can be overridden — the form/map/info-card shell stays
+code no matter what. See the `contact` bullet below for exactly how that's
+scoped:
 
 - **New public endpoint**, following the existing `/api/public/**`
   convention (`PublicStayController` etc.): `GET
@@ -653,6 +656,18 @@ deliberately left out; see the end of this section:
   catalog onto the page for client hydration, including translation strings
   never actually rendered in this code path — a plain substring search
   matches that JSON blob too).
+- **`contact/page.tsx` is the partial-override case, not full replacement.**
+  Its form, info cards and map (`ContactForm`, the address/phone/hours
+  list, the OpenStreetMap embed) always render — real functionality, not
+  editorial content. Only the page's title/lead can come from a published
+  CMS page's own `hero` block (`heroBlock?.data.title` /
+  `.subtitle`); the eyebrow always comes from the translated default, since
+  `hero` has no eyebrow field. A CMS page with no `hero` block, or none
+  published at all, renders exactly the original hardcoded title/lead.
+  Verified the same way as the other four: publishing a `contact` CMS page
+  with a hero block changed the `<h1>` and lead paragraph while the actual
+  `<form>` and the OpenStreetMap iframe stayed present and untouched;
+  unpublishing reverted the title/lead alone.
 - **The 300s fetch cache is real and shared with the rest of the codebase**
   (`getActivities`, `getStays`, etc. all use the same `revalidate: 300`
   pattern) — an admin publishing or unpublishing a page can take up to 5
@@ -674,8 +689,8 @@ endpoint, no admin session shared with the vitrine: the iframe never talks
 to the backend at all in this mode, it just renders messages it receives.
 
 `LivePreviewPane` keeps a small, explicit map from CMS slug to vitrine path
-(today: `legal-privacy`, `legal-terms`, `safety`, `about` — the four routes
-wired per [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
+(today: `legal-privacy`, `legal-terms`, `safety`, `about`, `contact` — all
+five routes wired per [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
 Any other slug shows an honest "no live preview for this slug yet" message
 instead of an iframe pointed at nothing — extending the map is one line per
 route once that route's `page.tsx` reads from the CMS.
@@ -684,15 +699,17 @@ Needs `NEXT_PUBLIC_FRONTEND_URL` set on `admin` in anything other than
 default local dev (falls back to `http://localhost:3000`, the frontend's
 own default port) — not yet wired into either app's `.env.example`.
 
-**Not done:** `contact` still doesn't read from the CMS — its core is a
-form and a map embed, which were never going to become CMS blocks. At most
-its eyebrow/lead text could read from the CMS while the form/map/info-card
-shell stays code, which is a different, smaller piece of work than the
-other four routes and hasn't been done either.
-
-`about` *was* blocked on the same "no repeatable field" gap as everything
-else here, until the `team` block + `RepeaterField` closed it in the same
-pass — see the `team` bullet above.
+**One live-preview fidelity gap worth knowing, specific to `contact`:**
+`LivePreview.tsx` renders `<PageHead>` + `<CmsBlocks>` only — for `about`
+that's an acceptable simplification (`Experience`/`CTA` are generic,
+non-editorial, unsurprising to omit from a content preview), but for
+`contact` the live preview shows *only* the hero block, never the
+form/map/info-card shell that the real route always renders alongside it.
+Previewing a `contact` page therefore doesn't look like the final page —
+it looks like a bare hero. Fixing that means teaching `LivePreview.tsx`
+which routes have a fixed shell around the CMS content, not just whether
+one exists; not done, and easy to trip over if you only look at the
+preview and not the live route.
 
 Also still true for every route that *is* wired: nothing auto-migrates the
 already-translated `messages/*.json` content into `Page`/`PageBlock` rows.

@@ -10,6 +10,7 @@ const PREVIEW_PATHS: Record<string, string> = {
   "legal-terms": "/legal/terms",
   safety: "/safety",
   about: "/about",
+  contact: "/contact",
 };
 
 const FRONTEND_BASE = (process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:3000").replace(
