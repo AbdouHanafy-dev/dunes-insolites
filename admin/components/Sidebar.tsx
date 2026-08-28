@@ -18,9 +18,9 @@ const GROUPS: NavGroup[] = [
       { label: "Nouvelle réservation", href: "#", icon: "✦", soon: true },
       { label: "Réservations", href: "/reservations", icon: "📅" },
       { label: "Clients", href: "/clients", icon: "👥" },
-      { label: "Paiements", href: "#", icon: "💳", soon: true },
-      { label: "Factures", href: "#", icon: "📄", soon: true },
-      { label: "Proformas", href: "#", icon: "📋", soon: true },
+      { label: "Paiements", href: "/operations/paiements", icon: "💳" },
+      { label: "Factures", href: "/operations/factures", icon: "📄" },
+      { label: "Proformas", href: "/operations/proformas", icon: "📋" },
     ],
   },
   {
@@ -39,7 +39,7 @@ const GROUPS: NavGroup[] = [
       { label: "Blocs de contenu", href: "#", icon: "🧩", soon: true },
       { label: "Navigation", href: "#", icon: "🔗", soon: true },
       { label: "Médiathèque", href: "#", icon: "🖼️", soon: true },
-      { label: "Avis clients", href: "#", icon: "⭐", soon: true },
+      { label: "Avis clients", href: "/content/avis", icon: "⭐" },
     ],
   },
   {
@@ -61,9 +61,9 @@ const GROUPS: NavGroup[] = [
   {
     label: "Administration",
     items: [
-      { label: "Utilisateurs", href: "#", icon: "🧑‍💼", soon: true },
+      { label: "Utilisateurs", href: "/administration/utilisateurs", icon: "🧑‍💼" },
       { label: "Rôles & permissions", href: "#", icon: "🔐", soon: true },
-      { label: "Paramètres", href: "#", icon: "⚙️", soon: true },
+      { label: "Paramètres", href: "/administration/parametres", icon: "⚙️" },
     ],
   },
 ];

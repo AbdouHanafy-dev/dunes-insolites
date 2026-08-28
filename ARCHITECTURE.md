@@ -550,18 +550,46 @@ SEO and data, like Payload":
   `seoChecks()` — a list of concrete ✓/⚠/✗ items (title length, missing meta
   description, etc.), deliberately not a fabricated numeric "score."
 
-### 10.5 What this section does not yet cover
+### 10.5 Operations, staff and settings — wired to the backend that already existed
+
+Reservations/Clients/catalogue/Pages had UI but no Paiements, Factures,
+Proformas, Utilisateurs, Avis or Paramètres. The backend controllers for all
+of these already existed (`InvoiceController`, `TransactionController`,
+`PaymentController`, `UserController`, `ReviewController`,
+`CampingSettingsController`) — this was UI wiring, not new backend, with
+three deliberate scope cuts worth being explicit about:
+
+- **Paiements/Factures/Proformas are read/action-only, not create-a-document.**
+  A real fiscal invoice's line items are built correctly by the reservation
+  flow already; a bare admin form re-entering that risks a malformed
+  document with no safeguard. Paiements *does* have a create form, but it
+  calls `POST /reservations/{id}/payments` — recording a payment against an
+  existing reservation, never inventing an invoice from scratch. Invoices
+  support view + send-by-email + delete-while-`DRAFT` only.
+- **`toggleCompanyType` is deliberately not exposed anywhere in this UI.**
+  It's [§13](#13-known-architectural-debt) item 2 — rewriting an issued
+  invoice's legal identity with no status check. Building a button for it
+  would make that debt easier to trigger by accident, not fix it.
+- **Avis clients is moderation (read + delete), not authoring.**
+  `POST /api/reviews` always attributes the review to the caller's own JWT
+  identity — there's no field for an external author name or source
+  platform. A staff member "entering a real GetYourGuide review" through
+  this UI today would show up as having written it themselves, which is
+  wrong in a different way than fabricating one, but still wrong. Needs a
+  backend field before a create form belongs here.
+
+Utilisateurs (staff accounts, `ADMIN`/`CAMPING`) and Paramètres
+(`CampingSettingsController` — currently just `maxCapacity`) are plain CRUD,
+no caveats.
+
+**Still not built:** Blocks-as-a-reusable-collection, Navigation, Media
+Library, Rôles & permissions, Disponibilités, and the whole SEO group
+(Pages SEO/Redirections/Sitemap/Audit) — all still `soon: true` in
+`components/Sidebar.tsx`, all needing real backend work first, not just UI.
 
 - `admin/lib/api.ts` has its own request/response types, independent of
   `packages/api-types` — see [§4](#4-the-contract-layer). Drift risk exists
   but hasn't been paid for yet.
-- Only Pages exists as a CMS collection. Blocks-as-a-reusable-collection,
-  Navigation, Media Library and Testimonials are still `soon: true`
-  placeholders in `components/Sidebar.tsx` — visible in the nav so the shape
-  of where this is going is honest, not built yet.
-- Factures/Proformas/Paiements have no admin UI yet — reservations, clients,
-  and the three catalogue entities plus Pages are the only sections with
-  real CRUD so far.
 - No test coverage of the BFF proxy or the session-cookie flow.
 
 ---

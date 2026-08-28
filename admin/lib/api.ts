@@ -215,3 +215,136 @@ export function getAllPages(accessToken: string): Promise<AdminPage[]> {
 export function getPageById(accessToken: string, id: string): Promise<AdminPage | null> {
   return authedGet<AdminPage | null>(`/pages/${id}`, accessToken, null);
 }
+
+/* --------------------------------------------------------------------- staff */
+
+export function searchStaff(
+  accessToken: string,
+  opts: { term?: string; page?: number; size?: number } = {},
+): Promise<Page<AdminUser>> {
+  return searchUsers(accessToken, { ...opts, roles: ["ADMIN", "CAMPING"] });
+}
+
+/* ------------------------------------------------------------------ reviews */
+
+export type AdminReview = {
+  reviewId: string;
+  userId: string;
+  userName: string;
+  productId: string;
+  productType: "TOURTYPE" | "TOUR" | "EXTRA";
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+};
+
+export function getReviewsForProduct(
+  accessToken: string,
+  productId: string,
+  productType: string,
+  page = 0,
+  size = 50,
+): Promise<Page<AdminReview>> {
+  const empty: Page<AdminReview> = { content: [], totalElements: 0, totalPages: 0, number: 0 };
+  return authedGet<Page<AdminReview>>(
+    `/reviews?productId=${productId}&productType=${productType}&page=${page}&size=${size}`,
+    accessToken,
+    empty,
+  );
+}
+
+export function getReviewById(accessToken: string, id: string): Promise<AdminReview | null> {
+  return authedGet<AdminReview | null>(`/reviews/${id}`, accessToken, null);
+}
+
+/**
+ * There is no "all reviews" endpoint on the backend — only reviews for one
+ * product. This fans out across every catalogue product and merges the
+ * results, newest first. Fine at this catalogue's size; would need a real
+ * paginated endpoint if the product count grows a lot.
+ */
+export async function getAllReviews(accessToken: string): Promise<AdminReview[]> {
+  const [tourTypes, tours, extras] = await Promise.all([
+    getAllTourTypes(accessToken),
+    getAllTours(accessToken),
+    getAllExtras(accessToken),
+  ]);
+  const targets = [
+    ...tourTypes.map((t) => ({ id: t.tourTypeId, type: "TOURTYPE" })),
+    ...tours.map((t) => ({ id: t.tourId, type: "TOUR" })),
+    ...extras.map((e) => ({ id: e.extraId, type: "EXTRA" })),
+  ];
+  const pages = await Promise.all(
+    targets.map((t) => getReviewsForProduct(accessToken, t.id, t.type, 0, 100)),
+  );
+  return pages
+    .flatMap((p) => p.content)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+/* -------------------------------------------------------------- transactions */
+
+export type AdminTransaction = {
+  transactionId: string;
+  transactionNumber: string;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  status: string;
+  transactionDate: string;
+  reservationId: string;
+  invoiceId: string | null;
+};
+
+export function getAllTransactions(accessToken: string): Promise<AdminTransaction[]> {
+  return authedGet<AdminTransaction[]>("/transactions", accessToken, []);
+}
+
+export function getTransactionById(accessToken: string, id: string): Promise<AdminTransaction | null> {
+  return authedGet<AdminTransaction | null>(`/transactions/${id}`, accessToken, null);
+}
+
+/* ------------------------------------------------------------------ invoices */
+
+export type InvoiceType = "STANDARD" | "PROFORMA" | "CREDIT_NOTE";
+
+export type AdminInvoice = {
+  invoiceId: string;
+  invoiceNumber: string;
+  invoiceType: InvoiceType;
+  invoiceDate: string;
+  dueDate: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  status: string;
+  paymentStatus: string;
+  currency: string;
+  reservationId: string;
+  userName: string | null;
+  companyType: CompanyType | null;
+};
+
+// GET /api/invoices has no server-side type filter — it always returns
+// every invoice, sorted by number. Filtered here instead of pretending an
+// unsupported query param does something.
+export async function getAllInvoices(accessToken: string, type?: InvoiceType): Promise<AdminInvoice[]> {
+  const all = await authedGet<AdminInvoice[]>("/invoices", accessToken, []);
+  return type ? all.filter((i) => i.invoiceType === type) : all;
+}
+
+export function getInvoiceById(accessToken: string, id: string): Promise<AdminInvoice | null> {
+  return authedGet<AdminInvoice | null>(`/invoices/${id}`, accessToken, null);
+}
+
+/* --------------------------------------------------------------- settings */
+
+export type AdminCampingSettings = {
+  maxCapacity: number | null;
+  configured: boolean;
+  updatedAt: string | null;
+};
+
+export function getCampingSettings(accessToken: string): Promise<AdminCampingSettings | null> {
+  return authedGet<AdminCampingSettings | null>("/camping-settings", accessToken, null);
+}
