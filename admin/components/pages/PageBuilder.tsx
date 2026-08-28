@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { FieldInput, inputClass, labelClass } from "@/components/payload/fields";
-import RepeaterField from "@/components/payload/RepeaterField";
-import { BLOCK_TYPES, blockTypeDef, blockPreviewLabel, parseBlockData } from "./blockTypes";
-import type { PageBlock, AdminTourType } from "@/lib/api";
+import { useEffect, useState } from "react";
+import BlockFieldsEditor from "./BlockFieldsEditor";
+import { BLOCK_TYPES, blockTypeDef, blockPreviewLabel } from "./blockTypes";
+import type { AdminContentBlock, PageBlock, AdminTourType } from "@/lib/api";
 
 export default function PageBuilder({
   blocks,
@@ -17,6 +16,15 @@ export default function PageBuilder({
 }) {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
+  // Only needed to resolve a "blockReference" block's collapsed-card label
+  // to the referenced block's real label — see blockPreviewLabel.
+  const [contentBlocks, setContentBlocks] = useState<AdminContentBlock[]>([]);
+  useEffect(() => {
+    fetch("/api/proxy/content-blocks")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setContentBlocks)
+      .catch(() => setContentBlocks([]));
+  }, []);
 
   function addBlock(type: string) {
     const next = [...blocks, { type, dataJson: "{}" }];
@@ -70,7 +78,7 @@ export default function PageBuilder({
                   {def?.label ?? block.type}
                 </p>
                 <p className="truncate text-sm text-navy-800">
-                  {blockPreviewLabel(block.type, block.dataJson)}
+                  {blockPreviewLabel(block.type, block.dataJson, contentBlocks)}
                 </p>
               </div>
               <div className="flex flex-shrink-0 items-center gap-1">
@@ -118,56 +126,12 @@ export default function PageBuilder({
 
             {isOpen && (
               <div className="border-t border-navy-700/8 bg-surface-alt/60 p-4">
-                {block.type === "accommodationShowcase" ? (
-                  <AccommodationPicker
-                    data={parseBlockData(block.dataJson)}
-                    tourTypes={tourTypes}
-                    onChange={(data) => updateBlockData(index, data)}
-                  />
-                ) : def && def.fields.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {def.fields.map((f) => {
-                      const data = parseBlockData(block.dataJson);
-                      if (f.type === "repeater") {
-                        return (
-                          <div key={f.key} className="flex flex-col gap-1.5 sm:col-span-2">
-                            <label className={labelClass}>{f.label}</label>
-                            <RepeaterField
-                              itemLabel={f.itemLabel}
-                              fields={f.fields}
-                              items={(data[f.key] as Record<string, unknown>[] | undefined) ?? []}
-                              onChange={(items) => updateBlockData(index, { ...data, [f.key]: items })}
-                            />
-                          </div>
-                        );
-                      }
-                      return (
-                        <div
-                          key={f.key}
-                          className={`flex flex-col gap-1 ${f.type === "textarea" ? "sm:col-span-2" : ""}`}
-                        >
-                          <label className={labelClass}>{f.label}</label>
-                          <FieldInput
-                            field={f}
-                            value={data[f.key]}
-                            onChange={(v) => updateBlockData(index, { ...data, [f.key]: v })}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <textarea
-                    className={`${inputClass} min-h-24 font-mono text-xs`}
-                    value={block.dataJson}
-                    onChange={(e) => {
-                      const next = blocks.map((b, i) =>
-                        i === index ? { ...b, dataJson: e.target.value } : b,
-                      );
-                      onChange(next);
-                    }}
-                  />
-                )}
+                <BlockFieldsEditor
+                  type={block.type}
+                  dataJson={block.dataJson}
+                  tourTypes={tourTypes}
+                  onChange={(data) => updateBlockData(index, data)}
+                />
               </div>
             )}
           </div>
@@ -203,47 +167,6 @@ export default function PageBuilder({
           + Ajouter un bloc
         </button>
       )}
-    </div>
-  );
-}
-
-function AccommodationPicker({
-  data,
-  tourTypes,
-  onChange,
-}: {
-  data: Record<string, unknown>;
-  tourTypes: AdminTourType[];
-  onChange: (data: Record<string, unknown>) => void;
-}) {
-  const selected: string[] = (data.tourTypeIds as string[] | undefined) ?? [];
-
-  function toggle(id: string) {
-    const next = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
-    onChange({ ...data, tourTypeIds: next });
-  }
-
-  if (tourTypes.length === 0) {
-    return <p className="text-sm text-navy-700/50">Aucun hébergement dans le catalogue.</p>;
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <p className={labelClass}>Hébergements affichés</p>
-      {tourTypes.map((tt) => (
-        <label
-          key={tt.tourTypeId}
-          className="flex items-center gap-2.5 rounded-lg border border-navy-700/10 bg-white px-3 py-2 text-sm text-navy-800"
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(tt.tourTypeId)}
-            onChange={() => toggle(tt.tourTypeId)}
-            className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
-          />
-          {tt.name}
-        </label>
-      ))}
     </div>
   );
 }

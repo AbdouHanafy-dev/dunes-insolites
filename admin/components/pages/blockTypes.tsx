@@ -72,6 +72,12 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
     fields: [], // rendered specially in PageBuilder.tsx with a real TourType picker
   },
   {
+    type: "blockReference",
+    label: "Bloc réutilisable",
+    icon: "🧩",
+    fields: [], // rendered specially in BlockFieldsEditor.tsx with a picker over /api/content-blocks
+  },
+  {
     type: "team",
     label: "Équipe",
     icon: "🧑‍🤝‍🧑",
@@ -106,13 +112,23 @@ export function parseBlockData(dataJson: string): Record<string, unknown> {
   }
 }
 
-export function blockPreviewLabel(type: string, dataJson: string): string {
+export function blockPreviewLabel(
+  type: string,
+  dataJson: string,
+  contentBlocks: { blockId: string; label: string }[] = [],
+): string {
   const def = blockTypeDef(type);
   if (!def) return type;
   if (type === "accommodationShowcase") {
     const data = parseBlockData(dataJson);
     const ids = (data.tourTypeIds as string[] | undefined) ?? [];
     return `${ids.length} hébergement(s) sélectionné(s)`;
+  }
+  if (type === "blockReference") {
+    const data = parseBlockData(dataJson);
+    const blockId = data.blockId as string | undefined;
+    const referenced = contentBlocks.find((b) => b.blockId === blockId);
+    return referenced ? referenced.label : "(aucun bloc choisi)";
   }
   if (type === "team") {
     const data = parseBlockData(dataJson);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { PageBlock } from "@/lib/api";
+import type { AdminContentBlock, PageBlock } from "@/lib/api";
 
 // Slugs the vitrine actually knows how to render from the CMS today — see
 // ARCHITECTURE.md §10.6. Anything else has nowhere real to preview yet.
@@ -25,6 +25,28 @@ const WIDTHS = [
   { key: "desktop", label: "Bureau", width: "1440px" },
 ] as const;
 
+function parseData(dataJson: string): Record<string, unknown> {
+  try {
+    return JSON.parse(dataJson || "{}");
+  } catch {
+    return {};
+  }
+}
+
+/** Mirrors PublicPageController.resolveBlock — same fallback (an empty
+ *  richText block) for a dangling or not-yet-chosen reference. */
+function resolveBlock(
+  b: PageBlock,
+  contentBlocks: AdminContentBlock[],
+): { type: string; data: Record<string, unknown> } {
+  if (b.type !== "blockReference") return { type: b.type, data: parseData(b.dataJson) };
+  const blockId = parseData(b.dataJson).blockId as string | undefined;
+  const referenced = contentBlocks.find((cb) => cb.blockId === blockId);
+  return referenced
+    ? { type: referenced.type, data: parseData(referenced.dataJson) }
+    : { type: "richText", data: {} };
+}
+
 export default function LivePreviewPane({
   slug,
   title,
@@ -39,6 +61,18 @@ export default function LivePreviewPane({
   const [ready, setReady] = useState(false);
   const [widthKey, setWidthKey] = useState<(typeof WIDTHS)[number]["key"]>("responsive");
 
+  // Resolved once, client-side, the same way PublicPageController resolves
+  // "blockReference" server-side for real visitors — the iframe itself
+  // still never talks to the backend, this app does the lookup before
+  // postMessage-ing.
+  const [contentBlocks, setContentBlocks] = useState<AdminContentBlock[]>([]);
+  useEffect(() => {
+    fetch("/api/proxy/content-blocks")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setContentBlocks)
+      .catch(() => setContentBlocks([]));
+  }, []);
+
   // The iframe posts "cms-preview-ready" once its own listener is mounted —
   // only start posting updates after that, so the very first payload isn't
   // sent into a frame that isn't listening yet.
@@ -52,21 +86,12 @@ export default function LivePreviewPane({
 
   useEffect(() => {
     if (!ready || !iframeRef.current?.contentWindow) return;
-    const parsedBlocks = blocks.map((b) => ({
-      type: b.type,
-      data: (() => {
-        try {
-          return JSON.parse(b.dataJson || "{}");
-        } catch {
-          return {};
-        }
-      })(),
-    }));
+    const parsedBlocks = blocks.map((b) => resolveBlock(b, contentBlocks));
     iframeRef.current.contentWindow.postMessage(
       { type: "cms-preview-update", page: { title, blocks: parsedBlocks } },
       "*",
     );
-  }, [ready, title, blocks]);
+  }, [ready, title, blocks, contentBlocks]);
 
   if (!path) {
     return (

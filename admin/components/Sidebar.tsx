@@ -36,7 +36,7 @@ const GROUPS: NavGroup[] = [
     label: "Contenu",
     items: [
       { label: "Pages", href: "/content/pages", icon: "📑" },
-      { label: "Blocs de contenu", href: "#", icon: "🧩", soon: true },
+      { label: "Blocs de contenu", href: "/content/blocks", icon: "🧩" },
       { label: "Navigation", href: "/content/navigation", icon: "🔗" },
       { label: "Médiathèque", href: "#", icon: "🖼️", soon: true },
       { label: "Avis clients", href: "/content/avis", icon: "⭐" },

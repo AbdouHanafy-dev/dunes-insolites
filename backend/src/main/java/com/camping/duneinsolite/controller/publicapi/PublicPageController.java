@@ -1,9 +1,11 @@
 package com.camping.duneinsolite.controller.publicapi;
 
+import com.camping.duneinsolite.dto.response.ContentBlockResponse;
 import com.camping.duneinsolite.dto.response.PageResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicPageResponse;
 import com.camping.duneinsolite.model.enums.CompanyType;
 import com.camping.duneinsolite.model.enums.PageLocale;
+import com.camping.duneinsolite.service.ContentBlockService;
 import com.camping.duneinsolite.service.PageService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Unauthenticated, vitrine-shaped read for one CMS page — see
@@ -39,6 +42,7 @@ public class PublicPageController {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final PageService pageService;
+    private final ContentBlockService contentBlockService;
 
     @GetMapping("/{slug}")
     public ResponseEntity<PublicPageResponse> getPage(
@@ -67,14 +71,37 @@ public class PublicPageController {
         response.setBlocks(
                 (page.getBlocks() == null ? List.<com.camping.duneinsolite.dto.PageBlockDto>of() : page.getBlocks())
                         .stream()
-                        .map(b -> {
-                            PublicPageResponse.Block block = new PublicPageResponse.Block();
-                            block.setType(b.getType());
-                            block.setData(parseBlockData(b.getDataJson()));
-                            return block;
-                        })
+                        .map(this::resolveBlock)
                         .toList());
         return response;
+    }
+
+    /**
+     * A "blockReference" block ({"blockId": "..."}) is resolved to the
+     * real ContentBlock's own type/data here — the vitrine never sees
+     * "blockReference" as a type, just whatever the referenced block
+     * actually is. A dangling reference (block deleted, wrong id) resolves
+     * to an empty richText block rather than a 500 or broken data.
+     */
+    private PublicPageResponse.Block resolveBlock(com.camping.duneinsolite.dto.PageBlockDto b) {
+        PublicPageResponse.Block block = new PublicPageResponse.Block();
+        if ("blockReference".equals(b.getType())) {
+            Map<String, Object> refData = parseBlockData(b.getDataJson());
+            Object rawId = refData.get("blockId");
+            ContentBlockResponse referenced = rawId == null ? null
+                    : contentBlockService.findById(UUID.fromString(String.valueOf(rawId))).orElse(null);
+            if (referenced == null) {
+                block.setType("richText");
+                block.setData(Map.of());
+            } else {
+                block.setType(referenced.getType());
+                block.setData(parseBlockData(referenced.getDataJson()));
+            }
+            return block;
+        }
+        block.setType(b.getType());
+        block.setData(parseBlockData(b.getDataJson()));
+        return block;
     }
 
     private Map<String, Object> parseBlockData(String dataJson) {

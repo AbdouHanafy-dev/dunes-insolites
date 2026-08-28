@@ -106,6 +106,7 @@ source of truth for what a block type's fields are:
 | **FAQ** (`faq`) | `question` (required, text), `answer` (textarea) | the question, or "(vide)" |
 | **Vitrine hébergements** (`accommodationShowcase`) | no flat fields — rendered specially, see below | "N hébergement(s) sélectionné(s)" |
 | **Équipe** (`team`) | `heading` (text) + `members` (**repeater**, see [§5](#5-the-repeater-field)) | the heading, or "N membre(s)" |
+| **Bloc réutilisable** (`blockReference`) | no flat fields — a picker over `/api/content-blocks`, see [§13](#13-whats-not-built) | the referenced block's own label, or "(aucun bloc choisi)" |
 
 `accommodationShowcase` is the one **relationship** block: instead of typed
 fields it renders `AccommodationPicker`, a checkbox list of real
@@ -366,11 +367,32 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 
 ## 13. What's not built
 
-- **Blocks-as-a-reusable-collection, Media Library, Rôles & permissions,
-  Disponibilités** — still `soon: true` in `components/Sidebar.tsx`. Media
-  Library specifically needs a storage decision (local disk vs. object
-  storage) before any code; the others need real backend work (new
-  entities/controllers) that doesn't exist yet.
+- **Media Library, Rôles & permissions, Disponibilités** — still
+  `soon: true` in `components/Sidebar.tsx`. Media Library specifically
+  needs a storage decision (local disk vs. object storage) before any
+  code; the others need real backend work (new entities/controllers) that
+  doesn't exist yet.
+- ~~**Blocks-as-a-reusable-collection**~~ **Done.** A `ContentBlock` entity
+  (label, type, dataJson, locale, companyType — same shape as one `Page`
+  block, plus an admin-only `label` so an editor can tell "Summer promo"
+  from "Winter promo" in a list) with full CRUD at `/api/content-blocks`
+  (ADMIN). A Page references one via a new `blockReference` block type
+  (`{"blockId": "..."}`) — never a type the vitrine sees directly:
+  `PublicPageController.resolveBlock()` substitutes the referenced block's
+  real `type`/`data` before the response leaves the backend, falling back
+  to an empty `richText` block for a dangling or unset reference rather
+  than 500ing or leaking a raw `blockReference` type downstream. Live
+  preview mirrors the same resolution client-side in
+  `LivePreviewPane.tsx` (fetches `/api/content-blocks` once, resolves
+  before `postMessage`) — the iframe itself still never talks to the
+  backend, only this app does the lookup.
+  `admin/components/pages/BlockFieldsEditor.tsx` is the other real change
+  here: the per-block field form (typed fields, the repeater, the
+  accommodation picker) was pulled out of `PageBuilder.tsx` so the new
+  standalone block editor (`ContentBlocksCrud.tsx`) could reuse the exact
+  same UI for editing one block outside any page, instead of a second
+  copy. A reusable block can be any type except `blockReference` itself
+  — referencing a reference would resolve infinitely.
 - ~~**Pages SEO**~~ **Done.** `app/(app)/seo/pages/page.tsx` — a read-only
   overview table of every `Page`, reusing the exact same `seoChecks()`
   logic the per-page SEO tab uses (moved to `admin/lib/seo.ts` so there's

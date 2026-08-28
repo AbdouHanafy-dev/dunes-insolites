@@ -243,6 +243,30 @@ export function getNavigationItemById(
   return authedGet<AdminNavigationItem | null>(`/navigation/${id}`, accessToken, null);
 }
 
+/* --------------------------------------------------------------- content blocks */
+
+export type AdminContentBlock = {
+  blockId: string;
+  label: string;
+  type: string;
+  dataJson: string;
+  locale: PageLocale;
+  companyType: CompanyType;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function getAllContentBlocks(accessToken: string): Promise<AdminContentBlock[]> {
+  return authedGet<AdminContentBlock[]>("/content-blocks", accessToken, []);
+}
+
+export function getContentBlockById(
+  accessToken: string,
+  id: string,
+): Promise<AdminContentBlock | null> {
+  return authedGet<AdminContentBlock | null>(`/content-blocks/${id}`, accessToken, null);
+}
+
 /* --------------------------------------------------------------------- staff */
 
 export function searchStaff(
