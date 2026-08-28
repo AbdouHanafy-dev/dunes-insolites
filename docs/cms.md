@@ -478,10 +478,28 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
   `Location` header for that exact path, confirmed an unrelated route
   (`/activities/`) still served normally, deleted the redirect, confirmed
   the count went back to 0.
-- The other two SEO-group items (Sitemap, Audit SEO) are unbuilt — both
-  would need to reach into the vitrine's own `sitemap.ts`/crawl behavior
-  rather than add a CMS collection, a different shape of work, out of
-  scope for this pass.
+- ~~**Sitemap**~~ **Done, and deliberately not a rebuilt copy.**
+  `admin/lib/sitemap.ts` fetches the vitrine's own live `/sitemap.xml` at
+  request time and parses it with a small regex-based reader (no new XML
+  dependency for a format this narrow and well-defined) — this is the
+  actual file Google receives, not a second implementation of
+  `frontend/app/sitemap.ts`'s logic that could quietly drift from it.
+  Same `NEXT_PUBLIC_FRONTEND_URL` convention `LivePreviewPane.tsx`
+  already uses, kept out of `lib/api.ts` since that module's own doc
+  comment reserves it for the Spring Boot backend. `/seo/sitemap` shows
+  every URL with its priority/changefreq/hreflang count, and flags three
+  real structural facts computed from the parsed data itself — duplicate
+  `loc`s, a missing `x-default` alternate, an hreflang count that differs
+  from what most other entries have (compared to the *mode*, not a
+  hardcoded "7", so it never needs updating if a locale is added or
+  removed) — nothing scored or invented. A fetch failure (vitrine not
+  running) degrades to an explicit "vitrine injoignable" message, never a
+  crash. Verified live: rendered through a real authenticated admin
+  session, showed the actual 66 URLs the running vitrine serves, matched
+  exactly against a direct `curl` of the same `/sitemap.xml`.
+- **Audit SEO** is still unbuilt — a genuinely different shape of work
+  (crawling/checking site-wide behavior rather than reading one existing
+  artifact like the sitemap), out of scope for this pass.
 - ~~Navigation's admin side is built; the vitrine doesn't consume it yet.~~
   **Done.** `app/[locale]/layout.tsx` fetches `getNavigation(locale)`
   alongside `getActivities`/`getStays`; a non-empty result (something
