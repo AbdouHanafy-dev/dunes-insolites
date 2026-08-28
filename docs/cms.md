@@ -367,9 +367,34 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 
 ## 13. What's not built
 
-- **Rôles & permissions, Disponibilités** — still `soon: true` in
-  `components/Sidebar.tsx`. Both need real backend work (new
-  entities/controllers) that doesn't exist yet.
+- **Disponibilités** — still `soon: true` in `components/Sidebar.tsx`.
+  Needs real backend work (new entity/controller) that doesn't exist yet.
+- ~~**Rôles & permissions**~~ **Done, deliberately read-only.** Roles
+  (`CLIENT`/`PARTENAIRE`/`CAMPING`/`ADMIN`) are a fixed enum backed by
+  Keycloak realm roles, not a database table — this page does not try to
+  make them one. A free-form roles/permissions CRUD would fabricate a
+  second, fake source of truth next to the real one and risks reopening
+  the exact "caller-supplied role" hole CLAUDE.md documents as already
+  closed once. This directly touches `docs/OPEN-QUESTIONS.md` Q9
+  ("role-aware shell?", still unanswered) — asked the user before
+  building rather than guessing, per the "stop and ask" rule.
+  `/administration/roles` shows, per role, a real user count
+  (`getUserCountsByRole` — one `searchUsers` call per role, `size=1`, only
+  `totalElements` read) and a short prose description of what it covers.
+  Below that, a live table of every `@PreAuthorize` rule actually guarding
+  the backend: `SecurityOverviewServiceImpl` reflects over the running
+  `RequestMappingHandlerMapping` (the app's own, disambiguated from
+  Actuator's `controllerEndpointHandlerMapping` via `@Qualifier` — Spring
+  Boot 4 registers both) rather than a hand-copied table, specifically
+  because a hand-copied table drifts the moment someone adds an endpoint
+  and forgets to update it — which is how the `/api/notifications` IDOR
+  gap and the guide/booking-source deletion holes went unnoticed. Endpoints
+  with no `@PreAuthorize` are flagged in the UI (filterable by "Sans
+  règle") rather than hidden — confirmed live that this correctly surfaces
+  `NotificationController`'s unguarded routes, the exact known gap CLAUDE.md
+  already documents. `GET /api/admin/security-overview/endpoints`, ADMIN
+  only, is read-only and returns structural metadata about the app's own
+  routing table — no sensitive data.
 - ~~**Media Library**~~ **Done.** Local-disk storage, deliberately —
   `MediaAsset` (`assetId`, `filename`, `storedFilename` UUID-prefixed on
   disk, `mimeType`, `sizeBytes`, `companyType`, `createdAt`), no

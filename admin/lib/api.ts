@@ -107,6 +107,34 @@ export function getUserById(accessToken: string, id: string): Promise<AdminUser 
   return authedGet<AdminUser | null>(`/users/${id}`, accessToken, null);
 }
 
+export const ALL_USER_ROLES: UserRole[] = ["CLIENT", "PARTENAIRE", "CAMPING", "ADMIN"];
+
+// One cheap call per role (size=1 — only totalElements is read) rather than
+// paging through every user, since the "Rôles & permissions" overview only
+// needs the count, not the rows.
+export async function getUserCountsByRole(
+  accessToken: string,
+): Promise<Record<UserRole, number>> {
+  const counts = await Promise.all(
+    ALL_USER_ROLES.map((role) => searchUsers(accessToken, { roles: [role], size: 1 })),
+  );
+  return ALL_USER_ROLES.reduce(
+    (acc, role, i) => ({ ...acc, [role]: counts[i].totalElements }),
+    {} as Record<UserRole, number>,
+  );
+}
+
+export type SecurityEndpoint = {
+  controller: string;
+  httpMethod: string;
+  path: string;
+  rule: string | null;
+};
+
+export function getSecurityEndpoints(accessToken: string): Promise<SecurityEndpoint[]> {
+  return authedGet<SecurityEndpoint[]>("/admin/security-overview/endpoints", accessToken, []);
+}
+
 /* --------------------------------------------------------------- catalogue */
 
 export type AdminTourType = {
