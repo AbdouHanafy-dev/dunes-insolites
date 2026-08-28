@@ -21,6 +21,19 @@ import { routing, localeHref } from "@/i18n/routing";
  * tells Google every page changed on every deploy, which is worse than not
  * claiming a date at all.
  */
+// next.config.ts sets trailingSlash: true, so every URL this app actually
+// serves ends in "/" (the homepage included) — a request without one gets a
+// 308 first. localeHref/canonicalActivityPath/canonicalStayPath don't add
+// that slash themselves (they're shared with next.config.ts's rewrites and
+// each page's own canonical tag, which - unlike a hand-written sitemap URL -
+// go through Next's own URL resolution and pick the slash up automatically).
+// Found by building the admin's Sitemap overview (docs/cms.md) and seeing
+// every non-homepage entry disagree with its own page's canonical tag by
+// exactly a trailing slash.
+function withTrailingSlash(path: string): string {
+  return path === "" || path.endsWith("/") ? path || "/" : `${path}/`;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [activities, stays] = await Promise.all([getActivities(), getStays()]);
 
@@ -37,9 +50,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   function languageAlternates(pathForLocale: (locale: string) => string) {
-    const languages: Record<string, string> = { "x-default": `${site.url}${pathForLocale(routing.defaultLocale)}` };
+    const languages: Record<string, string> = {
+      "x-default": `${site.url}${withTrailingSlash(pathForLocale(routing.defaultLocale))}`,
+    };
     for (const locale of routing.locales) {
-      languages[locale] = `${site.url}${pathForLocale(locale)}`;
+      languages[locale] = `${site.url}${withTrailingSlash(pathForLocale(locale))}`;
     }
     return languages;
   }
@@ -49,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const { path, priority } of staticPaths) {
     for (const locale of routing.locales) {
       entries.push({
-        url: `${site.url}${localeHref(locale, path)}`,
+        url: `${site.url}${withTrailingSlash(localeHref(locale, path))}`,
         changeFrequency: "monthly",
         priority,
         alternates: { languages: languageAlternates((l) => localeHref(l, path)) },
@@ -60,7 +75,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const activity of activities) {
     for (const locale of routing.locales) {
       entries.push({
-        url: `${site.url}${canonicalActivityPath(activity.slug, locale)}`,
+        url: `${site.url}${withTrailingSlash(canonicalActivityPath(activity.slug, locale))}`,
         changeFrequency: "monthly",
         priority: 0.8,
         alternates: { languages: languageAlternates((l) => canonicalActivityPath(activity.slug, l)) },
@@ -71,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const stay of stays) {
     for (const locale of routing.locales) {
       entries.push({
-        url: `${site.url}${canonicalStayPath(stay.slug, locale)}`,
+        url: `${site.url}${withTrailingSlash(canonicalStayPath(stay.slug, locale))}`,
         changeFrequency: "monthly",
         priority: 0.85,
         alternates: { languages: languageAlternates((l) => canonicalStayPath(stay.slug, l)) },
@@ -87,7 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const path = `/camp/${stay.slug}/${accommodation.slug}`;
       for (const locale of routing.locales) {
         entries.push({
-          url: `${site.url}${localeHref(locale, path)}`,
+          url: `${site.url}${withTrailingSlash(localeHref(locale, path))}`,
           changeFrequency: "monthly",
           priority: 0.6,
           alternates: { languages: languageAlternates((l) => localeHref(l, path)) },

@@ -497,9 +497,27 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
   crash. Verified live: rendered through a real authenticated admin
   session, showed the actual 66 URLs the running vitrine serves, matched
   exactly against a direct `curl` of the same `/sitemap.xml`.
-- **Audit SEO** is still unbuilt — a genuinely different shape of work
-  (crawling/checking site-wide behavior rather than reading one existing
-  artifact like the sitemap), out of scope for this pass.
+- ~~**Audit SEO**~~ **Done.** The one section this pass that's a genuine
+  crawler, not a read of one existing artifact: `admin/lib/seoAudit.ts`
+  fetches every real URL from the Sitemap overview above and checks the
+  *actual rendered* `<title>`/`<meta description>`/`<link canonical>` of
+  each one — unlike Pages SEO, which only ever sees what an editor typed
+  into the CMS form. This is what caught a real bug while building it: the
+  sitemap's URLs didn't have the trailing slash the site's own
+  `trailingSlash: true` config requires, so every non-homepage sitemap
+  entry 308-redirected instead of serving directly — fixed in
+  `frontend/app/sitemap.ts` (a `withTrailingSlash()` helper wrapping every
+  URL and hreflang alternate it builds), confirmed live via
+  `curl`. `/seo/audit` flags real, computed facts: missing/wrong-length
+  title or meta description (same 30–60 / 70–160 thresholds as
+  `admin/lib/seo.ts`, one convention across the backoffice), a missing or
+  mismatched canonical tag, and duplicate titles/descriptions across
+  different URLs — genuinely found some real ones on the current site,
+  not manufactured for the demo. Fetches are cached 30 minutes per URL
+  (`next: { revalidate: 1800 }`) specifically so opening this page
+  repeatedly doesn't add real crawl load to the public site — confirmed
+  live: an uncached run over the vitrine's 66 URLs took ~12s, a cached
+  repeat took ~1s.
 - ~~Navigation's admin side is built; the vitrine doesn't consume it yet.~~
   **Done.** `app/[locale]/layout.tsx` fetches `getNavigation(locale)`
   alongside `getActivities`/`getStays`; a non-empty result (something
