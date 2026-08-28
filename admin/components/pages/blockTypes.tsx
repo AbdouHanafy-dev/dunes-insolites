@@ -38,8 +38,11 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
     type: "richText",
     label: "Texte riche",
     icon: "📝",
-    titleKey: "content",
-    fields: [{ type: "textarea", key: "content", label: "Contenu" }],
+    titleKey: "heading",
+    fields: [
+      { type: "text", key: "heading", label: "Titre de section (optionnel)" },
+      { type: "textarea", key: "content", label: "Contenu" },
+    ],
   },
   {
     type: "cta",
@@ -116,6 +119,13 @@ export function blockPreviewLabel(type: string, dataJson: string): string {
     const members = (data.members as unknown[] | undefined) ?? [];
     const heading = data.heading as string | undefined;
     return heading || `${members.length} membre(s)`;
+  }
+  if (type === "richText") {
+    const data = parseBlockData(dataJson);
+    const heading = data.heading as string | undefined;
+    if (heading) return heading;
+    const content = (data.content as string | undefined) ?? "";
+    return content.slice(0, 48) || "(vide)";
   }
   const data = parseBlockData(dataJson);
   const title = def.titleKey ? (data[def.titleKey] as string | undefined) : undefined;

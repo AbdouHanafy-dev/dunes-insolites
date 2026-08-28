@@ -101,7 +101,7 @@ source of truth for what a block type's fields are:
 | Block | Fields | Preview label |
 |---|---|---|
 | **Hero** (`hero`) | `title` (required), `subtitle`, `imageUrl`, `ctaLabel`, `ctaUrl` — all text | the title, or "(vide)" |
-| **Texte riche** (`richText`) | `content` — one textarea | the content, or "(vide)" |
+| **Texte riche** (`richText`) | `heading` (text, optional) + `content` (textarea) | the heading if set, else the first ~48 characters of the content, or "(vide)" |
 | **Appel à l'action** (`cta`) | `title` (required), `buttonLabel`, `buttonUrl` — all text | the title, or "(vide)" |
 | **FAQ** (`faq`) | `question` (required, text), `answer` (textarea) | the question, or "(vide)" |
 | **Vitrine hébergements** (`accommodationShowcase`) | no flat fields — rendered specially, see below | "N hébergement(s) sélectionné(s)" |
@@ -248,15 +248,24 @@ pattern `getActivities`/`getStays` already use.
 `type` to a render function, using the vitrine's own CSS (`.prose`,
 `.btn-accent`, `.faq`, `.team`) rather than a parallel style system:
 
-- `richText`'s `content`: a line starting with `- ` opens/continues a
-  bullet list (consecutive such lines → a real `<ul>`); anything else is a
-  plain paragraph. A plain-text authoring convention, not Markdown.
-- Consecutive `faq` blocks are **grouped** into one accordion
-  (`<details>`/`<summary>`, exactly the markup the hardcoded safety page
-  always used) instead of one section per question —
-  `groupFaqRuns()` does this before rendering. `extractFaqs()` is exported
-  separately so a route can pull the same `{question, answer}` pairs to
-  build its own `FAQPage` JSON-LD from CMS content (see `safety/page.tsx`).
+- `richText`'s optional `heading` renders as a real `<h2>`. In `content`, a
+  line starting with `- ` opens/continues a bullet list (consecutive such
+  lines → a real `<ul>`); anything else is a plain paragraph. A plain-text
+  authoring convention, not Markdown.
+- **Runs of the same "flows as one article" block type are grouped**, not
+  rendered as one padded section per block — `groupRuns()` does this before
+  rendering:
+  - Consecutive `richText` blocks share a single `.prose` wrapper with
+    each one's `heading`/paragraphs inside it, in order — exactly the shape
+    the hardcoded legal/safety/about pages always had (one flowing article
+    with several `<h2>`s), not five separately-padded sand sections for a
+    five-section page.
+  - Consecutive `faq` blocks group into one accordion
+    (`<details>`/`<summary>`, exactly the markup the hardcoded safety page
+    always used) instead of one section per question. `extractFaqs()` is
+    exported separately so a route can pull the same `{question, answer}`
+    pairs to build its own `FAQPage` JSON-LD from CMS content (see
+    `safety/page.tsx`).
 - `team` renders the same `.team`/`.member` markup the hardcoded About
   page's guide cards always used — photo, name, role, bio, one `.member`
   per repeater entry.
@@ -269,9 +278,19 @@ pattern `getActivities`/`getStays` already use.
 All five follow the same opening: read `?livePreview=1` from
 `searchParams` first, short-circuit to `<LivePreview>` before touching the
 backend if present; otherwise `getCmsPage(slug, locale)` and decide what to
-render. **With no CMS page published for any of them (true today — every
-test page created while building this was deleted afterward), all five
-render exactly what they always did.**
+render.
+
+**As of 28 Aug 2026, all 30 combinations (5 pages × 6 locales) are real,
+published `Page` rows** — `scripts/seed-cms-pages.py` transferred the
+already-translated text straight out of `messages/*.json` into blocks (no
+retranslation), then published every one via the real API. So on this
+database, all five routes are now genuinely CMS-driven in every locale, not
+running on the hardcoded fallback. The fallback JSX described below still
+exists and still works — delete or unpublish any of these rows and that
+route reverts to it immediately, same guarantee as always
+(see [§10](#10-safety-guarantee-publish-is-the-only-way-to-affect-the-live-site)).
+A fresh database (or a re-seeded one) has none of this and every route
+renders the fallback until `seed-cms-pages.py` runs again.
 
 | Route | CMS slug | What the CMS controls |
 |---|---|---|
@@ -383,6 +402,8 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 ## 14. File map
 
 ```
+scripts/seed-cms-pages.py    one-time content migration — see §9
+
 backend/src/main/java/com/camping/duneinsolite/
 ├── controller/publicapi/PublicPageController.java   GET /api/public/pages/{slug}
 ├── dto/response/publicapi/PublicPageResponse.java   wire shape, blocks as real JSON
@@ -403,7 +424,7 @@ admin/components/
 frontend/
 ├── lib/api.ts                 getCmsPage(slug, locale)
 ├── components/
-│   ├── CmsBlocks.tsx           block → JSX, groupFaqRuns(), extractFaqs()
+│   ├── CmsBlocks.tsx           block → JSX, groupRuns(), extractFaqs()
 │   └── LivePreview.tsx         what renders inside the admin's iframe
 └── app/[locale]/
     ├── legal/privacy/page.tsx  full replacement

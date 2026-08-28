@@ -13,14 +13,21 @@ import type { CmsBlock } from "@/lib/api";
  * A page using that block will just skip it rather than show broken data.
  */
 export default function CmsBlocks({ blocks }: { blocks: CmsBlock[] }) {
-  return <>{groupFaqRuns(blocks).map((item, i) => renderItem(item, i))}</>;
+  return <>{groupRuns(blocks).map((item, i) => renderItem(item, i))}</>;
 }
 
-type FaqGroupItem = { kind: "faqGroup"; faqs: CmsBlock[] };
-type RenderItem = { kind: "block"; block: CmsBlock } | FaqGroupItem;
+type Group = { kind: "faqGroup"; faqs: CmsBlock[] } | { kind: "richTextGroup"; items: CmsBlock[] };
+type RenderItem = { kind: "block"; block: CmsBlock } | Group;
 
-/** Consecutive faq blocks render as one accordion, not one section each. */
-function groupFaqRuns(blocks: CmsBlock[]): RenderItem[] {
+/**
+ * Consecutive blocks of the same "flows as one article" type merge into a
+ * single wrapping section instead of one per block — otherwise five
+ * headed paragraphs from one richText-per-section page (a migrated legal
+ * page, say) would render as five separately-padded sand sections instead
+ * of one continuous article, and five separate FAQ questions would render
+ * as five one-item accordions instead of one real accordion.
+ */
+function groupRuns(blocks: CmsBlock[]): RenderItem[] {
   const out: RenderItem[] = [];
   for (const block of blocks) {
     const prev = out[out.length - 1];
@@ -28,6 +35,10 @@ function groupFaqRuns(blocks: CmsBlock[]): RenderItem[] {
       prev.faqs.push(block);
     } else if (block.type === "faq") {
       out.push({ kind: "faqGroup", faqs: [block] });
+    } else if (block.type === "richText" && prev?.kind === "richTextGroup") {
+      prev.items.push(block);
+    } else if (block.type === "richText") {
+      out.push({ kind: "richTextGroup", items: [block] });
     } else {
       out.push({ kind: "block", block });
     }
@@ -37,12 +48,11 @@ function groupFaqRuns(blocks: CmsBlock[]): RenderItem[] {
 
 function renderItem(item: RenderItem, i: number) {
   if (item.kind === "faqGroup") return <FaqGroup key={i} faqs={item.faqs} />;
+  if (item.kind === "richTextGroup") return <RichTextGroup key={i} items={item.items} />;
   const { block } = item;
   switch (block.type) {
     case "hero":
       return <HeroBlock key={i} data={block.data} />;
-    case "richText":
-      return <RichTextBlock key={i} data={block.data} />;
     case "cta":
       return <CtaBlock key={i} data={block.data} />;
     case "team":
@@ -82,14 +92,49 @@ function HeroBlock({ data }: { data: Record<string, unknown> }) {
 }
 
 /**
- * A line starting with "- " opens/continues a bullet list; a blank line
- * ends the current paragraph or list. Plain-text authoring in a textarea,
- * same convention as Markdown, without pulling in a Markdown renderer for
- * one feature.
+ * One or more richText blocks, flowing together in a single .prose
+ * container — same shape as the hardcoded legal/safety/about pages, which
+ * are all one <div className="prose"> with several <h2>s inside, not one
+ * section per heading.
+ *
+ * Per block: an optional `heading` renders as a real <h2>. In `content`, a
+ * line starting with "- " opens/continues a bullet list (consecutive such
+ * lines become a real <ul>); a blank line ends the current paragraph or
+ * list. Plain-text authoring convention, not Markdown.
  */
-function RichTextBlock({ data }: { data: Record<string, unknown> }) {
-  const content = str(data.content);
-  if (!content) return null;
+function RichTextGroup({ items }: { items: CmsBlock[] }) {
+  const sections = items
+    .map((block) => ({ heading: str(block.data.heading), content: str(block.data.content) }))
+    .filter((s) => s.heading || s.content);
+  if (sections.length === 0) return null;
+
+  return (
+    <section className="section-sand">
+      <div className="wrap">
+        <div className="prose">
+          {sections.map((section, si) => (
+            <div key={si}>
+              {section.heading && <h2>{section.heading}</h2>}
+              {parseContent(section.content).map((b, i) =>
+                b.type === "ul" ? (
+                  <ul key={i}>
+                    {b.lines.map((l, j) => (
+                      <li key={j}>{l}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p key={i}>{b.lines[0]}</p>
+                ),
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function parseContent(content: string): { type: "p" | "ul"; lines: string[] }[] {
   const blocks: { type: "p" | "ul"; lines: string[] }[] = [];
   for (const raw of content.split(/\n{2,}/)) {
     const trimmed = raw.trim();
@@ -101,25 +146,7 @@ function RichTextBlock({ data }: { data: Record<string, unknown> }) {
       blocks.push({ type: "p", lines: [trimmed] });
     }
   }
-  return (
-    <section className="section-sand">
-      <div className="wrap">
-        <div className="prose">
-          {blocks.map((b, i) =>
-            b.type === "ul" ? (
-              <ul key={i}>
-                {b.lines.map((l, j) => (
-                  <li key={j}>{l}</li>
-                ))}
-              </ul>
-            ) : (
-              <p key={i}>{b.lines[0]}</p>
-            ),
-          )}
-        </div>
-      </div>
-    </section>
-  );
+  return blocks;
 }
 
 function CtaBlock({ data }: { data: Record<string, unknown> }) {
