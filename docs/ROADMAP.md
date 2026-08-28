@@ -85,11 +85,20 @@ brand actually exists).
 ✅ DI-020 `trailingSlash: true` + `lang="fr"` (verified live: no-slash 308s,
 lang attribute renders `fr`; superseded 26 Aug — `lang` is now dynamic per
 locale, see the Languages decision reversal above) · ⚠️ DI-021 French
-content — **partially done, out of the original scope.** The multi-language
-rollout (26 Aug) shipped `next-intl` for all 6 locales plus translated
-sitewide chrome; long-form page content (activities, stays, legal, about,
-safety, contact) is still French/English-only and remains commissioned-copy
-work, now for 6 languages instead of 1 (see the risk table below) ·
+content — **further along than "out of scope," still not commissioned-grade.**
+The multi-language rollout (26 Aug) shipped `next-intl` for all 6 locales plus
+translated sitewide chrome; `activities`/`stays` long-form copy was already
+translated into all 6 locales in `lib/data/*-i18n/` by that point. 28 Aug
+closed the remaining gap: legal (Privacy/Terms, full body), about/safety/
+contact page metadata, the auth forms and login/signup pages, and the gallery
+filter labels are now translated across all 6 locales too — verified live
+(build + a running server, real page fetches per locale, not just typecheck).
+**Still draft-quality, not a commissioned professional translation** — flagged
+hardest for the two legal pages, per the multi-language plan's own caveat;
+budget a qualified review before treating them as binding in DE/IT/DA/AR
+markets. Two small items deliberately deferred: gallery image alt text is
+still English-only (accessibility/image-SEO, lower stakes than page content),
+and the "8 yrs" stat tile unit is a hardcoded English abbreviation ·
 ⚠️ DI-022 legacy slugs routed —
 product-page rewrites done and build-verified (9 legacy URLs → real content,
 each one's `<link rel="canonical">` now correctly points at the flat legacy

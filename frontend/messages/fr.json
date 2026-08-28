@@ -162,7 +162,14 @@
   "galleryGrid": {
     "close": "Fermer",
     "previousImage": "Image précédente",
-    "nextImage": "Image suivante"
+    "nextImage": "Image suivante",
+    "tags": {
+      "all": "Tout",
+      "camelTrek": "Randonnée chameau",
+      "quadSafari": "Safari quad",
+      "sandboarding": "Sandboard",
+      "theGate": "La porte"
+    }
   },
   "safety": {
     "eyebrow": "Avant de partir",
@@ -392,5 +399,142 @@
       "ADMIN": "Administrateur",
       "CAMPING": "Camping"
     }
+  },
+  "meta": {
+    "about": {
+      "title": "À propos",
+      "description": "Dunes Insolites est une entreprise familiale du désert à Sabria, dans le sud tunisien. Découvrez les guides qui vous font traverser le sable."
+    },
+    "activities": {
+      "title": "Expériences",
+      "description": "Randonnées à dos de chameau, safaris en quad et sandboard dans les dunes de Sabria. Comparez nos trois aventures sahariennes et réservez un créneau du matin ou du coucher de soleil."
+    },
+    "book": {
+      "title": "Réserver un séjour",
+      "description": "Réservez une randonnée à dos de chameau, un safari en quad ou une session de sandboard dans les dunes de Sabria. Départs le matin ou au coucher du soleil, annulation gratuite jusqu'à 24 heures avant."
+    },
+    "camp": {
+      "title": "Séjour",
+      "description": "Une nuit au campement de Sabria, ou un bivouac plus simple au cœur des dunes — réservez une nuitée, avec chameau, quad ou sandboard en option si vous le souhaitez."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Contactez Dunes Insolites à Sabria, dans le sud tunisien — questions, groupes privés et itinéraires désertiques sur mesure."
+    },
+    "gallery": {
+      "title": "Galerie",
+      "description": "Photographies des dunes de Sabria — caravanes de chameaux, traces de quad, sessions de sandboard et la porte au coucher du soleil."
+    },
+    "safety": {
+      "title": "Sécurité",
+      "description": "Comment Dunes Insolites sécurise les sorties dans le désert : ratio guides/clients, contrôle du matériel, protocole chaleur, couverture médicale et ce qu'il faut apporter."
+    },
+    "legalPrivacy": {
+      "title": "Politique de confidentialité",
+      "description": "Comment Dunes Insolites collecte, utilise et conserve vos données personnelles."
+    },
+    "legalTerms": {
+      "title": "Conditions générales",
+      "description": "Conditions de réservation, politique d'annulation et conditions de participation pour Dunes Insolites."
+    },
+    "login": {
+      "title": "Connexion",
+      "description": "Connectez-vous pour gérer vos réservations désertiques Dunes Insolites."
+    },
+    "signup": {
+      "title": "Inscription",
+      "description": "Créez un compte Dunes Insolites pour gérer vos réservations sahariennes."
+    },
+    "account": {
+      "title": "Mon compte"
+    },
+    "bookingConfirmation": {
+      "title": "Votre réservation"
+    }
+  },
+  "legal": {
+    "eyebrow": "Juridique",
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "updated": "Dernière mise à jour : 16 août 2026.",
+      "collectHeading": "Ce que nous collectons",
+      "collectP1": "Lorsque vous réservez un séjour, nous collectons votre nom, votre adresse e-mail, votre numéro de téléphone, la taille de votre groupe, la date et le lieu de départ choisis, ainsi que toute note de prise en charge ou alimentaire que vous nous donnez. Si vous vous abonnez à la newsletter, nous ne conservons que votre adresse e-mail.",
+      "collectP2": "Nos serveurs enregistrent des données techniques standards — adresse IP, navigateur et pages visitées — pour la sécurité et le bon fonctionnement du site.",
+      "whyHeading": "Pourquoi nous les utilisons",
+      "why1": "Pour confirmer, organiser et, si nécessaire, reprogrammer votre séjour.",
+      "why2": "Pour vous contacter si la météo impose un changement.",
+      "why3": "Pour respecter nos obligations légales et comptables en Tunisie.",
+      "why4": "Pour vous envoyer occasionnellement des actualités, uniquement si vous l'avez demandé.",
+      "whoHeading": "Qui y a accès",
+      "whoP": "Votre guide voit les informations nécessaires pour organiser votre séjour. Au-delà, nous ne partageons vos données qu'avec les prestataires qui hébergent notre site, envoient nos e-mails et traitent les paiements, et seulement dans la mesure nécessaire. Nous ne vendons jamais vos données.",
+      "keepHeading": "Combien de temps nous les conservons",
+      "keepP": "Les données de réservation sont conservées sept ans, comme l'exige la loi comptable tunisienne. Les abonnements à la newsletter sont conservés jusqu'à votre désinscription, possible en un clic depuis chaque e-mail.",
+      "rightsHeading": "Vos droits",
+      "rightsPre": "Vous pouvez nous demander une copie de vos données, leur correction, ou la suppression de tout ce que nous ne sommes pas légalement tenus de conserver. Écrivez à ",
+      "rightsPost": " et nous vous répondrons sous 30 jours.",
+      "cookiesHeading": "Cookies",
+      "cookiesP": "Nous utilisons un seul cookie fonctionnel pour mémoriser votre choix concernant les cookies. Nous n'utilisons aucun traceur publicitaire. Si nous ajoutons des outils d'analyse, nous vous le demanderons au préalable.",
+      "contactHeading": "Contact"
+    },
+    "terms": {
+      "title": "Conditions générales",
+      "updated": "Dernière mise à jour : 16 août 2026.",
+      "bookingHeading": "Réservation",
+      "bookingP": "Une réservation est une demande tant que nous ne l'avons pas confirmée par e-mail avec un numéro de référence. Les prix sont par personne, en euros, et incluent l'encadrement, le matériel et les transferts depuis Douz et Kébili, sauf mention contraire sur la page du séjour.",
+      "paymentHeading": "Paiement",
+      "paymentP": "Aucun montant n'est prélevé au moment de la réservation. Le paiement se fait à l'entrée avant le départ, ou par lien sécurisé si vous préférez régler à l'avance. Espèces en dinars et cartes sont acceptées.",
+      "cancelHeading": "Annulation",
+      "cancel1": "Annulation plus de 24 heures avant le départ : aucun frais.",
+      "cancel2": "Annulation dans les 24 heures : 50 % du prix du séjour.",
+      "cancel3": "Absence à l'entrée : prix intégral.",
+      "cancel4": "Si nous annulons — météo, matériel ou tout autre motif de notre fait — vous choisissez entre un remboursement intégral ou une reprogrammation gratuite.",
+      "participationHeading": "Participation",
+      "participationP1": "Les conducteurs de quad doivent avoir 16 ans ou plus et présenter une pièce d'identité avec photo. Les enfants de moins de six ans montant à dos de chameau doivent être accompagnés d'un adulte. Signalez-nous lors de la réservation toute condition médicale, grossesse ou besoin de mobilité afin que nous puissions vous orienter vers le bon séjour — nous préférons vous réorienter plutôt que de vous refuser l'accès à l'entrée.",
+      "participationP2": "Nos guides peuvent refuser ou interrompre la participation de toute personne sous l'emprise de l'alcool ou de drogues, ou qui ignore une consigne de sécurité. Aucun remboursement n'est dû dans ce cas.",
+      "riskHeading": "Risques",
+      "riskP": "Les activités dans le désert comportent des risques inhérents. Nous les gérons par des briefings, des contrôles du matériel et des guides formés, mais nous ne pouvons pas les éliminer. Vous participez à vos propres risques et devez souscrire une assurance voyage couvrant ces activités.",
+      "liabilityHeading": "Responsabilité",
+      "liabilityP": "Nous disposons d'une assurance responsabilité civile pour les activités encadrées. Rien dans ces conditions ne limite notre responsabilité en cas de décès ou de blessure corporelle causés par notre négligence. Dans les autres cas, notre responsabilité est limitée au prix du séjour.",
+      "photographyHeading": "Photographie",
+      "photographyP": "Nos guides photographient et filment les sorties et vous envoient les résultats. Nous utilisons parfois ces images publiquement — signalez-le à votre guide à l'entrée si vous préférez que nous ne le fassions pas, et nous nous y engagerons.",
+      "lawHeading": "Droit applicable",
+      "lawPre": "Ces conditions sont régies par le droit tunisien. Les réclamations sont à adresser à ",
+      "lawPost": " et nous répondrons sous 14 jours."
+    }
+  },
+  "authForm": {
+    "fullNameLabel": "Nom complet",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Mot de passe",
+    "nameRequired": "Dites-nous comment vous appeler.",
+    "emailRequired": "Nous avons besoin de votre e-mail.",
+    "emailInvalid": "Cet e-mail semble incorrect.",
+    "passwordRequired": "Saisissez votre mot de passe.",
+    "passwordTooShort": "Utilisez au moins 8 caractères.",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "forgotPassword": "Mot de passe oublié ?",
+    "oneMoment": "Un instant…",
+    "createAccount": "Créer un compte",
+    "login": "Connexion",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "noAccountYet": "Pas encore de compte ?",
+    "signUp": "Inscription",
+    "guestNotePre": "Pas besoin de compte pour réserver — ",
+    "guestNoteLink": "réservez en tant qu'invité",
+    "guestNotePost": " à tout moment.",
+    "defaultError": "Une erreur est survenue. Réessayez.",
+    "atLeast8Chars": "Au moins 8 caractères.",
+    "backToSite": "← Retour au site"
+  },
+  "loginPage": {
+    "eyebrow": "Bon retour",
+    "title": "Connexion.",
+    "lead": "Reprenez là où vous en étiez — vos prochains séjours, vos sorties passées et les photos des dunes."
+  },
+  "signupPage": {
+    "eyebrow": "Rejoignez-nous",
+    "title": "Créer un compte.",
+    "lead": "Gardez vos réservations au même endroit, réservez à nouveau votre sortie préférée en deux clics, et recevez vos photos de séjour dès le lendemain matin."
   }
 }

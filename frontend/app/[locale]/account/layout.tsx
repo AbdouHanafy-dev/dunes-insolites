@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { getSession } from "@/lib/session";
 import { redirect } from "@/i18n/navigation";
 import AccountNav from "@/components/AccountNav";
 
-export const metadata: Metadata = {
-  title: "Mon compte",
-  robots: { index: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.account" });
+  return { title: t("title"), robots: { index: false } };
+}
 
 export default async function AccountLayout({
   children,

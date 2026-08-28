@@ -162,7 +162,14 @@
   "galleryGrid": {
     "close": "Luk",
     "previousImage": "Forrige billede",
-    "nextImage": "Næste billede"
+    "nextImage": "Næste billede",
+    "tags": {
+      "all": "Alle",
+      "camelTrek": "Kameltrekking",
+      "quadSafari": "Quad-safari",
+      "sandboarding": "Sandboarding",
+      "theGate": "Porten"
+    }
   },
   "safety": {
     "eyebrow": "Før du tager afsted",
@@ -392,5 +399,142 @@
       "ADMIN": "Administrator",
       "CAMPING": "Lejrpersonale"
     }
+  },
+  "meta": {
+    "about": {
+      "title": "Om os",
+      "description": "Dunes Insolites drives af en familie fra Sabria i det sydlige Tunesien. Mød guiderne, der fører dig gennem sandet."
+    },
+    "activities": {
+      "title": "Oplevelser",
+      "description": "Kameltrekking, quad-safari og sandboarding i klitterne ved Sabria. Sammenlign vores tre Sahara-eventyr, og book en formiddags- eller solnedgangstid."
+    },
+    "book": {
+      "title": "Book en tur",
+      "description": "Reservér en kameltrekking, quad-safari eller sandboarding-session i klitterne ved Sabria. Afgange om formiddagen og ved solnedgang, gratis afbestilling op til 24 timer før."
+    },
+    "camp": {
+      "title": "Ophold",
+      "description": "En nat i lejren i Sabria, eller en enklere bivuak dybere inde i klitterne — book en overnatning, med kamel, quad eller sandboarding som tilvalg."
+    },
+    "contact": {
+      "title": "Kontakt",
+      "description": "Kontakt Dunes Insolites i Sabria, det sydlige Tunesien — spørgsmål, private grupper og skræddersyede ørkenruter."
+    },
+    "gallery": {
+      "title": "Galleri",
+      "description": "Fotografier fra klitterne ved Sabria — kamelkaravaner, quad-spor, sandboarding og porten ved solnedgang."
+    },
+    "safety": {
+      "title": "Sikkerhed",
+      "description": "Sådan holder Dunes Insolites ørkenture sikre: guideforhold, udstyrstjek, varmeprotokol, lægedækning og hvad du skal medbringe."
+    },
+    "legalPrivacy": {
+      "title": "Privatlivspolitik",
+      "description": "Sådan indsamler, bruger og opbevarer Dunes Insolites dine personoplysninger."
+    },
+    "legalTerms": {
+      "title": "Vilkår og betingelser",
+      "description": "Bookingvilkår, afbestillingspolitik og deltagelsesbetingelser for Dunes Insolites."
+    },
+    "login": {
+      "title": "Log ind",
+      "description": "Log ind for at administrere dine ørkenbookinger hos Dunes Insolites."
+    },
+    "signup": {
+      "title": "Opret konto",
+      "description": "Opret en Dunes Insolites-konto for at administrere dine Sahara-bookinger."
+    },
+    "account": {
+      "title": "Min konto"
+    },
+    "bookingConfirmation": {
+      "title": "Din booking"
+    }
+  },
+  "legal": {
+    "eyebrow": "Juridisk",
+    "privacy": {
+      "title": "Privatlivspolitik",
+      "updated": "Senest opdateret: 16. august 2026.",
+      "collectHeading": "Hvad vi indsamler",
+      "collectP1": "Når du booker en tur, indsamler vi dit navn, din e-mailadresse, dit telefonnummer, gruppestørrelse, valgt dato og afgangssted samt eventuelle noter om afhentning eller kost, du giver os. Hvis du tilmelder dig nyhedsbrevet, gemmer vi kun din e-mailadresse.",
+      "collectP2": "Vores servere logger standard tekniske data — IP-adresse, browser og besøgte sider — af hensyn til sikkerhed og for at holde siden kørende.",
+      "whyHeading": "Hvorfor vi bruger dem",
+      "why1": "For at bekræfte, gennemføre og om nødvendigt omlægge din tur.",
+      "why2": "For at kontakte dig, hvis vejret tvinger os til en ændring.",
+      "why3": "For at opfylde vores juridiske og regnskabsmæssige forpligtelser i Tunesien.",
+      "why4": "For lejlighedsvis at sende dig nyheder om ture — kun hvis du har bedt om det.",
+      "whoHeading": "Hvem der ser dem",
+      "whoP": "Din guide ser de oplysninger, der er nødvendige for at gennemføre din tur. Derudover deler vi kun data med de udbydere, der hoster vores side, sender vores e-mails og behandler betalinger — og kun i det nødvendige omfang. Vi sælger aldrig dine data.",
+      "keepHeading": "Hvor længe vi opbevarer dem",
+      "keepP": "Bookingoplysninger opbevares i syv år, som tunesisk regnskabslovgivning kræver. Nyhedsbrevstilmeldinger opbevares, indtil du afmelder dig, hvilket hver e-mail giver dig mulighed for med ét klik.",
+      "rightsHeading": "Dine rettigheder",
+      "rightsPre": "Du kan bede os om en kopi af dine data, bede os rette dem, eller bede os slette alt, vi ikke er juridisk forpligtet til at opbevare. Skriv til ",
+      "rightsPost": ", så svarer vi inden for 30 dage.",
+      "cookiesHeading": "Cookies",
+      "cookiesP": "Vi bruger én funktionel cookie til at huske dit cookie-valg. Vi kører ikke annonce-trackere. Hvis vi tilføjer analyseværktøjer, spørger vi først.",
+      "contactHeading": "Kontakt"
+    },
+    "terms": {
+      "title": "Vilkår og betingelser",
+      "updated": "Senest opdateret: 16. august 2026.",
+      "bookingHeading": "Booking",
+      "bookingP": "En booking er en anmodning, indtil vi bekræfter den via e-mail med et referencenummer. Priser er pr. person i euro og inkluderer guidning, udstyr og transfer fra Douz og Kebili, medmindre andet er angivet på turens side.",
+      "paymentHeading": "Betaling",
+      "paymentP": "Der opkræves intet ved booking. Vi tager betaling ved porten før afgang, eller via sikkert link, hvis du foretrækker at betale på forhånd. Både kontanter i dinar og kort accepteres.",
+      "cancelHeading": "Afbestilling",
+      "cancel1": "Afbestilling mere end 24 timer før afgang: ingen omkostning.",
+      "cancel2": "Afbestilling inden for 24 timer: 50 % af turens pris.",
+      "cancel3": "Udeblivelse ved porten: fuld pris.",
+      "cancel4": "Hvis vi aflyser — pga. vejr, udstyr eller andre forhold på vores side — vælger du mellem fuld refundering eller gratis omlægning.",
+      "participationHeading": "Deltagelse",
+      "participationP1": "Quadkørere skal være mindst 16 år og medbringe billed-ID. Kamelryttere under seks år skal ride sammen med en voksen. Fortæl os ved booking om enhver medicinsk tilstand, graviditet eller mobilitetsbehov, så vi kan sætte dig på den rette tur — vi vil hellere flytte dig end afvise dig ved porten.",
+      "participationP2": "Vores guider kan afvise eller stoppe deltagelse for enhver, der er påvirket af alkohol eller stoffer, eller som ignorerer en sikkerhedsinstruktion. Der ydes ingen refundering i så fald.",
+      "riskHeading": "Risiko",
+      "riskP": "Ørkenaktiviteter indebærer en iboende risiko. Vi håndterer den med briefinger, udstyrstjek og trænede guider, men vi kan ikke fjerne den. Du deltager på eget ansvar og er selv ansvarlig for at have en rejseforsikring, der dækker disse aktiviteter.",
+      "liabilityHeading": "Ansvar",
+      "liabilityP": "Vi har en erhvervsansvarsforsikring for guidede aktiviteter. Intet i disse vilkår begrænser vores ansvar for død eller personskade forårsaget af vores forsømmelighed. Ellers er vores ansvar begrænset til turens pris.",
+      "photographyHeading": "Fotografering",
+      "photographyP": "Guider fotograferer og filmer turene og sender dig resultaterne. Vi bruger nogle gange også billederne offentligt — sig det til din guide ved porten, hvis du hellere vil undvære det, så gør vi ikke det.",
+      "lawHeading": "Lovvalg",
+      "lawPre": "Disse vilkår er underlagt tunesisk lov. Klager sendes til ",
+      "lawPost": ", og vi svarer inden for 14 dage."
+    }
+  },
+  "authForm": {
+    "fullNameLabel": "Fulde navn",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Adgangskode",
+    "nameRequired": "Fortæl os, hvad vi skal kalde dig.",
+    "emailRequired": "Vi skal bruge din e-mail.",
+    "emailInvalid": "Den e-mail ser forkert ud.",
+    "passwordRequired": "Indtast din adgangskode.",
+    "passwordTooShort": "Brug mindst 8 tegn.",
+    "show": "Vis",
+    "hide": "Skjul",
+    "forgotPassword": "Glemt din adgangskode?",
+    "oneMoment": "Et øjeblik…",
+    "createAccount": "Opret konto",
+    "login": "Log ind",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "noAccountYet": "Ingen konto endnu?",
+    "signUp": "Opret konto",
+    "guestNotePre": "Du behøver ikke en konto for at booke — ",
+    "guestNoteLink": "book som gæst",
+    "guestNotePost": " når som helst.",
+    "defaultError": "Noget gik galt. Prøv igen.",
+    "atLeast8Chars": "Mindst 8 tegn.",
+    "backToSite": "← Tilbage til siden"
+  },
+  "loginPage": {
+    "eyebrow": "Velkommen tilbage",
+    "title": "Log ind.",
+    "lead": "Fortsæt, hvor du slap — dine kommende ture, tidligere oplevelser og billeder fra klitterne."
+  },
+  "signupPage": {
+    "eyebrow": "Bliv en del af det",
+    "title": "Opret en konto.",
+    "lead": "Hold dine bookinger samlet ét sted, genbestil en yndlingstur med to tryk, og få dine rejsebilleder allerede morgenen efter."
   }
 }

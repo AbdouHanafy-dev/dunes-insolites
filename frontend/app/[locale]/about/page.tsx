@@ -13,10 +13,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.about" });
   return {
-    title: "About",
-    description:
-      "Dunes Insolites is a family-run desert outfit in Sabria, southern Tunisia. Meet the guides who take you across the sand.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/about")),
   };
 }

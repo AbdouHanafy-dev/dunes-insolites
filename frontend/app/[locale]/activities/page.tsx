@@ -16,10 +16,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.activities" });
   return {
-    title: "Experiences",
-    description:
-      "Camel treks, quad safaris, and sandboarding in the Sabria dunes. Compare our three Sahara adventures and book a morning or golden-hour slot.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/activities")),
   };
 }

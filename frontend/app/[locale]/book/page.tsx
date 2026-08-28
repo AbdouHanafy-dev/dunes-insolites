@@ -11,10 +11,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.book" });
   return {
-    title: "Book a trip",
-    description:
-      "Reserve a camel trek, quad safari, or sandboarding session in the Sabria dunes. Morning and golden-hour departures, free cancellation up to 24 hours before.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/book")),
     robots: { index: false },
   };

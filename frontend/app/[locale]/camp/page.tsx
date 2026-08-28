@@ -13,10 +13,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.camp" });
   return {
-    title: "Stay",
-    description:
-      "A night at the Sabria camp, or a simpler bivouac deeper in the dunes — reserve a nuitée, with camel, quad, or sandboarding added on if you want them.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/camp")),
   };
 }

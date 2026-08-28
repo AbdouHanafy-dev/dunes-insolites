@@ -13,10 +13,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.gallery" });
   return {
-    title: "Gallery",
-    description:
-      "Photographs from the Sabria dunes — camel caravans, quad tracks, sandboard runs, and the gate at golden hour.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/gallery")),
   };
 }

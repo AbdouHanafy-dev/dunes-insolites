@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { login, register } from "@/lib/api";
 import { adminAppUrl } from "@/lib/site";
@@ -12,6 +13,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function AuthForm({ mode }: { mode: Mode }) {
   const isSignup = mode === "signup";
   const router = useRouter();
+  const t = useTranslations("authForm");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,12 +25,11 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
   function validate(): boolean {
     const e: Record<string, string> = {};
-    if (isSignup && !name.trim()) e.name = "Tell us what to call you.";
-    if (!email.trim()) e.email = "We need your email.";
-    else if (!EMAIL.test(email.trim())) e.email = "That email looks off.";
-    if (!password) e.password = "Enter your password.";
-    else if (isSignup && password.length < 8)
-      e.password = "Use at least 8 characters.";
+    if (isSignup && !name.trim()) e.name = t("nameRequired");
+    if (!email.trim()) e.email = t("emailRequired");
+    else if (!EMAIL.test(email.trim())) e.email = t("emailInvalid");
+    if (!password) e.password = t("passwordRequired");
+    else if (isSignup && password.length < 8) e.password = t("passwordTooShort");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -60,7 +61,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       return;
     }
     setErrors(result.errors ?? {});
-    setFormError(result.message ?? "Something went wrong. Try again.");
+    setFormError(result.message ?? t("defaultError"));
     setBusy(false);
   }
 
@@ -68,7 +69,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     <form className="auth-form" onSubmit={onSubmit} noValidate>
       {isSignup && (
         <div className="field" data-invalid={!!errors.name}>
-          <label htmlFor="name">Full name</label>
+          <label htmlFor="name">{t("fullNameLabel")}</label>
           <input
             id="name"
             value={name}
@@ -80,7 +81,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       )}
 
       <div className="field" data-invalid={!!errors.email}>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email">{t("emailLabel")}</label>
         <input
           id="email"
           type="email"
@@ -92,7 +93,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       </div>
 
       <div className="field" data-invalid={!!errors.password}>
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">{t("passwordLabel")}</label>
         <div className="pw">
           <input
             id="password"
@@ -105,21 +106,21 @@ export default function AuthForm({ mode }: { mode: Mode }) {
             type="button"
             className="pw-toggle"
             onClick={() => setShow((v) => !v)}
-            aria-label={show ? "Hide password" : "Show password"}
+            aria-label={show ? t("hide") : t("show")}
           >
-            {show ? "Hide" : "Show"}
+            {show ? t("hide") : t("show")}
           </button>
         </div>
         {errors.password && <span className="err">{errors.password}</span>}
         {isSignup && !errors.password && (
-          <span className="hint-sm">At least 8 characters.</span>
+          <span className="hint-sm">{t("atLeast8Chars")}</span>
         )}
       </div>
 
       {!isSignup && (
         <div className="auth-row">
           <Link href="/contact" className="link-quiet">
-            Forgotten your password?
+            {t("forgotPassword")}
           </Link>
         </div>
       )}
@@ -127,24 +128,25 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       {formError && <div className="alert">{formError}</div>}
 
       <button type="submit" className="btn-accent auth-submit" disabled={busy}>
-        {busy ? "One moment…" : isSignup ? "Create account" : "Log in"}
+        {busy ? t("oneMoment") : isSignup ? t("createAccount") : t("login")}
       </button>
 
       <p className="auth-swap">
         {isSignup ? (
           <>
-            Already have an account? <Link href="/login">Log in</Link>
+            {t("alreadyHaveAccount")} <Link href="/login">{t("login")}</Link>
           </>
         ) : (
           <>
-            No account yet? <Link href="/signup">Sign up</Link>
+            {t("noAccountYet")} <Link href="/signup">{t("signUp")}</Link>
           </>
         )}
       </p>
 
       <p className="auth-note">
-        You don&apos;t need an account to book — <Link href="/book">book as a guest</Link>{" "}
-        any time.
+        {t("guestNotePre")}
+        <Link href="/book">{t("guestNoteLink")}</Link>
+        {t("guestNotePost")}
       </p>
     </form>
   );

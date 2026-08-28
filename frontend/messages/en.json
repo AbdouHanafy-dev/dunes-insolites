@@ -162,7 +162,14 @@
   "galleryGrid": {
     "close": "Close",
     "previousImage": "Previous image",
-    "nextImage": "Next image"
+    "nextImage": "Next image",
+    "tags": {
+      "all": "All",
+      "camelTrek": "Camel Trek",
+      "quadSafari": "Quad Safari",
+      "sandboarding": "Sandboarding",
+      "theGate": "The Gate"
+    }
   },
   "safety": {
     "eyebrow": "Before you ride",
@@ -392,5 +399,142 @@
       "ADMIN": "Administrator",
       "CAMPING": "Camp staff"
     }
+  },
+  "meta": {
+    "about": {
+      "title": "About",
+      "description": "Dunes Insolites is a family-run desert outfit in Sabria, southern Tunisia. Meet the guides who take you across the sand."
+    },
+    "activities": {
+      "title": "Experiences",
+      "description": "Camel treks, quad safaris, and sandboarding in the Sabria dunes. Compare our three Sahara adventures and book a morning or golden-hour slot."
+    },
+    "book": {
+      "title": "Book a trip",
+      "description": "Reserve a camel trek, quad safari, or sandboarding session in the Sabria dunes. Morning and golden-hour departures, free cancellation up to 24 hours before."
+    },
+    "camp": {
+      "title": "Stay",
+      "description": "A night at the Sabria camp, or a simpler bivouac deeper in the dunes — reserve a nuitée, with camel, quad, or sandboarding added on if you want them."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Get in touch with Dunes Insolites in Sabria, southern Tunisia — questions, private groups, and custom desert itineraries."
+    },
+    "gallery": {
+      "title": "Gallery",
+      "description": "Photographs from the Sabria dunes — camel caravans, quad tracks, sandboard runs, and the gate at golden hour."
+    },
+    "safety": {
+      "title": "Safety",
+      "description": "How Dunes Insolites keeps desert trips safe: guide ratios, equipment checks, heat protocol, medical cover, and what to bring."
+    },
+    "legalPrivacy": {
+      "title": "Privacy policy",
+      "description": "How Dunes Insolites collects, uses, and stores your personal data."
+    },
+    "legalTerms": {
+      "title": "Terms & conditions",
+      "description": "Booking terms, cancellation policy, and conditions of participation for Dunes Insolites."
+    },
+    "login": {
+      "title": "Log in",
+      "description": "Log in to manage your Dunes Insolites desert bookings."
+    },
+    "signup": {
+      "title": "Sign up",
+      "description": "Create a Dunes Insolites account to manage your Sahara bookings."
+    },
+    "account": {
+      "title": "My account"
+    },
+    "bookingConfirmation": {
+      "title": "Your booking"
+    }
+  },
+  "legal": {
+    "eyebrow": "Legal",
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated 16 August 2026.",
+      "collectHeading": "What we collect",
+      "collectP1": "When you book a trip we collect your name, email address, phone number, party size, chosen date and departure, and any pickup or dietary notes you give us. If you join the newsletter we store only your email address.",
+      "collectP2": "Our servers log standard technical data — IP address, browser, and the pages you visited — for security and to keep the site working.",
+      "whyHeading": "Why we use it",
+      "why1": "To confirm, run, and if necessary reschedule your trip.",
+      "why2": "To reach you if the weather forces a change.",
+      "why3": "To meet our legal and accounting obligations in Tunisia.",
+      "why4": "To send occasional trip news, only if you asked for it.",
+      "whoHeading": "Who sees it",
+      "whoP": "Your guide sees the details needed to run your trip. Beyond that we share data only with the providers that host our site, send our email, and process payments, and only as much as each needs. We never sell your data.",
+      "keepHeading": "How long we keep it",
+      "keepP": "Booking records are kept for seven years, as Tunisian accounting law requires. Newsletter subscriptions are kept until you unsubscribe, which every email lets you do in one click.",
+      "rightsHeading": "Your rights",
+      "rightsPre": "You can ask us for a copy of your data, ask us to correct it, or ask us to delete anything we are not legally required to keep. Write to ",
+      "rightsPost": " and we will answer within 30 days.",
+      "cookiesHeading": "Cookies",
+      "cookiesP": "We use a single functional cookie to remember your cookie choice. We do not run advertising trackers. If we add analytics we will ask first.",
+      "contactHeading": "Contact"
+    },
+    "terms": {
+      "title": "Terms & conditions",
+      "updated": "Last updated 16 August 2026.",
+      "bookingHeading": "Booking",
+      "bookingP": "A booking is a request until we confirm it by email with a reference number. Prices are per person in euros and include guiding, equipment, and transfers from Douz and Kebili unless stated otherwise on the trip page.",
+      "paymentHeading": "Payment",
+      "paymentP": "Nothing is charged when you book. We take payment at the gate before departure, or by secure link if you prefer to settle in advance. Cash in dinar and cards are both accepted.",
+      "cancelHeading": "Cancellation",
+      "cancel1": "Cancel more than 24 hours before departure: no charge.",
+      "cancel2": "Cancel within 24 hours: 50% of the trip price.",
+      "cancel3": "No-show at the gate: full price.",
+      "cancel4": "If we cancel — weather, equipment, or anything else on our side — you choose a full refund or a free reschedule.",
+      "participationHeading": "Participation",
+      "participationP1": "Quad riders must be 16 or older and carry photo ID. Camel riders under six must ride with an adult. Tell us at booking about any medical condition, pregnancy, or mobility need so we can put you on the right trip — we would rather move you than turn you away at the gate.",
+      "participationP2": "Our guides may refuse or stop participation for anyone under the influence of alcohol or drugs, or anyone who ignores a safety instruction. No refund is due in that case.",
+      "riskHeading": "Risk",
+      "riskP": "Desert activities carry inherent risk. We manage it with briefings, equipment checks, and trained guides, but we cannot remove it. You take part at your own risk and are responsible for holding travel insurance that covers these activities.",
+      "liabilityHeading": "Liability",
+      "liabilityP": "We carry public liability insurance for guided activity. Nothing in these terms limits our liability for death or personal injury caused by our negligence. Otherwise our liability is limited to the price of the trip.",
+      "photographyHeading": "Photography",
+      "photographyP": "Guides photograph and film trips and send you the results. We also sometimes use those images publicly — tell your guide at the gate if you would rather we didn't, and we won't.",
+      "lawHeading": "Law",
+      "lawPre": "These terms are governed by Tunisian law. Complaints go to ",
+      "lawPost": " and we will answer within 14 days."
+    }
+  },
+  "authForm": {
+    "fullNameLabel": "Full name",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "nameRequired": "Tell us what to call you.",
+    "emailRequired": "We need your email.",
+    "emailInvalid": "That email looks off.",
+    "passwordRequired": "Enter your password.",
+    "passwordTooShort": "Use at least 8 characters.",
+    "show": "Show",
+    "hide": "Hide",
+    "forgotPassword": "Forgotten your password?",
+    "oneMoment": "One moment…",
+    "createAccount": "Create account",
+    "login": "Log in",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccountYet": "No account yet?",
+    "signUp": "Sign up",
+    "guestNotePre": "You don't need an account to book — ",
+    "guestNoteLink": "book as a guest",
+    "guestNotePost": " any time.",
+    "defaultError": "Something went wrong. Try again.",
+    "atLeast8Chars": "At least 8 characters.",
+    "backToSite": "← Back to the site"
+  },
+  "loginPage": {
+    "eyebrow": "Welcome back",
+    "title": "Log in.",
+    "lead": "Pick up where you left off — your upcoming trips, past rides, and photos from the dunes."
+  },
+  "signupPage": {
+    "eyebrow": "Join us",
+    "title": "Create an account.",
+    "lead": "Keep your bookings in one place, rebook a favourite ride in two taps, and get your trip photos the morning after."
   }
 }

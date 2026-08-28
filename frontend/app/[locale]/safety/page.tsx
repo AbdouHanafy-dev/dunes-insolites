@@ -11,10 +11,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.safety" });
   return {
-    title: "Safety",
-    description:
-      "How Dunes Insolites keeps desert trips safe: guide ratios, equipment checks, heat protocol, medical cover, and what to bring.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/safety")),
   };
 }

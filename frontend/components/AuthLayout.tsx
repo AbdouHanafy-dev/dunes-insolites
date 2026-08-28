@@ -1,8 +1,9 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { site } from "@/lib/site";
 
-export default function AuthLayout({
+export default async function AuthLayout({
   eyebrow,
   title,
   lead,
@@ -15,6 +16,7 @@ export default function AuthLayout({
   image: string;
   children: React.ReactNode;
 }) {
+  const t = await getTranslations("authForm");
   return (
     <section className="auth-page">
       <aside className="auth-art">
@@ -30,7 +32,7 @@ export default function AuthLayout({
       <div className="auth-panel">
         <div className="auth-inner">
           <Link href="/" className="auth-back">
-            ← Back to the site
+            {t("backToSite")}
           </Link>
           <p className="sect-eyebrow">{eyebrow}</p>
           <h1 className="auth-title">{title}</h1>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import { site } from "@/lib/site";
 import { localeAlternates, localeHref } from "@/i18n/routing";
@@ -9,71 +10,58 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.legalPrivacy" });
   return {
-    title: "Privacy policy",
-    description: `How ${site.legalName} collects, uses, and stores your personal data.`,
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/legal/privacy")),
   };
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations("legal.privacy");
+  const tLegal = await getTranslations("legal");
+  const tContact = await getTranslations("contact");
+
   return (
     <>
-      <PageHead eyebrow="Legal" title="Privacy policy" lead="Last updated 16 August 2026." />
+      <PageHead eyebrow={tLegal("eyebrow")} title={t("title")} lead={t("updated")} />
 
       <section className="section-sand">
         <div className="wrap">
           <div className="prose">
-            <h2>What we collect</h2>
-            <p>
-              When you book a trip we collect your name, email address, phone number, party size,
-              chosen date and departure, and any pickup or dietary notes you give us. If you join
-              the newsletter we store only your email address.
-            </p>
-            <p>
-              Our servers log standard technical data — IP address, browser, and the pages you
-              visited — for security and to keep the site working.
-            </p>
+            <h2>{t("collectHeading")}</h2>
+            <p>{t("collectP1")}</p>
+            <p>{t("collectP2")}</p>
 
-            <h2>Why we use it</h2>
+            <h2>{t("whyHeading")}</h2>
             <ul>
-              <li>To confirm, run, and if necessary reschedule your trip.</li>
-              <li>To reach you if the weather forces a change.</li>
-              <li>To meet our legal and accounting obligations in Tunisia.</li>
-              <li>To send occasional trip news, only if you asked for it.</li>
+              <li>{t("why1")}</li>
+              <li>{t("why2")}</li>
+              <li>{t("why3")}</li>
+              <li>{t("why4")}</li>
             </ul>
 
-            <h2>Who sees it</h2>
+            <h2>{t("whoHeading")}</h2>
+            <p>{t("whoP")}</p>
+
+            <h2>{t("keepHeading")}</h2>
+            <p>{t("keepP")}</p>
+
+            <h2>{t("rightsHeading")}</h2>
             <p>
-              Your guide sees the details needed to run your trip. Beyond that we share data only
-              with the providers that host our site, send our email, and process payments, and only
-              as much as each needs. We never sell your data.
+              {t("rightsPre")}
+              <a href={`mailto:${site.email}`}>{site.email}</a>
+              {t("rightsPost")}
             </p>
 
-            <h2>How long we keep it</h2>
-            <p>
-              Booking records are kept for seven years, as Tunisian accounting law requires.
-              Newsletter subscriptions are kept until you unsubscribe, which every email lets you do
-              in one click.
-            </p>
+            <h2>{t("cookiesHeading")}</h2>
+            <p>{t("cookiesP")}</p>
 
-            <h2>Your rights</h2>
+            <h2>{t("contactHeading")}</h2>
             <p>
-              You can ask us for a copy of your data, ask us to correct it, or ask us to delete
-              anything we are not legally required to keep. Write to{" "}
-              <a href={`mailto:${site.email}`}>{site.email}</a> and we will answer within 30 days.
-            </p>
-
-            <h2>Cookies</h2>
-            <p>
-              We use a single functional cookie to remember your cookie choice. We do not run
-              advertising trackers. If we add analytics we will ask first.
-            </p>
-
-            <h2>Contact</h2>
-            <p>
-              {site.legalName}, {site.address}. Email{" "}
-              <a href={`mailto:${site.email}`}>{site.email}</a>, phone {site.phone}.
+              {site.legalName}, {site.address}. {tContact("emailLabel")}{" "}
+              <a href={`mailto:${site.email}`}>{site.email}</a>, {tContact("phoneLabel")} {site.phone}.
             </p>
           </div>
         </div>

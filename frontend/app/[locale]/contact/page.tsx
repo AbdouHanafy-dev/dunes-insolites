@@ -11,10 +11,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta.contact" });
   return {
-    title: "Contact",
-    description:
-      "Get in touch with Dunes Insolites in Sabria, southern Tunisia — questions, private groups, and custom desert itineraries.",
+    title: t("title"),
+    description: t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/contact")),
   };
 }

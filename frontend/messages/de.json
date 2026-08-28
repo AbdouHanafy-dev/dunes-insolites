@@ -162,7 +162,14 @@
   "galleryGrid": {
     "close": "Schließen",
     "previousImage": "Vorheriges Bild",
-    "nextImage": "Nächstes Bild"
+    "nextImage": "Nächstes Bild",
+    "tags": {
+      "all": "Alle",
+      "camelTrek": "Kamelritt",
+      "quadSafari": "Quad-Safari",
+      "sandboarding": "Sandboarding",
+      "theGate": "Das Tor"
+    }
   },
   "safety": {
     "eyebrow": "Bevor Sie starten",
@@ -392,5 +399,142 @@
       "ADMIN": "Administrator",
       "CAMPING": "Camp-Personal"
     }
+  },
+  "meta": {
+    "about": {
+      "title": "Über uns",
+      "description": "Dunes Insolites ist ein familiengeführter Wüstenanbieter in Sabria, Südtunesien. Lernen Sie die Guides kennen, die Sie durch den Sand führen."
+    },
+    "activities": {
+      "title": "Erlebnisse",
+      "description": "Kamelritte, Quad-Safaris und Sandboarding in den Dünen von Sabria. Vergleichen Sie unsere drei Sahara-Abenteuer und buchen Sie einen Vormittags- oder Sonnenuntergangstermin."
+    },
+    "book": {
+      "title": "Reise buchen",
+      "description": "Reservieren Sie einen Kamelritt, eine Quad-Safari oder eine Sandboarding-Session in den Dünen von Sabria. Abfahrten am Vormittag und zur goldenen Stunde, kostenlose Stornierung bis 24 Stunden vorher."
+    },
+    "camp": {
+      "title": "Aufenthalt",
+      "description": "Eine Nacht im Camp von Sabria oder ein einfacheres Biwak tiefer in den Dünen — buchen Sie eine Übernachtung, optional mit Kamel, Quad oder Sandboarding."
+    },
+    "contact": {
+      "title": "Kontakt",
+      "description": "Kontaktieren Sie Dunes Insolites in Sabria, Südtunesien — Fragen, private Gruppen und individuelle Wüstenrouten."
+    },
+    "gallery": {
+      "title": "Galerie",
+      "description": "Fotografien aus den Dünen von Sabria — Kamelkarawanen, Quad-Spuren, Sandboard-Läufe und das Tor zur goldenen Stunde."
+    },
+    "safety": {
+      "title": "Sicherheit",
+      "description": "Wie Dunes Insolites Wüstenausflüge sicher macht: Guide-Verhältnis, Ausrüstungskontrollen, Hitzeprotokoll, medizinische Absicherung und was mitzubringen ist."
+    },
+    "legalPrivacy": {
+      "title": "Datenschutzerklärung",
+      "description": "Wie Dunes Insolites Ihre personenbezogenen Daten erhebt, nutzt und speichert."
+    },
+    "legalTerms": {
+      "title": "AGB",
+      "description": "Buchungsbedingungen, Stornierungsrichtlinie und Teilnahmebedingungen für Dunes Insolites."
+    },
+    "login": {
+      "title": "Anmelden",
+      "description": "Melden Sie sich an, um Ihre Wüstenbuchungen bei Dunes Insolites zu verwalten."
+    },
+    "signup": {
+      "title": "Registrieren",
+      "description": "Erstellen Sie ein Dunes-Insolites-Konto, um Ihre Sahara-Buchungen zu verwalten."
+    },
+    "account": {
+      "title": "Mein Konto"
+    },
+    "bookingConfirmation": {
+      "title": "Ihre Buchung"
+    }
+  },
+  "legal": {
+    "eyebrow": "Rechtliches",
+    "privacy": {
+      "title": "Datenschutzerklärung",
+      "updated": "Zuletzt aktualisiert: 16. August 2026.",
+      "collectHeading": "Was wir erheben",
+      "collectP1": "Wenn Sie eine Reise buchen, erheben wir Ihren Namen, Ihre E-Mail-Adresse, Telefonnummer, Gruppengröße, das gewählte Datum und den Abfahrtsort sowie alle Hinweise zu Abholung oder Ernährung, die Sie uns geben. Wenn Sie sich für den Newsletter anmelden, speichern wir nur Ihre E-Mail-Adresse.",
+      "collectP2": "Unsere Server protokollieren übliche technische Daten — IP-Adresse, Browser und besuchte Seiten — zur Sicherheit und für den reibungslosen Betrieb der Website.",
+      "whyHeading": "Warum wir sie verwenden",
+      "why1": "Um Ihre Reise zu bestätigen, durchzuführen und bei Bedarf zu verschieben.",
+      "why2": "Um Sie zu erreichen, falls das Wetter eine Änderung erzwingt.",
+      "why3": "Um unseren gesetzlichen und buchhalterischen Pflichten in Tunesien nachzukommen.",
+      "why4": "Um Ihnen gelegentlich Neuigkeiten zu senden — nur wenn Sie darum gebeten haben.",
+      "whoHeading": "Wer sie sieht",
+      "whoP": "Ihr Guide sieht die Angaben, die für die Durchführung Ihrer Reise nötig sind. Darüber hinaus geben wir Daten nur an Dienstleister weiter, die unsere Website hosten, unsere E-Mails versenden und Zahlungen abwickeln — und nur im nötigen Umfang. Wir verkaufen Ihre Daten niemals.",
+      "keepHeading": "Wie lange wir sie speichern",
+      "keepP": "Buchungsdaten werden sieben Jahre lang aufbewahrt, wie es das tunesische Buchhaltungsrecht vorschreibt. Newsletter-Anmeldungen werden bis zu Ihrer Abmeldung gespeichert, die in jeder E-Mail mit einem Klick möglich ist.",
+      "rightsHeading": "Ihre Rechte",
+      "rightsPre": "Sie können eine Kopie Ihrer Daten anfordern, deren Berichtigung verlangen oder die Löschung alles verlangen, was wir nicht gesetzlich aufbewahren müssen. Schreiben Sie an ",
+      "rightsPost": " — wir antworten innerhalb von 30 Tagen.",
+      "cookiesHeading": "Cookies",
+      "cookiesP": "Wir verwenden ein einziges funktionales Cookie, um Ihre Cookie-Auswahl zu speichern. Wir setzen keine Werbe-Tracker ein. Falls wir Analysetools hinzufügen, fragen wir vorher.",
+      "contactHeading": "Kontakt"
+    },
+    "terms": {
+      "title": "AGB",
+      "updated": "Zuletzt aktualisiert: 16. August 2026.",
+      "bookingHeading": "Buchung",
+      "bookingP": "Eine Buchung ist eine Anfrage, bis wir sie per E-Mail mit einer Referenznummer bestätigen. Preise verstehen sich pro Person in Euro und beinhalten Guiding, Ausrüstung und Transfers ab Douz und Kebili, sofern auf der Reiseseite nichts anderes angegeben ist.",
+      "paymentHeading": "Zahlung",
+      "paymentP": "Bei der Buchung wird nichts berechnet. Die Zahlung erfolgt am Tor vor Abfahrt oder per sicherem Link, wenn Sie im Voraus bezahlen möchten. Bargeld in Dinar und Karten werden beide akzeptiert.",
+      "cancelHeading": "Stornierung",
+      "cancel1": "Stornierung mehr als 24 Stunden vor Abfahrt: kostenlos.",
+      "cancel2": "Stornierung innerhalb von 24 Stunden: 50 % des Reisepreises.",
+      "cancel3": "Nichterscheinen am Tor: voller Preis.",
+      "cancel4": "Falls wir absagen — wegen Wetter, Ausrüstung oder aus anderen Gründen unsererseits — wählen Sie zwischen voller Rückerstattung oder kostenloser Umbuchung.",
+      "participationHeading": "Teilnahme",
+      "participationP1": "Quadfahrer müssen mindestens 16 Jahre alt sein und einen Lichtbildausweis mitführen. Kamelreiter unter sechs Jahren müssen mit einem Erwachsenen reiten. Teilen Sie uns bei der Buchung jede medizinische Erkrankung, Schwangerschaft oder Mobilitätseinschränkung mit, damit wir Sie der richtigen Reise zuordnen können — wir möchten Sie lieber umbuchen als Sie am Tor abzuweisen.",
+      "participationP2": "Unsere Guides können die Teilnahme von Personen unter Alkohol- oder Drogeneinfluss oder von Personen, die Sicherheitsanweisungen missachten, verweigern oder beenden. In diesem Fall besteht kein Anspruch auf Rückerstattung.",
+      "riskHeading": "Risiko",
+      "riskP": "Wüstenaktivitäten bergen ein inhärentes Risiko. Wir begrenzen es durch Briefings, Ausrüstungskontrollen und geschulte Guides, können es aber nicht ausschließen. Sie nehmen auf eigenes Risiko teil und sind selbst dafür verantwortlich, eine Reiseversicherung abzuschließen, die diese Aktivitäten abdeckt.",
+      "liabilityHeading": "Haftung",
+      "liabilityP": "Wir verfügen über eine Haftpflichtversicherung für geführte Aktivitäten. Nichts in diesen Bedingungen beschränkt unsere Haftung für Tod oder Personenschäden, die durch unsere Fahrlässigkeit verursacht wurden. Ansonsten ist unsere Haftung auf den Reisepreis begrenzt.",
+      "photographyHeading": "Fotografie",
+      "photographyP": "Unsere Guides fotografieren und filmen die Ausflüge und senden Ihnen die Ergebnisse. Wir verwenden diese Bilder gelegentlich auch öffentlich — sagen Sie Ihrem Guide am Tor Bescheid, falls Sie das nicht möchten, dann tun wir es nicht.",
+      "lawHeading": "Recht",
+      "lawPre": "Diese Bedingungen unterliegen tunesischem Recht. Beschwerden richten Sie an ",
+      "lawPost": " — wir antworten innerhalb von 14 Tagen."
+    }
+  },
+  "authForm": {
+    "fullNameLabel": "Vollständiger Name",
+    "emailLabel": "E-Mail",
+    "passwordLabel": "Passwort",
+    "nameRequired": "Sagen Sie uns, wie wir Sie nennen sollen.",
+    "emailRequired": "Wir benötigen Ihre E-Mail-Adresse.",
+    "emailInvalid": "Diese E-Mail-Adresse sieht falsch aus.",
+    "passwordRequired": "Geben Sie Ihr Passwort ein.",
+    "passwordTooShort": "Verwenden Sie mindestens 8 Zeichen.",
+    "show": "Anzeigen",
+    "hide": "Verbergen",
+    "forgotPassword": "Passwort vergessen?",
+    "oneMoment": "Einen Moment…",
+    "createAccount": "Konto erstellen",
+    "login": "Anmelden",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "noAccountYet": "Noch kein Konto?",
+    "signUp": "Registrieren",
+    "guestNotePre": "Sie brauchen kein Konto, um zu buchen — ",
+    "guestNoteLink": "als Gast buchen",
+    "guestNotePost": " jederzeit.",
+    "defaultError": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "atLeast8Chars": "Mindestens 8 Zeichen.",
+    "backToSite": "← Zurück zur Website"
+  },
+  "loginPage": {
+    "eyebrow": "Willkommen zurück",
+    "title": "Anmelden.",
+    "lead": "Machen Sie dort weiter, wo Sie aufgehört haben — Ihre bevorstehenden Reisen, vergangene Ausflüge und Fotos aus den Dünen."
+  },
+  "signupPage": {
+    "eyebrow": "Werden Sie Teil davon",
+    "title": "Konto erstellen.",
+    "lead": "Behalten Sie Ihre Buchungen an einem Ort, buchen Sie einen Lieblingsausflug mit zwei Klicks erneut und erhalten Sie Ihre Reisefotos schon am nächsten Morgen."
   }
 }

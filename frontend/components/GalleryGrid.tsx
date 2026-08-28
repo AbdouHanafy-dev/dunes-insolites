@@ -5,6 +5,17 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GalleryItem } from "@/lib/types";
 
+// Tag values are stable English identifiers used for filtering (matched
+// against GalleryItem.tag in lib/data/gallery.ts) — only the on-screen
+// label is translated, via galleryGrid.tags in messages/*.json.
+const TAG_I18N_KEYS: Record<string, string> = {
+  All: "all",
+  "Camel Trek": "camelTrek",
+  "Quad Safari": "quadSafari",
+  Sandboarding: "sandboarding",
+  "The Gate": "theGate",
+};
+
 export default function GalleryGrid({
   items,
   tags,
@@ -14,6 +25,7 @@ export default function GalleryGrid({
 }) {
   const t = useTranslations("galleryGrid");
   const [tag, setTag] = useState("All");
+  const tagLabel = (raw: string) => t(`tags.${TAG_I18N_KEYS[raw] ?? "all"}`);
   // The lightbox index is stored with the filter it belongs to, so switching
   // filters closes it without an effect having to reset anything.
   const [opened, setOpened] = useState<{ tag: string; index: number } | null>(null);
@@ -57,9 +69,9 @@ export default function GalleryGrid({
   return (
     <>
       <div className="filters">
-        {tags.map((t) => (
-          <button key={t} type="button" aria-pressed={tag === t} onClick={() => setTag(t)}>
-            {t}
+        {tags.map((raw) => (
+          <button key={raw} type="button" aria-pressed={tag === raw} onClick={() => setTag(raw)}>
+            {tagLabel(raw)}
           </button>
         ))}
       </div>
