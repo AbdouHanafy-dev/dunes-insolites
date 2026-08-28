@@ -5,13 +5,15 @@
   "description": "Dunes Insolites — public site, backoffice and API in one workspace.",
   "workspaces": [
     "frontend",
+    "admin",
     "packages/*"
   ],
   "scripts": {
     "dev": "npm run dev --workspace frontend",
+    "dev:admin": "npm run dev --workspace admin",
     "build": "npm run build --workspace frontend",
     "start": "npm run start --workspace frontend",
-    "lint": "npm run lint --workspace frontend",
+    "lint": "npm run lint --workspace frontend && npm run lint --workspace admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "backend:compile": "node scripts/mvn.mjs -q compile",
     "backend:test": "node scripts/mvn.mjs test",

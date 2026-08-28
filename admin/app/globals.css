@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens — light, paper-card language like the public vitrine
+   (frontend/app/globals.css: --paper/--sand/--ink/--accent), but its own
+   colour identity so the backoffice never looks like a copy of the public
+   site: navy + gold instead of the vitrine's terracotta/orange. Same navy/
+   gold the Angular admin-app (routeinsolite) already used, just inverted
+   from dark canvas to light — staff see one consistent brand, not a reset.
+   ========================================================================== */
+@theme {
+  --color-paper: #faf8f4;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1eee7;
+
+  --color-navy-950: #030d1a;
+  --color-navy-900: #071b32;
+  --color-navy-800: #0d2645;
+  --color-navy-700: #1a3a5c;
+  --color-navy-600: #22497a;
+  --color-navy-500: #2d5f8a;
+
+  --color-gold: #c59b3d;
+  --color-gold-light: #d9b55a;
+  --color-gold-dark: #92400e;
+
+  --color-rose: #c0392b;
+  --color-emerald: #1a8a5a;
+
+  --color-ink: #16233a;
+  --color-muted: #64748b;
+
+  --font-body: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-montserrat), Montserrat, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 58, 92, 0.18);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(26, 58, 92, 0.32); }
+
+/* Paper card — same shape language as the vitrine's .book-card/.ticket:
+   white surface, soft shadow, rounded corners, no borders doing the work. */
+.card {
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(22, 35, 58, 0.06), 0 8px 24px rgba(22, 35, 58, 0.06);
+  color: var(--color-ink);
+}

@@ -6,7 +6,8 @@ arranged this way, and where the known weaknesses are.
 Kept honest on purpose. A document that only describes the good parts is worse
 than no document, because it makes the debt invisible to whoever reads it next.
 
-**Last verified:** 25 August 2026, against commit `12eeac5`.
+**Last verified:** 28 August 2026, against the working tree (uncommitted:
+`admin/` backoffice app, backend Pages CMS).
 
 ---
 
@@ -21,10 +22,11 @@ than no document, because it makes the debt invisible to whoever reads it next.
 7. [Identity and authorization](#7-identity-and-authorization)
 8. [Error semantics](#8-error-semantics)
 9. [Money and documents](#9-money-and-documents)
-10. [Build and verification](#10-build-and-verification)
-11. [Key decisions](#11-key-decisions)
-12. [Known architectural debt](#12-known-architectural-debt)
-13. [Target architecture](#13-target-architecture)
+10. [The admin backoffice](#10-the-admin-backoffice)
+11. [Build and verification](#11-build-and-verification)
+12. [Key decisions](#12-key-decisions)
+13. [Known architectural debt](#13-known-architectural-debt)
+14. [Target architecture](#14-target-architecture)
 
 ---
 
@@ -48,7 +50,7 @@ other.
 
 The company distinction currently exists in exactly **one** place: a flag on
 `Invoice`, which selects the logo, stamp image and legal footer on generated
-PDFs. See [§12](#12-known-architectural-debt) for why that is not enough.
+PDFs. See [§13](#13-known-architectural-debt) for why that is not enough.
 
 ---
 
@@ -59,10 +61,10 @@ graph TB
     subgraph browsers["Public"]
         V["Vitrine — Next.js<br/>www.dunes-insolites.com"]
     end
-    subgraph staff["Staff apps — Angular, repo: routeinsolite"]
-        AD["admin-app<br/>:4201"]
-        PA["partner-app<br/>:4200"]
-        CA["camping-app<br/>:4202"]
+    subgraph staff["Staff apps"]
+        ADM["admin — Next.js BFF<br/>:3100<br/>replaces admin-app"]
+        PA["partner-app — Angular<br/>:4200<br/>repo: routeinsolite"]
+        CA["camping-app — Angular<br/>:4202<br/>repo: routeinsolite"]
     end
     NG["nginx<br/>TLS termination"]
     API["Spring Boot API<br/>:8080"]
@@ -72,7 +74,7 @@ graph TB
     SMTP["Gmail SMTP"]
 
     V --> NG
-    AD --> NG
+    ADM -- "httpOnly cookie<br/>server-side only" --> NG
     PA --> NG
     CA --> NG
     NG --> API
@@ -84,6 +86,11 @@ graph TB
     API --> SMTP
     KC --> PG
 ```
+
+`admin` is a new Next.js app (this session) that replaces the Angular
+`admin-app` from `routeinsolite`. `partner-app` and `camping-app` are
+untouched and still Angular — the migration is scoped to the admin role only,
+not a rewrite of every staff app. See [§10](#10-the-admin-backoffice).
 
 **Deployment.** Everything runs under `docker-compose.yml` in `backend/`. Every
 internal service binds to `127.0.0.1` only — Postgres, Keycloak, RabbitMQ and
@@ -113,6 +120,7 @@ dunes insolites/
 │   └── api-types/          the wire contract — imported by every frontend
 │
 ├── frontend/               @dunes/frontend — espace client (Next.js)
+├── admin/                  @dunes/admin — backoffice, Next.js BFF (new this session)
 ├── backend/                Spring Boot API + docker-compose
 ├── scripts/mvn.mjs         cross-platform Maven dispatch
 ├── design/                 design handoff + brand assets
@@ -139,12 +147,18 @@ gate; it is simply not wired to a pipeline yet.
 graph LR
     C["packages/api-types<br/>wire contract"]
     F["frontend<br/>lib/types.ts re-exports"]
-    A["future: apps/admin"]
+    A["admin<br/>lib/api.ts — own types, not yet on the contract"]
     B["backend<br/>held to it"]
     C --> F
-    C -.planned.-> A
+    C -.not wired yet.-> A
     C -.->|"must satisfy"| B
 ```
+
+`admin` does **not** import `packages/api-types` yet — its `lib/api.ts` defines
+its own request/response types (`AdminPage`, `AdminTourType`, …) independently.
+That is drift risk in the same shape §4's rule 3 warns about, just not yet
+paid for. Wiring `admin` onto the shared contract is tracked in
+[§13](#13-known-architectural-debt).
 
 **Rules for that package:**
 
@@ -163,7 +177,7 @@ a contract shared with a Java service.
 
 > The contract is currently **shared**, which catches drift at compile time.
 > Generating it from the backend's OpenAPI spec would make it **derived**, which
-> prevents drift entirely. That is the next rung — see [§13](#13-target-architecture).
+> prevents drift entirely. That is the next rung — see [§14](#14-target-architecture).
 
 ---
 
@@ -196,7 +210,7 @@ Supporting packages:
 
 **The rule that matters:** entities never cross the controller boundary. One
 violation remains — `AuthController.register` returns `User` — and is tracked in
-[§12](#12-known-architectural-debt).
+[§13](#13-known-architectural-debt).
 
 ### 5.2 Domain model
 
@@ -238,7 +252,7 @@ multi-day circuits at all.
   invoices and transactions
 
 This breadth is why `ReservationServiceImpl` is 1,788 lines. See
-[§12](#12-known-architectural-debt).
+[§13](#13-known-architectural-debt).
 
 ### 5.3 Enumerations
 
@@ -429,19 +443,139 @@ FACTURE   →  001/2026, 002/2026, …
 > ⚠️ **`DocumentSequence` is unique on `(type, year)` — not company.** Both legal
 > entities draw from one counter, so each entity's ledger has gaps where the
 > other took a number. Neither survives an audit. This is the highest-severity
-> item in this document; see [§12](#12-known-architectural-debt).
+> item in this document; see [§13](#13-known-architectural-debt).
 
 ---
 
-## 10. Build and verification
+## 10. The admin backoffice
+
+Next.js 16 · App Router · Tailwind v4 · new this session, replaces the
+Angular `admin-app` from `routeinsolite` for the `ADMIN` role only.
+
+### 10.1 Why a second Next.js app instead of continuing the Angular one
+
+The Angular `admin-app` worked, but every backoffice feature from here on —
+CRUD, a content/SEO editor, dashboards — was going to be built twice: once in
+Angular's patterns, once eventually in Next.js when the rest of the stack
+migrated. The decision (explicit, user-approved) was to migrate the admin
+role now rather than keep investing in a UI stack the platform is leaving.
+`partner-app` and `camping-app` are untouched — this is not a rewrite of the
+whole staff surface, just the one role under active development.
+
+### 10.2 It is a BFF, not a pure SPA
+
+`admin` never lets the browser hold the Keycloak access token. Login posts to
+`app/api/auth/login`, which calls the backend and stores the resulting
+tokens in an **httpOnly session cookie** — invisible to client-side JS, so an
+XSS in the admin UI cannot exfiltrate a token with realm-admin-adjacent
+reach. Every authenticated read/write from client components goes through
+one catch-all route:
+
+```
+app/api/proxy/[...path]/route.ts
+```
+
+It reads the session cookie server-side, attaches `Authorization: Bearer
+<token>`, and forwards the request (GET/POST/PUT/PATCH/DELETE) to the real
+Spring Boot API. Client components fetch `/api/proxy/pages`, never the
+backend directly — they have no way to reach it any other way, since they
+never see the token.
+
+```mermaid
+sequenceDiagram
+    participant B as Browser (client component)
+    participant N as admin — Next.js server
+    participant K as Keycloak
+    participant A as Spring API
+    B->>N: POST /api/auth/login (email, password)
+    N->>K: password grant
+    K-->>N: access + refresh token
+    N-->>B: Set-Cookie (httpOnly session)
+    B->>N: fetch("/api/proxy/pages")
+    N->>N: read session cookie
+    N->>A: GET /api/pages  (Authorization: Bearer ...)
+    A-->>N: 200 JSON
+    N-->>B: 200 JSON
+```
+
+Server components skip the proxy — they call `lib/api.ts` directly with the
+access token read server-side via `lib/session.ts`, since they run on the
+same trusted server and never expose it to the browser either way.
+
+### 10.3 The Payload-CMS pattern
+
+Explicit user direction: "I want my backoffice to work like Payload,
+exactly." Two shared building blocks in `components/payload/` carry that
+pattern across every collection:
+
+- `CollectionList.tsx` — search, a "+ Créer" link, row-click-to-edit, a
+  delete confirmation modal.
+- `CollectionEditor.tsx` — a **full-page** create/edit view (not a modal)
+  with a right-hand sidebar for Save / Cancel / Status / Delete — the thing
+  that actually distinguishes Payload's editing feel from a typical admin
+  table-with-drawer.
+
+`components/crud/*.tsx` (Clients, Hébergements, Tours, Extras) each pair a
+list + editor built on those two primitives against real backend endpoints —
+full CRUD, no mock data.
+
+**Pages is the one collection with a bespoke editor** (`components/pages/`)
+rather than the generic `CollectionEditor`, because it needs three things the
+generic shape doesn't have: a tabbed Général/Contenu/SEO layout, a block
+builder, and a real catalogue relationship field. It still uses the same
+sidebar-panel convention (Save/Status/Publish/Delete) so it reads as the same
+system, not a different app bolted on.
+
+### 10.4 Pages — the content/SEO/data brief, concretely
+
+This is the direct answer to "manipulate every page how I want, on content,
+SEO and data, like Payload":
+
+- **Backend** (`backend/.../model/Page.java`, `PageBlock.java`): title, slug,
+  locale (`PageLocale`: FR/EN/DE/IT/DA/AR — all six, unlike the frontend's
+  `ContentLocale` which has a fallback model; a `Page` has none, each locale
+  is a fully separate authored row), `companyType`, `status`
+  (`DRAFT`/`PUBLISHED`), 9 SEO fields, and an ordered list of `PageBlock`
+  (`type` + `dataJson`) via `@ElementCollection` + `@OrderColumn`. Unique on
+  `(slug, locale, companyType)`. Full REST CRUD at `/api/pages`, restricted
+  to `ADMIN` via `@PreAuthorize`, plus `PATCH /{id}/publish|unpublish`.
+- **Content blocks** (`components/pages/blockTypes.tsx`,
+  `PageBuilder.tsx`): a typed registry (hero, richText, cta, faq,
+  accommodationShowcase) turns each block's raw `dataJson` into real form
+  fields — add / reorder (↑↓) / duplicate / delete, not a bare textarea.
+  `accommodationShowcase` is the one relationship block: it stores real
+  `TourType` ids, not invented content, so a page can showcase actual
+  catalogue accommodations rather than a duplicated copy of their data.
+- **SEO** (`components/pages/SeoEditor.tsx`): a Google SERP preview plus
+  `seoChecks()` — a list of concrete ✓/⚠/✗ items (title length, missing meta
+  description, etc.), deliberately not a fabricated numeric "score."
+
+### 10.5 What this section does not yet cover
+
+- `admin/lib/api.ts` has its own request/response types, independent of
+  `packages/api-types` — see [§4](#4-the-contract-layer). Drift risk exists
+  but hasn't been paid for yet.
+- Only Pages exists as a CMS collection. Blocks-as-a-reusable-collection,
+  Navigation, Media Library and Testimonials are still `soon: true`
+  placeholders in `components/Sidebar.tsx` — visible in the nav so the shape
+  of where this is going is honest, not built yet.
+- Factures/Proformas/Paiements have no admin UI yet — reservations, clients,
+  and the three catalogue entities plus Pages are the only sections with
+  real CRUD so far.
+- No test coverage of the BFF proxy or the session-cookie flow.
+
+---
+
+## 11. Build and verification
 
 ```bash
 npm install            # once, at the root — installs every workspace
 
-npm run dev            # frontend dev server
+npm run dev            # frontend dev server (vitrine)
+npm run dev:admin      # admin dev server — :3100
 npm run build          # frontend production build
-npm run typecheck      # every workspace
-npm run lint           # frontend
+npm run typecheck      # every workspace, incl. admin
+npm run lint           # frontend + admin
 
 npm run backend:compile
 npm run backend:run
@@ -456,12 +590,16 @@ scripts through `cmd.exe` on Windows and `sh` elsewhere, so a literal `./mvnw`
 breaks on one or the other. It quotes the wrapper path — this repository's path
 contains a space.
 
+`admin` is in the npm workspaces list (`package.json`), so `npm install` at
+the root covers it and `npm run typecheck` / `npm run lint` already include
+it — no separate setup step.
+
 There is **no CI pipeline yet.** `npm run verify` is the gate that should become
 one.
 
 ---
 
-## 11. Key decisions
+## 12. Key decisions
 
 | Decision | Rationale | Cost accepted |
 |---|---|---|
@@ -473,10 +611,12 @@ one.
 | Internal services bound to `127.0.0.1` | nginx is the only ingress; nothing else is reachable from outside | All access must go through the proxy |
 | Server-first React | Core Web Vitals is a ranking input for a business that lives on organic search | Interactivity needs explicit `"use client"` |
 | Soft-delete reservations | Financial records must not vanish | Every query must respect `deletedAt` |
+| Admin migrated to Next.js (BFF), ahead of the rest of the platform | Every new backoffice feature was being built twice — once in Angular's patterns, once eventually in Next.js. Migrate the role in active development now rather than keep investing in a stack being left | `admin` shipped before company-scoping and before joining the shared contract — both now tracked as debt (items 23–24) rather than solved upfront |
+| `partner-app` / `camping-app` left on Angular | Migrating every staff app at once was out of scope for the CMS work requested | Two frontend stacks for staff apps until each is migrated in turn |
 
 ---
 
-## 12. Known architectural debt
+## 13. Known architectural debt
 
 Ordered by what would fail an audit or lose money first. Detail, with file and
 line references, is in `docs/`.
@@ -516,16 +656,19 @@ line references, is in `docs/`.
 | 19 | Observability limited to `/actuator/health` |
 | 20 | Hardcoded IP defaults in `application.yml`; no dev/staging/prod profile split |
 | 21 | Keycloak served over plaintext HTTP internally |
-| 22 | Stack fragmentation — 3 Angular apps + 1 Next.js app, one developer |
+| 22 | Stack fragmentation — 2 Angular apps + 2 Next.js apps, one developer |
+| 23 | `admin` defines its own request/response types instead of importing `packages/api-types` — see [§4](#4-the-contract-layer) |
+| 24 | `admin` inherits the no-company-scoping debt (items 4–7) unmitigated — any `ADMIN` session sees both entities' data with no separation |
+| 25 | No test coverage for `admin`'s BFF proxy or session-cookie auth flow |
 
 ---
 
-## 13. Target architecture
+## 14. Target architecture
 
 Direction, in dependency order. Sequencing and estimates live in
 `docs/SPRINT_PLAN.pdf`.
 
-### 13.1 The commercial layer — accepted, not yet built
+### 14.1 The commercial layer — accepted, not yet built
 
 [ADR-0001](docs/adr/0001-travel-order-and-settlement.md) accepts a
 **`TravelOrder`** aggregate sitting *above* `Reservation`.
@@ -588,7 +731,7 @@ Read ADR-0001 before starting any of it — it records four open questions that
 are the business's to answer, not a developer's, including who is merchant of
 record for a mixed package.
 
-### 13.2 Platform direction
+### 14.2 Platform direction
 
 ```mermaid
 graph TD
@@ -599,8 +742,8 @@ graph TD
     E["CI with real gates<br/>npm run verify + secret scanning"]
     F["OpenAPI-generated contract<br/>drift becomes impossible"]
     G["Public API boundary<br/>/api/public/** with its own DTOs"]
-    H["BFF auth<br/>httpOnly cookies, SSE proxied"]
-    I["apps/admin<br/>company-aware from commit one"]
+    H["BFF auth<br/>httpOnly cookies ✓ built · SSE still unproxied"]
+    I["admin<br/>company-aware, on the shared contract"]
 
     B --> D
     C --> D
@@ -611,13 +754,23 @@ graph TD
     F --> I
 ```
 
+`admin` already exists and already has the httpOnly-cookie BFF piece of `H`
+(see [§10.2](#10-the-admin-backoffice)) — that part of the diagram is done,
+ahead of the rest of this section. What it does **not** have yet: `A`
+(company scoping — it inherits debt items 4–7 from
+[§13](#13-known-architectural-debt) as-is) or `F` (it defines its own types
+instead of importing `packages/api-types`, per [§4](#4-the-contract-layer)).
+
 Two principles worth stating explicitly, because they are easy to violate under
 deadline pressure:
 
 **Build the backoffice company-aware from its first commit.** Retrofitting
-multi-tenancy costs three to four times building it in. The same applies to the
-vitrine — brand should be configuration selected by hostname, never hardcoded,
-so a second brand is a config file rather than a fork.
+multi-tenancy costs three to four times building it in. `admin` did not fully
+follow this — it shipped ahead of company-scoping — so this is now a retrofit
+to do sooner rather than later, not a clean-slate opportunity anymore. The
+same principle applies to the vitrine — brand should be configuration
+selected by hostname, never hardcoded, so a second brand is a config file
+rather than a fork.
 
 **Do not refactor the money path before tests exist.** `ReservationServiceImpl`
 deserves splitting, but doing it without a safety net is how a pricing bug
