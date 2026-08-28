@@ -110,6 +110,31 @@ export async function getCmsPage(slug: string, locale?: string): Promise<CmsPage
   );
 }
 
+export type CmsNavItem = {
+  navItemId: string;
+  label: string;
+  url: string;
+  menuType: "NONE" | "EXPERIENCES" | "STAYS";
+  displayOrder: number;
+};
+
+/**
+ * Admin-managed nav items for one locale, ordered. An empty array (no
+ * backend configured, nothing authored for this locale yet, or a fetch
+ * failure) is the normal case today — callers fall back to the hardcoded
+ * `nav` array in lib/site.ts, exactly as before this existed. See
+ * components/Header.tsx and docs/cms.md.
+ */
+export async function getNavigation(locale?: string): Promise<CmsNavItem[]> {
+  if (!BASE) return [];
+  const loc = (locale ?? "fr").toUpperCase();
+  return get<CmsNavItem[]>(
+    `/public/navigation?locale=${loc}&companyType=DUNES_INSOLITES`,
+    [],
+    { revalidate: 300 },
+  );
+}
+
 /* ------------------------------------------------------------------ reads */
 
 // `locale` is a plain passthrough parameter here, not resolved via

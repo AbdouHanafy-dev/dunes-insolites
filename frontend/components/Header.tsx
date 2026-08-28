@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { logout } from "@/lib/api";
-import { nav, site } from "@/lib/site";
+import { site } from "@/lib/site";
 import type { Activity, Stay } from "@/lib/types";
 
 /** Everything the mega-menu card needs. `Activity.cardImage` and
@@ -14,12 +14,19 @@ import type { Activity, Stay } from "@/lib/types";
  *  built below, so one render path covers both menus. */
 type MegaMenuItem = { slug: string; title: string; tagline: string; image: string };
 
+/** Already resolved — label text and menu type, whether the source was the
+ *  admin's Navigation collection or the hardcoded nav + translations. See
+ *  app/[locale]/layout.tsx and docs/cms.md. */
+type NavEntry = { label: string; href: string; menu?: "experiences" | "stays" };
+
 export default function Header({
   activities,
   stays,
+  navItems,
 }: {
   activities: Activity[];
   stays: Stay[];
+  navItems: NavEntry[];
 }) {
   const t = useTranslations("nav");
   const tAccount = useTranslations("account");
@@ -210,7 +217,7 @@ export default function Header({
           </Link>
 
           <nav className="nav" ref={menuRef}>
-            {nav.map((item) => {
+            {navItems.map((item) => {
               // Captured as a local so the "which menu" type stays narrowed
               // inside the .map() below — TS doesn't carry that narrowing
               // through a property access into a nested closure.
@@ -219,7 +226,7 @@ export default function Header({
                 return (
                   <div key={item.href} className="nav-item">
                     <Link href={item.href} data-active={isActive(item.href)}>
-                      {t(item.labelKey)}
+                      {item.label}
                     </Link>
                   </div>
                 );
@@ -231,23 +238,23 @@ export default function Header({
                 <div
                   key={item.href}
                   className="nav-item has-menu"
-                  onMouseEnter={() => hoverOpen(item.labelKey)}
+                  onMouseEnter={() => hoverOpen(item.href)}
                   onMouseLeave={hoverClose}
                 >
                   <Link
                     href={item.href}
                     data-active={isActive(item.href)}
-                    aria-expanded={menu === item.labelKey}
+                    aria-expanded={menu === item.href}
                     aria-haspopup="true"
-                    onFocus={() => hoverOpen(item.labelKey)}
+                    onFocus={() => hoverOpen(item.href)}
                     onClick={() => setMenu(null)}
                   >
-                    {t(item.labelKey)}
+                    {item.label}
                     <span className="chev" aria-hidden="true" />
                   </Link>
 
-                  {menu === item.labelKey && (
-                    <div className="mega" onMouseEnter={() => hoverOpen(item.labelKey)}>
+                  {menu === item.href && (
+                    <div className="mega" onMouseEnter={() => hoverOpen(item.href)}>
                       <div className="mega-grid">
                         {items.map((i) => (
                           <Link key={i.slug} href={`${hrefPrefix}/${i.slug}`} className="mega-card">
@@ -307,9 +314,9 @@ export default function Header({
 
       <div className="drawer" id="mobile-drawer" data-open={open} aria-hidden={!open}>
         <div className="drawer-scroll">
-          {nav.map((item) => (
+          {navItems.map((item) => (
             <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
-              {t(item.labelKey)}
+              {item.label}
               <span className="nav-arrow" aria-hidden="true">
                 →
               </span>

@@ -350,18 +350,24 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 - **Blocks-as-a-reusable-collection, Media Library** — still `soon: true`
   in `components/Sidebar.tsx`. Both need real backend work (new entities,
   new controllers), not just admin UI.
-- **Navigation's admin side is built; the vitrine doesn't consume it yet.**
-  `NavigationItem` (label, url, locale, companyType, displayOrder,
-  menuType), full CRUD at `/api/navigation` (ADMIN), and an unauthenticated
-  `GET /api/public/navigation?locale=&companyType=` all exist and are
-  verified working. `frontend/components/Header.tsx` still reads the
-  hardcoded `nav` array from `lib/site.ts` — rewiring the site's actual
-  header (animated mega-menus, mobile menu, used on every page) is real,
-  separately-riskier work, deliberately not rushed into the same pass as
-  the backend. `menuType` (`NONE`/`EXPERIENCES`/`STAYS`) already exists on
-  the entity specifically so that rewiring doesn't need a schema change
-  later — the dropdown's actual content still comes from live catalogue
-  data either way, never from the nav item.
+- ~~Navigation's admin side is built; the vitrine doesn't consume it yet.~~
+  **Done.** `app/[locale]/layout.tsx` fetches `getNavigation(locale)`
+  alongside `getActivities`/`getStays`; a non-empty result (something
+  authored for that locale) wins over the hardcoded `nav` array from
+  `lib/site.ts`, resolved into `{label, href, menu}` *before* it reaches
+  `Header.tsx` — the component itself doesn't know or care which source it
+  came from, it just maps over `navItems`. `menuType`
+  (`NONE`/`EXPERIENCES`/`STAYS`) only decides *which* item triggers a
+  mega-menu; the dropdown's actual cards still always come from live
+  `activities`/`stays` data, exactly as before. Verified live: fallback
+  labels matched the original hardcoded French nav exactly
+  (`Le campement`/`Expériences`/`Séjour`/`Galerie`/`Sécurité`/`Contact`);
+  publishing 3 CMS items replaced desktop nav, mobile drawer, *and* kept
+  the mega-menu working under the CMS-flagged `EXPERIENCES` item; deleting
+  them (0 items again) reverts to the fallback path, same ternary already
+  exercised the other way. Hover/keyboard state now keys off `item.href`
+  instead of the old `item.labelKey`, since a CMS label is no longer a
+  stable identifier the way a translation key was.
 - **`accommodationShowcase` doesn't render publicly** — no public endpoint
   resolves `TourType` ids into cards yet.
 - **The `contact` live-preview fidelity gap** — see [§7](#7-live-preview).

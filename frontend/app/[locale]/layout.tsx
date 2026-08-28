@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { alexandria, inter } from "../fonts";
-import { getActivities, getStays } from "@/lib/api";
-import { site } from "@/lib/site";
+import { getActivities, getStays, getNavigation } from "@/lib/api";
+import { site, nav as staticNav } from "@/lib/site";
 import { routing, isRtl } from "@/i18n/routing";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -82,12 +82,33 @@ export default async function LocaleLayout({ children, params }: Props) {
   // rendering just to read the current locale.
   setRequestLocale(locale);
 
-  const [activities, stays, messages, t] = await Promise.all([
+  const [activities, stays, cmsNav, messages, t, tNav] = await Promise.all([
     getActivities(locale),
     getStays(locale),
+    getNavigation(locale),
     getMessages(),
     getTranslations({ locale, namespace: "site" }),
+    getTranslations({ locale, namespace: "nav" }),
   ]);
+
+  // An admin-managed nav (docs/cms.md) wins if anything has been authored
+  // for this locale; otherwise this is exactly the hardcoded nav array,
+  // translated, unchanged from before that CMS collection existed. Header
+  // gets pre-resolved {label, href, menu} either way — it doesn't know or
+  // care which source it came from.
+  const navItems =
+    cmsNav.length > 0
+      ? cmsNav.map((item) => ({
+          label: item.label,
+          href: item.url,
+          menu:
+            item.menuType === "EXPERIENCES"
+              ? ("experiences" as const)
+              : item.menuType === "STAYS"
+                ? ("stays" as const)
+                : undefined,
+        }))
+      : staticNav.map((item) => ({ label: tNav(item.labelKey), href: item.href, menu: item.menu }));
 
   // LodgingBusiness sitewide (DI-026/SEO-07) — a camp selling overnight
   // stays qualifies for this type and it unlocks richer results than the
@@ -133,7 +154,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
           />
-          <Header activities={activities} stays={stays} />
+          <Header activities={activities} stays={stays} navItems={navItems} />
           <main>{children}</main>
           <Footer />
           <WhatsAppButton />
