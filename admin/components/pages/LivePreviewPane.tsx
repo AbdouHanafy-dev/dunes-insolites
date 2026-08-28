@@ -7,6 +7,8 @@ import type { PageBlock } from "@/lib/api";
 // ARCHITECTURE.md §10.6. Anything else has nowhere real to preview yet.
 const PREVIEW_PATHS: Record<string, string> = {
   "legal-privacy": "/legal/privacy",
+  "legal-terms": "/legal/terms",
+  safety: "/safety",
 };
 
 const FRONTEND_BASE = (process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:3000").replace(

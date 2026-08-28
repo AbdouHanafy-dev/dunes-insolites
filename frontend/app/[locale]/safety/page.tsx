@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
+import CmsBlocks, { extractFaqs } from "@/components/CmsBlocks";
+import LivePreview from "@/components/LivePreview";
+import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+
+const CMS_SLUG = "safety";
 
 export async function generateMetadata({
   params,
@@ -11,16 +16,63 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "meta.safety" });
+  const [t, cms] = await Promise.all([
+    getTranslations({ locale, namespace: "meta.safety" }),
+    getCmsPage(CMS_SLUG, locale),
+  ]);
   return {
-    title: t("title"),
-    description: t("description"),
+    title: cms?.seoTitle || t("title"),
+    description: cms?.metaDescription || t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/safety")),
   };
 }
 
-export default async function SafetyPage() {
-  const t = await getTranslations("safety");
+function faqJsonLdScript(faqs: { q: string; a: string }[]) {
+  // Never emit an empty FAQPage — a schema with no real entries is worse
+  // than no schema (DI-026: mark up real content, never invent it to
+  // satisfy the schema).
+  if (faqs.length === 0) return null;
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+  return (
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+  );
+}
+
+export default async function SafetyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ livePreview?: string }>;
+}) {
+  const { livePreview } = await searchParams;
+
+  if (livePreview === "1") {
+    const t = await getTranslations("safety");
+    return <LivePreview eyebrow={t("eyebrow")} />;
+  }
+
+  const locale = await getLocale();
+  const [t, cms] = await Promise.all([getTranslations("safety"), getCmsPage(CMS_SLUG, locale)]);
+
+  // A published "safety" page in the admin CMS takes over this route
+  // entirely, FAQPage JSON-LD included (sourced from its own "faq" blocks,
+  // not the hardcoded array below) — see ARCHITECTURE.md §10.6.
+  if (cms && cms.blocks.length > 0) {
+    return (
+      <>
+        {faqJsonLdScript(extractFaqs(cms.blocks))}
+        <PageHead eyebrow={t("eyebrow")} title={cms.title} lead="" image="/images/quad.jpg" />
+        <CmsBlocks blocks={cms.blocks} />
+      </>
+    );
+  }
 
   const faqs = [
     { q: t("faqQ1"), a: t("faqA1") },
@@ -31,24 +83,9 @@ export default async function SafetyPage() {
     { q: t("faqQ6"), a: t("faqA6") },
   ];
 
-  // FAQPage schema (DI-026/SEO-07) — marks up the real, now-translated Q&A
-  // above, not invented copy for the purpose of the schema.
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      {faqJsonLdScript(faqs)}
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
 
       <section className="section-sand">

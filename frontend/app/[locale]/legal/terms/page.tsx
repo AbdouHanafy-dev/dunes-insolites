@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
+import CmsBlocks from "@/components/CmsBlocks";
+import LivePreview from "@/components/LivePreview";
 import { site } from "@/lib/site";
+import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+
+const CMS_SLUG = "legal-terms";
 
 export async function generateMetadata({
   params,
@@ -10,17 +15,46 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "meta.legalTerms" });
+  const [t, cms] = await Promise.all([
+    getTranslations({ locale, namespace: "meta.legalTerms" }),
+    getCmsPage(CMS_SLUG, locale),
+  ]);
   return {
-    title: t("title"),
-    description: t("description"),
+    title: cms?.seoTitle || t("title"),
+    description: cms?.metaDescription || t("description"),
     alternates: localeAlternates(locale, (l) => localeHref(l, "/legal/terms")),
   };
 }
 
-export default async function TermsPage() {
-  const t = await getTranslations("legal.terms");
+export default async function TermsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ livePreview?: string }>;
+}) {
+  const { livePreview } = await searchParams;
   const tLegal = await getTranslations("legal");
+
+  if (livePreview === "1") {
+    return <LivePreview eyebrow={tLegal("eyebrow")} />;
+  }
+
+  const locale = await getLocale();
+  const [t, cms] = await Promise.all([
+    getTranslations("legal.terms"),
+    getCmsPage(CMS_SLUG, locale),
+  ]);
+
+  // A published "legal-terms" page in the admin CMS takes over this route
+  // entirely; with none published (the default), this renders exactly the
+  // hardcoded content below, unchanged. See ARCHITECTURE.md §10.6.
+  if (cms && cms.blocks.length > 0) {
+    return (
+      <>
+        <PageHead eyebrow={tLegal("eyebrow")} title={cms.title} lead="" />
+        <CmsBlocks blocks={cms.blocks} />
+      </>
+    );
+  }
 
   return (
     <>

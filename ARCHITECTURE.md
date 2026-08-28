@@ -591,34 +591,54 @@ no caveats.
 
 Until this point, a page authored in the admin CMS produced no public URL —
 `frontend/` rendered `/about`, `/safety`, `/contact`, `/legal/*` from
-hardcoded components regardless. That's closed, on one route so far, as a
-proven pattern rather than a blanket cutover:
+hardcoded components regardless. Closed on three routes so far
+(`legal-privacy`, `legal-terms`, `safety`) — chosen because their content is
+flat prose plus, for `safety`, a FAQ list; `about`'s guide-photo cards and
+`contact`'s form/map genuinely need block types that don't exist yet (see
+the end of this section), so they're deliberately not attempted here:
 
 - **New public endpoint**, following the existing `/api/public/**`
   convention (`PublicStayController` etc.): `GET
   /api/public/pages/{slug}?locale=FR&companyType=DUNES_INSOLITES` —
   unauthenticated, only ever returns a `PUBLISHED` page (never a draft),
   block `dataJson` parsed into real JSON rather than a string-of-a-string.
-- **`frontend/components/CmsBlocks.tsx`** renders the same block types the
+- **`frontend/components/CmsBlocks.tsx`** renders the block types the
   admin's page builder can produce (hero/richText/cta/faq) using the
-  vitrine's own CSS (`.prose`, `.btn-accent`) rather than a parallel style
-  system. `accommodationShowcase` doesn't render publicly yet — no public
-  endpoint resolves the `TourType` ids it stores.
-- **`frontend/app/[locale]/legal/privacy/page.tsx`** is the one route wired
-  so far: it fetches `getCmsPage("legal-privacy", locale)` and, if a
-  published page with blocks exists, renders `<CmsBlocks>` instead of its
-  own hardcoded prose — SEO fields too, when the CMS page's own
-  `seoTitle`/`metaDescription` are filled in, else the existing translated
-  defaults. **With no CMS page published (true today — the test page used
-  to verify this was deleted after verification), the route renders
-  exactly what it did before this section existed.** Verified live both
-  directions: publishing a real page took over the route, unpublishing
-  reverted it — confirmed by inspecting rendered `<h1>`/`<h2>` tags, not a
-  naive text search (a first pass gave a false "still showing old content"
-  reading because next-intl serializes the *entire* locale message catalog
-  onto the page for client hydration, including translation strings never
-  actually rendered in this code path — a plain substring search matches
-  that JSON blob too).
+  vitrine's own CSS (`.prose`, `.btn-accent`, `.faq`) rather than a parallel
+  style system. Two content-shape details worth knowing:
+  - `richText`'s `content` field treats a line starting with `- ` as a
+    bullet — consecutive such lines become a real `<ul>`, everything else
+    stays plain paragraphs. Plain-text authoring convention, not Markdown.
+  - Consecutive `faq` blocks are grouped into a single accordion
+    (`<details>`/`<summary>`, same markup the hardcoded safety page always
+    used) rather than one section per question — `groupFaqRuns()` does
+    this before rendering. `extractFaqs()` is exported separately so a
+    route can pull the same `{question, answer}` pairs to build its own
+    `FAQPage` JSON-LD from CMS content, not just render them.
+  - `accommodationShowcase` doesn't render publicly yet — no public
+    endpoint resolves the `TourType` ids it stores.
+- **The three wired routes** (`legal/privacy/page.tsx`, `legal/terms/page.tsx`,
+  `safety/page.tsx`) all follow the same shape: fetch `getCmsPage(slug,
+  locale)`, and if a published page with blocks exists, render
+  `<CmsBlocks>` instead of the hardcoded JSX — SEO fields too, when the CMS
+  page's own `seoTitle`/`metaDescription` are filled in, else the existing
+  translated defaults. `safety/page.tsx` additionally rebuilds its
+  `FAQPage` JSON-LD from `extractFaqs(cms.blocks)` when a CMS page is
+  active, and — matching CLAUDE.md's "never fabricate" rule extended to
+  structured data — emits no `FAQPage` script at all if that list comes
+  back empty, rather than emitting an empty schema. **With no CMS page
+  published for any of the three (true today — every test page created
+  while verifying this was deleted afterward), all three routes render
+  exactly what they did before this section existed.** Verified live in
+  both directions on all three: publishing took over each route, including
+  the FAQ accordion markup and JSON-LD sourced from CMS blocks;
+  unpublishing reverted every one — confirmed by inspecting rendered
+  `<h1>`/`<h2>`/`<details>` tags and the JSON-LD script's own content, not
+  a naive text search (a first pass on `legal-privacy` gave a false "still
+  showing old content" reading because next-intl serializes the *entire*
+  locale message catalog onto the page for client hydration, including
+  translation strings never actually rendered in this code path — a plain
+  substring search matches that JSON blob too).
 - **The 300s fetch cache is real and shared with the rest of the codebase**
   (`getActivities`, `getStays`, etc. all use the same `revalidate: 300`
   pattern) — an admin publishing or unpublishing a page can take up to 5
@@ -640,7 +660,8 @@ endpoint, no admin session shared with the vitrine: the iframe never talks
 to the backend at all in this mode, it just renders messages it receives.
 
 `LivePreviewPane` keeps a small, explicit map from CMS slug to vitrine path
-(today: only `legal-privacy` → `/legal/privacy`, matching [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
+(today: `legal-privacy`, `legal-terms`, `safety` — the three routes wired
+per [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
 Any other slug shows an honest "no live preview for this slug yet" message
 instead of an iframe pointed at nothing — extending the map is one line per
 route once that route's `page.tsx` reads from the CMS.
@@ -649,16 +670,25 @@ Needs `NEXT_PUBLIC_FRONTEND_URL` set on `admin` in anything other than
 default local dev (falls back to `http://localhost:3000`, the frontend's
 own default port) — not yet wired into either app's `.env.example`.
 
-**Not done:** `about`, `safety`, `contact`, `legal/terms` still don't read
-from the CMS — this proves the mechanism works, it doesn't migrate every
-page. Doing that for real means: richer block types (About's guide photo/
-bio cards, Safety's FAQ list feeding the `FAQPage` JSON-LD, structured legal
-clauses beyond flat prose) and — the part that actually takes the time —
-manually re-entering the already-translated content for each page into the
-CMS across all 6 locales, since nothing auto-migrates the existing
-`messages/*.json` content into `Page`/`PageBlock` rows. Skipping that step
-and just flipping the switch would revert months of translation work to
-whatever's typed into the block editor.
+**Not done:** `about` and `contact` still don't read from the CMS.
+`legal/terms` and `safety` closed the gap that used to be here — flat prose
+and a FAQ list both fit the existing block types. `about` and `contact`
+don't: About's three guide profiles are photo+name+role+bio *cards*, and
+`PageBuilder`'s block fields are flat key-value pairs with no repeatable
+group/array field type yet — that's a real addition to the block builder
+itself, not just a new block type. Contact's core is a form and a map
+embed, which were never going to become CMS blocks; at most its
+eyebrow/lead text could read from the CMS while the form/map/info-card
+shell stays code, which is a different, smaller piece of work than the
+other four routes and hasn't been done either.
+
+Also still true for every route that *is* wired: nothing auto-migrates the
+already-translated `messages/*.json` content into `Page`/`PageBlock` rows.
+Each of the three routes above keeps working exactly as before as long as
+no one publishes a CMS page for its slug — genuinely re-authoring that
+content into the CMS across all 6 locales is real, separate work, deferred
+deliberately rather than rushed and risking silently degrading translation
+quality already verified live.
 
 **Still not built:** Blocks-as-a-reusable-collection, Navigation, Media
 Library, Rôles & permissions, Disponibilités, and the whole SEO group
