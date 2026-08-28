@@ -367,8 +367,37 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 
 ## 13. What's not built
 
-- **Disponibilités** — still `soon: true` in `components/Sidebar.tsx`.
-  Needs real backend work (new entity/controller) that doesn't exist yet.
+- ~~**Disponibilités**~~ **Done, scoped narrowly on purpose.** This one
+  hit a real modeling gap, not just a feature gap: the backend has no
+  "Accommodation" entity (Desert Tent / Desert Room / Dune Suite) at all —
+  that model exists only in the frontend's seed data (DI-012, not yet
+  migrated). Building availability against it would mean inventing a
+  second, competing definition of a thing the platform hasn't decided on
+  yet. Confirmed the scope with the user before writing code (per
+  CLAUDE.md's "if a task touches something undecided, stop and ask") and
+  built against **TourType** instead — the real, already-CRUD'd backend
+  entity — and **read-only, additive-only**: zero changes to
+  `ReservationServiceImpl` (1,788 lines, explicitly flagged in CLAUDE.md
+  as needing tests before any refactor).
+  `AvailabilityBlock` (`tourType`, `date`, `note`, unique per
+  tourType+date) is a brand new, isolated table — a staff-entered "not
+  taking bookings this day" marker with **no effect on the booking flow
+  itself** (that's real and stated plainly in the page's own copy, not
+  glossed over). `/api/availability/calendar?tourTypeId=&month=` merges
+  two independently-read sources: real occupancy counts from
+  `ReservationTourType` (a brand new additive repository query, filtered
+  to exclude `CANCELLED`/`REJECTED` reservations, joined only to read
+  `Reservation.status` — never calls `ReservationService` or
+  `ReservationServiceImpl`) and any manual block for that day. No
+  computed "% full" anywhere: `TourType` has no capacity field to divide
+  against, so showing one would mean inventing a number, not reading one.
+  `/catalogue/disponibilites` — tour + month picker, one row per day
+  (real reservation count, real adult/child totals, open/closed status),
+  block/unblock inline. Verified live end-to-end: real calendar days,
+  block creation reflected immediately, duplicate-block correctly
+  rejected as 409, delete confirmed via a follow-up read, all through
+  both a direct API client and the admin's own proxy routes (the exact
+  path the UI itself calls) — no leftover test data.
 - ~~**Rôles & permissions**~~ **Done, deliberately read-only.** Roles
   (`CLIENT`/`PARTENAIRE`/`CAMPING`/`ADMIN`) are a fixed enum backed by
   Keycloak realm roles, not a database table — this page does not try to

@@ -161,6 +161,29 @@ export function getTourTypeById(accessToken: string, id: string): Promise<AdminT
   return authedGet<AdminTourType | null>(`/tour-types/${id}`, accessToken, null);
 }
 
+export type AvailabilityDay = {
+  date: string;
+  reservationCount: number;
+  adults: number;
+  children: number;
+  blockId: string | null;
+  blockNote: string | null;
+};
+
+// month is "yyyy-MM" (e.g. "2026-09") — matches the backend's
+// @DateTimeFormat(pattern = "yyyy-MM") on AvailabilityController.
+export function getAvailabilityCalendar(
+  accessToken: string,
+  tourTypeId: string,
+  month: string,
+): Promise<AvailabilityDay[]> {
+  return authedGet<AvailabilityDay[]>(
+    `/availability/calendar?tourTypeId=${tourTypeId}&month=${month}`,
+    accessToken,
+    [],
+  );
+}
+
 export type AdminExtra = {
   extraId: string;
   name: string;
