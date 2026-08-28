@@ -591,11 +591,10 @@ no caveats.
 
 Until this point, a page authored in the admin CMS produced no public URL —
 `frontend/` rendered `/about`, `/safety`, `/contact`, `/legal/*` from
-hardcoded components regardless. Closed on three routes so far
-(`legal-privacy`, `legal-terms`, `safety`) — chosen because their content is
-flat prose plus, for `safety`, a FAQ list; `about`'s guide-photo cards and
-`contact`'s form/map genuinely need block types that don't exist yet (see
-the end of this section), so they're deliberately not attempted here:
+hardcoded components regardless. Closed on four routes now
+(`legal-privacy`, `legal-terms`, `safety`, `about`). `contact`'s core is a
+form and a map embed — never going to become CMS blocks — so it's the one
+deliberately left out; see the end of this section:
 
 - **New public endpoint**, following the existing `/api/public/**`
   convention (`PublicStayController` etc.): `GET
@@ -617,28 +616,43 @@ the end of this section), so they're deliberately not attempted here:
     `FAQPage` JSON-LD from CMS content, not just render them.
   - `accommodationShowcase` doesn't render publicly yet — no public
     endpoint resolves the `TourType` ids it stores.
-- **The three wired routes** (`legal/privacy/page.tsx`, `legal/terms/page.tsx`,
-  `safety/page.tsx`) all follow the same shape: fetch `getCmsPage(slug,
-  locale)`, and if a published page with blocks exists, render
-  `<CmsBlocks>` instead of the hardcoded JSX — SEO fields too, when the CMS
-  page's own `seoTitle`/`metaDescription` are filled in, else the existing
-  translated defaults. `safety/page.tsx` additionally rebuilds its
+  - `team` — the block that unblocked `about` — renders one `.member` card
+    per entry of a **repeatable group field** (`admin/components/payload/
+    RepeaterField.tsx`, a new `FieldDef` variant): add/remove/reorder a
+    list of {name, role, photo, bio} objects, not just flat key-value
+    pairs. `PageBuilder.tsx` special-cases `field.type === "repeater"` the
+    same way it already special-cased `accommodationShowcase` — `FieldInput`
+    itself just returns `null` for that type rather than rendering a
+    broken control, since a repeater is a whole sub-form, not one input.
+    This is the general primitive; any future block needing a repeatable
+    list (a gallery, a step-by-step itinerary) reuses `RepeaterField`
+    rather than inventing a new one.
+- **The four wired routes** (`legal/privacy/page.tsx`, `legal/terms/page.tsx`,
+  `safety/page.tsx`, `about/page.tsx`) all follow the same shape: fetch
+  `getCmsPage(slug, locale)`, and if a published page with blocks exists,
+  render `<CmsBlocks>` instead of the hardcoded JSX — SEO fields too, when
+  the CMS page's own `seoTitle`/`metaDescription` are filled in, else the
+  existing translated defaults. `safety/page.tsx` additionally rebuilds its
   `FAQPage` JSON-LD from `extractFaqs(cms.blocks)` when a CMS page is
   active, and — matching CLAUDE.md's "never fabricate" rule extended to
   structured data — emits no `FAQPage` script at all if that list comes
-  back empty, rather than emitting an empty schema. **With no CMS page
-  published for any of the three (true today — every test page created
-  while verifying this was deleted afterward), all three routes render
+  back empty, rather than emitting an empty schema. `about/page.tsx` keeps
+  `<Experience/>` and `<CTA/>` rendering unconditionally after the CMS
+  content (or the hardcoded fallback) — those are conversion components,
+  not editorial content, and were never in scope for the CMS. **With no CMS
+  page published for any of the four (true today — every test page created
+  while verifying this was deleted afterward), all four routes render
   exactly what they did before this section existed.** Verified live in
-  both directions on all three: publishing took over each route, including
-  the FAQ accordion markup and JSON-LD sourced from CMS blocks;
-  unpublishing reverted every one — confirmed by inspecting rendered
-  `<h1>`/`<h2>`/`<details>` tags and the JSON-LD script's own content, not
-  a naive text search (a first pass on `legal-privacy` gave a false "still
-  showing old content" reading because next-intl serializes the *entire*
-  locale message catalog onto the page for client hydration, including
-  translation strings never actually rendered in this code path — a plain
-  substring search matches that JSON blob too).
+  both directions on all four: publishing took over each route, including
+  the FAQ accordion markup and JSON-LD sourced from CMS blocks on `safety`
+  and the repeater-driven guide cards on `about`; unpublishing reverted
+  every one — confirmed by inspecting rendered `<h1>`/`<h2>`/`<h3>`/
+  `<details>` tags and the JSON-LD script's own content, not a naive text
+  search (a first pass on `legal-privacy` gave a false "still showing old
+  content" reading because next-intl serializes the *entire* locale message
+  catalog onto the page for client hydration, including translation strings
+  never actually rendered in this code path — a plain substring search
+  matches that JSON blob too).
 - **The 300s fetch cache is real and shared with the rest of the codebase**
   (`getActivities`, `getStays`, etc. all use the same `revalidate: 300`
   pattern) — an admin publishing or unpublishing a page can take up to 5
@@ -660,8 +674,8 @@ endpoint, no admin session shared with the vitrine: the iframe never talks
 to the backend at all in this mode, it just renders messages it receives.
 
 `LivePreviewPane` keeps a small, explicit map from CMS slug to vitrine path
-(today: `legal-privacy`, `legal-terms`, `safety` — the three routes wired
-per [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
+(today: `legal-privacy`, `legal-terms`, `safety`, `about` — the four routes
+wired per [§10.6](#106-the-pages-cms-now-actually-reaches-the-vitrine)).
 Any other slug shows an honest "no live preview for this slug yet" message
 instead of an iframe pointed at nothing — extending the map is one line per
 route once that route's `page.tsx` reads from the CMS.
@@ -670,17 +684,15 @@ Needs `NEXT_PUBLIC_FRONTEND_URL` set on `admin` in anything other than
 default local dev (falls back to `http://localhost:3000`, the frontend's
 own default port) — not yet wired into either app's `.env.example`.
 
-**Not done:** `about` and `contact` still don't read from the CMS.
-`legal/terms` and `safety` closed the gap that used to be here — flat prose
-and a FAQ list both fit the existing block types. `about` and `contact`
-don't: About's three guide profiles are photo+name+role+bio *cards*, and
-`PageBuilder`'s block fields are flat key-value pairs with no repeatable
-group/array field type yet — that's a real addition to the block builder
-itself, not just a new block type. Contact's core is a form and a map
-embed, which were never going to become CMS blocks; at most its
-eyebrow/lead text could read from the CMS while the form/map/info-card
+**Not done:** `contact` still doesn't read from the CMS — its core is a
+form and a map embed, which were never going to become CMS blocks. At most
+its eyebrow/lead text could read from the CMS while the form/map/info-card
 shell stays code, which is a different, smaller piece of work than the
 other four routes and hasn't been done either.
+
+`about` *was* blocked on the same "no repeatable field" gap as everything
+else here, until the `team` block + `RepeaterField` closed it in the same
+pass — see the `team` bullet above.
 
 Also still true for every route that *is* wired: nothing auto-migrates the
 already-translated `messages/*.json` content into `Page`/`PageBlock` rows.

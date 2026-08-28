@@ -68,6 +68,27 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
     icon: "🏕️",
     fields: [], // rendered specially in PageBuilder.tsx with a real TourType picker
   },
+  {
+    type: "team",
+    label: "Équipe",
+    icon: "🧑‍🤝‍🧑",
+    titleKey: "heading",
+    fields: [
+      { type: "text", key: "heading", label: "Titre de la section" },
+      {
+        type: "repeater",
+        key: "members",
+        label: "Membres",
+        itemLabel: "Membre",
+        fields: [
+          { type: "text", key: "name", label: "Nom", required: true },
+          { type: "text", key: "role", label: "Rôle" },
+          { type: "text", key: "photo", label: "Photo (URL)" },
+          { type: "textarea", key: "bio", label: "Bio" },
+        ],
+      },
+    ],
+  },
 ];
 
 export function blockTypeDef(type: string): BlockTypeDef | undefined {
@@ -89,6 +110,12 @@ export function blockPreviewLabel(type: string, dataJson: string): string {
     const data = parseBlockData(dataJson);
     const ids = (data.tourTypeIds as string[] | undefined) ?? [];
     return `${ids.length} hébergement(s) sélectionné(s)`;
+  }
+  if (type === "team") {
+    const data = parseBlockData(dataJson);
+    const members = (data.members as unknown[] | undefined) ?? [];
+    const heading = data.heading as string | undefined;
+    return heading || `${members.length} membre(s)`;
   }
   const data = parseBlockData(dataJson);
   const title = def.titleKey ? (data[def.titleKey] as string | undefined) : undefined;

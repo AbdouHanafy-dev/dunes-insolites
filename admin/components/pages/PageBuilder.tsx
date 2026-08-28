@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FieldInput, inputClass, labelClass } from "@/components/payload/fields";
+import RepeaterField from "@/components/payload/RepeaterField";
 import { BLOCK_TYPES, blockTypeDef, blockPreviewLabel, parseBlockData } from "./blockTypes";
 import type { PageBlock, AdminTourType } from "@/lib/api";
 
@@ -127,6 +128,19 @@ export default function PageBuilder({
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {def.fields.map((f) => {
                       const data = parseBlockData(block.dataJson);
+                      if (f.type === "repeater") {
+                        return (
+                          <div key={f.key} className="flex flex-col gap-1.5 sm:col-span-2">
+                            <label className={labelClass}>{f.label}</label>
+                            <RepeaterField
+                              itemLabel={f.itemLabel}
+                              fields={f.fields}
+                              items={(data[f.key] as Record<string, unknown>[] | undefined) ?? []}
+                              onChange={(items) => updateBlockData(index, { ...data, [f.key]: items })}
+                            />
+                          </div>
+                        );
+                      }
                       return (
                         <div
                           key={f.key}

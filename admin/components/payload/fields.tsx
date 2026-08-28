@@ -3,7 +3,12 @@ export type FieldDef =
   | { type: "textarea"; key: string; label: string; hint?: string }
   | { type: "number"; key: string; label: string; required?: boolean; step?: number }
   | { type: "select"; key: string; label: string; options: { value: string; label: string }[] }
-  | { type: "checkbox"; key: string; label: string };
+  | { type: "checkbox"; key: string; label: string }
+  // A repeatable group — an array of objects, each shaped by `fields`.
+  // Not handled by FieldInput below (that returns one control, this is a
+  // whole add/remove/reorder list of them) — see PageBuilder.tsx's
+  // "repeater" case and payload/RepeaterField.tsx for the actual UI.
+  | { type: "repeater"; key: string; label: string; itemLabel: string; fields: FieldDef[] };
 
 export type ColumnDef<T> = {
   key: string;
@@ -24,6 +29,12 @@ export function FieldInput({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
+  if (field.type === "repeater") {
+    // Callers must render RepeaterField for this case instead — see
+    // PageBuilder.tsx. Rendering nothing is safer than a broken text input
+    // bound to an array value.
+    return null;
+  }
   if (field.type === "textarea") {
     return (
       <textarea

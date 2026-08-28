@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { CmsBlock } from "@/lib/api";
 
@@ -44,6 +45,8 @@ function renderItem(item: RenderItem, i: number) {
       return <RichTextBlock key={i} data={block.data} />;
     case "cta":
       return <CtaBlock key={i} data={block.data} />;
+    case "team":
+      return <TeamBlock key={i} data={block.data} />;
     default:
       return null;
   }
@@ -154,6 +157,47 @@ function FaqGroup({ faqs }: { faqs: CmsBlock[] }) {
               <summary>{f.q}</summary>
               {f.a && <p>{f.a}</p>}
             </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type TeamMember = { name: string; role: string; photo: string; bio: string };
+
+/** Renders as the same .team/.member markup the hardcoded About page's
+ *  guide cards always used. */
+function TeamBlock({ data }: { data: Record<string, unknown> }) {
+  const heading = str(data.heading);
+  const rawMembers = Array.isArray(data.members) ? data.members : [];
+  const members: TeamMember[] = rawMembers
+    .map((m) => {
+      const r = m as Record<string, unknown>;
+      return { name: str(r.name), role: str(r.role), photo: str(r.photo), bio: str(r.bio) };
+    })
+    .filter((m) => m.name);
+  if (members.length === 0) return null;
+  return (
+    <section className="section-sand">
+      <div className="wrap">
+        {heading && (
+          <h2 className="sect-title" style={{ fontSize: "clamp(30px,3.6vw,52px)" }}>
+            {heading}
+          </h2>
+        )}
+        <div className="team">
+          {members.map((m, i) => (
+            <div key={i} className="member">
+              {m.photo && (
+                <div className="photo">
+                  <Image src={m.photo} alt={m.name} fill sizes="(max-width: 900px) 50vw, 33vw" />
+                </div>
+              )}
+              <h3>{m.name}</h3>
+              {m.role && <div className="role">{m.role}</div>}
+              {m.bio && <p className="bio">{m.bio}</p>}
+            </div>
           ))}
         </div>
       </div>
