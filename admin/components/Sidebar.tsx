@@ -46,7 +46,7 @@ const GROUPS: NavGroup[] = [
     label: "SEO",
     items: [
       { label: "Pages SEO", href: "/seo/pages", icon: "🔍" },
-      { label: "Redirections", href: "#", icon: "↪️", soon: true },
+      { label: "Redirections", href: "/seo/redirections", icon: "↪️" },
       { label: "Sitemap", href: "#", icon: "🗺️", soon: true },
       { label: "Audit SEO", href: "#", icon: "✅", soon: true },
     ],

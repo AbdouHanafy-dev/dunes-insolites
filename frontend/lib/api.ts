@@ -125,6 +125,20 @@ export type CmsNavItem = {
  * `nav` array in lib/site.ts, exactly as before this existed. See
  * components/Header.tsx and docs/cms.md.
  */
+export type CmsRedirect = { fromPath: string; toPath: string; statusCode: number };
+
+/**
+ * Every configured redirect, unfiltered — middleware.ts fetches this
+ * (cached, not per-request thanks to revalidate) and matches the incoming
+ * pathname before falling through to normal routing. An empty array (no
+ * backend configured, or nothing set up yet) means middleware simply never
+ * redirects — failing open, same as every other CMS fallback in this file.
+ */
+export async function getRedirects(): Promise<CmsRedirect[]> {
+  if (!BASE) return [];
+  return get<CmsRedirect[]>("/public/redirects", [], { revalidate: 300 });
+}
+
 export async function getNavigation(locale?: string): Promise<CmsNavItem[]> {
   if (!BASE) return [];
   const loc = (locale ?? "fr").toUpperCase();

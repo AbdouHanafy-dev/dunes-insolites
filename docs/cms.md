@@ -453,11 +453,35 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
   one source of truth, not two copies that could drift). Shows per-page
   error/warning counts and whether `seoTitle`/`metaDescription` are set;
   clicking a row opens that page's real editor. Needed zero new backend —
-  pure aggregation of data the Pages collection already returns. The other
-  three SEO-group items (Redirections, Sitemap, Audit SEO) are unbuilt —
-  Redirections needs a new entity, Sitemap and Audit would need to reach
-  into the vitrine's own `sitemap.ts`/crawl behavior, out of scope for a
-  single pass.
+  pure aggregation of data the Pages collection already returns.
+- ~~**Redirections**~~ **Done.** `Redirect` (`fromPath` unique, `toPath`,
+  `statusCode` 301/302, no draft/publish) — full CRUD at `/api/redirects`
+  (ADMIN), plus `/api/public/redirects` (permitAll) returning the full
+  list unfiltered. Deliberately distinct from the DI-022 legacy WordPress
+  slug rewrites in `frontend/next.config.ts`
+  (`LEGACY_STAY_SLUGS`/`LEGACY_ACTIVITY_SLUGS`): those are invisible,
+  build-time rewrites that keep an *existing* ranking URL as canonical and
+  never change; this is for a URL that's going away, going forward (e.g. a
+  Page's slug gets renamed in the CMS). Two validations reject bad state
+  before it reaches the DB's unique constraint as a raw 500: a
+  self-redirect (`fromPath === toPath`) and a duplicate `fromPath`, both
+  409s with a real message.
+  `frontend/middleware.ts` — previously only `next-intl`'s
+  `createMiddleware` — now fetches the public redirect list (best-effort
+  in-memory cache, 60s TTL, since middleware runs in the Edge runtime
+  where instances can recycle) and checks the incoming pathname against it
+  *before* handing off to `next-intl`'s middleware. No backend configured,
+  or a fetch failure, means an empty list and zero redirects fire — same
+  "fail open, never blank the page" convention as every other CMS
+  fallback in `lib/api.ts`. Verified live: created a redirect via the API,
+  confirmed the frontend actually issued a real `301` with the correct
+  `Location` header for that exact path, confirmed an unrelated route
+  (`/activities/`) still served normally, deleted the redirect, confirmed
+  the count went back to 0.
+- The other two SEO-group items (Sitemap, Audit SEO) are unbuilt — both
+  would need to reach into the vitrine's own `sitemap.ts`/crawl behavior
+  rather than add a CMS collection, a different shape of work, out of
+  scope for this pass.
 - ~~Navigation's admin side is built; the vitrine doesn't consume it yet.~~
   **Done.** `app/[locale]/layout.tsx` fetches `getNavigation(locale)`
   alongside `getActivities`/`getStays`; a non-empty result (something

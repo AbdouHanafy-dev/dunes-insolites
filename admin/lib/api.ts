@@ -271,6 +271,23 @@ export function getNavigationItemById(
   return authedGet<AdminNavigationItem | null>(`/navigation/${id}`, accessToken, null);
 }
 
+export type AdminRedirect = {
+  redirectId: string;
+  fromPath: string;
+  toPath: string;
+  statusCode: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function getAllRedirects(accessToken: string): Promise<AdminRedirect[]> {
+  return authedGet<AdminRedirect[]>("/redirects", accessToken, []);
+}
+
+export function getRedirectById(accessToken: string, id: string): Promise<AdminRedirect | null> {
+  return authedGet<AdminRedirect | null>(`/redirects/${id}`, accessToken, null);
+}
+
 /* --------------------------------------------------------------- content blocks */
 
 export type AdminContentBlock = {
