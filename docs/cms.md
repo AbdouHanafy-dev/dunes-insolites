@@ -366,9 +366,22 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 
 ## 13. What's not built
 
-- **Blocks-as-a-reusable-collection, Media Library** — still `soon: true`
-  in `components/Sidebar.tsx`. Both need real backend work (new entities,
-  new controllers), not just admin UI.
+- **Blocks-as-a-reusable-collection, Media Library, Rôles & permissions,
+  Disponibilités** — still `soon: true` in `components/Sidebar.tsx`. Media
+  Library specifically needs a storage decision (local disk vs. object
+  storage) before any code; the others need real backend work (new
+  entities/controllers) that doesn't exist yet.
+- ~~**Pages SEO**~~ **Done.** `app/(app)/seo/pages/page.tsx` — a read-only
+  overview table of every `Page`, reusing the exact same `seoChecks()`
+  logic the per-page SEO tab uses (moved to `admin/lib/seo.ts` so there's
+  one source of truth, not two copies that could drift). Shows per-page
+  error/warning counts and whether `seoTitle`/`metaDescription` are set;
+  clicking a row opens that page's real editor. Needed zero new backend —
+  pure aggregation of data the Pages collection already returns. The other
+  three SEO-group items (Redirections, Sitemap, Audit SEO) are unbuilt —
+  Redirections needs a new entity, Sitemap and Audit would need to reach
+  into the vitrine's own `sitemap.ts`/crawl behavior, out of scope for a
+  single pass.
 - ~~Navigation's admin side is built; the vitrine doesn't consume it yet.~~
   **Done.** `app/[locale]/layout.tsx` fetches `getNavigation(locale)`
   alongside `getActivities`/`getStays`; a non-empty result (something
