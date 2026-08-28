@@ -96,9 +96,9 @@ filter labels are now translated across all 6 locales too — verified live
 **Still draft-quality, not a commissioned professional translation** — flagged
 hardest for the two legal pages, per the multi-language plan's own caveat;
 budget a qualified review before treating them as binding in DE/IT/DA/AR
-markets. Two small items deliberately deferred: gallery image alt text is
-still English-only (accessibility/image-SEO, lower stakes than page content),
-and the "8 yrs" stat tile unit is a hardcoded English abbreviation ·
+markets. The two items flagged as deferred earlier the same day — gallery
+image alt text and the "8 yrs" stat-tile unit — were closed right after,
+same verification standard (live per-locale render, not just a green build) ·
 ⚠️ DI-022 legacy slugs routed —
 product-page rewrites done and build-verified (9 legacy URLs → real content,
 each one's `<link rel="canonical">` now correctly points at the flat legacy

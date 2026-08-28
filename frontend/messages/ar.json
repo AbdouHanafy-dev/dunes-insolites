@@ -69,7 +69,9 @@
     "body": "مجموعات صغيرة، مرشدون محليون، ودون أي استعجال. كل رحلة في سابرية مُوقّتة بحيث لا تزال الرمال تحتفظ بدفء النهار والسماء مشتعلة بالألوان.",
     "guestsGuided": "ضيوف تم إرشادهم",
     "averageRating": "متوسط التقييم",
-    "onTheDunes": "على الكثبان"
+    "onTheDunes": "على الكثبان",
+    "yearsUnit": "سنوات",
+    "bgAlt": "مشهد صحراوي في صبرية"
   },
   "bookDirect": {
     "eyebrow": "احجز مباشرة",
@@ -169,6 +171,24 @@
       "quadSafari": "سفاري الدراجات الرباعية",
       "sandboarding": "التزلج على الرمال",
       "theGate": "البوابة"
+    },
+    "openAria": "فتح",
+    "alt": {
+      "Desert adventure scene": "مشهد مغامرة صحراوية",
+      "Camel at sunset": "جمل عند الغروب",
+      "Sandboarding": "التزلج على الرمال",
+      "Quad riders": "دراجات رباعية أثناء الحركة",
+      "Desert gate": "بوابة الصحراء",
+      "Camel, quads and sandboarding on one dune": "جمل ودراجات رباعية وتزلج على الرمال فوق كثيب واحد",
+      "Camel trek at golden hour": "رحلة جمال في الساعة الذهبية",
+      "Quad bikes crossing the sand sea": "دراجات رباعية تعبر بحر الرمال",
+      "The lantern-lit Sabria gate": "بوابة صبرية المضاءة بالفوانيس",
+      "Sandboarder carving a dune face": "متزلج على الرمال ينزلق على واجهة كثيب",
+      "The sand sea at dusk": "بحر الرمال عند الغسق",
+      "Lead rider on the ridge": "الراكب الأول على القمة",
+      "Caravan silhouetted against the sunset": "قافلة في صورة ظلية عند الغروب",
+      "Boards waxed and waiting": "ألواح مشمّعة وجاهزة",
+      "Lanterns at the gate after dark": "فوانيس عند البوابة بعد حلول الظلام"
     }
   },
   "safety": {

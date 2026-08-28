@@ -69,7 +69,9 @@
     "body": "Piccoli gruppi, guide locali e nessuna fretta. Ogni uscita a Sabria è programmata in modo che la sabbia conservi ancora il calore del giorno e il cielo sia in fiamme.",
     "guestsGuided": "Ospiti accompagnati",
     "averageRating": "Valutazione media",
-    "onTheDunes": "Sulle dune"
+    "onTheDunes": "Sulle dune",
+    "yearsUnit": "anni",
+    "bgAlt": "Scena desertica a Sabria"
   },
   "bookDirect": {
     "eyebrow": "Prenota direttamente",
@@ -169,6 +171,24 @@
       "quadSafari": "Safari quad",
       "sandboarding": "Sandboard",
       "theGate": "Il cancello"
+    },
+    "openAria": "Apri",
+    "alt": {
+      "Desert adventure scene": "Scena d'avventura nel deserto",
+      "Camel at sunset": "Cammello al tramonto",
+      "Sandboarding": "Sandboard",
+      "Quad riders": "Quad in azione",
+      "Desert gate": "Cancello del deserto",
+      "Camel, quads and sandboarding on one dune": "Cammello, quad e sandboard su un'unica duna",
+      "Camel trek at golden hour": "Trekking in cammello all'ora dorata",
+      "Quad bikes crossing the sand sea": "Quad che attraversano il mare di sabbia",
+      "The lantern-lit Sabria gate": "Il cancello di Sabria illuminato dalle lanterne",
+      "Sandboarder carving a dune face": "Sandboarder che scende lungo una duna",
+      "The sand sea at dusk": "Il mare di sabbia al crepuscolo",
+      "Lead rider on the ridge": "Pilota in testa sulla cresta",
+      "Caravan silhouetted against the sunset": "Carovana in controluce al tramonto",
+      "Boards waxed and waiting": "Tavole incerate, pronte all'uso",
+      "Lanterns at the gate after dark": "Lanterne al cancello dopo il tramonto"
     }
   },
   "safety": {

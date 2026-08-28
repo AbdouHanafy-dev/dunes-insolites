@@ -26,6 +26,9 @@ export default function GalleryGrid({
   const t = useTranslations("galleryGrid");
   const [tag, setTag] = useState("All");
   const tagLabel = (raw: string) => t(`tags.${TAG_I18N_KEYS[raw] ?? "all"}`);
+  // alt is keyed by the original English string in messages/*.json; falls
+  // back to the raw string for any image not yet in the translation map.
+  const altText = (raw: string) => (t.has(`alt.${raw}`) ? t(`alt.${raw}`) : raw);
   // The lightbox index is stored with the filter it belongs to, so switching
   // filters closes it without an effect having to reset anything.
   const [opened, setOpened] = useState<{ tag: string; index: number } | null>(null);
@@ -84,11 +87,11 @@ export default function GalleryGrid({
             className={`g${item.tall ? " tall" : ""}`}
             style={{ border: 0, padding: 0, cursor: "zoom-in" }}
             onClick={() => setOpen(i)}
-            aria-label={`Open ${item.alt}`}
+            aria-label={`${t("openAria")} ${altText(item.alt)}`}
           >
             <Image
               src={item.src}
-              alt={item.alt}
+              alt={altText(item.alt)}
               fill
               sizes="(max-width: 700px) 100vw, (max-width: 900px) 50vw, 33vw"
             />
@@ -101,7 +104,7 @@ export default function GalleryGrid({
           className="lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={current.alt}
+          aria-label={altText(current.alt)}
           onClick={() => setOpen(null)}
         >
           <button className="close" aria-label={t("close")} onClick={() => setOpen(null)}>
@@ -118,7 +121,7 @@ export default function GalleryGrid({
             ←
           </button>
           <div className="frame" onClick={(e) => e.stopPropagation()}>
-            <Image src={current.src} alt={current.alt} fill sizes="100vw" />
+            <Image src={current.src} alt={altText(current.alt)} fill sizes="100vw" />
           </div>
           <button
             className="nav-btn next"

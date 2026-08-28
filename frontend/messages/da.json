@@ -69,7 +69,9 @@
     "body": "Små grupper, lokale guider og ingen hastværk. Hver tur i Sabria er tilrettelagt, så sandet stadig holder på dagens varme, og himlen står i flammer.",
     "guestsGuided": "Guidede gæster",
     "averageRating": "Gennemsnitlig vurdering",
-    "onTheDunes": "På klitterne"
+    "onTheDunes": "På klitterne",
+    "yearsUnit": "år",
+    "bgAlt": "Ørkenscene i Sabria"
   },
   "bookDirect": {
     "eyebrow": "Book direkte",
@@ -169,6 +171,24 @@
       "quadSafari": "Quad-safari",
       "sandboarding": "Sandboarding",
       "theGate": "Porten"
+    },
+    "openAria": "Åbn",
+    "alt": {
+      "Desert adventure scene": "Ørkeneventyr-scene",
+      "Camel at sunset": "Kamel ved solnedgang",
+      "Sandboarding": "Sandboarding",
+      "Quad riders": "Quads i aktion",
+      "Desert gate": "Ørkenport",
+      "Camel, quads and sandboarding on one dune": "Kamel, quads og sandboarding på én klit",
+      "Camel trek at golden hour": "Kameltrekking i den gyldne time",
+      "Quad bikes crossing the sand sea": "Quads krydser sandhavet",
+      "The lantern-lit Sabria gate": "Den lanterneoplyste port i Sabria",
+      "Sandboarder carving a dune face": "Sandboarder, der kører ned ad en klitside",
+      "The sand sea at dusk": "Sandhavet i skumringen",
+      "Lead rider on the ridge": "Førende rytter på ryggen",
+      "Caravan silhouetted against the sunset": "Karavane som silhuet mod solnedgangen",
+      "Boards waxed and waiting": "Voksede boards, klar til brug",
+      "Lanterns at the gate after dark": "Lanterner ved porten efter mørkets frembrud"
     }
   },
   "safety": {

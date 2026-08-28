@@ -69,7 +69,9 @@
     "body": "Small groups, local guides, and no rush. Every Sabria trip is timed so the sand still holds the day's warmth and the sky is on fire.",
     "guestsGuided": "Guests guided",
     "averageRating": "Average rating",
-    "onTheDunes": "On the dunes"
+    "onTheDunes": "On the dunes",
+    "yearsUnit": "yrs",
+    "bgAlt": "Sabria desert scene"
   },
   "bookDirect": {
     "eyebrow": "Book direct",
@@ -169,6 +171,24 @@
       "quadSafari": "Quad Safari",
       "sandboarding": "Sandboarding",
       "theGate": "The Gate"
+    },
+    "openAria": "Open",
+    "alt": {
+      "Desert adventure scene": "Desert adventure scene",
+      "Camel at sunset": "Camel at sunset",
+      "Sandboarding": "Sandboarding",
+      "Quad riders": "Quad riders",
+      "Desert gate": "Desert gate",
+      "Camel, quads and sandboarding on one dune": "Camel, quads and sandboarding on one dune",
+      "Camel trek at golden hour": "Camel trek at golden hour",
+      "Quad bikes crossing the sand sea": "Quad bikes crossing the sand sea",
+      "The lantern-lit Sabria gate": "The lantern-lit Sabria gate",
+      "Sandboarder carving a dune face": "Sandboarder carving a dune face",
+      "The sand sea at dusk": "The sand sea at dusk",
+      "Lead rider on the ridge": "Lead rider on the ridge",
+      "Caravan silhouetted against the sunset": "Caravan silhouetted against the sunset",
+      "Boards waxed and waiting": "Boards waxed and waiting",
+      "Lanterns at the gate after dark": "Lanterns at the gate after dark"
     }
   },
   "safety": {

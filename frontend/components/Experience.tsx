@@ -11,7 +11,7 @@ export default async function Experience() {
       <div className="bg">
         <Image
           src="/images/hero-combined.jpg"
-          alt="Sabria desert scene"
+          alt={t("bgAlt")}
           fill
           sizes="100vw"
           style={{ objectFit: "cover" }}
@@ -30,7 +30,9 @@ export default async function Experience() {
             <div className="k">{t("averageRating")}</div>
           </div>
           <div className="stat">
-            <div className="v serif">{stats.yearsRunning}</div>
+            <div className="v serif">
+              {stats.yearsRunning.match(/\d+/)?.[0] ?? stats.yearsRunning} {t("yearsUnit")}
+            </div>
             <div className="k">{t("onTheDunes")}</div>
           </div>
         </div>

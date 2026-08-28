@@ -69,7 +69,9 @@
     "body": "Kleine Gruppen, lokale Guides und keine Eile. Jede Sabria-Tour ist so getaktet, dass der Sand noch die Wärme des Tages hält und der Himmel in Flammen steht.",
     "guestsGuided": "Geführte Gäste",
     "averageRating": "Durchschnittsbewertung",
-    "onTheDunes": "Auf den Dünen"
+    "onTheDunes": "Auf den Dünen",
+    "yearsUnit": "Jahre",
+    "bgAlt": "Wüstenszene in Sabria"
   },
   "bookDirect": {
     "eyebrow": "Direkt buchen",
@@ -169,6 +171,24 @@
       "quadSafari": "Quad-Safari",
       "sandboarding": "Sandboarding",
       "theGate": "Das Tor"
+    },
+    "openAria": "Öffnen",
+    "alt": {
+      "Desert adventure scene": "Wüstenabenteuer-Szene",
+      "Camel at sunset": "Kamel bei Sonnenuntergang",
+      "Sandboarding": "Sandboarding",
+      "Quad riders": "Quadfahrer",
+      "Desert gate": "Wüstentor",
+      "Camel, quads and sandboarding on one dune": "Kamel, Quads und Sandboarding auf einer Düne",
+      "Camel trek at golden hour": "Kamelritt zur goldenen Stunde",
+      "Quad bikes crossing the sand sea": "Quads durchqueren das Sandmeer",
+      "The lantern-lit Sabria gate": "Das laternenbeleuchtete Tor von Sabria",
+      "Sandboarder carving a dune face": "Sandboarder an einer Dünenflanke",
+      "The sand sea at dusk": "Das Sandmeer in der Abenddämmerung",
+      "Lead rider on the ridge": "Spitzenreiter auf dem Kamm",
+      "Caravan silhouetted against the sunset": "Karawane als Silhouette bei Sonnenuntergang",
+      "Boards waxed and waiting": "Gewachste Boards, einsatzbereit",
+      "Lanterns at the gate after dark": "Laternen am Tor nach Einbruch der Dunkelheit"
     }
   },
   "safety": {
