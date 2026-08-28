@@ -124,8 +124,8 @@ export default function PagesEditor({
           <div className="flex gap-1 rounded-xl border border-navy-700/10 bg-white p-1">
             {(
               [
-                ["general", "Général"],
-                ["content", "Contenu"],
+                ["general", "Contenu"],
+                ["content", "Blocs"],
                 ["seo", "SEO"],
               ] as [Tab, string][]
             ).map(([key, label]) => (
