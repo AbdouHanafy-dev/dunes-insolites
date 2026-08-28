@@ -347,9 +347,21 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
 
 ## 13. What's not built
 
-- **Blocks-as-a-reusable-collection, Navigation, Media Library** — still
-  `soon: true` in `components/Sidebar.tsx`. All need real backend work
-  (new entities, new controllers), not just admin UI.
+- **Blocks-as-a-reusable-collection, Media Library** — still `soon: true`
+  in `components/Sidebar.tsx`. Both need real backend work (new entities,
+  new controllers), not just admin UI.
+- **Navigation's admin side is built; the vitrine doesn't consume it yet.**
+  `NavigationItem` (label, url, locale, companyType, displayOrder,
+  menuType), full CRUD at `/api/navigation` (ADMIN), and an unauthenticated
+  `GET /api/public/navigation?locale=&companyType=` all exist and are
+  verified working. `frontend/components/Header.tsx` still reads the
+  hardcoded `nav` array from `lib/site.ts` — rewiring the site's actual
+  header (animated mega-menus, mobile menu, used on every page) is real,
+  separately-riskier work, deliberately not rushed into the same pass as
+  the backend. `menuType` (`NONE`/`EXPERIENCES`/`STAYS`) already exists on
+  the entity specifically so that rewiring doesn't need a schema change
+  later — the dropdown's actual content still comes from live catalogue
+  data either way, never from the nav item.
 - **`accommodationShowcase` doesn't render publicly** — no public endpoint
   resolves `TourType` ids into cards yet.
 - **The `contact` live-preview fidelity gap** — see [§7](#7-live-preview).

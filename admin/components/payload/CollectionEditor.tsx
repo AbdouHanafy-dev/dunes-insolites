@@ -21,6 +21,7 @@ export default function CollectionEditor({
   initialData,
   fields,
   toRequestBody,
+  titleKey = "name",
 }: {
   collectionLabel: string;
   basePath: string;
@@ -31,6 +32,10 @@ export default function CollectionEditor({
   initialData: Record<string, unknown>;
   fields: FieldDef[];
   toRequestBody?: (form: Record<string, unknown>) => unknown;
+  /** Which field in the document holds its display title — defaults to
+   *  "name" (Clients/Hébergements/Tours/Extras all have one); pass e.g.
+   *  "label" for a collection that doesn't. */
+  titleKey?: string;
 }) {
   const router = useRouter();
   const isEdit = !!id;
@@ -86,7 +91,7 @@ export default function CollectionEditor({
           ← {collectionLabel}
         </Link>
         <h1 className="mt-1 text-xl font-bold text-navy-800">
-          {isEdit ? String(form.name ?? "Modifier") : `Nouveau — ${collectionLabel}`}
+          {isEdit ? String(form[titleKey] ?? "Modifier") : `Nouveau — ${collectionLabel}`}
         </h1>
       </div>
 

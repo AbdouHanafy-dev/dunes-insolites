@@ -216,6 +216,33 @@ export function getPageById(accessToken: string, id: string): Promise<AdminPage 
   return authedGet<AdminPage | null>(`/pages/${id}`, accessToken, null);
 }
 
+/* --------------------------------------------------------------- navigation */
+
+export type NavMenuType = "NONE" | "EXPERIENCES" | "STAYS";
+
+export type AdminNavigationItem = {
+  navItemId: string;
+  label: string;
+  url: string;
+  locale: PageLocale;
+  companyType: CompanyType;
+  displayOrder: number;
+  menuType: NavMenuType;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function getAllNavigationItems(accessToken: string): Promise<AdminNavigationItem[]> {
+  return authedGet<AdminNavigationItem[]>("/navigation", accessToken, []);
+}
+
+export function getNavigationItemById(
+  accessToken: string,
+  id: string,
+): Promise<AdminNavigationItem | null> {
+  return authedGet<AdminNavigationItem | null>(`/navigation/${id}`, accessToken, null);
+}
+
 /* --------------------------------------------------------------------- staff */
 
 export function searchStaff(
