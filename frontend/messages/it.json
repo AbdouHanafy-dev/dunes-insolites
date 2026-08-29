@@ -732,5 +732,11 @@
     "ctaSahara": "Guida completa al deserto di Sabria →",
     "ctaSafety": "Tutte le nostre linee guida sulla sicurezza →",
     "ctaBook": "Prenota un soggiorno →"
+  },
+  "contentLinks": {
+    "planningHeading": "Stai organizzando il tuo viaggio?",
+    "planTrip": "Leggi la nostra guida completa al deserto di Sabria →",
+    "packing": "Cosa portare →",
+    "faq": "Tutte le domande frequenti →"
   }
 }

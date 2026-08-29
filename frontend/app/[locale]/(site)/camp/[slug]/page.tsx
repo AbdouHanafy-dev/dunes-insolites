@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getActivities, getStay, getRelatedStays } from "@/lib/api";
@@ -47,10 +48,11 @@ export default async function StayDetail({ params, searchParams }: Props) {
   const stay = await getStay(slug, locale);
   if (!stay) notFound();
 
-  const [related, activities, t] = await Promise.all([
+  const [related, activities, t, tLinks] = await Promise.all([
     getRelatedStays(slug, locale).then((r) => r.slice(0, 2)),
     getActivities(locale),
     getTranslations("stayDetail"),
+    getTranslations("contentLinks"),
   ]);
 
   const jsonLd = {
@@ -197,6 +199,15 @@ export default async function StayDetail({ params, searchParams }: Props) {
                     {stay.practicalInfo.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
+                  </ul>
+                  <h3>{tLinks("planningHeading")}</h3>
+                  <ul>
+                    <li>
+                      <Link href="/guides/que-faut-il-emporter-desert">{tLinks("packing")}</Link>
+                    </li>
+                    <li>
+                      <Link href="/faq">{tLinks("faq")}</Link>
+                    </li>
                   </ul>
                 </div>
               </Reveal>

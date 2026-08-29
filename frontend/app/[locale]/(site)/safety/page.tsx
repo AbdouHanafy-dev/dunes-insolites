@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
@@ -60,7 +61,11 @@ export default async function SafetyPage({
   }
 
   const locale = await getLocale();
-  const [t, cms] = await Promise.all([getTranslations("safety"), getCmsPage(CMS_SLUG, locale)]);
+  const [t, cms, tLinks] = await Promise.all([
+    getTranslations("safety"),
+    getCmsPage(CMS_SLUG, locale),
+    getTranslations("contentLinks"),
+  ]);
 
   const breadcrumbLd = breadcrumbJsonLd([
     { name: "Home", path: localeHref(locale, "/") },
@@ -128,6 +133,19 @@ export default async function SafetyPage({
               <li>{t("bring3")}</li>
               <li>{t("bring4")}</li>
               <li>{t("bring5")}</li>
+            </ul>
+
+            <h2>{tLinks("planningHeading")}</h2>
+            <ul>
+              <li>
+                <Link href="/guides/desert-sabria-tunisie">{tLinks("planTrip")}</Link>
+              </li>
+              <li>
+                <Link href="/guides/que-faut-il-emporter-desert">{tLinks("packing")}</Link>
+              </li>
+              <li>
+                <Link href="/faq">{tLinks("faq")}</Link>
+              </li>
             </ul>
           </Reveal>
 

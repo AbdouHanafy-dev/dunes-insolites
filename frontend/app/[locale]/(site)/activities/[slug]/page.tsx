@@ -43,11 +43,12 @@ export default async function ActivityDetail({ params }: Props) {
   const activity = await getActivity(slug, locale);
   if (!activity) notFound();
 
-  const [related, activityReviews, t, tDifficulty] = await Promise.all([
+  const [related, activityReviews, t, tDifficulty, tLinks] = await Promise.all([
     getRelatedActivities(slug, locale),
     getReviews({ activitySlug: slug }),
     getTranslations("activityDetail"),
     getTranslations("activitiesPage"),
+    getTranslations("contentLinks"),
   ]);
   const difficultyLabel = {
     Easy: tDifficulty("difficultyEasy"),
@@ -157,6 +158,18 @@ export default async function ActivityDetail({ params }: Props) {
                 <h2>{t("meetingPointHeading")}</h2>
                 <p>{activity.meetingPoint}</p>
                 <p>{t("freePickup")}</p>
+              </Reveal>
+
+              <Reveal className="prose">
+                <h3>{tLinks("planningHeading")}</h3>
+                <ul>
+                  <li>
+                    <Link href="/guides/desert-sabria-tunisie">{tLinks("planTrip")}</Link>
+                  </li>
+                  <li>
+                    <Link href="/faq">{tLinks("faq")}</Link>
+                  </li>
+                </ul>
               </Reveal>
 
               <Reveal>
