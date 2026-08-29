@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -88,6 +89,49 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("Rejected caller-supplied value: {}", ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
+
+    // ── Handle a delete/update blocked by a real foreign-key reference ──
+    //
+    // Found live (relational-integrity audit): every one of this schema's
+    // 51 foreign keys is NO ACTION - nothing cascades at the DB level -
+    // and not every delete path checks its dependents first (deleteUser
+    // didn't; see its own comment for the real, reproduced consequence).
+    // Without this handler, a rejected delete surfaced as a raw 500
+    // carrying Hibernate/Postgres's own SQL and constraint-name text - a
+    // real information leak, and not even the right status. 409 is
+    // correct: the request is well-formed, the server just can't do it
+    // while other rows still point at this one. The real constraint name
+    // is logged server-side, never in the response.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Blocked by a foreign-key/uniqueness constraint: {}", ex.getMostSpecificCause().getMessage());
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "This action can't be completed because other records still depend on it.",
+                null
+        );
+    }
+
+    // A direct EntityManager.flush() call (KeycloakUserSyncService.
+    // deleteUser, deliberately not going through the repository proxy -
+    // see its own comment on why the flush has to happen exactly there)
+    // bypasses Spring's exception-translation aspect, which only wraps
+    // calls made through a Spring Data repository or @Repository bean.
+    // The raw Hibernate exception - a different class hierarchy from
+    // Spring's DataIntegrityViolationException entirely, confirmed live
+    // (the handler above did not catch it) - reaches here untranslated.
+    // Found on the very first attempt to verify the fix above actually
+    // works, not assumed.
+    @ExceptionHandler(org.hibernate.exception.ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleHibernateConstraintViolation(
+            org.hibernate.exception.ConstraintViolationException ex) {
+        log.warn("Blocked by a foreign-key/uniqueness constraint: {}", ex.getMessage());
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "This action can't be completed because other records still depend on it.",
+                null
+        );
     }
 
     // ── Handle 404 not found ──────────────────────────────────────────

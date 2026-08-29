@@ -14,7 +14,9 @@ import com.camping.duneinsolite.model.UserProductRemise;
 import com.camping.duneinsolite.model.enums.LoyaltyTier;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.model.enums.UserRole;
+import com.camping.duneinsolite.repository.AccountActionTokenRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
+import com.camping.duneinsolite.repository.NotificationRepository;
 import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import com.camping.duneinsolite.repository.UserProductRemiseRepository;
@@ -52,6 +54,8 @@ public class KeycloakUserSyncService {
     private final TourRepository tourRepository;
     private final ExtraRepository extraRepository;
     private final EntityManager entityManager;
+    private final AccountActionTokenRepository accountActionTokenRepository;
+    private final NotificationRepository notificationRepository;
 
     @Value("${keycloak.realm}")
     private String realm;
@@ -219,10 +223,49 @@ public class KeycloakUserSyncService {
     // DELETE USER (Keycloak + local DB)
     // ─────────────────────────────────────────────────────────────────────
 
+    // Found live (relational-integrity audit): this used to delete from
+    // Keycloak FIRST, then Postgres - and every one of the ~10 tables that
+    // reference users.user_id (reservations, invoices, reviews, remises,
+    // notifications, account_action_tokens...) has a plain NO ACTION FK,
+    // no cascade. Deleting a user who has any of those failed the Postgres
+    // delete with a raw constraint violation - after Keycloak's delete had
+    // already gone through and cannot be rolled back. Net effect: a real,
+    // broken half-deleted account - locked out of login, but still a full
+    // row in Postgres with their reservation/data intact and now orphaned
+    // from anything that identifies them by login. Reproduced live: a
+    // throwaway account with one reservation, deleted via the real
+    // endpoint, ended up exactly in that state, confirmed in both
+    // Keycloak and Postgres directly.
+    //
+    // Fixed by reordering: Postgres first, with an explicit flush() so the
+    // FK violation (if any) surfaces immediately, before Keycloak is ever
+    // touched. A rejected delete now leaves the account exactly as it
+    // was - nothing removed anywhere - instead of removed from one system
+    // and stranded in the other. See GlobalExceptionHandler's new
+    // DataIntegrityViolationException/Hibernate ConstraintViolationException
+    // handlers for the other half of this: the caller gets a clean 409,
+    // not a raw SQL-flavored 500 (found and fixed both exception shapes -
+    // the direct EntityManager.flush() below bypasses Spring's exception
+    // translation, so the raw Hibernate type reaches the client
+    // untranslated unless something maps it explicitly).
+    //
+    // account_action_tokens and notifications are cleaned up first,
+    // deliberately - every self-registered user has at least one token
+    // (the verification email sent at signup), so leaving that table as a
+    // hard block would mean literally no self-registered account could
+    // ever be deleted. Neither table carries audit/financial weight the
+    // way a reservation or invoice does, so cascading them here (rather
+    // than blocking on them) is the correct call - real business records
+    // still block the delete exactly as before.
     @Transactional
     public void deleteUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+
+        accountActionTokenRepository.deleteAllByUser_UserId(userId);
+        notificationRepository.deleteAllByUser_UserId(userId);
+        userRepository.delete(user);
+        entityManager.flush();
 
         List<UserRepresentation> keycloakUsers = keycloak.realm(realm)
                 .users()
@@ -236,7 +279,6 @@ public class KeycloakUserSyncService {
             log.info("User {} deleted from Keycloak", user.getEmail());
         }
 
-        userRepository.delete(user);
         log.info("User {} deleted from local DB", user.getEmail());
     }
 

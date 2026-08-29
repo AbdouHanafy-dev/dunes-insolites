@@ -65,13 +65,36 @@ public class User {
     @Column(name = "terms_accepted_at")
     private LocalDateTime termsAcceptedAt;
 
-    // One user can have many reservations
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)
+    // One user can have many reservations.
+    //
+    // Found live (relational-integrity audit), the single most serious
+    // finding of that pass: this used to be cascade = CascadeType.ALL,
+    // which includes REMOVE. Deleting a User cascaded to silently delete
+    // every one of their reservations too - reproduced for real:
+    // deleting a throwaway test account with one live reservation made
+    // the reservation vanish from Postgres as a side effect, with no
+    // warning, no confirmation, and no way to know it had happened short
+    // of checking directly. This bypasses the database's own NO ACTION
+    // constraint entirely, since Hibernate deletes the children in
+    // application code before the parent delete ever reaches the DB - the
+    // FK protection everyone assumes is there was never actually load-
+    // bearing for this relationship. PERSIST+MERGE keeps the convenience
+    // this was presumably added for (saving a User with reservations
+    // already attached cascades the save); REMOVE never should have been
+    // in scope for an operational record, let alone the one below.
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     @Builder.Default
     private List<Reservation> reservations = new ArrayList<>();
 
-    // One user can have many invoices
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)
+    // One user can have many invoices.
+    //
+    // Same fix as reservations above, for a reason that matters even
+    // more: invoices are numbered, legally significant financial
+    // documents (see DocumentSequence and the invoice-sequence integrity
+    // work this project treats as its highest-severity open item). A
+    // cascade delete here wouldn't just lose operational data, it would
+    // silently create gaps in a sequence that's supposed to be auditable.
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     @Builder.Default
     private List<Invoice> invoices = new ArrayList<>();
 

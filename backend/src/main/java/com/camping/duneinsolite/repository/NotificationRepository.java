@@ -16,4 +16,9 @@
 
         // count unread notifications — used for bell badge number
         long countByUser_UserIdAndIsReadFalse(UUID userId);
+
+        // Ephemeral, no audit/financial significance - safe to cascade-clean
+        // when a user is deleted (see KeycloakUserSyncService.deleteUser's
+        // own comment).
+        void deleteAllByUser_UserId(UUID userId);
     }
