@@ -1,4 +1,7 @@
+"use client";
+
 import { site } from "@/lib/site";
+import { trackWhatsAppClick } from "@/lib/analytics";
 
 /**
  * WhatsApp is the default way people reach a business in Tunisia, and a
@@ -17,6 +20,7 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noreferrer noopener"
       aria-label="Message us on WhatsApp"
+      onClick={() => trackWhatsAppClick("floating_button")}
     >
       <span className="icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

@@ -57,6 +57,33 @@ const nextConfig: NextConfig = {
       { source: "/fr/dunes-insolites-camp-gallery", destination: "/fr/gallery" },
     ];
   },
+
+  // SEO/security audit, step 8. Four headers with no downside for this
+  // site's actual behavior: nothing here embeds this site in an iframe
+  // (DENY is safe), nothing needs the browser to guess a MIME type, no page
+  // relies on sending a full referrer to a third party, and camera/mic/
+  // geolocation are never used anywhere in this app.
+  //
+  // Deliberately NOT shipping a Content-Security-Policy here: the JSON-LD
+  // blocks in app/[locale]/layout.tsx (LodgingBusiness/Organization/WebSite)
+  // and the FAQPage block on /safety are inline `<script>` tags via
+  // dangerouslySetInnerHTML - a real CSP needs a nonce-per-request wired
+  // through middleware to allow those without `unsafe-inline` (which would
+  // defeat the point of adding one). That's a real, separate piece of work,
+  // not a header to bolt on alongside these four.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { sendContact } from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import { trackFormSubmitted } from "@/lib/analytics";
 
 export default function ContactForm() {
   const t = useTranslations("contactForm");
@@ -24,6 +25,7 @@ export default function ContactForm() {
 
     const result = await sendContact(values);
     if (result.ok) {
+      trackFormSubmitted("contact");
       setState("sent");
       toast.success(t("sentTitle"));
       return;

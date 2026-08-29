@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { subscribe } from "@/lib/api";
+import { trackFormSubmitted } from "@/lib/analytics";
 
 export default function Newsletter() {
   const t = useTranslations("newsletter");
@@ -17,6 +18,7 @@ export default function Newsletter() {
 
     const result = await subscribe(email);
     if (result.ok) {
+      trackFormSubmitted("newsletter");
       setState("done");
       setEmail("");
       return;

@@ -43,6 +43,23 @@ clickable. The endpoints and JSON shapes expected are in
 [API_CONTRACT.md](API_CONTRACT.md). If the backend goes down, cached content
 keeps serving instead of erroring.
 
+## Analytics (GA4)
+
+Also a single variable, also optional:
+
+```bash
+# .env.local
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+Unset it and `components/Analytics.tsx` renders nothing — no script loads,
+no request to Google. Set it and GA4 still only loads once a visitor
+actually accepts the cookie banner's "accept all" (`lib/consent.ts`) — never
+before, and never for a visitor who declines. The measurement ID itself is
+never hardcoded anywhere in source, only ever read from this variable, so
+there's nothing here to accidentally commit. See `lib/analytics.ts` for the
+event names this fires and where each one is called from.
+
 ## API routes
 
 Temporary scaffolding — these disappear once Spring Boot is wired in.

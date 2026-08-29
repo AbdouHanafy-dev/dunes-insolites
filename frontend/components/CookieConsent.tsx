@@ -3,47 +3,19 @@
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
-
-const KEY = "di-cookie-choice";
-/** Sentinel used until the client has actually read localStorage. */
-const PENDING = "pending";
-
-let listeners: Array<() => void> = [];
-
-function subscribe(cb: () => void) {
-  listeners.push(cb);
-  window.addEventListener("storage", cb);
-  return () => {
-    listeners = listeners.filter((l) => l !== cb);
-    window.removeEventListener("storage", cb);
-  };
-}
-
-function getSnapshot(): string {
-  try {
-    // Treat blocked storage as "already answered" rather than nagging forever.
-    return localStorage.getItem(KEY) ?? "";
-  } catch {
-    return "blocked";
-  }
-}
-
-/** Server and hydration render: stay silent so nothing flashes. */
-function getServerSnapshot(): string {
-  return PENDING;
-}
+import {
+  subscribeToConsent,
+  getConsentChoice,
+  getConsentServerSnapshot,
+  setConsentChoice,
+} from "@/lib/consent";
 
 export default function CookieConsent() {
   const t = useTranslations("cookieConsent");
-  const choice = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const choice = useSyncExternalStore(subscribeToConsent, getConsentChoice, getConsentServerSnapshot);
 
   function choose(value: "all" | "essential") {
-    try {
-      localStorage.setItem(KEY, value);
-    } catch {
-      /* nothing we can do */
-    }
-    listeners.forEach((l) => l());
+    setConsentChoice(value);
   }
 
   if (choice !== "") return null;

@@ -9,6 +9,7 @@ import { routing, isRtl } from "@/i18n/routing";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
+import Analytics from "@/components/Analytics";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { ToastProvider } from "@/components/Toast";
 import "../globals.css";
@@ -143,6 +144,42 @@ export default async function LocaleLayout({ children, params }: Props) {
     inLanguage: locale,
   };
 
+  // Organization + WebSite (SEO audit, step 7) — sitewide, locale-independent
+  // identity separate from LodgingBusiness above (that one describes the
+  // camp as a place to stay; this describes Dunes Insolites as a
+  // publisher/organization, which is what Google's sitelinks searchbox and
+  // knowledge-panel logic key off). Same `sameAs` omission as
+  // LodgingBusiness and for the same reason — site.social isn't real
+  // profile URLs yet. No SearchAction: the site has no internal search to
+  // describe one truthfully.
+  // No `logo` field: there is no dedicated logo image file in
+  // public/images today (checked - only photography), and Organization's
+  // logo is meant to be an actual brand mark, not a photo. Add it here
+  // once one exists rather than pointing this at something that isn't
+  // really a logo, or worse, a path that 404s.
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: site.name,
+    legalName: site.legalName,
+    url: site.url,
+    email: site.email,
+    telephone: site.phone,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Sabria",
+      addressRegion: "Kebili",
+      addressCountry: "TN",
+    },
+  };
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.name,
+    url: site.url,
+    inLanguage: locale,
+  };
+
   return (
     <html
       lang={locale}
@@ -156,11 +193,20 @@ export default async function LocaleLayout({ children, params }: Props) {
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
             />
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+            />
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+            />
             <Header activities={activities} stays={stays} navItems={navItems} />
             <main>{children}</main>
             <Footer />
             <WhatsAppButton />
             <CookieConsent />
+            <Analytics />
           </ToastProvider>
         </NextIntlClientProvider>
       </body>
