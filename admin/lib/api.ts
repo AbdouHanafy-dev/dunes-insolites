@@ -576,3 +576,20 @@ export type AdminCampingSettings = {
 export function getCampingSettings(accessToken: string): Promise<AdminCampingSettings | null> {
   return authedGet<AdminCampingSettings | null>("/camping-settings", accessToken, null);
 }
+
+/* ------------------------------------------------------- seo / analytics */
+
+export type SeoIntegrationStatus = {
+  analyticsConfigured: boolean;
+  searchConsoleConfigured: boolean;
+};
+
+// Never errors into a blank page just because the Google side isn't set up
+// yet (see docs/seo-analytics-setup.md) - both false is the normal,
+// expected state until then.
+export function getSeoAnalyticsStatus(accessToken: string): Promise<SeoIntegrationStatus> {
+  return authedGet<SeoIntegrationStatus>("/admin/seo/analytics/status", accessToken, {
+    analyticsConfigured: false,
+    searchConsoleConfigured: false,
+  });
+}

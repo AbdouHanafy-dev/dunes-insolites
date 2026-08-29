@@ -100,3 +100,18 @@ app:
     url: ${APP_FRONTEND_URL:http://79.143.185.33:4200}   # browser-facing (email links) - stays 79.143.185.33 even in Docker
   cors:
     extra-origins: ${APP_CORS_EXTRA_ORIGINS:}   # comma-separated staging/preview hosts, see CorsConfig
+
+# ── SEO dashboard: GA4 + Search Console (admin/seo/analytics) ───
+# All three empty by default - the admin dashboard shows "not connected"
+# rather than erroring until a real service account exists. See
+# docs/seo-analytics-setup.md for the full one-time setup (Google Cloud
+# project, service account, granting it access on the real GA4 property
+# and Search Console property) - nothing here is usable until that's done.
+# GOOGLE_SERVICE_ACCOUNT_KEY_PATH points at a JSON key file that must never
+# be committed - same rule as backend/.env.
+google:
+  analytics:
+    property-id: ${GA4_PROPERTY_ID:}
+  search-console:
+    site-url: ${SEARCH_CONSOLE_SITE_URL:}
+  service-account-key-path: ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:}

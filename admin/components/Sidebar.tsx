@@ -49,6 +49,7 @@ const GROUPS: NavGroup[] = [
       { label: "Redirections", href: "/seo/redirections", icon: "↪️" },
       { label: "Sitemap", href: "/seo/sitemap", icon: "🗺️" },
       { label: "Audit SEO", href: "/seo/audit", icon: "✅" },
+      { label: "Analytics & Search Console", href: "/seo/analytics", icon: "📈" },
     ],
   },
   {
