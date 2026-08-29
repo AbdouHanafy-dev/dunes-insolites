@@ -558,7 +558,9 @@
     "termsMid": " and the ",
     "termsLinkPrivacy": "privacy policy",
     "termsPost": ".",
-    "termsRequired": "You must accept the terms to continue."
+    "termsRequired": "You must accept the terms to continue.",
+    "signupSuccess": "Account created — welcome!",
+    "loginSuccess": "Signed in successfully."
   },
   "loginPage": {
     "eyebrow": "Welcome back",
@@ -583,5 +585,16 @@
     ],
     "ctaLabel": "See our activities",
     "ctaSecondaryLabel": "Contact us"
+  },
+  "notifications": {
+    "bellLabel": "Notifications",
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "loading": "Loading…",
+    "markAllRead": "Mark all as read",
+    "markReadFailed": "Couldn't mark as read.",
+    "deleted": "Notification deleted",
+    "deleteFailed": "Couldn't delete.",
+    "delete": "Delete"
   }
 }

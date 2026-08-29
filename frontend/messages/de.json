@@ -558,7 +558,9 @@
     "termsMid": " und die ",
     "termsLinkPrivacy": "Datenschutzerklärung",
     "termsPost": ".",
-    "termsRequired": "Sie müssen die Bedingungen akzeptieren, um fortzufahren."
+    "termsRequired": "Sie müssen die Bedingungen akzeptieren, um fortzufahren.",
+    "signupSuccess": "Konto erstellt — willkommen!",
+    "loginSuccess": "Erfolgreich angemeldet."
   },
   "loginPage": {
     "eyebrow": "Willkommen zurück",
@@ -583,5 +585,16 @@
     ],
     "ctaLabel": "Unsere Aktivitäten ansehen",
     "ctaSecondaryLabel": "Kontaktieren Sie uns"
+  },
+  "notifications": {
+    "bellLabel": "Benachrichtigungen",
+    "title": "Benachrichtigungen",
+    "empty": "Noch keine Benachrichtigungen.",
+    "loading": "Wird geladen…",
+    "markAllRead": "Alle als gelesen markieren",
+    "markReadFailed": "Konnte nicht als gelesen markiert werden.",
+    "deleted": "Benachrichtigung gelöscht",
+    "deleteFailed": "Löschen fehlgeschlagen.",
+    "delete": "Löschen"
   }
 }

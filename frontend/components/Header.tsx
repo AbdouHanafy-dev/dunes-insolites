@@ -5,6 +5,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import NotificationBell from "@/components/NotificationBell";
 import { logout } from "@/lib/api";
 import { site } from "@/lib/site";
 import type { Activity, Stay } from "@/lib/types";
@@ -176,6 +177,7 @@ export default function Header({
             <span className="u-sep" aria-hidden="true" />
             {loggedIn ? (
               <>
+                <NotificationBell loggedIn={loggedIn} />
                 <Link className="u-link" href="/account">
                   {tAccount("tabAccount")}
                 </Link>

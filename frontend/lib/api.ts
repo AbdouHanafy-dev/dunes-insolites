@@ -523,3 +523,48 @@ export async function createMyReview(
     return { ok: false, message: "Network error. Try again." };
   }
 }
+
+/* ------------------------------------------------------------ notifications */
+
+export type MyNotification = {
+  notificationId: string;
+  reservationId: string | null;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+export function getMyNotifications(accessToken: string): Promise<MyNotification[]> {
+  return authedGet<MyNotification[]>("/notifications", accessToken, []);
+}
+
+export function getUnreadNotificationCount(accessToken: string): Promise<number> {
+  return authedGet<number>("/notifications/unread-count", accessToken, 0);
+}
+
+async function authedMutate(path: string, accessToken: string, method: "PATCH" | "DELETE"): Promise<boolean> {
+  if (!BASE) return false;
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method,
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export function markNotificationRead(accessToken: string, notificationId: string): Promise<boolean> {
+  return authedMutate(`/notifications/${notificationId}/read`, accessToken, "PATCH");
+}
+
+export function markAllNotificationsRead(accessToken: string): Promise<boolean> {
+  return authedMutate("/notifications/read-all", accessToken, "PATCH");
+}
+
+export function deleteNotification(accessToken: string, notificationId: string): Promise<boolean> {
+  return authedMutate(`/notifications/${notificationId}`, accessToken, "DELETE");
+}

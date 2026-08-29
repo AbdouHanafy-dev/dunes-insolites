@@ -3,9 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { sendContact } from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 export default function ContactForm() {
   const t = useTranslations("contactForm");
+  const toast = useToast();
   const [values, setValues] = useState({ name: "", email: "", subject: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
@@ -23,6 +25,7 @@ export default function ContactForm() {
     const result = await sendContact(values);
     if (result.ok) {
       setState("sent");
+      toast.success(t("sentTitle"));
       return;
     }
     setErrors(result.errors ?? {});

@@ -558,7 +558,9 @@
     "termsMid": " و",
     "termsLinkPrivacy": "سياسة الخصوصية",
     "termsPost": ".",
-    "termsRequired": "يجب الموافقة على الشروط للمتابعة."
+    "termsRequired": "يجب الموافقة على الشروط للمتابعة.",
+    "signupSuccess": "تم إنشاء الحساب — مرحبًا بك!",
+    "loginSuccess": "تم تسجيل الدخول بنجاح."
   },
   "loginPage": {
     "eyebrow": "مرحبًا بعودتك",
@@ -583,5 +585,16 @@
     ],
     "ctaLabel": "شاهد أنشطتنا",
     "ctaSecondaryLabel": "اتصل بنا"
+  },
+  "notifications": {
+    "bellLabel": "الإشعارات",
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات بعد.",
+    "loading": "جارٍ التحميل…",
+    "markAllRead": "وضع علامة مقروء على الكل",
+    "markReadFailed": "تعذر وضع علامة مقروء.",
+    "deleted": "تم حذف الإشعار",
+    "deleteFailed": "تعذر الحذف.",
+    "delete": "حذف"
   }
 }

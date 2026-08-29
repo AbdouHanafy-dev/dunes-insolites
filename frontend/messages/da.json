@@ -558,7 +558,9 @@
     "termsMid": " og ",
     "termsLinkPrivacy": "privatlivspolitikken",
     "termsPost": ".",
-    "termsRequired": "Du skal acceptere vilkårene for at fortsætte."
+    "termsRequired": "Du skal acceptere vilkårene for at fortsætte.",
+    "signupSuccess": "Konto oprettet — velkommen!",
+    "loginSuccess": "Login lykkedes."
   },
   "loginPage": {
     "eyebrow": "Velkommen tilbage",
@@ -583,5 +585,16 @@
     ],
     "ctaLabel": "Se vores aktiviteter",
     "ctaSecondaryLabel": "Kontakt os"
+  },
+  "notifications": {
+    "bellLabel": "Notifikationer",
+    "title": "Notifikationer",
+    "empty": "Ingen notifikationer endnu.",
+    "loading": "Indlæser…",
+    "markAllRead": "Markér alle som læst",
+    "markReadFailed": "Kunne ikke markere som læst.",
+    "deleted": "Notifikation slettet",
+    "deleteFailed": "Sletning mislykkedes.",
+    "delete": "Slet"
   }
 }

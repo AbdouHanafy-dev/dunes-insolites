@@ -558,7 +558,9 @@
     "termsMid": " e l'",
     "termsLinkPrivacy": "informativa sulla privacy",
     "termsPost": ".",
-    "termsRequired": "Devi accettare i termini per continuare."
+    "termsRequired": "Devi accettare i termini per continuare.",
+    "signupSuccess": "Account creato — benvenuto!",
+    "loginSuccess": "Accesso effettuato con successo."
   },
   "loginPage": {
     "eyebrow": "Bentornato",
@@ -583,5 +585,16 @@
     ],
     "ctaLabel": "Scopri le nostre attività",
     "ctaSecondaryLabel": "Contattaci"
+  },
+  "notifications": {
+    "bellLabel": "Notifiche",
+    "title": "Notifiche",
+    "empty": "Nessuna notifica per ora.",
+    "loading": "Caricamento…",
+    "markAllRead": "Segna tutte come lette",
+    "markReadFailed": "Impossibile segnare come letta.",
+    "deleted": "Notifica eliminata",
+    "deleteFailed": "Eliminazione non riuscita.",
+    "delete": "Elimina"
   }
 }

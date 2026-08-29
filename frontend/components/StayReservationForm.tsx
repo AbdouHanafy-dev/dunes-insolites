@@ -3,6 +3,7 @@
 import { useState } from "react";
 import * as api from "@/lib/api";
 import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
+import { useToast } from "@/components/Toast";
 
 function todayISO(): string {
   const d = new Date();
@@ -42,6 +43,7 @@ export default function StayReservationForm({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [booking, setBooking] = useState<{ id: string } | null>(null);
+  const toast = useToast();
 
   const min = todayISO();
   const partySize = adults + children;
@@ -104,6 +106,7 @@ export default function StayReservationForm({
 
     setBooking(result.data);
     setSubmitting(false);
+    toast.success(`Reserved — ${result.data.id}`);
   }
 
   if (booking) {

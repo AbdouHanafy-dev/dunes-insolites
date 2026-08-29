@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { ToastProvider } from "@/components/Toast";
 import "../globals.css";
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
@@ -150,15 +151,17 @@ export default async function LocaleLayout({ children, params }: Props) {
     >
       <body>
         <NextIntlClientProvider messages={messages}>
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
-          />
-          <Header activities={activities} stays={stays} navItems={navItems} />
-          <main>{children}</main>
-          <Footer />
-          <WhatsAppButton />
-          <CookieConsent />
+          <ToastProvider>
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
+            />
+            <Header activities={activities} stays={stays} navItems={navItems} />
+            <main>{children}</main>
+            <Footer />
+            <WhatsAppButton />
+            <CookieConsent />
+          </ToastProvider>
         </NextIntlClientProvider>
       </body>
     </html>

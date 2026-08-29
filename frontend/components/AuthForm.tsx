@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { login, register } from "@/lib/api";
 import { adminAppUrl } from "@/lib/site";
+import { useToast } from "@/components/Toast";
 
 type Mode = "login" | "signup";
 type Field = "name" | "email" | "password" | "acceptTerms";
@@ -31,6 +32,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const isSignup = mode === "signup";
   const router = useRouter();
   const t = useTranslations("authForm");
+  const toast = useToast();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -104,6 +106,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       : await login({ email: email.trim(), password });
 
     if (result.ok) {
+      toast.success(isSignup ? t("signupSuccess") : t("loginSuccess"));
       // Staff/partner roles have no home in this app yet (the real
       // backoffice is R3, docs/ROADMAP.md) — send them to the existing
       // Angular admin app rather than into the client-only account area.

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "@/lib/api";
+import { useToast } from "@/components/Toast";
 import { formatDuration } from "@/lib/data/activities";
 import type { SlotAvailability } from "@/lib/bookings";
 import { MAX_PARTY_SIZE, SLOT_LABELS, type Activity, type TimeSlot } from "@/lib/types";
@@ -30,6 +31,7 @@ function prettyDate(iso: string): string {
 export default function BookingFlow({ activities }: { activities: Activity[] }) {
   const router = useRouter();
   const params = useSearchParams();
+  const toast = useToast();
 
   // Deep link: /book?activity=quad-safari opens straight on the date step.
   const preset = params.get("activity");
@@ -149,6 +151,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     } catch {
       /* storage unavailable — the API lookup still works */
     }
+    toast.success(`Reserved — ${result.data.id}`);
     router.push(`/bookings/${result.data.id}`);
   }
 

@@ -1,5 +1,7 @@
 package com.camping.duneinsolite.controller;
 
+import com.camping.duneinsolite.dto.response.NotificationResponse;
+import com.camping.duneinsolite.mapper.NotificationMapper;
 import com.camping.duneinsolite.model.Notification;
 import com.camping.duneinsolite.repository.NotificationRepository;
 import com.camping.duneinsolite.service.SseService;
@@ -30,6 +32,7 @@ public class NotificationController {
 
     private final SseService sseService;
     private final NotificationRepository notificationRepository;
+    private final NotificationMapper notificationMapper;
 
     // frontend calls this ONCE on login
     // opens a permanent connection
@@ -41,10 +44,19 @@ public class NotificationController {
     }
 
     // get all notifications for bell icon history
+    //
+    // Mapped to a DTO, not returned as the entity directly - the entity
+    // carries a full lazy User (CLAUDE.md: "Entities never cross the
+    // controller boundary"), and Jackson was serializing Hibernate's proxy
+    // internals (hibernateLazyInitializer) straight into the response on
+    // top of that. NotificationMapper/NotificationResponse already existed
+    // for this; they just weren't wired in here yet.
     @GetMapping
-    public List<Notification> getMyNotifications(@AuthenticationPrincipal Jwt jwt) {
+    public List<NotificationResponse> getMyNotifications(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        return notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId);
+        return notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId).stream()
+                .map(notificationMapper::toResponse)
+                .toList();
     }
 
     // unread count for the red badge on bell icon
@@ -82,5 +94,17 @@ public class NotificationController {
                 .findByUser_UserIdAndIsReadFalse(userId);
         unread.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(unread);
+    }
+
+    // dismiss one notification from the bell dropdown - same ownership
+    // check as markAsRead, same reasoning: notificationId alone is not
+    // authority to act on it, only "belongs to the caller" is. A
+    // nonexistent id and someone else's id both silently no-op.
+    @DeleteMapping("/{notificationId}")
+    public void deleteNotification(@PathVariable UUID notificationId, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        notificationRepository.findById(notificationId)
+                .filter(n -> n.getUser().getUserId().equals(userId))
+                .ifPresent(notificationRepository::delete);
     }
 }

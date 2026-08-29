@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/Toast";
 
 export type ReviewableItem = {
   catalogId: string;
@@ -11,6 +12,7 @@ export type ReviewableItem = {
 
 export default function ReviewForm({ items }: { items: ReviewableItem[] }) {
   const t = useTranslations("account");
+  const toast = useToast();
   const [selected, setSelected] = useState(items[0]?.catalogId ?? "");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -40,6 +42,7 @@ export default function ReviewForm({ items }: { items: ReviewableItem[] }) {
     if (res.ok) {
       setState("sent");
       setComment("");
+      toast.success(t("reviewSent"));
       return;
     }
     const data = await res.json().catch(() => ({}));

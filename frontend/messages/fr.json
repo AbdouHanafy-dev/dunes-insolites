@@ -558,7 +558,9 @@
     "termsMid": " et la ",
     "termsLinkPrivacy": "politique de confidentialité",
     "termsPost": ".",
-    "termsRequired": "Vous devez accepter les conditions pour continuer."
+    "termsRequired": "Vous devez accepter les conditions pour continuer.",
+    "signupSuccess": "Compte créé — bienvenue !",
+    "loginSuccess": "Connexion réussie."
   },
   "loginPage": {
     "eyebrow": "Bon retour",
@@ -583,5 +585,16 @@
     ],
     "ctaLabel": "Voir nos activités",
     "ctaSecondaryLabel": "Nous contacter"
+  },
+  "notifications": {
+    "bellLabel": "Notifications",
+    "title": "Notifications",
+    "empty": "Aucune notification pour le moment.",
+    "loading": "Chargement…",
+    "markAllRead": "Tout marquer comme lu",
+    "markReadFailed": "Impossible de marquer comme lu.",
+    "deleted": "Notification supprimée",
+    "deleteFailed": "Suppression impossible.",
+    "delete": "Supprimer"
   }
 }
