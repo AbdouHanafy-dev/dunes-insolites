@@ -847,7 +847,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (reservation.getStatus() == ReservationStatus.CHECKED_IN  ||
                 reservation.getStatus() == ReservationStatus.COMPLETED   ||
                 reservation.getStatus() == ReservationStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot edit a reservation with status: " + reservation.getStatus());
+            throw new ReservationStatusException("Cannot edit a reservation with status: " + reservation.getStatus());
         }
 
         if (request.getCheckInDate()      != null) reservation.setCheckInDate(request.getCheckInDate());
@@ -1548,9 +1548,14 @@ public class ReservationServiceImpl implements ReservationService {
         };
     }
 
+    // Both below are state-conflict business rules, not defects - same
+    // shape as the "Cannot edit" guard above, so they get the same
+    // ReservationStatusException (422) instead of a bare IllegalStateException
+    // that only ever got 400 via the deprecated blanket RuntimeException
+    // handler (see GlobalExceptionHandler's own comment on that handler).
     private void validateIsTourReservation(Reservation reservation) {
         if (reservation.getReservationType() != ReservationType.TOURS) {
-            throw new IllegalStateException(
+            throw new ReservationStatusException(
                     "Staff (guides and chauffeurs) can only be managed on TOURS reservations. " +
                             "Current type: " + reservation.getReservationType());
         }
@@ -1561,7 +1566,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (status == ReservationStatus.CANCELLED ||
                 status == ReservationStatus.REJECTED  ||
                 status == ReservationStatus.COMPLETED) {
-            throw new IllegalStateException(
+            throw new ReservationStatusException(
                     "Le personnel ne peut pas être modifié pour une réservation "
                             + status.name().toLowerCase() + ".");
         }

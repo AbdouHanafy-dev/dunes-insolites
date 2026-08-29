@@ -20,6 +20,7 @@ import com.camping.duneinsolite.repository.TourTypeRepository;
 import com.camping.duneinsolite.repository.UserProductRemiseRepository;
 import com.camping.duneinsolite.repository.UserRepository;
 import com.camping.duneinsolite.service.impl.EmailService;
+import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,7 @@ public class KeycloakUserSyncService {
     private final TourTypeRepository tourTypeRepository;
     private final TourRepository tourRepository;
     private final ExtraRepository extraRepository;
+    private final EntityManager entityManager;
 
     @Value("${keycloak.realm}")
     private String realm;
@@ -151,8 +153,30 @@ public class KeycloakUserSyncService {
     // Called from POST /api/users/add
     // ─────────────────────────────────────────────────────────────────────
 
+    // Found live (exception-handling audit): both checks below used to run
+    // AFTER createKeycloakUser, so a duplicate email or - more commonly - a
+    // remise exceeding the catalog price threw only once a real Keycloak
+    // identity already existed. @Transactional rolls back the Postgres
+    // side, but has no authority over Keycloak - the account was left
+    // behind for real, with a generated password nobody has, findable by
+    // nothing in this app since no User row ever existed for it. Same
+    // "reject duplicates BEFORE touching Keycloak" reasoning registerUser's
+    // own comment already states; this method just wasn't following it for
+    // either check. Verified live: reproduced the orphan (a real Keycloak
+    // user existed with no matching Postgres row after a remise-exceeds-
+    // price failure), fixed this, confirmed the same request no longer
+    // creates anything in Keycloak when it fails validation.
     @Transactional
     public User adminCreateUser(UserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyInUseException(request.getEmail());
+        }
+
+        boolean hasRemise = Boolean.TRUE.equals(request.getHasSpecialRemise());
+        if (hasRemise && request.getRemises() != null) {
+            validateRemisePrices(request.getRemises(), request.getRole() == UserRole.PARTENAIRE);
+        }
+
         String generatedPassword = generateSecurePassword();
         log.info("Generated temporary password for new user {}", request.getEmail());
 
@@ -164,12 +188,6 @@ public class KeycloakUserSyncService {
         );
 
         assignRole(keycloakUserId, request.getRole().name());
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyInUseException(request.getEmail());
-        }
-
-        boolean hasRemise = Boolean.TRUE.equals(request.getHasSpecialRemise());
 
         User user = User.builder()
                 .userId(UUID.fromString(keycloakUserId))
@@ -194,7 +212,7 @@ public class KeycloakUserSyncService {
         // ── Send welcome email with generated password ──
        // emailService.sendWelcomeEmail(request.getEmail(), request.getName(), generatedPassword);
 
-        return userRepository.findByIdWithRemises(savedUser.getUserId()).orElseThrow();
+        return reloadWithRemises(savedUser);
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -543,12 +561,81 @@ public class KeycloakUserSyncService {
         log.info("User {} (ID: {}) updated successfully in DB", user.getEmail(), userId);
 
         // ── 5. Return fresh entity with remises loaded from DB ──────────────
-        return userRepository.findByIdWithRemises(userId).orElseThrow();
+        return reloadWithRemises(user);
     }
 
     // ─────────────────────────────────────────────────────────────────────
     // REMISE HELPERS
     // ─────────────────────────────────────────────────────────────────────
+
+    // Found live (CRUD audit): findByIdWithRemises's own JOIN FETCH query
+    // (see UserRepository) is supposed to return the just-saved user with
+    // its remises populated, but within the same transaction Hibernate's
+    // first-level cache returns the SAME managed User instance it already
+    // has by id - and that instance's `remises` collection was already
+    // initialized (empty, from the entity's own construction/save) before
+    // the remises were separately persisted via remiseRepository.save().
+    // A JOIN FETCH does not re-populate a collection Hibernate already
+    // considers initialized, so the response came back with remises: []
+    // even though the rows really were in Postgres (confirmed directly -
+    // this was a stale in-memory read, not a lost write). detach() forces
+    // the next findByIdWithRemises call to treat the id as unseen and
+    // genuinely re-query, JOIN FETCH included. flush() must run first: the
+    // remise inserts from saveRemises() are still only pending in the
+    // persistence context here (JpaRepository.save() does not guarantee an
+    // immediate flush), each referencing this exact `user` Java instance -
+    // detaching it before those inserts are actually sent makes
+    // Hibernate's auto-flush treat that reference as unresolvable
+    // ("references an unsaved transient instance") the moment the
+    // findByIdWithRemises query below triggers one. Found live wiring this
+    // fix in the first place (a real 500), not assumed.
+    private User reloadWithRemises(User user) {
+        entityManager.flush();
+        entityManager.detach(user);
+        return userRepository.findByIdWithRemises(user.getUserId()).orElseThrow();
+    }
+
+    // Validation-only pass, no persistence - lets callers fail fast before
+    // creating anything in Keycloak (see adminCreateUser's own comment on
+    // why that ordering matters). saveRemises below repeats the same
+    // catalog lookups and comparisons when it actually persists; a second
+    // cheap read of a handful of rows is a fine price for never orphaning
+    // a Keycloak identity on a rejected remise.
+    private void validateRemisePrices(List<UserProductRemiseRequest> remiseRequests, boolean isPartner) {
+        for (UserProductRemiseRequest req : remiseRequests) {
+            if (req.getProductType() == ProductType.TOURTYPE) {
+                var tt = tourTypeRepository.findById(req.getProductId())
+                        .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + req.getProductId()));
+                double maxAdult = isPartner ? tt.getPartnerAdultPrice() : tt.getPassengerAdultPrice();
+                double maxChild = isPartner ? tt.getPartnerChildPrice() : tt.getPassengerChildPrice();
+                double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
+                double childR = req.getChildRemise() != null ? req.getChildRemise() : 0.0;
+                if (adultR > maxAdult) throw new IllegalArgumentException(
+                        "Adult remise " + adultR + " exceeds price " + maxAdult + " for TourType " + tt.getName());
+                if (childR > maxChild) throw new IllegalArgumentException(
+                        "Child remise " + childR + " exceeds price " + maxChild + " for TourType " + tt.getName());
+
+            } else if (req.getProductType() == ProductType.TOUR) {
+                var tour = tourRepository.findById(req.getProductId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + req.getProductId()));
+                double maxAdult = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
+                double maxChild = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
+                double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
+                double childR = req.getChildRemise() != null ? req.getChildRemise() : 0.0;
+                if (adultR > maxAdult) throw new IllegalArgumentException(
+                        "Adult remise " + adultR + " exceeds price " + maxAdult + " for Tour " + tour.getName());
+                if (childR > maxChild) throw new IllegalArgumentException(
+                        "Child remise " + childR + " exceeds price " + maxChild + " for Tour " + tour.getName());
+
+            } else if (req.getProductType() == ProductType.EXTRA) {
+                var extra = extraRepository.findById(req.getProductId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + req.getProductId()));
+                double unitR = req.getUnitRemise() != null ? req.getUnitRemise() : 0.0;
+                if (unitR > extra.getUnitPrice()) throw new IllegalArgumentException(
+                        "Unit remise " + unitR + " exceeds price " + extra.getUnitPrice() + " for Extra " + extra.getName());
+            }
+        }
+    }
 
     private void saveRemises(User user, List<UserProductRemiseRequest> remiseRequests, UserRole role) {
         boolean isPartner = role == UserRole.PARTENAIRE;

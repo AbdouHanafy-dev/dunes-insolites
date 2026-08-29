@@ -70,33 +70,24 @@ public class GlobalExceptionHandler {
         return buildResponse(ex.getStatus(), ex.getMessage(), null);
     }
 
-    // ── TRANSITIONAL: the old catch-all for bare RuntimeExceptions ──────
+    // ── Handle bad caller-supplied values ──────────────────────────────
     //
-    // Every literal `throw new RuntimeException(...)` site in the services
-    // has been reclassified into a proper BusinessException subclass (see
-    // BusinessException's own comment) - this handler no longer has any of
-    // those left to catch. It still can't be deleted: a handful of
-    // IllegalArgumentException/IllegalStateException throws (also
-    // RuntimeException subtypes - remise-exceeds-price checks in
-    // KeycloakUserSyncService, staff/status guards in
-    // ReservationServiceImpl) still rely on it for their current status.
-    // Migrate those next, then remove this.
-    //
-    // Note the leak this still permits: ex.getMessage() on an unclassified
-    // exception reaches the client. That is precisely why it is temporary.
-    @Deprecated
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(
-            RuntimeException ex) {
-
-        log.warn("Unclassified RuntimeException mapped to 400 - should be a "
-                + "BusinessException [{}]: {}", ex.getClass().getName(), ex.getMessage());
-
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage(),
-                null
-        );
+    // Unlike the deprecated blanket handler this replaces, this one is
+    // permanent: IllegalArgumentException's meaning ("the caller passed a
+    // value the domain rejects") is universally 400-appropriate, unlike
+    // IllegalStateException, whose meaning is context-dependent (a
+    // reservation-status conflict is a 422 business rule; a malformed
+    // token from the identity provider is a genuine defect that must stay
+    // a 500 - see AuthService's own two throw sites, now correctly
+    // falling through to handleGenericException below instead of landing
+    // here). The five remaining IllegalArgumentException throw sites
+    // (KeycloakUserSyncService's remise-exceeds-catalog-price checks)
+    // have messages written for the caller already, same standard as
+    // every BusinessException subclass.
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Rejected caller-supplied value: {}", ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
     // ── Handle 404 not found ──────────────────────────────────────────
