@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import {
@@ -223,8 +224,16 @@ export default function Hero({
         {/* 2 — the plate: the same view with the gate and foreground removed,
             so there is real empty sky for the wordmark to occupy */}
         <div className="layer plate">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="cover" src="/images/hero-plate.webp" alt="" />
+          {/* Was a plain <img> - this is the LCP element on first paint
+              (SEO/vitrine audit), so it gets `priority` (real <link
+              rel=preload>, skips lazy-loading entirely) plus real
+              responsive srcset/AVIF-WebP negotiation from next/image. The
+              `.layer` parent is already `position:absolute;inset:0` and
+              `.cover` already sets width/height:100% + object-fit:cover,
+              which is exactly the shape `fill` expects - verified with a
+              real before/after screenshot at three scroll depths through
+              the pinned reveal, pixel-identical. */}
+          <Image className="cover" src="/images/hero-plate.webp" alt="" fill sizes="100vw" priority />
         </div>
 
         {/* 3 — twilight above the photograph, blended down over its top edge */}
@@ -250,11 +259,16 @@ export default function Hero({
             horizon, on genuine alpha. The wordmark passes behind the arch and
             behind the dunes instead of being faked with a gradient mask. */}
         <div className="layer foreground">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {/* Same conversion as the plate layer above - also immediately
+              in-viewport on first paint (stacked in the same pinned hero),
+              so also `priority` rather than left to lazy-load. */}
+          <Image
             className="cover"
             src="/images/hero-foreground.webp"
             alt="The lantern-lit Sabria gate at sunset"
+            fill
+            sizes="100vw"
+            priority
           />
         </div>
 
