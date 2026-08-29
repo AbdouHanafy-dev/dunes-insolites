@@ -125,12 +125,24 @@ public class Reservation {
     private List<ReservationExtra> extras = new ArrayList<>();
 
     // ── Invoices ──────────────────────────────────────────────────
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    //
+    // Was cascade = ALL, orphanRemoval = true - the same shape found and
+    // fixed on User.reservations/User.invoices (see that file's comment).
+    // Nothing exploits this today: ReservationServiceImpl#deleteReservation
+    // always soft-deletes (sets deletedAt) rather than calling a hard
+    // delete, specifically so invoices keep a valid FK - but that was only
+    // ever a convention, not something this mapping enforced. A direct
+    // reservationRepository.delete() would have silently cascade-deleted
+    // real, numbered invoices exactly like the User bug did. Narrowed the
+    // same way, proactively, before anything ever exercised it live.
+    @OneToMany(mappedBy = "reservation", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     @Builder.Default
     private List<Invoice> invoices = new ArrayList<>();
 
     // ── Transactions ──────────────────────────────────────────────
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = false)
+    // Same fix, same reasoning as invoices above - a real payment record,
+    // not something a reservation delete should ever be able to erase.
+    @OneToMany(mappedBy = "reservation", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     @Builder.Default
     private List<Transaction> transactions = new ArrayList<>();
 

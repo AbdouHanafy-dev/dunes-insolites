@@ -116,7 +116,11 @@ public class Invoice {
     @Builder.Default
     private List<InvoiceItem> items = new ArrayList<>();
 
-    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = false)
+    // Was cascade = ALL - same latent-REMOVE shape found and fixed on
+    // Reservation.invoices/Reservation.transactions (see that file). A
+    // transaction is a real payment record; deleting an invoice should
+    // never be able to erase one as a side effect.
+    @OneToMany(mappedBy = "invoice", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     @Builder.Default
     private List<Transaction> transactions = new ArrayList<>();
 
