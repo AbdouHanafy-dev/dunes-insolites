@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +55,15 @@ public class User {
 
     @Column(name = "agency_address")
     private String agencyAddress;
+
+    // When this CLIENT accepted the terms of service + privacy policy at
+    // self-registration - null for staff/partner/seeded accounts, which
+    // never went through that public consent checkbox in the first place
+    // (see KeycloakUserSyncService.registerUser). A timestamp, not just a
+    // boolean, so there's a real record of *when* consent was given -
+    // relevant if the terms themselves ever change.
+    @Column(name = "terms_accepted_at")
+    private LocalDateTime termsAcceptedAt;
 
     // One user can have many reservations
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)

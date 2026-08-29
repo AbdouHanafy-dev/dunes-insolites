@@ -5,6 +5,7 @@ import com.camping.duneinsolite.dto.request.UserProductRemiseRequest;
 import com.camping.duneinsolite.dto.request.UserRequest;
 import com.camping.duneinsolite.exception.EmailAlreadyInUseException;
 import com.camping.duneinsolite.exception.KeycloakSyncException;
+import com.camping.duneinsolite.exception.TermsNotAcceptedException;
 import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.UserProductRemise;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,6 +64,15 @@ public class KeycloakUserSyncService {
 
     @Transactional
     public User registerUser(RegisterRequest request, UserRole role) {
+        // Server-enforced, not just a frontend checkbox - see
+        // TermsNotAcceptedException. Scoped to CLIENT specifically: the only
+        // other caller is Seed.java, which only ever registers ADMIN/CAMPING
+        // accounts (trusted server-side code, never went through a public
+        // consent checkbox to begin with), so this can never wrongly block it.
+        if (role == UserRole.CLIENT && !request.isAcceptedTerms()) {
+            throw new TermsNotAcceptedException();
+        }
+
         // Reject duplicates BEFORE touching Keycloak. @Transactional rolls back
         // Postgres but has no authority over Keycloak, so creating there first
         // would leave an orphaned, role-bearing account behind on every retry.
@@ -89,6 +100,7 @@ public class KeycloakUserSyncService {
                 // PARTENAIRE fields
                 .matriculeFiscal(role == UserRole.PARTENAIRE ? request.getMatriculeFiscal() : null)
                 .agencyAddress(role   == UserRole.PARTENAIRE ? request.getAgencyAddress()   : null)
+                .termsAcceptedAt(role == UserRole.CLIENT ? LocalDateTime.now() : null)
                 .build();
 
         User savedUser = userRepository.save(user);

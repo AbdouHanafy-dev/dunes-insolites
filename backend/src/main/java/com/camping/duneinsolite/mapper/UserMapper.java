@@ -19,6 +19,7 @@ public interface UserMapper {
     @Mapping(target = "email", source = "email")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "role", source = "role")
+    @Mapping(target = "termsAcceptedAt", source = "termsAcceptedAt")
     @Mapping(target = "loyaltyPoints", source = "loyaltyPoints")
     @Mapping(target = "loyaltyTier", source = "loyaltyTier")
     @Mapping(target = "matriculeFiscal", source = "matriculeFiscal")

@@ -4,6 +4,7 @@ import com.camping.duneinsolite.model.enums.LoyaltyTier;
 import com.camping.duneinsolite.model.enums.UserRole;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,10 @@ public class UserResponse {
     private String email;
     private String phone;
     private UserRole role;
+
+    // Null for staff/partner/seeded/guest-checkout accounts - see
+    // User.termsAcceptedAt's own doc comment.
+    private LocalDateTime termsAcceptedAt;
 
     // CLIENT-only
     private Integer loyaltyPoints;

@@ -20,6 +20,13 @@ public class RegisterRequest {
     private String password;
     private String phone;
 
+    // Required (server-enforced, not just a frontend checkbox) when this
+    // request results in a CLIENT account — see
+    // KeycloakUserSyncService.registerUser. Defaults to false when the
+    // field is omitted, which is the correct fail-closed behavior: a
+    // caller that doesn't send it doesn't get to skip consent.
+    private boolean acceptedTerms;
+
     // Only relevant when the server registers a PARTENAIRE (not via self-registration)
     private String matriculeFiscal;
     private String agencyAddress;

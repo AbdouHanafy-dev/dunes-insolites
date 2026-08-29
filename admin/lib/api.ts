@@ -88,6 +88,12 @@ export type AdminUser = {
   loyaltyTier: string | null;
   matriculeFiscal: string | null;
   agencyAddress: string | null;
+  // Set once, server-side, at self-registration — null for staff/partner/
+  // guest-checkout accounts, which never went through that consent
+  // checkbox. Display-only: not part of `fields` in ClientsCrud.tsx on
+  // purpose, an admin editing a client record must never be able to
+  // roundtrip this back to the server and overwrite a real legal fact.
+  termsAcceptedAt: string | null;
 };
 
 export function searchUsers(

@@ -99,6 +99,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           email: email.trim(),
           password,
           phone: phone.trim() || undefined,
+          acceptedTerms: acceptTerms,
         })
       : await login({ email: email.trim(), password });
 

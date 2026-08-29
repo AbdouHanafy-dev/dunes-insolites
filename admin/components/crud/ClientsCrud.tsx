@@ -15,6 +15,16 @@ const columns: ColumnDef<AdminUser>[] = [
   { key: "phone", label: "Téléphone" },
   { key: "role", label: "Type" },
   { key: "matriculeFiscal", label: "Matricule fiscal", render: (item) => item.matriculeFiscal || "—" },
+  {
+    key: "termsAcceptedAt",
+    label: "CGU acceptées",
+    // Display-only, real data from a real column — not editable here on
+    // purpose, see AdminUser.termsAcceptedAt's own comment.
+    render: (item) =>
+      item.termsAcceptedAt
+        ? new Date(item.termsAcceptedAt).toLocaleDateString("fr-FR")
+        : "—",
+  },
 ];
 
 const fields: FieldDef[] = [
