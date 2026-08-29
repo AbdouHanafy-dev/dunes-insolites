@@ -317,6 +317,27 @@ export function getRedirectById(accessToken: string, id: string): Promise<AdminR
   return authedGet<AdminRedirect | null>(`/redirects/${id}`, accessToken, null);
 }
 
+export type AdminMaintenanceWindow = {
+  maintenanceId: string;
+  path: string;
+  isActive: boolean;
+  message: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function getAllMaintenanceWindows(accessToken: string): Promise<AdminMaintenanceWindow[]> {
+  return authedGet<AdminMaintenanceWindow[]>("/maintenance-windows", accessToken, []);
+}
+
+export function getMaintenanceWindowById(
+  accessToken: string,
+  id: string,
+): Promise<AdminMaintenanceWindow | null> {
+  return authedGet<AdminMaintenanceWindow | null>(`/maintenance-windows/${id}`, accessToken, null);
+}
+
 /* --------------------------------------------------------------- content blocks */
 
 export type AdminContentBlock = {

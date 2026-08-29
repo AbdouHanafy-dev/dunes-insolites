@@ -2566,6 +2566,36 @@ footer.site-footer .bar {
   color: #8a4318;
 }
 
+.maint-countdown {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.maint-countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+}
+.maint-countdown-value {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(26px, 5vw, 38px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.maint-countdown-label {
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.maint-soon {
+  font-size: 15px;
+  opacity: 0.75;
+}
+
 .toast-viewport {
   position: fixed;
   top: 20px;

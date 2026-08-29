@@ -2,6 +2,7 @@ export type FieldDef =
   | { type: "text"; key: string; label: string; required?: boolean; hint?: string }
   | { type: "textarea"; key: string; label: string; hint?: string }
   | { type: "number"; key: string; label: string; required?: boolean; step?: number }
+  | { type: "datetime"; key: string; label: string; hint?: string }
   | { type: "select"; key: string; label: string; options: { value: string; label: string }[] }
   | { type: "checkbox"; key: string; label: string }
   // A repeatable group — an array of objects, each shaped by `fields`.
@@ -59,6 +60,23 @@ export function FieldInput({
           </option>
         ))}
       </select>
+    );
+  }
+  if (field.type === "datetime") {
+    // The backend sends LocalDateTime with fractional seconds
+    // ("2026-09-01T14:30:00.123456"), which exceeds what
+    // <input type="datetime-local">'s value attribute accepts (milliseconds
+    // at most) - slice down to minute precision, which is all the picker
+    // exposes anyway.
+    const raw = (value as string) ?? "";
+    return (
+      <input
+        id={field.key}
+        type="datetime-local"
+        value={raw.slice(0, 16)}
+        onChange={(e) => onChange(e.target.value || null)}
+        className={inputClass}
+      />
     );
   }
   if (field.type === "checkbox") {
