@@ -50,8 +50,17 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.addStaffToReservation(reservationId, request));
     }
 
+    // Only this list endpoint and /active below are matrix-governed. Every
+    // other endpoint on this controller is either ownership-scoped self-
+    // service (shared with CLIENT/PARTENAIRE booking their own trip - see
+    // e.g. updateReservation, updateStatus) or a genuinely sensitive,
+    // deliberately ADMIN-only action (hard delete, staff assignment,
+    // invoice generation) that this session's own cascade-fix work treated
+    // as too high-stakes to make delegable - both stay hardcoded exactly
+    // as before. RESERVATIONS in the matrix therefore only ever reaches
+    // READ in practice today; that's honest, not an oversight.
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING', 'PARTENAIRE')")
+    @PreAuthorize("@perm.can('RESERVATIONS', 'READ')")
     public ResponseEntity<Page<ReservationResponse>> getAllReservations(@PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(reservationService.getAllReservations(pageable));
     }
@@ -80,7 +89,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationsByStatus(status, pageable));
     }
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING', 'PARTENAIRE')")
+    @PreAuthorize("@perm.can('RESERVATIONS', 'READ')")
     public ResponseEntity<Page<ReservationResponse>> getActiveReservations(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

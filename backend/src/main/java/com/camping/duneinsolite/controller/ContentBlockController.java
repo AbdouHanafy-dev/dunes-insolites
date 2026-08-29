@@ -18,36 +18,43 @@ import java.util.UUID;
  * "blockReference" PageBlock instead of duplicated inline. ADMIN-only,
  * same as PageController/NavigationController.
  */
+// Was a single class-level @PreAuthorize("hasRole('ADMIN')") - see
+// PageController's own comment for why this moved to per-method @perm
+// checks. CAMPING/PARTENAIRE seed at NONE, matching today exactly.
 @RestController
 @RequestMapping("/api/content-blocks")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class ContentBlockController {
 
     private final ContentBlockService contentBlockService;
 
     @PostMapping
+    @PreAuthorize("@perm.can('CONTENT_BLOCKS', 'FULL')")
     public ResponseEntity<ContentBlockResponse> createBlock(@Valid @RequestBody ContentBlockRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(contentBlockService.createBlock(request));
     }
 
     @GetMapping("/{blockId}")
+    @PreAuthorize("@perm.can('CONTENT_BLOCKS', 'READ')")
     public ResponseEntity<ContentBlockResponse> getBlockById(@PathVariable UUID blockId) {
         return ResponseEntity.ok(contentBlockService.getBlockById(blockId));
     }
 
     @GetMapping
+    @PreAuthorize("@perm.can('CONTENT_BLOCKS', 'READ')")
     public ResponseEntity<List<ContentBlockResponse>> getAllBlocks() {
         return ResponseEntity.ok(contentBlockService.getAllBlocks());
     }
 
     @PutMapping("/{blockId}")
+    @PreAuthorize("@perm.can('CONTENT_BLOCKS', 'EDIT')")
     public ResponseEntity<ContentBlockResponse> updateBlock(
             @PathVariable UUID blockId, @Valid @RequestBody ContentBlockRequest request) {
         return ResponseEntity.ok(contentBlockService.updateBlock(blockId, request));
     }
 
     @DeleteMapping("/{blockId}")
+    @PreAuthorize("@perm.can('CONTENT_BLOCKS', 'FULL')")
     public ResponseEntity<Void> deleteBlock(@PathVariable UUID blockId) {
         contentBlockService.deleteBlock(blockId);
         return ResponseEntity.noContent().build();

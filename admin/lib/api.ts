@@ -141,6 +141,54 @@ export function getSecurityEndpoints(accessToken: string): Promise<SecurityEndpo
   return authedGet<SecurityEndpoint[]>("/admin/security-overview/endpoints", accessToken, []);
 }
 
+/* --------------------------------------------------- roles & permissions */
+
+export type AdminResource =
+  | "USERS"
+  | "RESERVATIONS"
+  | "INVOICES"
+  | "TRANSACTIONS"
+  | "TOURS"
+  | "TOUR_TYPES"
+  | "EXTRAS"
+  | "REVIEWS"
+  | "AVAILABILITY"
+  | "PAGES"
+  | "CONTENT_BLOCKS"
+  | "MEDIA"
+  | "NAVIGATION"
+  | "REDIRECTS"
+  | "MAINTENANCE_WINDOWS";
+
+export type PermissionLevel = "NONE" | "READ" | "EDIT" | "FULL";
+
+export const ALL_ADMIN_RESOURCES: AdminResource[] = [
+  "USERS",
+  "RESERVATIONS",
+  "INVOICES",
+  "TRANSACTIONS",
+  "TOURS",
+  "TOUR_TYPES",
+  "EXTRAS",
+  "REVIEWS",
+  "AVAILABILITY",
+  "PAGES",
+  "CONTENT_BLOCKS",
+  "MEDIA",
+  "NAVIGATION",
+  "REDIRECTS",
+  "MAINTENANCE_WINDOWS",
+];
+
+export type PermissionMatrix = Record<UserRole, Record<AdminResource, PermissionLevel>>;
+
+// Every row for every role — ADMIN (always FULL) and CLIENT (always NONE)
+// included even though neither is editable, so the frontend can render one
+// uniform table instead of special-casing which columns exist.
+export function getRolePermissionMatrix(accessToken: string): Promise<PermissionMatrix | null> {
+  return authedGet<PermissionMatrix | null>("/admin/role-permissions", accessToken, null);
+}
+
 /* --------------------------------------------------------------- catalogue */
 
 export type AdminTourType = {

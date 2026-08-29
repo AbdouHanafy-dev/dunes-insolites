@@ -22,20 +22,23 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
+    // No hard-delete endpoint exists on this controller at all, so unlike
+    // Invoices/Reservations there's nothing to exclude here - FULL really
+    // does mean the whole surface.
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('TRANSACTIONS', 'FULL')")
     public ResponseEntity<TransactionResponse> createTransaction(@Valid @RequestBody TransactionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionService.createTransaction(request));
     }
 
     @GetMapping("/{transactionId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('TRANSACTIONS', 'READ')")
     public ResponseEntity<TransactionResponse> getTransactionById(@PathVariable UUID transactionId) {
         return ResponseEntity.ok(transactionService.getTransactionById(transactionId));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('TRANSACTIONS', 'READ')")
     public ResponseEntity<Page<TransactionResponse>> getAllTransactions(@PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(transactionService.getAllTransactions(pageable));
     }
@@ -47,7 +50,7 @@ public class TransactionController {
     }
 
     @GetMapping("/invoice/{invoiceId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('TRANSACTIONS', 'READ')")
     public ResponseEntity<List<TransactionResponse>> getByInvoice(@PathVariable UUID invoiceId) {
         return ResponseEntity.ok(transactionService.getTransactionsByInvoice(invoiceId));
     }

@@ -18,15 +18,18 @@ import java.util.UUID;
  * optional countdown), without touching the rest of the vitrine. See
  * MaintenanceWindow's own doc comment. ADMIN-only, same as RedirectController.
  */
+// Was a single class-level @PreAuthorize("hasRole('ADMIN')") - see
+// PageController's own comment for why this moved to per-method @perm
+// checks. CAMPING/PARTENAIRE seed at NONE, matching today exactly.
 @RestController
 @RequestMapping("/api/maintenance-windows")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class MaintenanceWindowController {
 
     private final MaintenanceWindowService maintenanceWindowService;
 
     @PostMapping
+    @PreAuthorize("@perm.can('MAINTENANCE_WINDOWS', 'FULL')")
     public ResponseEntity<MaintenanceWindowResponse> createMaintenanceWindow(
             @Valid @RequestBody MaintenanceWindowRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -34,22 +37,26 @@ public class MaintenanceWindowController {
     }
 
     @GetMapping("/{maintenanceId}")
+    @PreAuthorize("@perm.can('MAINTENANCE_WINDOWS', 'READ')")
     public ResponseEntity<MaintenanceWindowResponse> getMaintenanceWindowById(@PathVariable UUID maintenanceId) {
         return ResponseEntity.ok(maintenanceWindowService.getMaintenanceWindowById(maintenanceId));
     }
 
     @GetMapping
+    @PreAuthorize("@perm.can('MAINTENANCE_WINDOWS', 'READ')")
     public ResponseEntity<List<MaintenanceWindowResponse>> getAllMaintenanceWindows() {
         return ResponseEntity.ok(maintenanceWindowService.getAllMaintenanceWindows());
     }
 
     @PutMapping("/{maintenanceId}")
+    @PreAuthorize("@perm.can('MAINTENANCE_WINDOWS', 'EDIT')")
     public ResponseEntity<MaintenanceWindowResponse> updateMaintenanceWindow(
             @PathVariable UUID maintenanceId, @Valid @RequestBody MaintenanceWindowRequest request) {
         return ResponseEntity.ok(maintenanceWindowService.updateMaintenanceWindow(maintenanceId, request));
     }
 
     @DeleteMapping("/{maintenanceId}")
+    @PreAuthorize("@perm.can('MAINTENANCE_WINDOWS', 'FULL')")
     public ResponseEntity<Void> deleteMaintenanceWindow(@PathVariable UUID maintenanceId) {
         maintenanceWindowService.deleteMaintenanceWindow(maintenanceId);
         return ResponseEntity.noContent().build();

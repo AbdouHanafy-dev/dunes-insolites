@@ -21,8 +21,10 @@ public class TourController {
 
     private final TourService tourService;
 
+    // ADMIN-only today (no CAMPING mix, unlike TourType/Extra below), so this
+    // conversion is behavior-preserving: CAMPING/PARTENAIRE seed at NONE.
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('TOURS', 'FULL')")
     public ResponseEntity<TourResponse> createTour(@Valid @RequestBody TourRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(tourService.createTour(request));
     }
@@ -44,7 +46,7 @@ public class TourController {
     }
 
     @PutMapping("/{tourId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('TOURS', 'EDIT')")
     public ResponseEntity<TourResponse> updateTour(
             @PathVariable UUID tourId,
             @Valid @RequestBody TourUpdateRequest request) {
@@ -52,14 +54,14 @@ public class TourController {
     }
 
     @DeleteMapping("/{tourId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('TOURS', 'FULL')")
     public ResponseEntity<Void> deleteTour(@PathVariable UUID tourId) {
         tourService.deleteTour(tourId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{tourId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('TOURS', 'EDIT')")
     public ResponseEntity<TourResponse> deactivateTour(@PathVariable UUID tourId) {
         return ResponseEntity.ok(tourService.deactivateTour(tourId));
     }

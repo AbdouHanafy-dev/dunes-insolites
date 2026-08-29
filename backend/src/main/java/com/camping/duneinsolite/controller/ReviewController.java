@@ -70,8 +70,14 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.updateReview(reviewId, userId, request));
     }
 
+    // The only endpoint on this controller converted to the matrix - every
+    // other one (create/update/get/mine/for-product) is isAuthenticated,
+    // shared between the moderation UI and a customer managing their own
+    // review, and left untouched to avoid breaking either. Moderation
+    // (deleting someone else's review) is the one clearly backoffice-only
+    // action here.
     @DeleteMapping("/{reviewId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('REVIEWS', 'FULL')")
     public ResponseEntity<Void> deleteReview(@PathVariable UUID reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.noContent().build();

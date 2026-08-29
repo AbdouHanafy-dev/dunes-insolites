@@ -23,8 +23,15 @@ public class InvoiceController {
     private final InvoiceService      invoiceService;
     private final InvoiceEmailService invoiceEmailService;
 
+    // The ordinary CRUD surface below (create/list/update) is matrix-
+    // governed; DELETE stays hardcoded hasRole('ADMIN') a few methods down
+    // and is never routed through @perm - see AdminResource's own comment
+    // on why a real invoice hard-delete is excluded from the matrix
+    // entirely, not just defaulted low. CAMPING seeds at FULL here, which
+    // under that exclusion means "everything except the hard delete",
+    // matching what CAMPING can already do today.
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('INVOICES', 'FULL')")
     public ResponseEntity<InvoiceResponse> createInvoice(@Valid @RequestBody InvoiceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(invoiceService.createInvoice(request));
     }
@@ -36,7 +43,7 @@ public class InvoiceController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('INVOICES', 'READ')")
     public ResponseEntity<List<InvoiceResponse>> getAllInvoices(
             @RequestParam(defaultValue = "number") String sortBy,
             @RequestParam(defaultValue = "desc") String direction,
@@ -52,13 +59,13 @@ public class InvoiceController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('INVOICES', 'READ')")
     public ResponseEntity<List<InvoiceResponse>> getInvoicesByUser(@PathVariable UUID userId) {
         return ResponseEntity.ok(invoiceService.getInvoicesByUser(userId));
     }
 
     @PutMapping("/{invoiceId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('INVOICES', 'EDIT')")
     public ResponseEntity<InvoiceResponse> updateInvoice(@PathVariable UUID invoiceId,
                                                          @Valid @RequestBody InvoiceRequest request) {
         return ResponseEntity.ok(invoiceService.updateInvoice(invoiceId, request));
@@ -73,7 +80,7 @@ public class InvoiceController {
 
 
     @GetMapping("/factures")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('INVOICES', 'READ')")
     public ResponseEntity<List<InvoiceResponse>> getAllFactures(
             @RequestParam(defaultValue = "number") String sortBy,
             @RequestParam(defaultValue = "desc") String direction,
@@ -103,7 +110,7 @@ public class InvoiceController {
     }
 
     @PostMapping("/{invoiceId}/toggle-company-type")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('INVOICES', 'EDIT')")
     public ResponseEntity<InvoiceResponse> toggleCompanyType(@PathVariable UUID invoiceId) {
         return ResponseEntity.ok(invoiceService.toggleCompanyType(invoiceId));
     }

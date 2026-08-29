@@ -20,15 +20,18 @@ import java.util.UUID;
  * WebConfig's /media/** mapping, SecurityConfig's matching permitAll) —
  * only managing the library (upload/list/delete) requires auth.
  */
+// Was a single class-level @PreAuthorize("hasRole('ADMIN')") - see
+// PageController's own comment for why this moved to per-method @perm
+// checks. CAMPING/PARTENAIRE seed at NONE, matching today exactly.
 @RestController
 @RequestMapping("/api/media")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class MediaController {
 
     private final MediaService mediaService;
 
     @PostMapping(consumes = "multipart/form-data")
+    @PreAuthorize("@perm.can('MEDIA', 'FULL')")
     public ResponseEntity<MediaAssetResponse> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam(defaultValue = "DUNES_INSOLITES") CompanyType companyType) {
@@ -36,11 +39,13 @@ public class MediaController {
     }
 
     @GetMapping
+    @PreAuthorize("@perm.can('MEDIA', 'READ')")
     public ResponseEntity<List<MediaAssetResponse>> getAllAssets() {
         return ResponseEntity.ok(mediaService.getAllAssets().stream().map(this::absolute).toList());
     }
 
     @DeleteMapping("/{assetId}")
+    @PreAuthorize("@perm.can('MEDIA', 'FULL')")
     public ResponseEntity<Void> deleteAsset(@PathVariable UUID assetId) {
         mediaService.deleteAsset(assetId);
         return ResponseEntity.noContent().build();

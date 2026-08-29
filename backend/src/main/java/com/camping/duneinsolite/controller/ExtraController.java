@@ -19,8 +19,11 @@ public class ExtraController {
 
     private final ExtraService extraService;
 
+    // Same shape/tradeoff as TourTypeController's createTourType - see its
+    // comment. Seeded CAMPING=FULL, a disclosed change from today's
+    // create+update-but-not-delete.
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('EXTRAS', 'FULL')")
     public ResponseEntity<ExtraResponse> createExtra(@Valid @RequestBody ExtraRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(extraService.createExtra(request));
     }
@@ -43,21 +46,21 @@ public class ExtraController {
     }
 
     @PutMapping("/{extraId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    @PreAuthorize("@perm.can('EXTRAS', 'EDIT')")
     public ResponseEntity<ExtraResponse> updateExtra(@PathVariable UUID extraId,
                                                      @Valid @RequestBody ExtraRequest request) {
         return ResponseEntity.ok(extraService.updateExtra(extraId, request));
     }
 
     @DeleteMapping("/{extraId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('EXTRAS', 'FULL')")
     public ResponseEntity<Void> deleteExtra(@PathVariable UUID extraId) {
         extraService.deleteExtra(extraId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{extraId}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@perm.can('EXTRAS', 'EDIT')")
     public ResponseEntity<ExtraResponse> deactivateExtra(@PathVariable UUID extraId) {
         return ResponseEntity.ok(extraService.deactivateExtra(extraId));
     }

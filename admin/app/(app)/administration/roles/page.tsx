@@ -1,37 +1,43 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/session";
-import { getUserCountsByRole, getSecurityEndpoints, type UserRole } from "@/lib/api";
+import {
+  getUserCountsByRole,
+  getSecurityEndpoints,
+  getRolePermissionMatrix,
+  type UserRole,
+} from "@/lib/api";
 import SecurityEndpointsTable from "@/components/roles/SecurityEndpointsTable";
+import RolePermissionsMatrix from "@/components/roles/RolePermissionsMatrix";
 
 export const metadata: Metadata = { title: "Rôles & permissions" };
 
-// The 4 roles are a fixed enum (UserRole, backend/model/enums/UserRole.java),
-// mirrored as Keycloak realm roles — not a database table an admin edits.
-// This page is deliberately read-only: what each role covers, in prose, plus
-// the live, reflected list of every @PreAuthorize rule below. Nothing here
-// is editable because nothing here would actually change what the backend
-// enforces — a free-form roles/permissions CRUD would just be a second,
-// fake source of truth next to the real one.
+// CAMPING and PARTENAIRE's access is now a real, editable matrix
+// (role_permissions table, enforced by PermissionGuard/@perm.can(...) on
+// each converted controller) — no longer just this page's prose. ADMIN and
+// CLIENT stay fixed (FULL / NONE) and are not editable, for the reasons
+// RolePermissionServiceImpl.updateMatrix rejects an edit to either: ADMIN
+// must never depend on a row existing, and CLIENT never reaches this
+// backoffice at all.
 const ROLE_INFO: Record<UserRole, { label: string; description: string }> = {
   ADMIN: {
     label: "Administrateur",
     description:
-      "Accès complet — tout le backoffice, y compris les endpoints /api/admin/** et toute action réservée hasRole('ADMIN') ci-dessous.",
+      "Accès complet, fixe — tout le backoffice, y compris les endpoints /api/admin/** et toute action réservée hasRole('ADMIN') ci-dessous.",
   },
   CAMPING: {
     label: "Camping",
     description:
-      "Opérations du camp — réservations, extras, tours, factures, transactions. Pas d'accès aux endpoints ADMIN-only (utilisateurs, contenu CMS, médiathèque, statistiques).",
+      "Opérations du camp — le tableau ci-dessous définit précisément ce que ce rôle peut voir/modifier, ressource par ressource.",
   },
   PARTENAIRE: {
     label: "Partenaire",
     description:
-      "Agences/revendeurs — création et suivi de leurs propres réservations. Accès le plus restreint des comptes staff.",
+      "Agences/revendeurs — le tableau ci-dessous définit précisément ce que ce rôle peut voir/modifier, ressource par ressource.",
   },
   CLIENT: {
     label: "Client",
     description:
-      "Compte espace-client public — ses propres réservations et son profil uniquement. N'accède à aucune route de ce backoffice.",
+      "Compte espace-client public, fixe — n'accède à aucune route de ce backoffice, quel que soit ce tableau.",
   },
 };
 
@@ -39,9 +45,10 @@ export default async function RolesPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const [counts, endpoints] = await Promise.all([
+  const [counts, endpoints, matrix] = await Promise.all([
     getUserCountsByRole(session.accessToken),
     getSecurityEndpoints(session.accessToken),
+    getRolePermissionMatrix(session.accessToken),
   ]);
 
   return (
@@ -49,9 +56,10 @@ export default async function RolesPage() {
       <div>
         <h1 className="text-xl font-bold text-navy-800">Rôles & permissions</h1>
         <p className="mt-1 text-sm text-navy-700/55">
-          Les rôles sont fixes (Keycloak + UserRole côté backend) — cette page ne les édite pas, elle
-          montre ce qu&apos;ils couvrent réellement. Le tableau du bas reflète en direct les annotations
-          @PreAuthorize du backend, pas une copie qui pourrait diverger.
+          Camping et Partenaire ont désormais un accès configurable, ressource par ressource — aucun
+          accès, lecture seule, modification, ou accès complet. Admin et Client restent fixes. Le
+          tableau des endpoints en bas reflète en direct les règles du backend, pas une copie qui
+          pourrait diverger.
         </p>
       </div>
 
@@ -69,6 +77,19 @@ export default async function RolesPage() {
             </p>
           </div>
         ))}
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-[13px] font-bold uppercase tracking-wide text-navy-700/50">
+          Permissions par ressource
+        </h2>
+        {matrix ? (
+          <RolePermissionsMatrix initialMatrix={matrix} />
+        ) : (
+          <p className="text-sm text-rose">
+            Impossible de charger la matrice des permissions — vérifiez que le backend répond.
+          </p>
+        )}
       </div>
 
       <div>

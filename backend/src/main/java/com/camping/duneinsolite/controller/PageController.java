@@ -19,47 +19,57 @@ import java.util.UUID;
  * an internal content/marketing tool, not something CAMPING/PARTENAIRE
  * staff need.
  */
+// Was a single class-level @PreAuthorize("hasRole('ADMIN')") - moved to
+// per-method @perm checks so PAGES gets real READ/EDIT/FULL granularity
+// instead of one all-or-nothing gate. CAMPING/PARTENAIRE seed at NONE
+// (RolePermissionSeeder), matching today's behavior exactly.
 @RestController
 @RequestMapping("/api/pages")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class PageController {
 
     private final PageService pageService;
 
     @PostMapping
+    @PreAuthorize("@perm.can('PAGES', 'FULL')")
     public ResponseEntity<PageResponse> createPage(@Valid @RequestBody PageRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pageService.createPage(request));
     }
 
     @GetMapping("/{pageId}")
+    @PreAuthorize("@perm.can('PAGES', 'READ')")
     public ResponseEntity<PageResponse> getPageById(@PathVariable UUID pageId) {
         return ResponseEntity.ok(pageService.getPageById(pageId));
     }
 
     @GetMapping
+    @PreAuthorize("@perm.can('PAGES', 'READ')")
     public ResponseEntity<List<PageResponse>> getAllPages() {
         return ResponseEntity.ok(pageService.getAllPages());
     }
 
     @PutMapping("/{pageId}")
+    @PreAuthorize("@perm.can('PAGES', 'EDIT')")
     public ResponseEntity<PageResponse> updatePage(
             @PathVariable UUID pageId, @Valid @RequestBody PageRequest request) {
         return ResponseEntity.ok(pageService.updatePage(pageId, request));
     }
 
     @DeleteMapping("/{pageId}")
+    @PreAuthorize("@perm.can('PAGES', 'FULL')")
     public ResponseEntity<Void> deletePage(@PathVariable UUID pageId) {
         pageService.deletePage(pageId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{pageId}/publish")
+    @PreAuthorize("@perm.can('PAGES', 'EDIT')")
     public ResponseEntity<PageResponse> publishPage(@PathVariable UUID pageId) {
         return ResponseEntity.ok(pageService.publishPage(pageId));
     }
 
     @PatchMapping("/{pageId}/unpublish")
+    @PreAuthorize("@perm.can('PAGES', 'EDIT')")
     public ResponseEntity<PageResponse> unpublishPage(@PathVariable UUID pageId) {
         return ResponseEntity.ok(pageService.unpublishPage(pageId));
     }

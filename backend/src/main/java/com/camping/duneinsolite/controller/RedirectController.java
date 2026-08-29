@@ -18,36 +18,43 @@ import java.util.UUID;
  * Redirect's own doc comment for how this differs from the DI-022 legacy
  * WordPress rewrites. ADMIN-only, same as PageController/NavigationController.
  */
+// Was a single class-level @PreAuthorize("hasRole('ADMIN')") - see
+// PageController's own comment for why this moved to per-method @perm
+// checks. CAMPING/PARTENAIRE seed at NONE, matching today exactly.
 @RestController
 @RequestMapping("/api/redirects")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class RedirectController {
 
     private final RedirectService redirectService;
 
     @PostMapping
+    @PreAuthorize("@perm.can('REDIRECTS', 'FULL')")
     public ResponseEntity<RedirectResponse> createRedirect(@Valid @RequestBody RedirectRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(redirectService.createRedirect(request));
     }
 
     @GetMapping("/{redirectId}")
+    @PreAuthorize("@perm.can('REDIRECTS', 'READ')")
     public ResponseEntity<RedirectResponse> getRedirectById(@PathVariable UUID redirectId) {
         return ResponseEntity.ok(redirectService.getRedirectById(redirectId));
     }
 
     @GetMapping
+    @PreAuthorize("@perm.can('REDIRECTS', 'READ')")
     public ResponseEntity<List<RedirectResponse>> getAllRedirects() {
         return ResponseEntity.ok(redirectService.getAllRedirects());
     }
 
     @PutMapping("/{redirectId}")
+    @PreAuthorize("@perm.can('REDIRECTS', 'EDIT')")
     public ResponseEntity<RedirectResponse> updateRedirect(
             @PathVariable UUID redirectId, @Valid @RequestBody RedirectRequest request) {
         return ResponseEntity.ok(redirectService.updateRedirect(redirectId, request));
     }
 
     @DeleteMapping("/{redirectId}")
+    @PreAuthorize("@perm.can('REDIRECTS', 'FULL')")
     public ResponseEntity<Void> deleteRedirect(@PathVariable UUID redirectId) {
         redirectService.deleteRedirect(redirectId);
         return ResponseEntity.noContent().build();

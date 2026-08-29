@@ -18,18 +18,21 @@ import java.util.UUID;
 
 /**
  * Ops-only visibility, not a booking control - see AvailabilityBlock and
- * AvailabilityServiceImpl's own doc comments. ADMIN-only, same as every
- * other backoffice-only controller (CampingSettingsController, etc.).
+ * AvailabilityServiceImpl's own doc comments. Was a single class-level
+ * hasRole('ADMIN') - moved to per-method @perm checks (see PageController's
+ * comment for why) so this can be handed to CAMPING later if ever needed,
+ * but seeds at NONE for CAMPING/PARTENAIRE, matching the ADMIN-only intent
+ * already stated above and today's actual behavior exactly.
  */
 @RestController
 @RequestMapping("/api/availability")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class AvailabilityController {
 
     private final AvailabilityService availabilityService;
 
     @GetMapping("/calendar")
+    @PreAuthorize("@perm.can('AVAILABILITY', 'READ')")
     public ResponseEntity<List<AvailabilityDayResponse>> getCalendar(
             @RequestParam UUID tourTypeId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
@@ -37,11 +40,13 @@ public class AvailabilityController {
     }
 
     @PostMapping("/blocks")
+    @PreAuthorize("@perm.can('AVAILABILITY', 'FULL')")
     public ResponseEntity<AvailabilityBlockResponse> createBlock(@Valid @RequestBody AvailabilityBlockRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(availabilityService.createBlock(request));
     }
 
     @DeleteMapping("/blocks/{blockId}")
+    @PreAuthorize("@perm.can('AVAILABILITY', 'FULL')")
     public ResponseEntity<Void> deleteBlock(@PathVariable UUID blockId) {
         availabilityService.deleteBlock(blockId);
         return ResponseEntity.noContent().build();
