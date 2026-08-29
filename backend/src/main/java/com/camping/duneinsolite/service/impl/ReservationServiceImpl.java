@@ -484,12 +484,17 @@ public class ReservationServiceImpl implements ReservationService {
         return toEnrichedResponse(findById(reservationId));
     }
 
+    // Was an unbounded findAll() - loaded the entire reservation table into
+    // memory on every call (ARCHITECTURE.md §13 names this exact line by
+    // number). Now paginated the same way its siblings just below
+    // (getReservationsByStatus/getActiveReservations) already were - this
+    // was the one method in the class still on the old pattern, not a new
+    // one introduced here.
     @Override
     @Transactional(readOnly = true)
-    public List<ReservationResponse> getAllReservations() {
-        return reservationRepository.findAll().stream()
-                .map(this::toEnrichedResponse)
-                .toList();
+    public Page<ReservationResponse> getAllReservations(Pageable pageable) {
+        return reservationRepository.findAll(pageable)
+                .map(this::toEnrichedResponse);
     }
 
     @Override

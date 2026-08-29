@@ -17,7 +17,7 @@ import java.util.UUID;
 public interface ReservationService {
     ReservationResponse createReservation(ReservationRequest request);
     ReservationResponse getReservationById(UUID reservationId);
-    List<ReservationResponse> getAllReservations();
+    Page<ReservationResponse> getAllReservations(Pageable pageable);
     List<ReservationResponse> getReservationsByUser(UUID userId);
     List<ReservationResponse> getNonCompletedReservationsByUser(UUID userId);
     Page<ReservationResponse> getReservationsByStatus(ReservationStatus status, Pageable pageable);

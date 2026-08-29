@@ -11,6 +11,8 @@ import com.camping.duneinsolite.model.enums.TransactionStatus;
 import com.camping.duneinsolite.repository.*;
 import com.camping.duneinsolite.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -70,10 +72,14 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionMapper.toResponse(findById(transactionId));
     }
 
+    // Was an unbounded findAll() (ARCHITECTURE.md §13 item 15). Every
+    // transaction ever recorded, loaded into memory on one request - now
+    // bounded via Pageable, same convention ReservationServiceImpl's
+    // sibling endpoints already use.
     @Override
     @Transactional(readOnly = true)
-    public List<TransactionResponse> getAllTransactions() {
-        return transactionRepository.findAll().stream().map(transactionMapper::toResponse).toList();
+    public Page<TransactionResponse> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable).map(transactionMapper::toResponse);
     }
 
     @Override

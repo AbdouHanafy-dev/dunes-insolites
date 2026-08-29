@@ -64,12 +64,14 @@ public class UserServiceImpl implements UserService {
         );
     }
 
+    // Was an unbounded findAll() (ARCHITECTURE.md §13 item 15). The admin
+    // app doesn't call this one at all - it uses searchUsers below, already
+    // paginated - so this had no real caller to coordinate with either.
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponse> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(userMapper::toResponse)
-                .toList();
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(userMapper::toResponse);
     }
     @Override
     public UserResponse updateUser(UUID userId, UserRequest request) {

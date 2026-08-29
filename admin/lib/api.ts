@@ -459,8 +459,20 @@ export type AdminTransaction = {
   invoiceId: string | null;
 };
 
+// The backend endpoint is now paginated (was an unbounded findAll() -
+// ARCHITECTURE.md §13 item 15). This page doesn't have real pagination
+// controls yet (CollectionList renders a flat list, no page nav), so this
+// requests one generously-sized page and unwraps `.content` back into a
+// flat array - the caller's contract stays exactly what it was. Real
+// pagination UI here is a further increment, not done as a side effect of
+// fixing the backend's unbounded query.
 export function getAllTransactions(accessToken: string): Promise<AdminTransaction[]> {
-  return authedGet<AdminTransaction[]>("/transactions", accessToken, []);
+  return authedGet<Page<AdminTransaction>>("/transactions?size=500", accessToken, {
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    number: 0,
+  }).then((page) => page.content);
 }
 
 export function getTransactionById(accessToken: string, id: string): Promise<AdminTransaction | null> {

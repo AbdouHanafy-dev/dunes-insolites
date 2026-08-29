@@ -14,7 +14,7 @@ public interface UserService {
     UserResponse createUser(UserRequest request);
     UserResponse getUserById(UUID userId);
     UserResponse getUserByEmail(String email);
-    List<UserResponse> getAllUsers();
+    Page<UserResponse> getAllUsers(Pageable pageable);
     UserResponse updateUser(UUID userId, UserRequest request);
     void deleteUser(UUID userId);
     List<UserResponse> getUsersByRoles(List<UserRole> roles);

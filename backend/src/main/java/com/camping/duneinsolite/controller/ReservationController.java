@@ -52,8 +52,8 @@ public class ReservationController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING', 'PARTENAIRE')")
-    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
-        return ResponseEntity.ok(reservationService.getAllReservations());
+    public ResponseEntity<Page<ReservationResponse>> getAllReservations(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(reservationService.getAllReservations(pageable));
     }
 
     // CLIENT/PARTENAIRE may only fetch their own reservations (userId must match

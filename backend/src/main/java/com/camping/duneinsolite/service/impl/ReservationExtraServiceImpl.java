@@ -18,6 +18,8 @@ import com.camping.duneinsolite.repository.ReservationExtraRepository;
 import com.camping.duneinsolite.repository.ReservationRepository;
 import com.camping.duneinsolite.service.ReservationExtraService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -108,11 +110,15 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
         return reservationExtraMapper.toResponse(findById(extraId));
     }
 
+    // Was an unbounded findAll() (ARCHITECTURE.md §13 item 15) - every extra
+    // ever attached to any reservation, loaded in one request. Not consumed
+    // by the admin app yet (no frontend reference to this endpoint found),
+    // so paginating it now has no existing caller to coordinate with.
     @Override
     @Transactional(readOnly = true)
-    public List<ReservationExtraResponse> getAllExtras() {
-        return reservationExtraRepository.findAll().stream()
-                .map(reservationExtraMapper::toResponse).toList();
+    public Page<ReservationExtraResponse> getAllExtras(Pageable pageable) {
+        return reservationExtraRepository.findAll(pageable)
+                .map(reservationExtraMapper::toResponse);
     }
 
     @Override
