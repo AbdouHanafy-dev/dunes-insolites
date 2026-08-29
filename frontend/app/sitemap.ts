@@ -3,6 +3,7 @@ import { getActivities, getStays } from "@/lib/api";
 import { site } from "@/lib/site";
 import { canonicalActivityPath, canonicalStayPath } from "@/lib/legacySlugs";
 import { routing, localeHref } from "@/i18n/routing";
+import { withTrailingSlash } from "@/lib/schema";
 
 /**
  * Rebuilt from lib/api (DI-025) rather than importing lib/data/* directly —
@@ -29,10 +30,10 @@ import { routing, localeHref } from "@/i18n/routing";
 // go through Next's own URL resolution and pick the slash up automatically).
 // Found by building the admin's Sitemap overview (docs/cms.md) and seeing
 // every non-homepage entry disagree with its own page's canonical tag by
-// exactly a trailing slash.
-function withTrailingSlash(path: string): string {
-  return path === "" || path.endsWith("/") ? path || "/" : `${path}/`;
-}
+// exactly a trailing slash. withTrailingSlash itself now lives in
+// lib/schema.ts - breadcrumbJsonLd needed the exact same fix for the exact
+// same reason (found in the SEO/vitrine audit), so it's the one shared
+// copy now instead of two that could drift apart again.
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [activities, stays] = await Promise.all([getActivities(), getStays()]);

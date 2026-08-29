@@ -6,6 +6,7 @@ import LivePreview from "@/components/LivePreview";
 import { site } from "@/lib/site";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+import { breadcrumbJsonLd } from "@/lib/schema";
 
 const CMS_SLUG = "contact";
 
@@ -59,8 +60,17 @@ export default async function ContactPage({
   const title = (typeof heroData.title === "string" && heroData.title) || t("title");
   const lead = (typeof heroData.subtitle === "string" && heroData.subtitle) || t("lead");
 
+  const breadcrumbLd = breadcrumbJsonLd([
+    { name: "Home", path: localeHref(locale, "/") },
+    { name: t("eyebrow"), path: localeHref(locale, "/contact") },
+  ]);
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <PageHead eyebrow={t("eyebrow")} title={title} lead={lead} image="/images/sandboard.jpg" />
 
       <section className="section-sand">

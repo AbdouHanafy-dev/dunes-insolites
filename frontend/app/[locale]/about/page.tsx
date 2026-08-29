@@ -9,6 +9,7 @@ import CmsBlocks from "@/components/CmsBlocks";
 import LivePreview from "@/components/LivePreview";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+import { breadcrumbJsonLd } from "@/lib/schema";
 
 const CMS_SLUG = "about";
 
@@ -44,6 +45,11 @@ export default async function AboutPage({
   const locale = await getLocale();
   const [t, cms] = await Promise.all([getTranslations("about"), getCmsPage(CMS_SLUG, locale)]);
 
+  const breadcrumbLd = breadcrumbJsonLd([
+    { name: "Home", path: localeHref(locale, "/") },
+    { name: t("eyebrow"), path: localeHref(locale, "/about") },
+  ]);
+
   // A published "about" page in the admin CMS (a "team" block covers the
   // guide profiles below via a repeatable group field) takes over the
   // editorial content; Experience/CTA stay code — they're conversion
@@ -51,6 +57,10 @@ export default async function AboutPage({
   if (cms && cms.blocks.length > 0) {
     return (
       <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        />
         <PageHead eyebrow={t("eyebrow")} title={cms.title} lead="" image="/images/gate.jpg" />
         <CmsBlocks blocks={cms.blocks} />
         <Experience />
@@ -67,6 +77,10 @@ export default async function AboutPage({
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <PageHead
         eyebrow={t("eyebrow")}
         title={
