@@ -41,10 +41,23 @@ public class TourServiceImpl implements TourService {
         return tourMapper.toResponse(tourRepository.save(tour));
     }
 
+    // Found live (CRUD audit): TourMapper.updateEntity has no
+    // NullValuePropertyMappingStrategy.IGNORE, so a PUT that omits isActive
+    // (legitimately optional in TourUpdateRequest) overwrote it with null -
+    // which tours.is_active's NOT NULL constraint then rejected with a raw
+    // SQL-error 400 instead of a clean update. Same bug class, same fix
+    // shape as PageServiceImpl's noIndex/noFollow/status: "unspecified
+    // means unchanged" is also the correct semantic here - a PUT that
+    // doesn't mention isActive must not silently reactivate/deactivate a
+    // product.
     @Override
     public TourResponse updateTour(UUID tourId, TourUpdateRequest request) {
         Tour tour = findById(tourId);
+        Boolean previousIsActive = tour.getIsActive();
         tourMapper.updateEntity(request, tour);
+        if (tour.getIsActive() == null) {
+            tour.setIsActive(previousIsActive);
+        }
         return tourMapper.toResponse(tourRepository.save(tour));
     }
 

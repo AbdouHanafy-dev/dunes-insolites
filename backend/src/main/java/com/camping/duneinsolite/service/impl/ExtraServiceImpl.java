@@ -56,10 +56,22 @@ public class ExtraServiceImpl implements ExtraService {
         return extraRepository.findByIsActiveTrue().stream().map(extraMapper::toResponse).toList();
     }
 
+    // Same bug class as TourServiceImpl.updateTour/TourTypeServiceImpl.
+    // updateTourType/PageServiceImpl - extraMapper.updateEntity has no
+    // NullValuePropertyMappingStrategy.IGNORE, so omitting isActive on a
+    // PUT nulled it and would 400 on extras.is_active's NOT NULL
+    // constraint. ExtraRequest.isActive has a Java field default (= true),
+    // which only helps when the JSON key is absent entirely - it does not
+    // help if a caller sends "isActive": null explicitly, so this guard is
+    // still needed.
     @Override
     public ExtraResponse updateExtra(UUID extraId, ExtraRequest request) {
         Extra extra = findById(extraId);
+        Boolean previousIsActive = extra.getIsActive();
         extraMapper.updateEntity(request, extra);
+        if (extra.getIsActive() == null) {
+            extra.setIsActive(previousIsActive);
+        }
         syncTranslations(extra, request.getTranslations());
         return extraMapper.toResponse(extraRepository.save(extra));
     }

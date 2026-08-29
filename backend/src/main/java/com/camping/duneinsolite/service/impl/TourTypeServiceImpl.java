@@ -59,10 +59,18 @@ public class TourTypeServiceImpl implements TourTypeService {
                 .map(tourTypeMapper::toResponse).toList();
     }
 
+    // Same bug class as TourServiceImpl.updateTour and PageServiceImpl -
+    // tourTypeMapper.updateEntity has no NullValuePropertyMappingStrategy.
+    // IGNORE, so omitting isActive on a PUT nulled it and 400'd on
+    // tour_types.is_active's NOT NULL constraint.
     @Override
     public TourTypeResponse updateTourType(UUID tourTypeId, TourTypeRequest request) {
         TourType tourType = findById(tourTypeId);
+        Boolean previousIsActive = tourType.getIsActive();
         tourTypeMapper.updateEntity(request, tourType);
+        if (tourType.getIsActive() == null) {
+            tourType.setIsActive(previousIsActive);
+        }
         syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));
     }

@@ -45,11 +45,23 @@ public class MaintenanceWindowServiceImpl implements MaintenanceWindowService {
                 .map(maintenanceWindowMapper::toResponse).toList();
     }
 
+    // Same bug class as TourServiceImpl.updateTour/PageServiceImpl -
+    // maintenanceWindowMapper.updateEntity has no
+    // NullValuePropertyMappingStrategy.IGNORE, so a PUT that omits
+    // isActive (optional in MaintenanceWindowRequest, same as create)
+    // would null it and 400 on the NOT NULL constraint. The admin's own
+    // form always sends the checkbox value, which is why this hadn't
+    // surfaced yet - found sweeping every mapper with this same shape
+    // after the identical bug turned up in Tours/TourTypes/Extras/Pages.
     @Override
     public MaintenanceWindowResponse updateMaintenanceWindow(UUID maintenanceId, MaintenanceWindowRequest request) {
         MaintenanceWindow window = findById(maintenanceId);
         validate(request, maintenanceId);
+        Boolean previousIsActive = window.getIsActive();
         maintenanceWindowMapper.updateEntity(request, window);
+        if (window.getIsActive() == null) {
+            window.setIsActive(previousIsActive);
+        }
         return maintenanceWindowMapper.toResponse(maintenanceWindowRepository.save(window));
     }
 
