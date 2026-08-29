@@ -5,7 +5,7 @@ Reference for how content editing works in `admin/`, how it reaches
 pattern was fully built and verified live — this is not a plan, it's what
 exists today.
 
-**Last verified:** 28 August 2026, against commit `83bb27a`.
+**Last verified:** 29 August 2026, against commit `e0f90d7`.
 
 ---
 
