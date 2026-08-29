@@ -596,5 +596,11 @@
     "deleted": "Notifica eliminata",
     "deleteFailed": "Eliminazione non riuscita.",
     "delete": "Elimina"
+  },
+  "errorBoundary": {
+    "eyebrow": "Un piccolo inconveniente",
+    "body": "Questa pagina ha riscontrato un errore. Il resto del sito funziona normalmente.",
+    "retry": "Riprova",
+    "home": "Torna alla home"
   }
 }

@@ -596,5 +596,11 @@
     "deleted": "Notification supprimée",
     "deleteFailed": "Suppression impossible.",
     "delete": "Supprimer"
+  },
+  "errorBoundary": {
+    "eyebrow": "Un souci passager",
+    "body": "Cette page a rencontré une erreur. Le reste du site fonctionne normalement.",
+    "retry": "Réessayer",
+    "home": "Retour à l'accueil"
   }
 }

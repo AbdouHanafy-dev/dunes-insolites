@@ -596,5 +596,11 @@
     "deleted": "Notifikation slettet",
     "deleteFailed": "Sletning mislykkedes.",
     "delete": "Slet"
+  },
+  "errorBoundary": {
+    "eyebrow": "Et midlertidigt problem",
+    "body": "Denne side stødte på en fejl. Resten af siden fungerer normalt.",
+    "retry": "Prøv igen",
+    "home": "Tilbage til forsiden"
   }
 }

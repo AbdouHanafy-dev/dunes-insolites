@@ -1,6 +1,8 @@
 package com.camping.duneinsolite.controller;
 
 import com.camping.duneinsolite.dto.request.RegisterRequest;
+import com.camping.duneinsolite.dto.response.UserResponse;
+import com.camping.duneinsolite.mapper.UserMapper;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.UserRole;
 import com.camping.duneinsolite.service.AuthService;
@@ -65,14 +67,19 @@ class AuthControllerRegisterSecurityTest {
         KeycloakUserSyncService keycloakUserSyncService = mock(KeycloakUserSyncService.class);
         AuthService authService = mock(AuthService.class);
         UserService userService = mock(UserService.class);
+        UserMapper userMapper = mock(UserMapper.class);
 
         User created = User.builder().userId(UUID.randomUUID()).name("Eve").email("eve@test.com")
                 .role(UserRole.CLIENT).build();
         when(keycloakUserSyncService.registerUser(any(RegisterRequest.class), eq(UserRole.CLIENT)))
                 .thenReturn(created);
+        UserResponse createdResponse = new UserResponse();
+        createdResponse.setUserId(created.getUserId());
+        createdResponse.setRole(UserRole.CLIENT);
+        when(userMapper.toResponse(created)).thenReturn(createdResponse);
 
-        AuthController controller = new AuthController(keycloakUserSyncService, authService, userService);
-        ResponseEntity<User> response = controller.register(request);
+        AuthController controller = new AuthController(keycloakUserSyncService, authService, userService, userMapper);
+        ResponseEntity<UserResponse> response = controller.register(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();

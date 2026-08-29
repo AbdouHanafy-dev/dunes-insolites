@@ -596,5 +596,11 @@
     "deleted": "Notification deleted",
     "deleteFailed": "Couldn't delete.",
     "delete": "Delete"
+  },
+  "errorBoundary": {
+    "eyebrow": "A temporary hiccup",
+    "body": "This page ran into an error. The rest of the site is working normally.",
+    "retry": "Try again",
+    "home": "Back to home"
   }
 }

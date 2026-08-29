@@ -86,13 +86,15 @@ npm run lint
 
 npm run backend:compile
 npm run backend:run
-npm run backend:test
+npm run backend:test        # full suite, needs a real Postgres/Keycloak/RabbitMQ
+npm run backend:test:unit   # everything except DuneinsoliteApplicationTests — no infra needed
 
-npm run verify           # typecheck + lint + backend compile — run before done
+npm run verify           # typecheck + lint + backend:test:unit — run before done
 ```
 
-Run `npm run verify` before calling anything finished. It is the CI gate that
-does not exist yet.
+Run `npm run verify` before calling anything finished. `.github/workflows/ci.yml`
+runs the same three steps on every push/PR to `main` — the CI gate this line
+used to say didn't exist yet now does.
 
 ---
 

@@ -596,5 +596,11 @@
     "deleted": "Benachrichtigung gelöscht",
     "deleteFailed": "Löschen fehlgeschlagen.",
     "delete": "Löschen"
+  },
+  "errorBoundary": {
+    "eyebrow": "Ein vorübergehendes Problem",
+    "body": "Bei dieser Seite ist ein Fehler aufgetreten. Der Rest der Website funktioniert normal.",
+    "retry": "Erneut versuchen",
+    "home": "Zurück zur Startseite"
   }
 }

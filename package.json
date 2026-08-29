@@ -17,9 +17,10 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "backend:compile": "node scripts/mvn.mjs -q compile",
     "backend:test": "node scripts/mvn.mjs test",
+    "backend:test:unit": "node scripts/mvn.mjs test \"-Dtest=!DuneinsoliteApplicationTests\"",
     "backend:run": "node scripts/mvn.mjs spring-boot:run",
     "backend:package": "node scripts/mvn.mjs -q package -DskipTests",
-    "verify": "npm run typecheck && npm run lint && npm run backend:compile"
+    "verify": "npm run typecheck && npm run lint && npm run backend:test:unit"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,51 @@
+name: CI
+
+# The gate CLAUDE.md's own "Commands" section calls out as missing: "npm run
+# verify — the CI gate that does not exist yet." This is that gate.
+#
+# Backend unit tests run here with one deliberate exclusion:
+# DuneinsoliteApplicationTests is a @SpringBootTest that boots the full
+# context against a real Postgres/Keycloak/RabbitMQ (application.yml's
+# defaults point at a specific dev host) - none of that exists on a GitHub
+# runner. Standing up Testcontainers for real integration coverage is R2
+# Sprint 6 scope (docs/ROADMAP.md), not a side effect of adding a workflow
+# file. AuthControllerRegisterSecurityTest and everything else that doesn't
+# need a live Spring context still runs for real.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "maven"
+
+      - name: Backend unit tests
+        # See the file header: excludes the one test that needs live infra
+        # this runner doesn't have. Same script npm run verify uses locally,
+        # so a green `verify` on a dev machine means a green CI run too.
+        run: npm run backend:test:unit
