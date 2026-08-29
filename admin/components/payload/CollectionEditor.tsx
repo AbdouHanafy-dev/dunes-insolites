@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
+import Breadcrumb from "./Breadcrumb";
 import { FieldInput, labelClass, type FieldDef } from "./fields";
 
 /**
@@ -95,9 +96,12 @@ export default function CollectionEditor({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href={basePath} className="text-sm font-medium text-navy-700/55 hover:text-navy-800">
-          ← {collectionLabel}
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: collectionLabel, href: basePath },
+            { label: isEdit ? String(form[titleKey] ?? "Modifier") : "Nouveau" },
+          ]}
+        />
         <h1 className="mt-1 text-xl font-bold text-navy-800">
           {isEdit ? String(form[titleKey] ?? "Modifier") : `Nouveau — ${collectionLabel}`}
         </h1>
@@ -124,17 +128,10 @@ export default function CollectionEditor({
         {/* Sidebar panel — Payload's signature: save/status/delete live here, not inline with fields */}
         <aside className="h-fit lg:sticky lg:top-20">
           <div className="card flex flex-col gap-4 rounded-2xl p-5">
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)] disabled:opacity-50"
-            >
+            <button type="submit" disabled={busy} className="btn btn-primary btn-block">
               {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Créer"}
             </button>
-            <Link
-              href={basePath}
-              className="w-full rounded-lg border border-navy-700/15 px-4 py-2.5 text-center text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <Link href={basePath} className="btn btn-secondary btn-block">
               Annuler
             </Link>
 
@@ -160,7 +157,7 @@ export default function CollectionEditor({
                 <button
                   type="button"
                   onClick={() => setDeleteOpen(true)}
-                  className="w-full rounded-lg border border-rose/25 px-4 py-2.5 text-sm font-medium text-rose hover:bg-rose/8"
+                  className="btn btn-danger-outline btn-block"
                 >
                   Supprimer
                 </button>
@@ -180,17 +177,10 @@ export default function CollectionEditor({
         <Modal title="Confirmer la suppression" onClose={() => setDeleteOpen(false)}>
           <p className="text-sm text-navy-700/80">Cette action est irréversible.</p>
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteOpen(false)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteOpen(false)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>

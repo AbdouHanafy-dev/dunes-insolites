@@ -67,10 +67,7 @@ export default function CollectionList<T extends Record<string, unknown>>({
           <h1 className="text-xl font-bold text-navy-800">{title}</h1>
           <p className="mt-1 text-sm text-navy-700/55">{items.length} élément(s)</p>
         </div>
-        <Link
-          href={`${basePath}/new`}
-          className="rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)]"
-        >
+        <Link href={`${basePath}/new`} className="btn btn-primary">
           + Créer
         </Link>
       </div>
@@ -114,7 +111,7 @@ export default function CollectionList<T extends Record<string, unknown>>({
                     <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setDeleteTarget(item)}
-                        className="rounded-md border border-rose/25 px-2.5 py-1 text-xs font-medium text-rose hover:bg-rose/8"
+                        className="btn btn-danger-outline btn-sm"
                       >
                         Supprimer
                       </button>
@@ -139,17 +136,10 @@ export default function CollectionList<T extends Record<string, unknown>>({
             </div>
           )}
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteTarget(null)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>

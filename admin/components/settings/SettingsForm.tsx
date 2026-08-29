@@ -2,11 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminCampingSettings } from "@/lib/api";
 
 export default function SettingsForm({ initialData }: { initialData: AdminCampingSettings | null }) {
   const router = useRouter();
+  const toast = useToast();
   const [maxCapacity, setMaxCapacity] = useState<string>(
     initialData?.maxCapacity != null ? String(initialData.maxCapacity) : "",
   );
@@ -29,10 +31,13 @@ export default function SettingsForm({ initialData }: { initialData: AdminCampin
     setBusy(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.message ?? data.error ?? "Une erreur est survenue.");
+      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      setError(message);
+      toast.error(message);
       return;
     }
     setSaved(true);
+    toast.success("Paramètres enregistrés");
     router.refresh();
   }
 
@@ -70,11 +75,7 @@ export default function SettingsForm({ initialData }: { initialData: AdminCampin
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)] disabled:opacity-50"
-        >
+        <button type="submit" disabled={busy} className="btn btn-primary btn-block">
           {busy ? "Enregistrement…" : "Enregistrer"}
         </button>
 

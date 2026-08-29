@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useToast } from "@/components/Toast";
+import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminReservation, AdminTransaction } from "@/lib/api";
 
@@ -44,10 +46,7 @@ export function TransactionsList({ initialItems }: { initialItems: AdminTransact
           <h1 className="text-xl font-bold text-navy-800">Paiements</h1>
           <p className="mt-1 text-sm text-navy-700/55">{initialItems.length} transaction(s)</p>
         </div>
-        <Link
-          href="/operations/paiements/new"
-          className="rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)]"
-        >
+        <Link href="/operations/paiements/new" className="btn btn-primary">
           + Enregistrer un paiement
         </Link>
       </div>
@@ -104,6 +103,7 @@ export function TransactionsList({ initialItems }: { initialItems: AdminTransact
 
 export function NewPaymentForm({ reservations }: { reservations: AdminReservation[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [reservationId, setReservationId] = useState("");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("CASH");
@@ -129,9 +129,12 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
     setBusy(false);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.message ?? data.error ?? "Une erreur est survenue.");
+      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      setError(message);
+      toast.error(message);
       return;
     }
+    toast.success("Paiement enregistré");
     router.push("/operations/paiements");
     router.refresh();
   }
@@ -139,12 +142,9 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link
-          href="/operations/paiements"
-          className="text-sm font-medium text-navy-700/55 hover:text-navy-800"
-        >
-          ← Paiements
-        </Link>
+        <Breadcrumb
+          items={[{ label: "Paiements", href: "/operations/paiements" }, { label: "Nouveau paiement" }]}
+        />
         <h1 className="mt-1 text-xl font-bold text-navy-800">Enregistrer un paiement</h1>
       </div>
 
@@ -214,11 +214,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
           </select>
         </div>
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)] disabled:opacity-50"
-        >
+        <button type="submit" disabled={busy} className="btn btn-primary btn-block">
           {busy ? "Enregistrement…" : "Enregistrer le paiement"}
         </button>
 

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 import type { AdminReview } from "@/lib/api";
 
 const PRODUCT_LABEL: Record<AdminReview["productType"], string> = {
@@ -23,6 +24,7 @@ const PRODUCT_LABEL: Record<AdminReview["productType"], string> = {
  */
 export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminReview | null>(null);
   const [busy, setBusy] = useState(false);
@@ -43,8 +45,10 @@ export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
     setBusy(false);
     if (!res.ok) {
       setError("Suppression impossible.");
+      toast.error("Suppression impossible.");
       return;
     }
+    toast.success("Supprimé avec succès");
     setDeleteTarget(null);
     router.refresh();
   }
@@ -95,10 +99,7 @@ export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
                       {new Date(r.createdAt).toLocaleDateString("fr-FR")}
                     </td>
                     <td className="px-6 py-3 text-right">
-                      <button
-                        onClick={() => setDeleteTarget(r)}
-                        className="rounded-md border border-rose/25 px-2.5 py-1 text-xs font-medium text-rose hover:bg-rose/8"
-                      >
+                      <button onClick={() => setDeleteTarget(r)} className="btn btn-danger-outline btn-sm">
                         Supprimer
                       </button>
                     </td>
@@ -122,17 +123,10 @@ export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
             </div>
           )}
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteTarget(null)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>

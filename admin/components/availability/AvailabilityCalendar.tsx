@@ -200,7 +200,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                         type="button"
                         disabled={busy}
                         onClick={() => unblock(day.blockId!)}
-                        className="rounded-md border border-navy-700/15 px-2.5 py-1.5 text-[11px] font-medium text-navy-700 hover:bg-navy-700/5 disabled:opacity-50"
+                        className="btn btn-secondary btn-sm"
                       >
                         Rouvrir
                       </button>
@@ -212,7 +212,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                           setBlockTarget(day.date);
                           setNoteDraft("");
                         }}
-                        className="rounded-md border border-rose/25 px-2.5 py-1.5 text-[11px] font-medium text-rose hover:bg-rose/8 disabled:opacity-50"
+                        className="btn btn-danger-outline btn-sm"
                       >
                         Fermer
                       </button>
@@ -235,17 +235,10 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
             className="mt-1.5 min-h-24 w-full rounded-[9px] border border-navy-700/15 bg-surface-alt px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
           />
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setBlockTarget(null)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setBlockTarget(null)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={confirmBlock}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={confirmBlock} disabled={busy} className="btn btn-danger">
               {busy ? "…" : "Fermer cette date"}
             </button>
           </div>

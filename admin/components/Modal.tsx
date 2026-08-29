@@ -24,7 +24,7 @@ export default function Modal({
           <h2 className="text-lg font-bold text-navy-800">{title}</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-navy-700/50 hover:bg-navy-700/8 hover:text-navy-800"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-navy-700/50 transition hover:bg-navy-700/8 hover:text-navy-800 active:scale-95"
             aria-label="Fermer"
           >
             ✕

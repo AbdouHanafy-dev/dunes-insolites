@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
+import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import PageBuilder from "./PageBuilder";
 import SeoEditor from "./SeoEditor";
@@ -121,9 +122,12 @@ export default function PagesEditor({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href={BASE_PATH} className="text-sm font-medium text-navy-700/55 hover:text-navy-800">
-          ← Pages
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: "Pages", href: BASE_PATH },
+            { label: isEdit ? form.title || "Modifier" : "Nouvelle page" },
+          ]}
+        />
         <h1 className="mt-1 text-xl font-bold text-navy-800">
           {isEdit ? form.title || "Modifier" : "Nouvelle page"}
         </h1>
@@ -226,17 +230,10 @@ export default function PagesEditor({
         {/* Sidebar — status/publish live here, same pattern as CollectionEditor */}
         <aside className="h-fit lg:sticky lg:top-20">
           <div className="card flex flex-col gap-4 rounded-2xl p-5">
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)] disabled:opacity-50"
-            >
+            <button type="submit" disabled={busy} className="btn btn-primary btn-block">
               {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Créer"}
             </button>
-            <Link
-              href={BASE_PATH}
-              className="w-full rounded-lg border border-navy-700/15 px-4 py-2.5 text-center text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <Link href={BASE_PATH} className="btn btn-secondary btn-block">
               Annuler
             </Link>
 
@@ -244,16 +241,27 @@ export default function PagesEditor({
               <>
                 <div className="border-t border-navy-700/8 pt-4">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-navy-700/35">Statut</p>
-                  <p className="mt-1 text-sm text-navy-700">
+                  <span
+                    className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${
+                      form.status === "PUBLISHED"
+                        ? "bg-emerald/12 text-emerald"
+                        : "bg-navy-700/8 text-navy-700/60"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        form.status === "PUBLISHED" ? "bg-emerald" : "bg-navy-700/40"
+                      }`}
+                    />
                     {form.status === "PUBLISHED" ? "Publiée" : "Brouillon"}
-                  </p>
+                  </span>
                 </div>
                 {form.status === "PUBLISHED" ? (
                   <button
                     type="button"
                     onClick={() => setStatus("unpublish")}
                     disabled={busy}
-                    className="w-full rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
+                    className="btn btn-secondary btn-block"
                   >
                     Dépublier
                   </button>
@@ -262,7 +270,7 @@ export default function PagesEditor({
                     type="button"
                     onClick={() => setStatus("publish")}
                     disabled={busy}
-                    className="w-full rounded-lg border border-emerald/30 px-4 py-2.5 text-sm font-medium text-emerald hover:bg-emerald/8"
+                    className="btn btn-success-outline btn-block"
                   >
                     Publier
                   </button>
@@ -270,7 +278,7 @@ export default function PagesEditor({
                 <button
                   type="button"
                   onClick={() => setDeleteOpen(true)}
-                  className="w-full rounded-lg border border-rose/25 px-4 py-2.5 text-sm font-medium text-rose hover:bg-rose/8"
+                  className="btn btn-danger-outline btn-block"
                 >
                   Supprimer
                 </button>
@@ -290,17 +298,10 @@ export default function PagesEditor({
         <Modal title="Confirmer la suppression" onClose={() => setDeleteOpen(false)}>
           <p className="text-sm text-navy-700/80">Cette action est irréversible.</p>
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteOpen(false)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteOpen(false)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
+import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import BlockFieldsEditor from "@/components/pages/BlockFieldsEditor";
 import { BLOCK_TYPES, blockTypeDef, blockPreviewLabel } from "@/components/pages/blockTypes";
@@ -18,6 +20,7 @@ const REUSABLE_TYPES = BLOCK_TYPES.filter((bt) => bt.type !== "blockReference");
 
 export function ContentBlocksList({ initialItems }: { initialItems: AdminContentBlock[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminContentBlock | null>(null);
   const [busy, setBusy] = useState(false);
@@ -35,9 +38,12 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
     const res = await fetch(`/api/proxy/${API_PATH}/${deleteTarget.blockId}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible — ce bloc est peut-être référencé par une page.");
+      const message = "Suppression impossible — ce bloc est peut-être référencé par une page.";
+      setError(message);
+      toast.error(message);
       return;
     }
+    toast.success("Supprimé avec succès");
     setDeleteTarget(null);
     router.refresh();
   }
@@ -52,10 +58,7 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
             &quot;Bloc réutilisable&quot; dans l&apos;éditeur de pages.
           </p>
         </div>
-        <Link
-          href={`${BASE_PATH}/new`}
-          className="rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)]"
-        >
+        <Link href={`${BASE_PATH}/new`} className="btn btn-primary">
           + Créer
         </Link>
       </div>
@@ -99,10 +102,7 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
                     </td>
                     <td className="px-6 py-3 text-gray-700">{b.locale}</td>
                     <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => setDeleteTarget(b)}
-                        className="rounded-md border border-rose/25 px-2.5 py-1 text-xs font-medium text-rose hover:bg-rose/8"
-                      >
+                      <button onClick={() => setDeleteTarget(b)} className="btn btn-danger-outline btn-sm">
                         Supprimer
                       </button>
                     </td>
@@ -126,17 +126,10 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
             </div>
           )}
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteTarget(null)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>
@@ -164,6 +157,7 @@ export function ContentBlockEditor({
   tourTypes: AdminTourType[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const isEdit = !!id;
   const [form, setForm] = useState<Omit<AdminContentBlock, "blockId" | "createdAt" | "updatedAt">>(
     initialData ?? emptyForm,
@@ -190,12 +184,15 @@ export function ContentBlockEditor({
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.message ?? data.error ?? "Une erreur est survenue.");
+      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      setError(message);
+      toast.error(message);
       setBusy(false);
       return;
     }
 
     setBusy(false);
+    toast.success(isEdit ? "Modifié avec succès" : "Créé avec succès");
     router.push(BASE_PATH);
     router.refresh();
   }
@@ -207,9 +204,11 @@ export function ContentBlockEditor({
     setBusy(false);
     if (!res.ok) {
       setError("Suppression impossible.");
+      toast.error("Suppression impossible.");
       setDeleteOpen(false);
       return;
     }
+    toast.success("Supprimé avec succès");
     router.push(BASE_PATH);
     router.refresh();
   }
@@ -217,9 +216,12 @@ export function ContentBlockEditor({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href={BASE_PATH} className="text-sm font-medium text-navy-700/55 hover:text-navy-800">
-          ← Blocs de contenu
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: "Blocs de contenu", href: BASE_PATH },
+            { label: isEdit ? form.label || "Modifier" : "Nouveau" },
+          ]}
+        />
         <h1 className="mt-1 text-xl font-bold text-navy-800">
           {isEdit ? form.label || "Modifier" : "Nouveau bloc"}
         </h1>
@@ -290,24 +292,17 @@ export function ContentBlockEditor({
 
         <aside className="h-fit lg:sticky lg:top-20">
           <div className="card flex flex-col gap-4 rounded-2xl p-5">
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)] disabled:opacity-50"
-            >
+            <button type="submit" disabled={busy} className="btn btn-primary btn-block">
               {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Créer"}
             </button>
-            <Link
-              href={BASE_PATH}
-              className="w-full rounded-lg border border-navy-700/15 px-4 py-2.5 text-center text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <Link href={BASE_PATH} className="btn btn-secondary btn-block">
               Annuler
             </Link>
             {isEdit && (
               <button
                 type="button"
                 onClick={() => setDeleteOpen(true)}
-                className="w-full rounded-lg border border-rose/25 px-4 py-2.5 text-sm font-medium text-rose hover:bg-rose/8"
+                className="btn btn-danger-outline btn-block"
               >
                 Supprimer
               </button>
@@ -328,17 +323,10 @@ export function ContentBlockEditor({
             irréversible.
           </p>
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteOpen(false)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteOpen(false)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>

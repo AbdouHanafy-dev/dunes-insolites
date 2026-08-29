@@ -70,3 +70,76 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 1px 3px rgba(22, 35, 58, 0.06), 0 8px 24px rgba(22, 35, 58, 0.06);
   color: var(--color-ink);
 }
+
+/* ==========================================================================
+   Buttons — one shared vocabulary instead of every screen inlining its own
+   className string. Four variants cover every button in the app: primary
+   (the one gold action per screen — save/create/publish), secondary (outline,
+   neutral actions — cancel/back), danger (destructive — delete), ghost
+   (icon-only/low-emphasis — sidebar toggle, modal close). Every variant
+   shares the same focus-visible ring and press micro-interaction, which is
+   what actually reads as "premium" up close — Payload's own buttons do the
+   same subtle scale-down on :active rather than just a color swap.
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 10px;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: box-shadow 0.15s ease, transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(197, 155, 61, 0.35);
+}
+
+.btn-primary {
+  background: linear-gradient(to bottom right, var(--color-gold), var(--color-gold-light));
+  color: var(--color-navy-950);
+  box-shadow: 0 4px 14px rgba(197, 155, 61, 0.3);
+}
+.btn-primary:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(197, 155, 61, 0.4); }
+
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-navy-700);
+  border: 1px solid rgba(26, 58, 92, 0.15);
+}
+.btn-secondary:hover:not(:disabled) { background: rgba(26, 58, 92, 0.05); }
+
+.btn-danger {
+  background: var(--color-rose);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.25);
+}
+.btn-danger:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(192, 57, 43, 0.35); }
+
+.btn-danger-outline {
+  background: transparent;
+  color: var(--color-rose);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+}
+.btn-danger-outline:hover:not(:disabled) { background: rgba(192, 57, 43, 0.08); }
+
+.btn-success-outline {
+  background: transparent;
+  color: var(--color-emerald);
+  border: 1px solid rgba(26, 138, 90, 0.3);
+}
+.btn-success-outline:hover:not(:disabled) { background: rgba(26, 138, 90, 0.08); }
+
+.btn-ghost {
+  background: transparent;
+  color: rgba(26, 58, 92, 0.7);
+}
+.btn-ghost:hover:not(:disabled) { background: rgba(26, 58, 92, 0.08); color: var(--color-navy-800); }
+
+.btn-sm { padding: 0.375rem 0.75rem; font-size: 0.75rem; border-radius: 8px; }
+.btn-block { width: 100%; }

@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
+import Breadcrumb from "@/components/payload/Breadcrumb";
 import type { AdminInvoice } from "@/lib/api";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -111,12 +112,15 @@ export function InvoicesList({
 
 export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice: AdminInvoice }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const sendPath = invoice.invoiceType === "PROFORMA" ? "send-proforma" : "send-facture";
+  const isProforma = invoice.invoiceType === "PROFORMA";
+  const sendPath = isProforma ? "send-proforma" : "send-facture";
+  const collectionLabel = isProforma ? "Proformas" : "Factures";
 
   async function onSend() {
     setBusy(true);
@@ -125,9 +129,11 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
     setBusy(false);
     if (!res.ok) {
       setError("Envoi impossible.");
+      toast.error("Envoi impossible.");
       return;
     }
     setSent(true);
+    toast.success("Envoyé avec succès");
   }
 
   async function onDelete() {
@@ -135,10 +141,13 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
     const res = await fetch(`/api/proxy/invoices/${invoice.invoiceId}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible — ce document n'est peut-être plus un brouillon.");
+      const message = "Suppression impossible — ce document n'est peut-être plus un brouillon.";
+      setError(message);
+      toast.error(message);
       setDeleteOpen(false);
       return;
     }
+    toast.success("Supprimé avec succès");
     router.push(basePath);
     router.refresh();
   }
@@ -146,9 +155,7 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href={basePath} className="text-sm font-medium text-navy-700/55 hover:text-navy-800">
-          ← Retour
-        </Link>
+        <Breadcrumb items={[{ label: collectionLabel, href: basePath }, { label: invoice.invoiceNumber }]} />
         <h1 className="mt-1 text-xl font-bold text-navy-800">{invoice.invoiceNumber}</h1>
       </div>
 
@@ -204,12 +211,7 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
 
         <aside className="h-fit lg:sticky lg:top-20">
           <div className="card flex flex-col gap-4 rounded-2xl p-5">
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={busy}
-              className="w-full rounded-lg bg-gradient-to-br from-gold to-gold-light px-4 py-2.5 text-sm font-bold text-navy-950 shadow-[0_4px_14px_rgba(197,155,61,0.3)] transition hover:shadow-[0_6px_20px_rgba(197,155,61,0.4)] disabled:opacity-50"
-            >
+            <button type="button" onClick={onSend} disabled={busy} className="btn btn-primary btn-block">
               {busy ? "…" : `Envoyer par e-mail`}
             </button>
             {sent && (
@@ -221,7 +223,7 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
               <button
                 type="button"
                 onClick={() => setDeleteOpen(true)}
-                className="w-full rounded-lg border border-rose/25 px-4 py-2.5 text-sm font-medium text-rose hover:bg-rose/8"
+                className="btn btn-danger-outline btn-block"
               >
                 Supprimer
               </button>
@@ -239,17 +241,10 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
         <Modal title="Confirmer la suppression" onClose={() => setDeleteOpen(false)}>
           <p className="text-sm text-navy-700/80">Cette action est irréversible.</p>
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={() => setDeleteOpen(false)}
-              className="rounded-lg border border-navy-700/15 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-700/5"
-            >
+            <button onClick={() => setDeleteOpen(false)} className="btn btn-secondary">
               Annuler
             </button>
-            <button
-              onClick={onDelete}
-              disabled={busy}
-              className="rounded-lg bg-rose px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
               {busy ? "Suppression…" : "Supprimer"}
             </button>
           </div>

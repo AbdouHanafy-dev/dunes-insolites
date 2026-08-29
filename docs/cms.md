@@ -23,8 +23,9 @@ exists today.
 10. [Safety guarantee: publish is the only way to affect the live site](#10-safety-guarantee-publish-is-the-only-way-to-affect-the-live-site)
 11. [How to add a new block type](#11-how-to-add-a-new-block-type)
 12. [How to wire a new route to the CMS](#12-how-to-wire-a-new-route-to-the-cms)
-13. [What's not built](#13-whats-not-built)
-14. [File map](#14-file-map)
+13. [The design system — toasts, breadcrumbs, buttons](#13-the-design-system--toasts-breadcrumbs-buttons)
+14. [What's not built](#14-whats-not-built)
+15. [File map](#15-file-map)
 
 ---
 
@@ -365,7 +366,54 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
    actually rendered. Check real DOM tags (`<h1>`, `<h2>`, `<details>`, a
    JSON-LD `<script>`'s own parsed content) instead.
 
-## 13. What's not built
+## 13. The design system — toasts, breadcrumbs, buttons
+
+Added in a dedicated pass after the collections themselves were done, to
+push the backoffice's polish closer to Payload's own — not a color
+palette copy (this app deliberately keeps its own navy/gold identity,
+matching the Angular admin-app it replaces — see `globals.css`'s own
+comment), but the same interaction vocabulary:
+
+- **Toasts** (`admin/components/Toast.tsx`) — a small context + provider,
+  no new dependency, mounted once in `AppShell.tsx` so every page under
+  `app/(app)/layout.tsx` gets it. Confirms saves/creates/deletes/
+  publishes; deliberately doesn't replace the existing inline error
+  banners, which stay on screen until a validation error is fixed rather
+  than auto-dismissing after 4s.
+- **Breadcrumbs** (`admin/components/payload/Breadcrumb.tsx`) —
+  `Collection / Document` step-nav at the top of every document editor,
+  replacing the old single "← Collection" back-link. Every item but the
+  last is a link; the last (the current document, or "Nouveau …" while
+  creating) is plain text.
+- **Buttons** — four shared classes in `globals.css` (`.btn-primary`
+  gold gradient, `.btn-secondary` outline, `.btn-danger`/
+  `.btn-danger-outline` rose, `.btn-success-outline` emerald) replacing
+  what used to be a long inline `className` string copy-pasted into every
+  CRUD file. All four share one focus-visible ring and a subtle
+  `:active` scale-down — the actual detail that reads as "premium" up
+  close, not just the color.
+
+Rolled out to every document editor in the app: `CollectionEditor.tsx`/
+`CollectionList.tsx` (covers everything built on the generic collection
+pattern — Navigation, Redirects, Clients, Hébergements, Tours, Extras,
+Utilisateurs) plus every bespoke editor individually (`PagesEditor.tsx`,
+`ContentBlocksCrud.tsx`, `MediaCrud.tsx`, `AvailabilityCalendar.tsx`,
+`InvoicesCrud.tsx`, `TransactionsCrud.tsx`, `ReviewsCrud.tsx`,
+`SettingsForm.tsx`, `Modal.tsx`) — confirmed via a repo-wide grep that no
+old-style button `className` string remained anywhere in `admin/components`.
+Icon-only buttons (Modal's close ✕, the sidebar collapse toggle, the
+availability calendar's month-nav arrows) were deliberately left as their
+own small bespoke classes rather than forced into the `.btn` vocabulary —
+they don't fit the labeled-button shape it was built for.
+
+Verified live: rendered several real pages (Pages, Content Blocks,
+Redirects, Media, Availability, Paiements) through a real authenticated
+session and confirmed the breadcrumb and button classes actually appear
+in the rendered HTML; exercised a real create+delete cycle through the
+admin's own proxy routes afterward to confirm none of the underlying
+save/delete behavior changed — this was a styling pass, not a logic one.
+
+## 14. What's not built
 
 - ~~**Disponibilités**~~ **Done, scoped narrowly on purpose.** This one
   hit a real modeling gap, not just a feature gap: the backend has no
@@ -577,7 +625,7 @@ Copy the shape from `legal/terms/page.tsx` (full replacement) or
   — falls back to `http://localhost:3000` locally, needs setting explicitly
   anywhere else.
 
-## 14. File map
+## 15. File map
 
 ```
 scripts/seed-cms-pages.py    one-time content migration — see §9
