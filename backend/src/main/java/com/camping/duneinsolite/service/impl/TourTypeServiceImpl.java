@@ -69,8 +69,22 @@ public class TourTypeServiceImpl implements TourTypeService {
     // Replaces the whole translation set on every save rather than diffing -
     // the admin form always submits the complete per-locale list, and
     // orphanRemoval on TourType.translations cleans up the rows that drop out.
+    //
+    // saveAndFlush() right after clear() is load-bearing, not decoration:
+    // without it, Hibernate batches the DELETEs for the orphaned old
+    // translations and the INSERTs for the new ones into the same flush and
+    // orders the INSERTs first, so updating a TourType that already has a
+    // translation for a given locale 400s on
+    // uk1djssv9jk474abp73mquxqyq7 (tour_type_id, locale) - the old row for
+    // that locale hasn't actually been deleted yet when the new one tries to
+    // insert. Found for real (not just reasoned about) fixing an existing
+    // seeded row's price - see docs/ROADMAP.md's DI-012 note. Forcing the
+    // flush here means the DELETE lands before any new translation exists to
+    // collide with it. Harmless on create, where getTranslations() is
+    // already empty and this flush has nothing to delete.
     private void syncTranslations(TourType tourType, List<CatalogTranslationDto> dtos) {
         tourType.getTranslations().clear();
+        tourTypeRepository.saveAndFlush(tourType);
         if (dtos == null) return;
         for (CatalogTranslationDto dto : dtos) {
             TourTypeTranslation translation = new TourTypeTranslation();

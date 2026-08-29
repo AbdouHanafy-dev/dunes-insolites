@@ -73,18 +73,22 @@ requires all four non-null — confirmed with the user rather than invented
 a discount; both nuitées currently carry the same real rate on all four
 price columns as a placeholder, flagged in the seed script's own header,
 needs a real admin correction once child/partner rates exist. One real
-bug found and worked around, not yet fixed: updating a `TourType` with a
-full `translations` array 400s with a unique-constraint violation
-(`tour_type_id, locale`) when that row already has translations for the
-same locale — `TourTypeServiceImpl.syncTranslations()` clears the old
-translations and re-adds the new ones in the same flush, and Hibernate
-appears to order the INSERTs before the DELETEs, violating the constraint
-before the old rows are actually gone. Worked around here with a direct
-SQL correction instead of the API (safe: only fixed an already-wrong
-placeholder price and description, left the row's already-correct real
-translations untouched) — the underlying flush-ordering bug in the
-service itself is still open, would resurface for any future edit to a
-`TourType` that already has translations. Also seeded 36 real navigation
+bug found **and fixed same day**: updating a `TourType` (or `Extra` —
+identical bug, same fix) with a full `translations` array 400d with a
+unique-constraint violation (`tour_type_id, locale`) whenever that row
+already had a translation for the same locale —
+`TourTypeServiceImpl`/`ExtraServiceImpl`'s `syncTranslations()` clears
+the old translations and re-adds the new ones in the same flush, and
+Hibernate ordered the INSERTs before the DELETEs, violating the
+constraint before the old rows were actually gone. First worked around
+with a direct SQL correction instead of the API; fixed for real right
+after with a `saveAndFlush()` between the `clear()` and the re-add,
+forcing the DELETE to land before any new translation can collide with
+it — harmless on create, where the translation list is already empty.
+Verified against the exact real row that used to fail: re-submitted
+`bivouac-desert-tunisie`'s full update (the same shape that 400d before)
+and it now returns `200` with all 5 translations intact, same for
+`quad-desert` on the `Extra` side. Also seeded 36 real navigation
 items (`scripts/seed-navigation.py`, transferred from
 `frontend/lib/site.ts`'s live nav + `messages/*.json`'s real translated
 labels) and 9 real media assets (`scripts/seed-media.py`, the actual

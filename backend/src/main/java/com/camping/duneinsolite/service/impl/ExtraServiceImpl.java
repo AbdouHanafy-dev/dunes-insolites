@@ -67,8 +67,15 @@ public class ExtraServiceImpl implements ExtraService {
     // Replaces the whole translation set on every save rather than diffing -
     // the admin form always submits the complete per-locale list, and
     // orphanRemoval on Extra.translations cleans up the rows that drop out.
+    //
+    // saveAndFlush() right after clear() is load-bearing - see
+    // TourTypeServiceImpl.syncTranslations()'s own comment for the exact
+    // Hibernate insert-before-delete ordering bug this avoids (identical
+    // structure here, same fix). Harmless on create, where
+    // getTranslations() is already empty.
     private void syncTranslations(Extra extra, List<CatalogTranslationDto> dtos) {
         extra.getTranslations().clear();
+        extraRepository.saveAndFlush(extra);
         if (dtos == null) return;
         for (CatalogTranslationDto dto : dtos) {
             ExtraTranslation translation = new ExtraTranslation();
