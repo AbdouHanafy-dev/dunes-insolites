@@ -38,6 +38,7 @@ public class PageServiceImpl implements PageService {
         if (page.getStatus() == null) {
             page.setStatus(PageStatus.DRAFT);
         }
+        defaultSeoFlags(page);
         return pageMapper.toResponse(pageRepository.save(page));
     }
 
@@ -61,7 +62,20 @@ public class PageServiceImpl implements PageService {
                 request.getSlug(), request.getLocale(), request.getCompanyType(), pageId)) {
             throw new PageSlugConflictException(request.getSlug());
         }
+        // Found live, same bug class as defaultSeoFlags below but worse:
+        // pageMapper.updateEntity has no NullValuePropertyMappingStrategy.
+        // IGNORE, so a PUT that omits `status` (an editor's form saving
+        // only content/SEO fields, say) nulled it outright and 400'd on
+        // the DB's NOT NULL constraint. Unlike noIndex/noFollow, the right
+        // fallback here isn't a fixed default (DRAFT would silently
+        // unpublish a live page) - it's "unspecified means unchanged",
+        // so the pre-update value is captured and restored when omitted.
+        PageStatus previousStatus = page.getStatus();
         pageMapper.updateEntity(request, page);
+        if (page.getStatus() == null) {
+            page.setStatus(previousStatus);
+        }
+        defaultSeoFlags(page);
         return pageMapper.toResponse(pageRepository.save(page));
     }
 
@@ -96,5 +110,17 @@ public class PageServiceImpl implements PageService {
     private Page findById(UUID pageId) {
         return pageRepository.findById(pageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page not found: " + pageId));
+    }
+
+    // Found live: pageMapper's toEntity/updateEntity have no
+    // NullValuePropertyMappingStrategy.IGNORE (unlike UserMapper), so
+    // omitting noIndex/noFollow from a PageRequest overwrites them with
+    // null - which the DB's NOT NULL columns then reject with a raw SQL
+    // constraint-violation 400, not a helpful validation message. Same
+    // shape as the existing status-defaulting two lines above each call
+    // site; both should have been defaulted from the start.
+    private void defaultSeoFlags(Page page) {
+        if (page.getNoIndex() == null) page.setNoIndex(false);
+        if (page.getNoFollow() == null) page.setNoFollow(false);
     }
 }
