@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 import { FieldInput, labelClass, type FieldDef } from "./fields";
 
 /**
@@ -38,6 +39,7 @@ export default function CollectionEditor({
   titleKey?: string;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const isEdit = !!id;
   const [form, setForm] = useState<Record<string, unknown>>(initialData);
   const [busy, setBusy] = useState(false);
@@ -60,12 +62,15 @@ export default function CollectionEditor({
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.message ?? data.error ?? "Une erreur est survenue.");
+      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      setError(message);
+      toast.error(message);
       setBusy(false);
       return;
     }
 
     setBusy(false);
+    toast.success(isEdit ? "Modifié avec succès" : "Créé avec succès");
     router.push(basePath);
     router.refresh();
   }
@@ -76,10 +81,13 @@ export default function CollectionEditor({
     const res = await fetch(`/api/proxy/${apiPath}/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible — cet élément est peut-être référencé ailleurs.");
+      const message = "Suppression impossible — cet élément est peut-être référencé ailleurs.";
+      setError(message);
+      toast.error(message);
       setDeleteOpen(false);
       return;
     }
+    toast.success("Supprimé avec succès");
     router.push(basePath);
     router.refresh();
   }
@@ -134,9 +142,20 @@ export default function CollectionEditor({
               <>
                 <div className="border-t border-navy-700/8 pt-4">
                   <p className="text-[11px] font-bold uppercase tracking-wide text-navy-700/35">Statut</p>
-                  <p className="mt-1 text-sm text-navy-700">
+                  <span
+                    className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${
+                      form.isActive === false
+                        ? "bg-navy-700/8 text-navy-700/60"
+                        : "bg-emerald/12 text-emerald"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        form.isActive === false ? "bg-navy-700/40" : "bg-emerald"
+                      }`}
+                    />
                     {form.isActive === false ? "Inactif" : "Actif"}
-                  </p>
+                  </span>
                 </div>
                 <button
                   type="button"

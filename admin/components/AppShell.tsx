@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import { ToastProvider } from "./Toast";
 import type { Session } from "@/lib/session";
 
 export default function AppShell({
@@ -15,7 +16,7 @@ export default function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <>
+    <ToastProvider>
       <Sidebar
         collapsed={collapsed}
         onToggleCollapsed={() => setCollapsed((v) => !v)}
@@ -42,6 +43,6 @@ export default function AppShell({
 
         <main className="p-6 lg:p-8">{children}</main>
       </div>
-    </>
+    </ToastProvider>
   );
 }

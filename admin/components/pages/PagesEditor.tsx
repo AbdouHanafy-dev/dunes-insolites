@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import PageBuilder from "./PageBuilder";
 import SeoEditor from "./SeoEditor";
@@ -43,6 +44,7 @@ export default function PagesEditor({
   tourTypes: AdminTourType[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const isEdit = !!id;
   const [tab, setTab] = useState<Tab>("general");
   const [form, setForm] = useState<Omit<AdminPage, "pageId" | "createdAt" | "updatedAt" | "publishedAt">>(
@@ -70,12 +72,15 @@ export default function PagesEditor({
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.message ?? data.error ?? "Une erreur est survenue.");
+      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      setError(message);
+      toast.error(message);
       setBusy(false);
       return;
     }
 
     setBusy(false);
+    toast.success(isEdit ? "Modifié avec succès" : "Créé avec succès");
     router.push(BASE_PATH);
     router.refresh();
   }
@@ -88,7 +93,10 @@ export default function PagesEditor({
     if (res.ok) {
       const updated = (await res.json()) as AdminPage;
       patch({ status: updated.status });
+      toast.success(action === "publish" ? "Page publiée" : "Page dépubliée");
       router.refresh();
+    } else {
+      toast.error(action === "publish" ? "Publication impossible." : "Dépublication impossible.");
     }
   }
 
@@ -99,9 +107,11 @@ export default function PagesEditor({
     setBusy(false);
     if (!res.ok) {
       setError("Suppression impossible.");
+      toast.error("Suppression impossible.");
       setDeleteOpen(false);
       return;
     }
+    toast.success("Page supprimée");
     router.push(BASE_PATH);
     router.refresh();
   }

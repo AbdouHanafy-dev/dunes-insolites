@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Modal from "@/components/Modal";
+import { useToast } from "@/components/Toast";
 import type { ColumnDef } from "./fields";
 
 /**
@@ -31,6 +32,7 @@ export default function CollectionList<T extends Record<string, unknown>>({
   columns: ColumnDef<T>[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,9 +50,12 @@ export default function CollectionList<T extends Record<string, unknown>>({
     const res = await fetch(`/api/proxy/${apiPath}/${deleteTarget[idKey]}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible — cet élément est peut-être référencé ailleurs.");
+      const message = "Suppression impossible — cet élément est peut-être référencé ailleurs.";
+      setError(message);
+      toast.error(message);
       return;
     }
+    toast.success("Supprimé avec succès");
     setDeleteTarget(null);
     router.refresh();
   }
