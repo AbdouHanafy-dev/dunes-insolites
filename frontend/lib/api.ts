@@ -152,6 +152,22 @@ export async function getCmsPage(slug: string, locale?: string): Promise<CmsPage
   );
 }
 
+/**
+ * Every PUBLISHED "guide"-category page in one locale — powers the
+ * vitrine's /guides index. `[]` for no backend configured, same
+ * degrade-gracefully convention as getCmsPage: the two seed articles
+ * (lib/guides.ts) are what the index falls back to showing on their own.
+ */
+export async function getGuidePages(locale?: string): Promise<CmsPage[]> {
+  if (!BASE) return [];
+  const loc = (locale ?? "fr").toUpperCase();
+  return get<CmsPage[]>(
+    `/public/pages?category=GUIDE&locale=${loc}&companyType=DUNES_INSOLITES`,
+    [],
+    { revalidate: 300 },
+  );
+}
+
 export type CmsNavItem = {
   navItemId: string;
   label: string;

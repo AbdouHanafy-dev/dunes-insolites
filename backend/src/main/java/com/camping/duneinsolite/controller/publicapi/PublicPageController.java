@@ -4,6 +4,7 @@ import com.camping.duneinsolite.dto.response.ContentBlockResponse;
 import com.camping.duneinsolite.dto.response.PageResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicPageResponse;
 import com.camping.duneinsolite.model.enums.CompanyType;
+import com.camping.duneinsolite.model.enums.PageCategory;
 import com.camping.duneinsolite.model.enums.PageLocale;
 import com.camping.duneinsolite.service.ContentBlockService;
 import com.camping.duneinsolite.service.PageService;
@@ -43,6 +44,21 @@ public class PublicPageController {
 
     private final PageService pageService;
     private final ContentBlockService contentBlockService;
+
+    // Powers the vitrine's /guides index (getGuidePages() in lib/api.ts) -
+    // every published GUIDE-category page, newest-published-first, so an
+    // admin-authored article shows up there with no frontend deploy.
+    @GetMapping
+    public ResponseEntity<List<PublicPageResponse>> getPagesByCategory(
+            @RequestParam PageCategory category,
+            @RequestParam(defaultValue = "FR") PageLocale locale,
+            @RequestParam(defaultValue = "DUNES_INSOLITES") CompanyType companyType) {
+        List<PublicPageResponse> pages = pageService.getPublishedPagesByCategory(category, locale, companyType)
+                .stream()
+                .map(this::toPublicResponse)
+                .toList();
+        return ResponseEntity.ok(pages);
+    }
 
     @GetMapping("/{slug}")
     public ResponseEntity<PublicPageResponse> getPage(

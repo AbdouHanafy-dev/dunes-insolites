@@ -7,6 +7,7 @@ import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.PageMapper;
 import com.camping.duneinsolite.model.Page;
 import com.camping.duneinsolite.model.enums.CompanyType;
+import com.camping.duneinsolite.model.enums.PageCategory;
 import com.camping.duneinsolite.model.enums.PageLocale;
 import com.camping.duneinsolite.model.enums.PageStatus;
 import com.camping.duneinsolite.repository.PageRepository;
@@ -70,10 +71,21 @@ public class PageServiceImpl implements PageService {
         // fallback here isn't a fixed default (DRAFT would silently
         // unpublish a live page) - it's "unspecified means unchanged",
         // so the pre-update value is captured and restored when omitted.
+        // Same reasoning as status above, applied proactively rather than
+        // waiting to find it live: category is nullable in the DB (so this
+        // wouldn't 400 the way status did), but an editor's form that only
+        // touches content/SEO and doesn't round-trip category would
+        // silently un-categorize a GUIDE page - it would just quietly stop
+        // appearing on /guides with no error anywhere, a worse failure mode
+        // than a 400 because nothing would ever surface it.
         PageStatus previousStatus = page.getStatus();
+        PageCategory previousCategory = page.getCategory();
         pageMapper.updateEntity(request, page);
         if (page.getStatus() == null) {
             page.setStatus(previousStatus);
+        }
+        if (page.getCategory() == null) {
+            page.setCategory(previousCategory);
         }
         defaultSeoFlags(page);
         return pageMapper.toResponse(pageRepository.save(page));
@@ -105,6 +117,18 @@ public class PageServiceImpl implements PageService {
         return pageRepository.findBySlugAndLocaleAndCompanyType(slug, locale, companyType)
                 .filter(page -> page.getStatus() == PageStatus.PUBLISHED)
                 .map(pageMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PageResponse> getPublishedPagesByCategory(
+            PageCategory category, PageLocale locale, CompanyType companyType) {
+        return pageRepository
+                .findByCategoryAndStatusAndLocaleAndCompanyTypeOrderByPublishedAtDesc(
+                        category, PageStatus.PUBLISHED, locale, companyType)
+                .stream()
+                .map(pageMapper::toResponse)
+                .toList();
     }
 
     private Page findById(UUID pageId) {

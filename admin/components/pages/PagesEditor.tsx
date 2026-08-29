@@ -21,6 +21,7 @@ const emptyPage: Omit<AdminPage, "pageId" | "createdAt" | "updatedAt" | "publish
   locale: "FR",
   companyType: "DUNES_INSOLITES",
   status: "DRAFT",
+  category: null,
   seoTitle: null,
   metaDescription: null,
   focusKeyword: null,
@@ -202,6 +203,21 @@ export default function PagesEditor({
                     <option value="DUNES_INSOLITES">Dunes Insolites</option>
                     <option value="ROUTE_INSOLITE">Route Insolite</option>
                   </select>
+                </div>
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className={labelClass}>Catégorie</label>
+                  <select
+                    className={inputClass}
+                    value={form.category ?? ""}
+                    onChange={(e) => patch({ category: e.target.value === "" ? null : (e.target.value as typeof form.category) })}
+                  >
+                    <option value="">Page ordinaire (aucune catégorie)</option>
+                    <option value="GUIDE">Guide — apparaît sur /guides</option>
+                  </select>
+                  <p className="text-[12px] text-navy-700/45">
+                    « Guide » ajoute cette page à la liste publique /guides du site, dans sa langue —
+                    aucune modification de code n&apos;est nécessaire pour publier un nouvel article.
+                  </p>
                 </div>
               </div>
             )}

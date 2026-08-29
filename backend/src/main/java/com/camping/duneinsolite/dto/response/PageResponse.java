@@ -2,6 +2,7 @@ package com.camping.duneinsolite.dto.response;
 
 import com.camping.duneinsolite.dto.PageBlockDto;
 import com.camping.duneinsolite.model.enums.CompanyType;
+import com.camping.duneinsolite.model.enums.PageCategory;
 import com.camping.duneinsolite.model.enums.PageLocale;
 import com.camping.duneinsolite.model.enums.PageStatus;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class PageResponse {
     private PageLocale locale;
     private CompanyType companyType;
     private PageStatus status;
+    private PageCategory category;
     private LocalDateTime publishedAt;
 
     private String seoTitle;

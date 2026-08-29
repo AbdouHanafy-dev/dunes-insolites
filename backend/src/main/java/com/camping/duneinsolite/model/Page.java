@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.model;
 
 import com.camping.duneinsolite.model.enums.CompanyType;
+import com.camping.duneinsolite.model.enums.PageCategory;
 import com.camping.duneinsolite.model.enums.PageLocale;
 import com.camping.duneinsolite.model.enums.PageStatus;
 import jakarta.persistence.*;
@@ -48,6 +49,14 @@ public class Page {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private PageStatus status = PageStatus.DRAFT;
+
+    // Null = an ordinary static page (about/safety/contact, each wired to
+    // one specific frontend route by slug). GUIDE lets the vitrine's
+    // /guides index discover this page by category instead of a
+    // developer hardcoding every new article's slug into the frontend.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category")
+    private PageCategory category;
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;

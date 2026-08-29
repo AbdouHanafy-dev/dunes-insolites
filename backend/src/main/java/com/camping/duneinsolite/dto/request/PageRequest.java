@@ -2,6 +2,7 @@ package com.camping.duneinsolite.dto.request;
 
 import com.camping.duneinsolite.dto.PageBlockDto;
 import com.camping.duneinsolite.model.enums.CompanyType;
+import com.camping.duneinsolite.model.enums.PageCategory;
 import com.camping.duneinsolite.model.enums.PageLocale;
 import com.camping.duneinsolite.model.enums.PageStatus;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +27,9 @@ public class PageRequest {
     private CompanyType companyType;
 
     private PageStatus status;
+
+    // Null = ordinary static page. See PageCategory's own comment.
+    private PageCategory category;
 
     // SEO
     private String seoTitle;

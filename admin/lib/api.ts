@@ -291,6 +291,8 @@ export type CompanyType = "DUNES_INSOLITES" | "ROUTE_INSOLITE";
 
 export type PageBlock = { type: string; dataJson: string };
 
+export type PageCategory = "GUIDE";
+
 export type AdminPage = {
   pageId: string;
   title: string;
@@ -298,6 +300,9 @@ export type AdminPage = {
   locale: PageLocale;
   companyType: CompanyType;
   status: PageStatus;
+  // null = an ordinary static page. GUIDE makes it appear on the vitrine's
+  // /guides index automatically - see backend PageCategory's own comment.
+  category: PageCategory | null;
   publishedAt: string | null;
   seoTitle: string | null;
   metaDescription: string | null;

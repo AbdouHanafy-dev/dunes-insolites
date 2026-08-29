@@ -4,19 +4,32 @@ import { getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
+import CmsBlocks from "@/components/CmsBlocks";
 import { Link } from "@/i18n/navigation";
 import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import { getCmsPage } from "@/lib/api";
 import { GUIDE_SLUGS } from "@/lib/guides";
 
-// Now translated into all 6 locales - was FR/EN-only when these two guides
-// first shipped (see git history for that version's reasoning, which no
-// longer applies now that real translations exist for all of them).
+// A published admin-authored Page with category=GUIDE and this exact slug
+// (any company/locale combination the admin creates - see PageCategory's
+// own comment) takes over this route entirely, same "CMS first, hardcoded
+// fallback" pattern as about/safety/contact (ARCHITECTURE.md §10.6). The
+// two seed articles in lib/guides.ts are what render when nothing's been
+// published for that slug - so the site never blanks a route just because
+// an editor hasn't touched it yet, and a genuinely new article slug the
+// admin creates (not one of these two) needs no frontend code change at
+// all to go live.
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export function generateStaticParams() {
   return GUIDE_SLUGS.flatMap((g) => routing.locales.map((locale) => ({ locale, slug: g.slug })));
 }
+
+// dynamicParams stays at its default (true): an admin-created article
+// whose slug isn't one of the two above still renders on demand instead
+// of 404ing, since generateStaticParams above only knows about the seed
+// two at build time.
 
 function findGuide(slug: string) {
   return GUIDE_SLUGS.find((g) => g.slug === slug);
@@ -24,19 +37,53 @@ function findGuide(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
+  const cms = await getCmsPage(slug, locale);
+  const alternates = localeAlternates(locale, (l) => localeHref(l, `/guides/${slug}`));
+
+  if (cms) {
+    return {
+      title: cms.seoTitle || cms.title,
+      description: cms.metaDescription || undefined,
+      alternates,
+      robots: cms.noIndex || cms.noFollow
+        ? { index: !cms.noIndex, follow: !cms.noFollow }
+        : undefined,
+    };
+  }
+
   const guide = findGuide(slug);
   if (!guide) return { title: "Not found" };
-
   const t = await getTranslations({ locale, namespace: guide.metaNamespace });
-  return {
-    title: t("title"),
-    description: t("description"),
-    alternates: localeAlternates(locale, (l) => localeHref(l, `/guides/${slug}`)),
-  };
+  return { title: t("title"), description: t("description"), alternates };
 }
 
 export default async function GuideDetailPage({ params }: Props) {
   const { locale, slug } = await params;
+  const cms = await getCmsPage(slug, locale);
+
+  if (cms && cms.blocks.length > 0) {
+    const breadcrumbLd = breadcrumbJsonLd([
+      { name: "Home", path: localeHref(locale, "/") },
+      { name: "Guides", path: localeHref(locale, "/guides") },
+      { name: cms.title, path: localeHref(locale, `/guides/${slug}`) },
+    ]);
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        />
+        <PageHead eyebrow="Guide" title={cms.title} lead="" image="/images/gate.jpg" />
+        <section className="section-sand">
+          <div className="wrap">
+            <CmsBlocks blocks={cms.blocks} />
+          </div>
+        </section>
+        <CTA />
+      </>
+    );
+  }
+
   const guide = findGuide(slug);
   if (!guide) notFound();
 
