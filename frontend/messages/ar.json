@@ -549,7 +549,16 @@
     "guestNotePost": " في أي وقت.",
     "defaultError": "حدث خطأ ما. حاول مرة أخرى.",
     "atLeast8Chars": "8 أحرف على الأقل.",
-    "backToSite": "← العودة إلى الموقع"
+    "backToSite": "← العودة إلى الموقع",
+    "phoneLabel": "الهاتف",
+    "phoneOptional": "اختياري",
+    "phoneHint": "مفيد للتواصل معك عبر واتساب عند الحاجة.",
+    "termsPre": "أوافق على ",
+    "termsLinkTerms": "الشروط والأحكام",
+    "termsMid": " و",
+    "termsLinkPrivacy": "سياسة الخصوصية",
+    "termsPost": ".",
+    "termsRequired": "يجب الموافقة على الشروط للمتابعة."
   },
   "loginPage": {
     "eyebrow": "مرحبًا بعودتك",

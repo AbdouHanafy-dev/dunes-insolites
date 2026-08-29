@@ -549,7 +549,16 @@
     "guestNotePost": " à tout moment.",
     "defaultError": "Une erreur est survenue. Réessayez.",
     "atLeast8Chars": "Au moins 8 caractères.",
-    "backToSite": "← Retour au site"
+    "backToSite": "← Retour au site",
+    "phoneLabel": "Téléphone",
+    "phoneOptional": "optionnel",
+    "phoneHint": "Utile pour vous contacter par WhatsApp si besoin.",
+    "termsPre": "J'accepte les ",
+    "termsLinkTerms": "conditions générales",
+    "termsMid": " et la ",
+    "termsLinkPrivacy": "politique de confidentialité",
+    "termsPost": ".",
+    "termsRequired": "Vous devez accepter les conditions pour continuer."
   },
   "loginPage": {
     "eyebrow": "Bon retour",

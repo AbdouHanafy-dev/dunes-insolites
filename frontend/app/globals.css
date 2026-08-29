@@ -3281,27 +3281,32 @@ body:has(.drawer[data-open="true"]) .wa-float {
   position: relative;
 }
 .auth-form .pw input {
-  padding-inline-end: 76px;
+  padding-inline-end: 48px;
 }
 .pw-toggle {
   position: absolute;
-  right: 8px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   border: 0;
   background: transparent;
   cursor: pointer;
-  font: inherit;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-weight: 700;
   color: var(--muted);
-  padding: 8px 10px;
   border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
 }
 .pw-toggle:hover {
   color: var(--accent);
+  background: rgba(200, 100, 47, 0.08);
+}
+.pw-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(200, 100, 47, 0.16);
 }
 .hint-sm {
   font-size: 0.82rem;
@@ -3345,6 +3350,48 @@ body:has(.drawer[data-open="true"]) .wa-float {
 .auth-note a {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+/* Deliberately its own class, not .field — .field's `label` rule (tiny,
+   uppercase, letter-spaced) is meant for input captions, not a checkbox's
+   own reading-sized consent text, and beats a plain .auth-checkbox
+   selector on specificity if nested inside .field. */
+.auth-checkbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.auth-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.auth-checkbox input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.auth-checkbox a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-checkbox a:hover {
+  color: var(--accent);
+}
+.auth-checkbox-field[data-invalid="true"] .auth-checkbox {
+  color: #a8371a;
+}
+.auth-checkbox-field .err {
+  font-size: 0.85rem;
+  color: #a8371a;
 }
 
 @media (max-width: 900px) {

@@ -549,7 +549,16 @@
     "guestNotePost": " any time.",
     "defaultError": "Something went wrong. Try again.",
     "atLeast8Chars": "At least 8 characters.",
-    "backToSite": "← Back to the site"
+    "backToSite": "← Back to the site",
+    "phoneLabel": "Phone",
+    "phoneOptional": "optional",
+    "phoneHint": "Useful for reaching you on WhatsApp if needed.",
+    "termsPre": "I accept the ",
+    "termsLinkTerms": "terms of service",
+    "termsMid": " and the ",
+    "termsLinkPrivacy": "privacy policy",
+    "termsPost": ".",
+    "termsRequired": "You must accept the terms to continue."
   },
   "loginPage": {
     "eyebrow": "Welcome back",

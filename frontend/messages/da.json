@@ -549,7 +549,16 @@
     "guestNotePost": " når som helst.",
     "defaultError": "Noget gik galt. Prøv igen.",
     "atLeast8Chars": "Mindst 8 tegn.",
-    "backToSite": "← Tilbage til siden"
+    "backToSite": "← Tilbage til siden",
+    "phoneLabel": "Telefon",
+    "phoneOptional": "valgfrit",
+    "phoneHint": "Nyttigt, hvis vi skal kontakte dig via WhatsApp.",
+    "termsPre": "Jeg accepterer ",
+    "termsLinkTerms": "vilkårene for brug",
+    "termsMid": " og ",
+    "termsLinkPrivacy": "privatlivspolitikken",
+    "termsPost": ".",
+    "termsRequired": "Du skal acceptere vilkårene for at fortsætte."
   },
   "loginPage": {
     "eyebrow": "Velkommen tilbage",

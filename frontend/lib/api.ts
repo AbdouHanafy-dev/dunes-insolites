@@ -414,6 +414,7 @@ export function register(input: {
   name: string;
   email: string;
   password: string;
+  phone?: string;
 }): Promise<WriteResult<AuthUser>> {
   return postLocal<AuthUser>("/auth/register", input);
 }

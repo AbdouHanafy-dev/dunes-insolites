@@ -549,7 +549,16 @@
     "guestNotePost": " jederzeit.",
     "defaultError": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
     "atLeast8Chars": "Mindestens 8 Zeichen.",
-    "backToSite": "← Zurück zur Website"
+    "backToSite": "← Zurück zur Website",
+    "phoneLabel": "Telefon",
+    "phoneOptional": "optional",
+    "phoneHint": "Nützlich, um Sie bei Bedarf per WhatsApp zu erreichen.",
+    "termsPre": "Ich akzeptiere die ",
+    "termsLinkTerms": "Allgemeinen Geschäftsbedingungen",
+    "termsMid": " und die ",
+    "termsLinkPrivacy": "Datenschutzerklärung",
+    "termsPost": ".",
+    "termsRequired": "Sie müssen die Bedingungen akzeptieren, um fortzufahren."
   },
   "loginPage": {
     "eyebrow": "Willkommen zurück",
