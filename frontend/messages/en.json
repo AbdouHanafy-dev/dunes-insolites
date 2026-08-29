@@ -26,6 +26,8 @@
     "company": "Company",
     "about": "About",
     "guides": "Guides",
+    "desertGuides": "Desert guides",
+    "faq": "FAQ",
     "safety": "Safety",
     "contact": "Contact",
     "follow": "Follow",
@@ -457,6 +459,22 @@
       "title": "Terms & conditions",
       "description": "Booking terms, cancellation policy, and conditions of participation for Dunes Insolites."
     },
+    "faq": {
+      "title": "Frequently asked questions",
+      "description": "Cancellation, minimum age, phone signal, dietary needs, weather — every answer before you book your stay in the Sabria desert."
+    },
+    "guides": {
+      "title": "Desert guides",
+      "description": "Our practical guides for planning a trip to the Tunisian desert: best season, what to pack, and everything worth knowing about Sabria."
+    },
+    "guideSahara": {
+      "title": "Complete guide to the Sabria desert, Tunisia",
+      "description": "Where Sabria is, when to go, what there is to do, and how to book — the complete guide to the Dunes Insolites camp in the Tunisian Sahara."
+    },
+    "guidePacking": {
+      "title": "What to pack for a night in the Tunisian desert",
+      "description": "The real packing list our guides actually recommend for a night at the camp or on a bivouac in Sabria — clothing, sun protection, and what we already provide."
+    },
     "login": {
       "title": "Log in",
       "description": "Log in to manage your Dunes Insolites desert bookings."
@@ -641,5 +659,78 @@
     "errorTitle": "Invalid or expired link",
     "errorBody": "This confirmation link is no longer valid.",
     "continueButton": "Continue to the site →"
+  },
+  "faqPage": {
+    "eyebrow": "Frequently asked questions",
+    "title": "Everything worth knowing before you book",
+    "lead": "Real answers to what we're actually asked most — cancellation, minimum age, signal, dietary needs, and weather.",
+    "catBooking": "Booking and cancellation",
+    "q1": "What's the cancellation policy?",
+    "a1": "More than 24 hours before departure: no charge. Within 24 hours: 50% of the trip price. No-show at the gate: full price. If we're the ones cancelling — weather, equipment, or any reason on our side — you choose between a full refund or a free reschedule.",
+    "q2": "Do I pay when I book?",
+    "a2": "No. Nothing is charged at booking time — payment is taken at the gate or through a secure link.",
+    "q3": "What happens if the weather turns on the day of my trip?",
+    "a3": "Sandstorms and strong wind mean cancellation, with a full refund or a free reschedule. That call is made by the head guide, never by the booking office.",
+    "catPractical": "Practical information",
+    "q4": "What should I wear and bring?",
+    "a4": "Closed shoes, long sleeves, and sunglasses for the day; a warm layer for the evening, since desert nights are cool even after a hot day. We hand out a chèche (head and neck scarf) at the gate.",
+    "q5": "Is there phone signal in Sabria?",
+    "a5": "Intermittent at best. Every guide carries a charged satellite messenger and radio, and the base at the gate knows every route and expected return time.",
+    "q6": "Can you handle dietary or medical needs?",
+    "a6": "Yes — tell us when you book. We offer vegetarian, vegan, and gluten-free options at the camp, and our guides are briefed on any condition you tell us about.",
+    "catAge": "Age and participation",
+    "q7": "Do I need experience to drive a quad?",
+    "a7": "No. The quads are automatic, and every session starts with a briefing and a practice lap on flat ground before heading into the dunes. Drivers must be 16 or older with photo ID.",
+    "q8": "Is the camel trek suitable for children?",
+    "a8": "Children aged six and up can ride with a parent, with a camel handler walking alongside each camel the whole way. Under six, we recommend the sunset camp visit instead.",
+    "q9": "What about pregnancy or a mobility need?",
+    "a9": "Tell us when you book — we'd much rather point you to the right trip than turn you away at the gate.",
+    "stillQuestions": "Still have a question?",
+    "contactCta": "Contact us →"
+  },
+  "guidesPage": {
+    "eyebrow": "Desert guides",
+    "title": "Planning your trip to the Tunisian Sahara",
+    "lead": "What's worth knowing before you book — written from what our guides actually do on the ground, not generic travel-blog filler."
+  },
+  "guideSahara": {
+    "eyebrow": "Complete guide",
+    "title": "The Sabria desert, in the Tunisian Sahara",
+    "lead": "Where the camp is, when to come, and what you can actually do there.",
+    "whereHeading": "Where Sabria is",
+    "whereP1": "Sabria sits in the Kébili governorate, at the edge of the Tunisian Sahara — the region that holds most of the country's desert, alongside Douz, Ksar Ghilane, Tozeur, Tataouine, and Matmata.",
+    "whereP2": "That's where our camp is: traditional tents, camels, and quads, right at the line between the palm grove and the first dunes.",
+    "whenHeading": "When to go",
+    "whenP1": "The best window runs October through April: warm but manageable days, cool nights — exactly right for sleeping outdoors without suffering from heat or cold.",
+    "whenP2": "July and August are worth avoiding: daytime temperatures regularly pass 40°C (104°F), which makes anything in direct sun hard going.",
+    "whatHeading": "What there is to do in Sabria",
+    "whatP1": "Three experiences make up most trips here: the camel trek, the quad safari, and dune sandboarding — each booked as an add-on to a night's stay or a bivouac.",
+    "whatP2": "The stay itself comes in two shapes: the fixed camp, with a choice of accommodation (tent, room, or dune suite), or the bivouac, a simpler night further into the dunes.",
+    "practicalHeading": "Practical information",
+    "practicalP1": "No prior experience is needed for any of the three activities — every session opens with an on-site briefing. Minimum age for the quad is 16 with photo ID; children aged six and up can ride a camel with an adult.",
+    "practicalP2": "Phone signal is intermittent once you're in the dunes — every guide carries a satellite messenger, and the base knows each group's route and expected return time.",
+    "linksHeading": "Read next",
+    "ctaStay": "See stay options →",
+    "ctaActivities": "See the experiences →",
+    "ctaPacking": "What to pack →",
+    "ctaFaq": "All frequently asked questions →"
+  },
+  "guidePacking": {
+    "eyebrow": "Practical guide",
+    "title": "What to pack for a night in the desert",
+    "lead": "The real list, not a generic travel-blog one — what our guides actually recommend, and what we already provide on-site.",
+    "dayHeading": "For the day",
+    "dayP1": "Light, loose clothing, long sleeves and trousers rather than shorts — desert sun burns faster than it looks, even under cloud. Closed shoes are a must for walking on hot sand and for the quad.",
+    "dayP2": "Sunglasses and high-factor sunscreen. We hand out a traditional chèche at the gate to protect your head, face and neck from dust and sun.",
+    "nightHeading": "For the evening and night",
+    "nightP1": "A warm layer is essential — at minimum a sweater or light jacket. The day-to-night temperature swing in the desert is real, even at the height of the season: a hot afternoon turns into a cool evening the moment the sun goes down.",
+    "providedHeading": "What we already provide",
+    "providedP1": "Tents, bedding, and the desert chèche are provided at both the camp and on a bivouac — no need to bring your own sleeping or camping gear.",
+    "medHeading": "One thing not to forget",
+    "medP1": "If you're on a medical treatment or have a dietary need, tell us when you book — we offer vegetarian, vegan, and gluten-free options, and our guides are briefed in advance on anything you tell us.",
+    "linksHeading": "Read next",
+    "ctaSahara": "Complete guide to the Sabria desert →",
+    "ctaSafety": "All our safety guidelines →",
+    "ctaBook": "Book a stay →"
   }
 }

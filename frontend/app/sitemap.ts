@@ -4,6 +4,7 @@ import { site } from "@/lib/site";
 import { canonicalActivityPath, canonicalStayPath } from "@/lib/legacySlugs";
 import { routing, localeHref } from "@/i18n/routing";
 import { withTrailingSlash } from "@/lib/schema";
+import { GUIDE_SLUGS } from "@/lib/guides";
 
 /**
  * Rebuilt from lib/api (DI-025) rather than importing lib/data/* directly —
@@ -73,6 +74,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "monthly",
         priority,
         alternates: { languages: languageAlternates((l) => localeHref(l, path)) },
+      });
+    }
+  }
+
+  // FAQ + guides — FR/EN only today (see lib/guides.ts and each page's own
+  // comment: real copy in the two priority/default-launch languages, not
+  // 6 AI-drafted-and-unreviewed ones). A dedicated alternates helper here
+  // rather than languageAlternates() above, which unconditionally emits
+  // all 6 locales - that would claim a DE/IT/DA/AR version of these two
+  // exists when it doesn't.
+  const contentLocales = ["fr", "en"] as const;
+  function contentLanguageAlternates(pathForLocale: (locale: string) => string) {
+    const languages: Record<string, string> = {
+      "x-default": `${site.url}${withTrailingSlash(pathForLocale("fr"))}`,
+    };
+    for (const locale of contentLocales) {
+      languages[locale] = `${site.url}${withTrailingSlash(pathForLocale(locale))}`;
+    }
+    return languages;
+  }
+
+  for (const locale of contentLocales) {
+    entries.push({
+      url: `${site.url}${withTrailingSlash(localeHref(locale, "/faq"))}`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+      alternates: { languages: contentLanguageAlternates((l) => localeHref(l, "/faq")) },
+    });
+    entries.push({
+      url: `${site.url}${withTrailingSlash(localeHref(locale, "/guides"))}`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+      alternates: { languages: contentLanguageAlternates((l) => localeHref(l, "/guides")) },
+    });
+    for (const guide of GUIDE_SLUGS) {
+      const path = `/guides/${guide.slug}`;
+      entries.push({
+        url: `${site.url}${withTrailingSlash(localeHref(locale, path))}`,
+        changeFrequency: "monthly",
+        priority: 0.7,
+        alternates: { languages: contentLanguageAlternates((l) => localeHref(l, path)) },
       });
     }
   }

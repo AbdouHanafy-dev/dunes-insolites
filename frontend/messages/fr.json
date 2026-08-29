@@ -26,6 +26,8 @@
     "company": "L'entreprise",
     "about": "À propos",
     "guides": "Nos guides",
+    "desertGuides": "Guides du désert",
+    "faq": "Questions fréquentes",
     "safety": "Sécurité",
     "contact": "Contact",
     "follow": "Suivez-nous",
@@ -457,6 +459,22 @@
       "title": "Conditions générales",
       "description": "Conditions de réservation, politique d'annulation et conditions de participation pour Dunes Insolites."
     },
+    "faq": {
+      "title": "Questions fréquentes",
+      "description": "Annulation, âge minimum, réseau téléphonique, régimes alimentaires, météo — toutes les réponses avant de réserver votre séjour dans le désert de Sabria."
+    },
+    "guides": {
+      "title": "Guides du désert",
+      "description": "Nos guides pratiques pour préparer un séjour dans le désert tunisien : meilleure période, ce qu'il faut emporter, et tout ce qu'il y a à savoir sur Sabria."
+    },
+    "guideSahara": {
+      "title": "Guide complet du désert de Sabria, Tunisie",
+      "description": "Où se trouve Sabria, quand y aller, quoi y faire et comment réserver — le guide complet du campement Dunes Insolites dans le Sahara tunisien."
+    },
+    "guidePacking": {
+      "title": "Que faut-il emporter pour une nuit dans le désert tunisien",
+      "description": "La liste réelle de ce qu'apportent nos guides pour une nuit au campement ou en bivouac à Sabria — vêtements, protection solaire et ce que nous fournissons déjà."
+    },
     "login": {
       "title": "Connexion",
       "description": "Connectez-vous pour gérer vos réservations désertiques Dunes Insolites."
@@ -641,5 +659,78 @@
     "errorTitle": "Lien invalide ou expiré",
     "errorBody": "Ce lien de confirmation n'est plus valable.",
     "continueButton": "Continuer vers le site →"
+  },
+  "faqPage": {
+    "eyebrow": "Questions fréquentes",
+    "title": "Tout ce qu'il faut savoir avant de réserver",
+    "lead": "Les réponses réelles à ce qu'on nous demande le plus souvent — annulation, âge minimum, réseau, régimes alimentaires et météo.",
+    "catBooking": "Réservation et annulation",
+    "q1": "Quelle est la politique d'annulation ?",
+    "a1": "Plus de 24 heures avant le départ : aucun frais. Dans les 24 heures : 50 % du prix du séjour. En cas d'absence à l'entrée : prix intégral. Si l'annulation vient de nous — météo, matériel ou tout autre motif de notre fait — vous choisissez entre un remboursement intégral ou une reprogrammation gratuite.",
+    "q2": "Dois-je payer au moment de la réservation ?",
+    "a2": "Non. Rien n'est débité au moment de la réservation — le paiement se fait à la porte ou par lien sécurisé.",
+    "q3": "Que se passe-t-il si le temps se dégrade le jour de mon séjour ?",
+    "a3": "Les tempêtes de sable et le vent fort signifient une annulation, avec remboursement complet ou reprogrammation gratuite. Cette décision est prise par le guide en chef, jamais par le bureau des réservations.",
+    "catPractical": "Informations pratiques",
+    "q4": "Que dois-je porter et emporter ?",
+    "a4": "Des chaussures fermées, des manches longues et des lunettes de soleil pour la journée ; une couche chaude pour la soirée, les nuits dans le désert étant fraîches même quand les journées sont chaudes. Nous distribuons un chèche pour la tête et le cou à la porte.",
+    "q5": "Y a-t-il du réseau téléphonique à Sabria ?",
+    "a5": "Par intermittence seulement. Chaque guide porte un messager satellite et une radio chargée, et la base à la porte connaît chaque itinéraire et l'heure de retour prévue.",
+    "q6": "Pouvez-vous gérer des besoins alimentaires ou médicaux particuliers ?",
+    "a6": "Oui — dites-le-nous lors de la réservation. Nous proposons des options végétariennes, végétaliennes et sans gluten au campement, et nos guides sont informés de toute condition que vous nous communiquez.",
+    "catAge": "Âge et participation",
+    "q7": "Faut-il de l'expérience pour conduire un quad ?",
+    "a7": "Non. Les quads sont automatiques et chaque session commence par un briefing et un tour d'essai sur le plat avant de partir dans les dunes. Les conducteurs doivent avoir 16 ans ou plus et présenter une pièce d'identité avec photo.",
+    "q8": "La randonnée à dos de chameau convient-elle aux enfants ?",
+    "a8": "Les enfants à partir de six ans peuvent monter avec un parent, un chamelier marchant aux côtés de chaque chameau tout le long du parcours. En dessous de six ans, nous recommandons plutôt la visite du campement au coucher du soleil.",
+    "q9": "Que se passe-t-il en cas de grossesse ou de besoin de mobilité particulier ?",
+    "a9": "Signalez-le-nous lors de la réservation : nous préférons vous orienter vers le bon séjour plutôt que de vous refuser l'accès à l'entrée.",
+    "stillQuestions": "Une autre question ?",
+    "contactCta": "Contactez-nous →"
+  },
+  "guidesPage": {
+    "eyebrow": "Guides du désert",
+    "title": "Préparer votre séjour dans le Sahara tunisien",
+    "lead": "Ce qu'il faut savoir avant de réserver — écrit à partir de ce que nos guides font vraiment sur le terrain, pas de généralités touristiques."
+  },
+  "guideSahara": {
+    "eyebrow": "Guide complet",
+    "title": "Le désert de Sabria, dans le Sahara tunisien",
+    "lead": "Où se trouve le campement, quand y venir, et ce que vous pouvez réellement y faire.",
+    "whereHeading": "Où se trouve Sabria",
+    "whereP1": "Sabria se trouve dans le gouvernorat de Kébili, aux portes du Sahara tunisien — la région qui concentre l'essentiel du désert du pays, avec Douz, Ksar Ghilane, Tozeur, Tataouine et Matmata.",
+    "whereP2": "C'est là que se trouve notre campement : tentes traditionnelles, chameaux et quads, à la limite entre la palmeraie et les premières dunes.",
+    "whenHeading": "Quand partir",
+    "whenP1": "La meilleure période s'étend d'octobre à avril : journées chaudes mais supportables, nuits fraîches — exactement ce qu'il faut pour dormir dehors sans souffrir de la chaleur ni du froid.",
+    "whenP2": "Juillet et août sont à éviter : les températures dépassent régulièrement 40 °C en pleine journée, ce qui rend les activités en plein soleil éprouvantes.",
+    "whatHeading": "Que faire à Sabria",
+    "whatP1": "Trois expériences composent l'essentiel des séjours : la randonnée à dos de chameau, le safari en quad et le sandboard dans les dunes — chacune se réserve en complément d'une nuitée ou d'un bivouac.",
+    "whatP2": "La nuitée elle-même se décline en deux formats : le campement fixe, avec choix d'hébergement (tente, chambre ou suite dans les dunes), ou le bivouac, plus simple, davantage à l'intérieur des dunes.",
+    "practicalHeading": "Informations pratiques",
+    "practicalP1": "Aucune expérience préalable n'est nécessaire pour aucune des trois activités — chaque session commence par un briefing sur place. L'âge minimum pour le quad est de 16 ans avec pièce d'identité ; les enfants à partir de six ans peuvent monter à dos de chameau accompagnés d'un adulte.",
+    "practicalP2": "Le réseau téléphonique est intermittent une fois dans les dunes — chaque guide porte un messager satellite, et la base connaît l'itinéraire et l'heure de retour de chaque groupe.",
+    "linksHeading": "Pour aller plus loin",
+    "ctaStay": "Voir les formules de séjour →",
+    "ctaActivities": "Voir les expériences →",
+    "ctaPacking": "Que faut-il emporter →",
+    "ctaFaq": "Toutes les questions fréquentes →"
+  },
+  "guidePacking": {
+    "eyebrow": "Guide pratique",
+    "title": "Que faut-il emporter pour une nuit dans le désert",
+    "lead": "La vraie liste, pas un article générique — ce que nos guides recommandent réellement et ce que nous fournissons déjà sur place.",
+    "dayHeading": "Pour la journée",
+    "dayP1": "Vêtements légers et amples, manches longues et pantalon plutôt que short — le soleil du désert brûle plus vite qu'on ne le pense, même par temps couvert. Chaussures fermées, indispensables pour marcher sur le sable chaud et pour le quad.",
+    "dayP2": "Lunettes de soleil et crème solaire à indice élevé. Nous distribuons un chèche traditionnel à la porte pour protéger la tête, le visage et le cou de la poussière et du soleil.",
+    "nightHeading": "Pour la soirée et la nuit",
+    "nightP1": "Une couche chaude est indispensable — pull ou veste légère au minimum. L'écart de température entre le jour et la nuit dans le désert est important, même en pleine saison : ce qui était une journée chaude devient une soirée fraîche dès que le soleil se couche.",
+    "providedHeading": "Ce que nous fournissons déjà",
+    "providedP1": "Tentes, literie et le chèche du désert sont fournis au campement comme en bivouac — inutile d'apporter votre propre équipement de couchage ou de camping.",
+    "medHeading": "Une chose à ne pas oublier",
+    "medP1": "Si vous suivez un traitement médical ou avez un besoin alimentaire particulier, signalez-le-nous lors de la réservation — nous proposons des options végétariennes, végétaliennes et sans gluten, et nos guides sont informés à l'avance de toute condition que vous nous communiquez.",
+    "linksHeading": "Pour aller plus loin",
+    "ctaSahara": "Guide complet du désert de Sabria →",
+    "ctaSafety": "Toutes nos consignes de sécurité →",
+    "ctaBook": "Réserver un séjour →"
   }
 }
