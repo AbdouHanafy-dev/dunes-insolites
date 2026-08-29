@@ -26,6 +26,8 @@
     "company": "Unternehmen",
     "about": "Über uns",
     "guides": "Unsere Guides",
+    "desertGuides": "Wüstenführer",
+    "faq": "FAQ",
     "safety": "Sicherheit",
     "contact": "Kontakt",
     "follow": "Folgen Sie uns",
@@ -457,6 +459,22 @@
       "title": "AGB",
       "description": "Buchungsbedingungen, Stornierungsrichtlinie und Teilnahmebedingungen für Dunes Insolites."
     },
+    "faq": {
+      "title": "Häufig gestellte Fragen",
+      "description": "Stornierung, Mindestalter, Handyempfang, Ernährungsbedürfnisse, Wetter — jede Antwort, bevor Sie Ihren Aufenthalt in der Wüste von Sabria buchen."
+    },
+    "guides": {
+      "title": "Wüstenführer",
+      "description": "Unsere praktischen Leitfäden zur Planung einer Reise in die tunesische Wüste: beste Reisezeit, Packliste und alles Wissenswerte über Sabria."
+    },
+    "guideSahara": {
+      "title": "Der vollständige Leitfaden zur Wüste von Sabria, Tunesien",
+      "description": "Wo Sabria liegt, wann man hinfahren sollte, was es zu tun gibt und wie man bucht — der vollständige Leitfaden zum Dunes-Insolites-Camp in der tunesischen Sahara."
+    },
+    "guidePacking": {
+      "title": "Was man für eine Nacht in der tunesischen Wüste einpacken sollte",
+      "description": "Die echte Packliste, die unsere Guides für eine Nacht im Camp oder beim Biwak in Sabria empfehlen — Kleidung, Sonnenschutz und was wir bereits bereitstellen."
+    },
     "login": {
       "title": "Anmelden",
       "description": "Melden Sie sich an, um Ihre Wüstenbuchungen bei Dunes Insolites zu verwalten."
@@ -641,5 +659,78 @@
     "errorTitle": "Ungültiger oder abgelaufener Link",
     "errorBody": "Dieser Bestätigungslink ist nicht mehr gültig.",
     "continueButton": "Weiter zur Website →"
+  },
+  "faqPage": {
+    "eyebrow": "Häufig gestellte Fragen",
+    "title": "Alles Wissenswerte vor der Buchung",
+    "lead": "Die echten Antworten auf das, was wir am häufigsten gefragt werden — Stornierung, Mindestalter, Empfang, Ernährungsbedürfnisse und Wetter.",
+    "catBooking": "Buchung und Stornierung",
+    "q1": "Wie lautet die Stornierungsrichtlinie?",
+    "a1": "Mehr als 24 Stunden vor der Abreise: keine Kosten. Innerhalb von 24 Stunden: 50 % des Reisepreises. Nichterscheinen am Tor: voller Preis. Wenn wir stornieren — Wetter, Ausrüstung oder ein anderer Grund unsererseits — können Sie zwischen voller Rückerstattung oder kostenloser Umbuchung wählen.",
+    "q2": "Muss ich bei der Buchung bezahlen?",
+    "a2": "Nein. Bei der Buchung wird nichts abgebucht — die Zahlung erfolgt am Tor oder über einen sicheren Link.",
+    "q3": "Was passiert, wenn sich das Wetter am Tag meines Ausflugs verschlechtert?",
+    "a3": "Sandstürme und starker Wind bedeuten eine Stornierung, mit voller Rückerstattung oder kostenloser Umbuchung. Diese Entscheidung trifft der Chefguide, niemals das Buchungsbüro.",
+    "catPractical": "Praktische Informationen",
+    "q4": "Was soll ich anziehen und mitbringen?",
+    "a4": "Geschlossene Schuhe, lange Ärmel und eine Sonnenbrille für den Tag; eine warme Schicht für den Abend, da die Wüstennächte kühl sind, selbst nach einem heißen Tag. Wir verteilen am Tor einen Chèche (Kopf- und Halstuch).",
+    "q5": "Gibt es in Sabria Handyempfang?",
+    "a5": "Bestenfalls unregelmäßig. Jeder Guide trägt einen geladenen Satellitenmessenger und ein Funkgerät, und die Basis am Tor kennt jede Route und die erwartete Rückkehrzeit.",
+    "q6": "Könnt ihr auf Ernährungs- oder medizinische Bedürfnisse eingehen?",
+    "a6": "Ja — sagen Sie es uns bei der Buchung. Wir bieten vegetarische, vegane und glutenfreie Optionen im Camp an, und unsere Guides werden über jede Erkrankung informiert, die Sie uns mitteilen.",
+    "catAge": "Alter und Teilnahme",
+    "q7": "Braucht man Erfahrung, um ein Quad zu fahren?",
+    "a7": "Nein. Die Quads sind automatisch, und jede Session beginnt mit einer Einweisung und einer Proberunde auf ebenem Gelände, bevor es in die Dünen geht. Fahrer müssen mindestens 16 Jahre alt sein und einen Lichtbildausweis vorlegen.",
+    "q8": "Ist der Kamelritt für Kinder geeignet?",
+    "a8": "Kinder ab sechs Jahren können mit einem Elternteil reiten, wobei ein Kamelführer den ganzen Weg neben jedem Kamel hergeht. Unter sechs Jahren empfehlen wir stattdessen den Sonnenuntergangsbesuch im Camp.",
+    "q9": "Was ist bei Schwangerschaft oder besonderem Mobilitätsbedarf?",
+    "a9": "Sagen Sie es uns bei der Buchung — wir weisen Sie lieber auf den richtigen Ausflug hin, als Sie am Tor abzuweisen.",
+    "stillQuestions": "Noch eine Frage?",
+    "contactCta": "Kontaktieren Sie uns →"
+  },
+  "guidesPage": {
+    "eyebrow": "Wüstenführer",
+    "title": "Ihre Reise in die tunesische Sahara planen",
+    "lead": "Was es vor der Buchung zu wissen gilt — geschrieben nach dem, was unsere Guides tatsächlich vor Ort tun, nicht nach allgemeinen Reiseblog-Floskeln."
+  },
+  "guideSahara": {
+    "eyebrow": "Vollständiger Leitfaden",
+    "title": "Die Wüste von Sabria, in der tunesischen Sahara",
+    "lead": "Wo das Camp liegt, wann man kommen sollte, und was man dort wirklich tun kann.",
+    "whereHeading": "Wo Sabria liegt",
+    "whereP1": "Sabria liegt im Gouvernement Kébili, am Rand der tunesischen Sahara — der Region, die den größten Teil der Wüste des Landes beherbergt, zusammen mit Douz, Ksar Ghilane, Tozeur, Tataouine und Matmata.",
+    "whereP2": "Dort befindet sich unser Camp: traditionelle Zelte, Kamele und Quads, genau an der Grenze zwischen dem Palmenhain und den ersten Dünen.",
+    "whenHeading": "Wann man hinfahren sollte",
+    "whenP1": "Das beste Zeitfenster reicht von Oktober bis April: warme, aber angenehme Tage, kühle Nächte — genau richtig, um im Freien zu schlafen, ohne unter Hitze oder Kälte zu leiden.",
+    "whenP2": "Juli und August sollte man meiden: Die Tagestemperaturen liegen regelmäßig über 40 °C, was alles in direkter Sonne beschwerlich macht.",
+    "whatHeading": "Was es in Sabria zu tun gibt",
+    "whatP1": "Drei Erlebnisse machen die meisten Aufenthalte hier aus: der Kamelritt, die Quad-Safari und das Dünen-Sandboarding — jedes wird als Ergänzung zu einer Übernachtung oder einem Biwak gebucht.",
+    "whatP2": "Der Aufenthalt selbst gibt es in zwei Formen: das feste Camp, mit Wahl der Unterkunft (Zelt, Zimmer oder Dünensuite), oder das Biwak, eine einfachere Nacht weiter in den Dünen.",
+    "practicalHeading": "Praktische Informationen",
+    "practicalP1": "Für keine der drei Aktivitäten ist Vorerfahrung nötig — jede Session beginnt mit einer Einweisung vor Ort. Mindestalter für das Quad ist 16 mit Lichtbildausweis; Kinder ab sechs Jahren können mit einem Erwachsenen auf einem Kamel reiten.",
+    "practicalP2": "Der Handyempfang ist in den Dünen unregelmäßig — jeder Guide trägt einen Satellitenmessenger, und die Basis kennt die Route und die erwartete Rückkehrzeit jeder Gruppe.",
+    "linksHeading": "Weiterlesen",
+    "ctaStay": "Aufenthaltsoptionen ansehen →",
+    "ctaActivities": "Die Erlebnisse ansehen →",
+    "ctaPacking": "Was mitnehmen →",
+    "ctaFaq": "Alle häufig gestellten Fragen →"
+  },
+  "guidePacking": {
+    "eyebrow": "Praktischer Leitfaden",
+    "title": "Was man für eine Nacht in der Wüste einpacken sollte",
+    "lead": "Die echte Liste, kein allgemeiner Reiseblog-Artikel — was unsere Guides tatsächlich empfehlen und was wir bereits vor Ort bereitstellen.",
+    "dayHeading": "Für den Tag",
+    "dayP1": "Leichte, weite Kleidung, lange Ärmel und lange Hosen statt Shorts — die Wüstensonne brennt schneller, als man denkt, selbst bei Bewölkung. Geschlossene Schuhe sind ein Muss zum Laufen auf heißem Sand und für das Quad.",
+    "dayP2": "Sonnenbrille und Sonnencreme mit hohem Lichtschutzfaktor. Wir verteilen am Tor einen traditionellen Chèche, um Kopf, Gesicht und Hals vor Staub und Sonne zu schützen.",
+    "nightHeading": "Für den Abend und die Nacht",
+    "nightP1": "Eine warme Schicht ist unerlässlich — mindestens ein Pullover oder eine leichte Jacke. Der Temperaturunterschied zwischen Tag und Nacht in der Wüste ist real, selbst zur Hauptsaison: Aus einem heißen Nachmittag wird ein kühler Abend, sobald die Sonne untergeht.",
+    "providedHeading": "Was wir bereits bereitstellen",
+    "providedP1": "Zelte, Bettzeug und der Wüsten-Chèche werden sowohl im Camp als auch beim Biwak gestellt — Sie müssen keine eigene Schlaf- oder Campingausrüstung mitbringen.",
+    "medHeading": "Eine Sache, die man nicht vergessen sollte",
+    "medP1": "Wenn Sie eine medizinische Behandlung oder besondere Ernährungsbedürfnisse haben, sagen Sie es uns bei der Buchung — wir bieten vegetarische, vegane und glutenfreie Optionen an, und unsere Guides werden vorab über alles informiert, was Sie uns mitteilen.",
+    "linksHeading": "Weiterlesen",
+    "ctaSahara": "Vollständiger Leitfaden zur Wüste von Sabria →",
+    "ctaSafety": "Alle unsere Sicherheitshinweise →",
+    "ctaBook": "Einen Aufenthalt buchen →"
   }
 }

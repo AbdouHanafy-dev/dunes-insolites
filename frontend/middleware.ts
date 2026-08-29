@@ -101,22 +101,6 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url, { status: 503, headers });
   }
 
-  // FAQ/guides content is FR/EN only today (lib/guides.ts, each page's own
-  // comment) - a locale outside that pair would otherwise reach the page,
-  // which calls notFound() itself. That's the exact same streaming-status
-  // bug just fixed for the [...rest] catch-all (app/[locale]/loading.tsx
-  // wraps this page too, inside the (site) route group), so it would
-  // render the not-found UI but still answer 200 - found live, testing the
-  // fix above against these two new pages specifically. A redirect to the
-  // French version is also just better for a real visitor than a 404 for a
-  // language mismatch, and middleware sets its status before any
-  // rendering/streaming starts, so it isn't affected by that bug at all.
-  const unsupportedLocaleContentMatch = pathname.match(/^\/(de|it|da|ar)\/(faq|guides)(\/.*)?$/);
-  if (unsupportedLocaleContentMatch) {
-    const rest = unsupportedLocaleContentMatch[3] ?? "";
-    return NextResponse.redirect(new URL(`/${unsupportedLocaleContentMatch[2]}${rest}`, request.url), 307);
-  }
-
   const redirects = await getRedirects();
   if (redirects.length > 0) {
     const match = redirects.find((r) => r.fromPath === pathname);

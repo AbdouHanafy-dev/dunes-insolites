@@ -1,22 +1,16 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { Link } from "@/i18n/navigation";
-import { localeHref } from "@/i18n/routing";
+import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 
-// FR/EN only for now - same precedent as every other long-form content
-// page added this pass (see guides/[slug]). Not in routing.locales' full
-// set to avoid claiming a DE/IT/DA/AR version exists when it doesn't
-// (OPEN-QUESTIONS: never use hreflang for a language that has no real
-// equivalent page).
-const SUPPORTED_LOCALES = ["fr", "en"] as const;
-
+// Now translated into all 6 locales (fr/en/de/it/da/ar) - was FR/EN-only
+// when this page first shipped.
 export function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({
@@ -26,12 +20,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta.faq" });
-  const languages: Record<string, string> = { "x-default": localeHref("fr", "/faq") };
-  for (const l of SUPPORTED_LOCALES) languages[l] = localeHref(l, "/faq");
   return {
     title: t("title"),
     description: t("description"),
-    alternates: { canonical: localeHref(locale, "/faq"), languages },
+    alternates: localeAlternates(locale, (l) => localeHref(l, "/faq")),
   };
 }
 
@@ -39,7 +31,6 @@ const QUESTION_KEYS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9"] as 
 
 export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  if (!SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])) notFound();
 
   const t = await getTranslations("faqPage");
 

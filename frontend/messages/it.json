@@ -26,6 +26,8 @@
     "company": "Azienda",
     "about": "Chi siamo",
     "guides": "Le nostre guide",
+    "desertGuides": "Guide al deserto",
+    "faq": "FAQ",
     "safety": "Sicurezza",
     "contact": "Contatti",
     "follow": "Seguici",
@@ -457,6 +459,22 @@
       "title": "Termini e condizioni",
       "description": "Condizioni di prenotazione, politica di cancellazione e condizioni di partecipazione per Dunes Insolites."
     },
+    "faq": {
+      "title": "Domande frequenti",
+      "description": "Cancellazione, età minima, copertura telefonica, esigenze alimentari, meteo — tutte le risposte prima di prenotare il tuo soggiorno nel deserto di Sabria."
+    },
+    "guides": {
+      "title": "Guide al deserto",
+      "description": "Le nostre guide pratiche per organizzare un viaggio nel deserto tunisino: periodo migliore, cosa portare e tutto quello che c'è da sapere su Sabria."
+    },
+    "guideSahara": {
+      "title": "Guida completa al deserto di Sabria, Tunisia",
+      "description": "Dove si trova Sabria, quando andarci, cosa fare davvero e come prenotare — la guida completa al campo Dunes Insolites nel Sahara tunisino."
+    },
+    "guidePacking": {
+      "title": "Cosa portare per una notte nel deserto tunisino",
+      "description": "La vera lista di cosa portano le nostre guide per una notte al campo o in bivacco a Sabria — abbigliamento, protezione solare e cosa forniamo già."
+    },
     "login": {
       "title": "Accedi",
       "description": "Accedi per gestire le tue prenotazioni nel deserto con Dunes Insolites."
@@ -641,5 +659,78 @@
     "errorTitle": "Link non valido o scaduto",
     "errorBody": "Questo link di conferma non è più valido.",
     "continueButton": "Continua verso il sito →"
+  },
+  "faqPage": {
+    "eyebrow": "Domande frequenti",
+    "title": "Tutto quello che serve sapere prima di prenotare",
+    "lead": "Le risposte reali a ciò che ci viene chiesto più spesso — cancellazione, età minima, copertura, esigenze alimentari e meteo.",
+    "catBooking": "Prenotazione e cancellazione",
+    "q1": "Qual è la politica di cancellazione?",
+    "a1": "Più di 24 ore prima della partenza: nessun costo. Entro 24 ore: 50% del prezzo del soggiorno. Mancata presentazione all'ingresso: prezzo intero. Se siamo noi ad annullare — meteo, attrezzatura o qualsiasi altro motivo a nostro carico — potete scegliere tra un rimborso completo o una riprogrammazione gratuita.",
+    "q2": "Devo pagare al momento della prenotazione?",
+    "a2": "No. Non viene addebitato nulla al momento della prenotazione — il pagamento avviene all'ingresso o tramite link sicuro.",
+    "q3": "Cosa succede se il tempo peggiora il giorno della mia escursione?",
+    "a3": "Tempeste di sabbia e vento forte comportano l'annullamento, con rimborso completo o riprogrammazione gratuita. Questa decisione spetta alla guida capo, mai all'ufficio prenotazioni.",
+    "catPractical": "Informazioni pratiche",
+    "q4": "Cosa devo indossare e portare?",
+    "a4": "Scarpe chiuse, maniche lunghe e occhiali da sole per il giorno; uno strato caldo per la sera, poiché le notti nel deserto sono fresche anche dopo una giornata calda. Distribuiamo uno chèche (sciarpa per testa e collo) all'ingresso.",
+    "q5": "C'è copertura telefonica a Sabria?",
+    "a5": "Solo a intermittenza. Ogni guida porta un messaggero satellitare carico e una radio, e la base all'ingresso conosce ogni percorso e l'orario di rientro previsto.",
+    "q6": "Potete gestire esigenze alimentari o mediche?",
+    "a6": "Sì — comunicatecelo al momento della prenotazione. Offriamo opzioni vegetariane, vegane e senza glutine al campo, e le nostre guide sono informate su qualsiasi condizione che ci comunichiate.",
+    "catAge": "Età e partecipazione",
+    "q7": "Serve esperienza per guidare un quad?",
+    "a7": "No. I quad sono automatici, e ogni sessione inizia con un briefing e un giro di prova su terreno pianeggiante prima di partire verso le dune. I conducenti devono avere almeno 16 anni e presentare un documento con foto.",
+    "q8": "Il trekking in cammello è adatto ai bambini?",
+    "a8": "I bambini dai sei anni in su possono salire con un genitore, con un cammelliere che cammina accanto a ogni cammello per tutto il percorso. Sotto i sei anni, consigliamo invece la visita al campo al tramonto.",
+    "q9": "Cosa succede in caso di gravidanza o esigenze particolari di mobilità?",
+    "a9": "Comunicatecelo al momento della prenotazione — preferiamo indirizzarvi verso l'escursione giusta piuttosto che rifiutarvi l'accesso all'ingresso.",
+    "stillQuestions": "Hai un'altra domanda?",
+    "contactCta": "Contattaci →"
+  },
+  "guidesPage": {
+    "eyebrow": "Guide al deserto",
+    "title": "Organizzare il tuo viaggio nel Sahara tunisino",
+    "lead": "Cosa vale la pena sapere prima di prenotare — scritto in base a ciò che le nostre guide fanno davvero sul campo, non a generici luoghi comuni da blog di viaggio."
+  },
+  "guideSahara": {
+    "eyebrow": "Guida completa",
+    "title": "Il deserto di Sabria, nel Sahara tunisino",
+    "lead": "Dove si trova il campo, quando venire e cosa si può davvero fare lì.",
+    "whereHeading": "Dove si trova Sabria",
+    "whereP1": "Sabria si trova nel governatorato di Kébili, ai margini del Sahara tunisino — la regione che concentra la maggior parte del deserto del paese, insieme a Douz, Ksar Ghilane, Tozeur, Tataouine e Matmata.",
+    "whereP2": "È lì che si trova il nostro campo: tende tradizionali, cammelli e quad, proprio al confine tra la palmeto e le prime dune.",
+    "whenHeading": "Quando andare",
+    "whenP1": "Il periodo migliore va da ottobre ad aprile: giornate calde ma sopportabili, notti fresche — esattamente quello che serve per dormire all'aperto senza soffrire il caldo o il freddo.",
+    "whenP2": "Luglio e agosto sono da evitare: le temperature diurne superano regolarmente i 40°C, il che rende faticosa qualsiasi attività sotto il sole diretto.",
+    "whatHeading": "Cosa fare a Sabria",
+    "whatP1": "Tre esperienze compongono la maggior parte dei soggiorni qui: il trekking in cammello, il safari in quad e il sandboard sulle dune — ciascuna prenotabile in aggiunta a un pernottamento o un bivacco.",
+    "whatP2": "Il soggiorno stesso si presenta in due forme: il campo fisso, con scelta della sistemazione (tenda, camera o suite tra le dune), oppure il bivacco, una notte più semplice, più addentro alle dune.",
+    "practicalHeading": "Informazioni pratiche",
+    "practicalP1": "Nessuna esperienza pregressa è necessaria per nessuna delle tre attività — ogni sessione inizia con un briefing sul posto. L'età minima per il quad è 16 anni con documento con foto; i bambini dai sei anni in su possono salire in cammello con un adulto.",
+    "practicalP2": "La copertura telefonica è intermittente una volta tra le dune — ogni guida porta un messaggero satellitare, e la base conosce il percorso e l'orario di rientro previsto di ogni gruppo.",
+    "linksHeading": "Continua a leggere",
+    "ctaStay": "Vedi le opzioni di soggiorno →",
+    "ctaActivities": "Vedi le esperienze →",
+    "ctaPacking": "Cosa portare →",
+    "ctaFaq": "Tutte le domande frequenti →"
+  },
+  "guidePacking": {
+    "eyebrow": "Guida pratica",
+    "title": "Cosa portare per una notte nel deserto",
+    "lead": "La lista vera, non un generico articolo da blog di viaggio — quello che le nostre guide raccomandano davvero, e quello che forniamo già sul posto.",
+    "dayHeading": "Per il giorno",
+    "dayP1": "Abiti leggeri e larghi, maniche lunghe e pantaloni lunghi piuttosto che pantaloncini — il sole del deserto brucia più in fretta di quanto sembri, anche con il cielo coperto. Le scarpe chiuse sono indispensabili per camminare sulla sabbia calda e per il quad.",
+    "dayP2": "Occhiali da sole e crema solare ad alta protezione. Distribuiamo uno chèche tradizionale all'ingresso per proteggere testa, viso e collo da polvere e sole.",
+    "nightHeading": "Per la sera e la notte",
+    "nightP1": "Uno strato caldo è indispensabile — come minimo un maglione o una giacca leggera. Lo sbalzo di temperatura tra giorno e notte nel deserto è reale, anche in piena stagione: un pomeriggio caldo diventa una sera fresca non appena tramonta il sole.",
+    "providedHeading": "Cosa forniamo già",
+    "providedP1": "Tende, biancheria da letto e lo chèche del deserto sono forniti sia al campo che in bivacco — non serve portare la propria attrezzatura da campeggio o per dormire.",
+    "medHeading": "Una cosa da non dimenticare",
+    "medP1": "Se segui una terapia medica o hai un'esigenza alimentare particolare, comunicacelo al momento della prenotazione — offriamo opzioni vegetariane, vegane e senza glutine, e le nostre guide sono informate in anticipo su qualsiasi condizione ci comunichiate.",
+    "linksHeading": "Continua a leggere",
+    "ctaSahara": "Guida completa al deserto di Sabria →",
+    "ctaSafety": "Tutte le nostre linee guida sulla sicurezza →",
+    "ctaBook": "Prenota un soggiorno →"
   }
 }

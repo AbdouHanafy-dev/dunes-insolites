@@ -53,19 +53,12 @@ export default async function Footer() {
                 <li>
                   <Link href="/contact">{t("contact")}</Link>
                 </li>
-                {/* FAQ/guides content is FR/EN only today (see lib/guides.ts) -
-                    hidden in the other 4 locales rather than linking to a
-                    page that 404s there. */}
-                {(locale === "fr" || locale === "en") && (
-                  <>
-                    <li>
-                      <Link href="/guides">{t("desertGuides")}</Link>
-                    </li>
-                    <li>
-                      <Link href="/faq">{t("faq")}</Link>
-                    </li>
-                  </>
-                )}
+                <li>
+                  <Link href="/guides">{t("desertGuides")}</Link>
+                </li>
+                <li>
+                  <Link href="/faq">{t("faq")}</Link>
+                </li>
               </ul>
             </div>
             <div>

@@ -5,21 +5,17 @@ import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { Link } from "@/i18n/navigation";
-import { localeHref } from "@/i18n/routing";
+import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { GUIDE_SLUGS } from "@/lib/guides";
 
-// FR/EN only for now, same reasoning as every other long-form content page
-// this pass: real, useful copy in the two priority/default-launch
-// languages rather than 6 AI-drafted-and-unreviewed ones - see
-// ARCHITECTURE.md's translation Phase B, and OPEN-QUESTIONS' own caution
-// about not claiming hreflang for a language that has no real page.
-const SUPPORTED_LOCALES = ["fr", "en"] as const;
-
+// Now translated into all 6 locales - was FR/EN-only when these two guides
+// first shipped (see git history for that version's reasoning, which no
+// longer applies now that real translations exist for all of them).
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export function generateStaticParams() {
-  return GUIDE_SLUGS.flatMap((g) => SUPPORTED_LOCALES.map((locale) => ({ locale, slug: g.slug })));
+  return GUIDE_SLUGS.flatMap((g) => routing.locales.map((locale) => ({ locale, slug: g.slug })));
 }
 
 function findGuide(slug: string) {
@@ -32,20 +28,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!guide) return { title: "Not found" };
 
   const t = await getTranslations({ locale, namespace: guide.metaNamespace });
-  const languages: Record<string, string> = {
-    "x-default": localeHref("fr", `/guides/${slug}`),
-  };
-  for (const l of SUPPORTED_LOCALES) languages[l] = localeHref(l, `/guides/${slug}`);
   return {
     title: t("title"),
     description: t("description"),
-    alternates: { canonical: localeHref(locale, `/guides/${slug}`), languages },
+    alternates: localeAlternates(locale, (l) => localeHref(l, `/guides/${slug}`)),
   };
 }
 
 export default async function GuideDetailPage({ params }: Props) {
   const { locale, slug } = await params;
-  if (!SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])) notFound();
   const guide = findGuide(slug);
   if (!guide) notFound();
 

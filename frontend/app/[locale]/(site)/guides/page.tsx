@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import { Link } from "@/i18n/navigation";
-import { localeHref } from "@/i18n/routing";
+import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { GUIDE_SLUGS } from "@/lib/guides";
 
-// FR/EN only for now - see guides/[slug]/page.tsx's own comment.
-const SUPPORTED_LOCALES = ["fr", "en"] as const;
-
+// Now translated into all 6 locales - was FR/EN-only when this page first shipped.
 export function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({
@@ -22,18 +19,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta.guides" });
-  const languages: Record<string, string> = { "x-default": localeHref("fr", "/guides") };
-  for (const l of SUPPORTED_LOCALES) languages[l] = localeHref(l, "/guides");
   return {
     title: t("title"),
     description: t("description"),
-    alternates: { canonical: localeHref(locale, "/guides"), languages },
+    alternates: localeAlternates(locale, (l) => localeHref(l, "/guides")),
   };
 }
 
 export default async function GuidesIndexPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  if (!SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])) notFound();
 
   const [t, ...guideTs] = await Promise.all([
     getTranslations("guidesPage"),

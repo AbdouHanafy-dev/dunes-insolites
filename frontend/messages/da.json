@@ -26,6 +26,8 @@
     "company": "Virksomhed",
     "about": "Om os",
     "guides": "Vores guider",
+    "desertGuides": "Ørkenguider",
+    "faq": "FAQ",
     "safety": "Sikkerhed",
     "contact": "Kontakt",
     "follow": "Følg os",
@@ -457,6 +459,22 @@
       "title": "Vilkår og betingelser",
       "description": "Bookingvilkår, afbestillingspolitik og deltagelsesbetingelser for Dunes Insolites."
     },
+    "faq": {
+      "title": "Ofte stillede spørgsmål",
+      "description": "Afbestilling, minimumsalder, mobildækning, kostbehov, vejr — alle svarene før du booker dit ophold i Sabria-ørkenen."
+    },
+    "guides": {
+      "title": "Ørkenguider",
+      "description": "Vores praktiske guides til at planlægge en tur til den tunesiske ørken: bedste rejsetid, hvad du skal pakke, og alt andet værd at vide om Sabria."
+    },
+    "guideSahara": {
+      "title": "Den komplette guide til Sabria-ørkenen, Tunesien",
+      "description": "Hvor Sabria ligger, hvornår man skal tage derhen, hvad man kan lave, og hvordan man booker — den komplette guide til Dunes Insolites-lejren i den tunesiske Sahara."
+    },
+    "guidePacking": {
+      "title": "Hvad skal man pakke til en nat i den tunesiske ørken",
+      "description": "Den rigtige pakkeliste, som vores guider faktisk anbefaler til en nat i lejren eller på bivuak i Sabria — tøj, solbeskyttelse, og hvad vi allerede sørger for."
+    },
     "login": {
       "title": "Log ind",
       "description": "Log ind for at administrere dine ørkenbookinger hos Dunes Insolites."
@@ -641,5 +659,78 @@
     "errorTitle": "Ugyldigt eller udløbet link",
     "errorBody": "Dette bekræftelseslink er ikke længere gyldigt.",
     "continueButton": "Fortsæt til siden →"
+  },
+  "faqPage": {
+    "eyebrow": "Ofte stillede spørgsmål",
+    "title": "Alt hvad der er værd at vide, før du booker",
+    "lead": "De rigtige svar på det, vi faktisk bliver spurgt mest om — afbestilling, minimumsalder, dækning, kostbehov og vejr.",
+    "catBooking": "Booking og afbestilling",
+    "q1": "Hvad er afbestillingspolitikken?",
+    "a1": "Mere end 24 timer før afgang: ingen gebyr. Inden for 24 timer: 50 % af turprisen. Udeblivelse ved porten: fuld pris. Hvis det er os, der aflyser — vejr, udstyr eller en anden grund på vores side — vælger du mellem fuld refundering eller gratis omlægning.",
+    "q2": "Skal jeg betale, når jeg booker?",
+    "a2": "Nej. Der bliver ikke trukket noget ved booking — betalingen sker ved porten eller via et sikkert link.",
+    "q3": "Hvad sker der, hvis vejret slår om på dagen for min tur?",
+    "a3": "Sandstorme og kraftig vind betyder aflysning, med fuld refundering eller gratis omlægning. Den beslutning træffes af cheflederen, aldrig af bookingkontoret.",
+    "catPractical": "Praktisk information",
+    "q4": "Hvad skal jeg have på og med?",
+    "a4": "Lukkede sko, lange ærmer og solbriller om dagen; et varmt lag til aftenen, da ørkennætter er kolde selv efter en varm dag. Vi uddeler et chèche (hoved- og halstørklæde) ved porten.",
+    "q5": "Er der mobildækning i Sabria?",
+    "a5": "Kun med mellemrum. Hver guide bærer en opladet satellitmessenger og radio, og basen ved porten kender hver rute og forventet returtid.",
+    "q6": "Kan I imødekomme kost- eller medicinske behov?",
+    "a6": "Ja — fortæl os det, når du booker. Vi tilbyder vegetariske, veganske og glutenfrie muligheder i lejren, og vores guider bliver briefet om enhver tilstand, du fortæller os om.",
+    "catAge": "Alder og deltagelse",
+    "q7": "Kræver det erfaring at køre quad?",
+    "a7": "Nej. Quaderne er automatiske, og hver session starter med en briefing og en prøverunde på fladt terræn, før man tager ud i klitterne. Førere skal være mindst 16 år med billede-id.",
+    "q8": "Er kameltrekket egnet til børn?",
+    "a8": "Børn fra seks år kan ride med en forælder, mens en kameldriver går ved siden af hver kamel hele vejen. Under seks år anbefaler vi i stedet besøget i lejren ved solnedgang.",
+    "q9": "Hvad med graviditet eller særlige mobilitetsbehov?",
+    "a9": "Fortæl os det, når du booker — vi vil hellere henvise dig til den rigtige tur end afvise dig ved porten.",
+    "stillQuestions": "Har du et andet spørgsmål?",
+    "contactCta": "Kontakt os →"
+  },
+  "guidesPage": {
+    "eyebrow": "Ørkenguider",
+    "title": "Planlæg din tur til den tunesiske Sahara",
+    "lead": "Hvad der er værd at vide, før du booker — skrevet ud fra, hvad vores guider faktisk gør i marken, ikke generisk rejseblog-fyld."
+  },
+  "guideSahara": {
+    "eyebrow": "Komplet guide",
+    "title": "Sabria-ørkenen, i den tunesiske Sahara",
+    "lead": "Hvor lejren ligger, hvornår man skal komme, og hvad man faktisk kan lave der.",
+    "whereHeading": "Hvor Sabria ligger",
+    "whereP1": "Sabria ligger i Kébili-guvernementet, ved kanten af den tunesiske Sahara — den region, der rummer det meste af landets ørken, sammen med Douz, Ksar Ghilane, Tozeur, Tataouine og Matmata.",
+    "whereP2": "Det er der, vores lejr ligger: traditionelle telte, kameler og quads, lige på grænsen mellem palmelunden og de første klitter.",
+    "whenHeading": "Hvornår man skal tage af sted",
+    "whenP1": "Det bedste tidsrum er oktober til april: varme, men behagelige dage, kølige nætter — lige rigtigt til at sove udendørs uden at lide under varme eller kulde.",
+    "whenP2": "Juli og august bør undgås: dagtemperaturerne kommer regelmæssigt over 40 °C, hvilket gør alt i direkte sol hårdt.",
+    "whatHeading": "Hvad der er at lave i Sabria",
+    "whatP1": "Tre oplevelser udgør de fleste ophold her: kameltrekket, quad-safarien og klit-sandboarding — hver især booket som et tillæg til en overnatning eller et bivuak.",
+    "whatP2": "Selve opholdet findes i to former: den faste lejr, med valg af indkvartering (telt, værelse eller klitsuite), eller bivuakken, en enklere nat længere inde i klitterne.",
+    "practicalHeading": "Praktisk information",
+    "practicalP1": "Ingen forudgående erfaring er nødvendig for nogen af de tre aktiviteter — hver session starter med en briefing på stedet. Minimumsalder for quad er 16 med billede-id; børn fra seks år kan ride kamel med en voksen.",
+    "practicalP2": "Mobildækningen er ujævn, når man først er i klitterne — hver guide bærer en satellitmessenger, og basen kender hver gruppes rute og forventede returtid.",
+    "linksHeading": "Læs mere",
+    "ctaStay": "Se opholdsmuligheder →",
+    "ctaActivities": "Se oplevelserne →",
+    "ctaPacking": "Hvad skal du pakke →",
+    "ctaFaq": "Alle ofte stillede spørgsmål →"
+  },
+  "guidePacking": {
+    "eyebrow": "Praktisk guide",
+    "title": "Hvad du skal pakke til en nat i ørkenen",
+    "lead": "Den rigtige liste, ikke en generisk rejseblog-artikel — hvad vores guider faktisk anbefaler, og hvad vi allerede sørger for på stedet.",
+    "dayHeading": "Til dagen",
+    "dayP1": "Let, løstsiddende tøj, lange ærmer og lange bukser frem for shorts — ørkensolen brænder hurtigere, end man tror, selv i overskyet vejr. Lukkede sko er et must for at gå på varmt sand og til quaden.",
+    "dayP2": "Solbriller og solcreme med høj faktor. Vi uddeler et traditionelt chèche ved porten for at beskytte hoved, ansigt og hals mod støv og sol.",
+    "nightHeading": "Til aften og nat",
+    "nightP1": "Et varmt lag er afgørende — som minimum en sweater eller en let jakke. Temperaturforskellen mellem dag og nat i ørkenen er reel, selv på højsæsonen: en varm eftermiddag bliver til en kølig aften, så snart solen går ned.",
+    "providedHeading": "Hvad vi allerede sørger for",
+    "providedP1": "Telte, sengetøj og ørken-chèche'en leveres både i lejren og på bivuak — der er ikke behov for at medbringe eget sove- eller campingudstyr.",
+    "medHeading": "Én ting, du ikke må glemme",
+    "medP1": "Hvis du er i medicinsk behandling eller har et kostbehov, så fortæl os det, når du booker — vi tilbyder vegetariske, veganske og glutenfrie muligheder, og vores guider bliver briefet på forhånd om alt, du fortæller os.",
+    "linksHeading": "Læs mere",
+    "ctaSahara": "Komplet guide til Sabria-ørkenen →",
+    "ctaSafety": "Alle vores sikkerhedsretningslinjer →",
+    "ctaBook": "Book et ophold →"
   }
 }
