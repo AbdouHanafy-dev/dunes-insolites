@@ -3,28 +3,67 @@
 #
 # Usage:
 #   cp .env.staging.example .env.staging   # fill in real values
-#   docker compose -f docker-compose.yml -f docker-compose.staging.yml \
-#     --env-file .env.staging up -d --build
+#   docker compose -p duneinsolite-staging -f docker-compose.yml \
+#     -f docker-compose.staging.yml --env-file .env.staging up -d --build
+#
+# `-p duneinsolite-staging` is not optional - found the hard way. Compose
+# tracks which containers belong to which service via project+service
+# labels, not container_name. Run this without an explicit `-p` on a box
+# where the plain `docker compose up` (no staging overlay, project name
+# defaulted from the directory) is already running production, and Compose
+# resolves both invocations to the *same* default project - "postgres"
+# resolves to the container the production stack already created, and
+# Compose RECREATES it against the staging overlay's definition instead of
+# leaving it alone, even though this overlay changes that service's
+# container_name and ports. The data itself survives (same named Docker
+# volume either way, confirmed), but the running production containers get
+# torn down and replaced by staging's — the opposite of "beside," not
+# "instead of." Confirmed this exact failure locally before adding `-p`
+# here: postgres/keycloak/rabbitmq had to be manually restored afterward.
 #
 # Deliberately does NOT touch the Angular apps (partner/admin/camping) - they
 # stay pointed at production until the backoffice work in R3 replaces them.
+#
+# Two things below are load-bearing fixes, not decoration - both caught by
+# actually running `docker compose ... config` and reading its output, not
+# assumed correct because the file looked reasonable:
+#
+# 1. `!override` on every `ports:` list. Compose merges a list-type key
+#    across `-f` files by APPENDING, not replacing, so without it every
+#    service here ends up publishing BOTH its production port and its
+#    staging port simultaneously (confirmed: postgres on 5434 *and* 5435,
+#    backend on 8080 *and* 8081, etc.). Requires Compose v2.24+ (this repo
+#    has v5.2.0) for the `!override` merge tag.
+# 2. An explicit `container_name` on every service. docker-compose.yml
+#    hardcodes container_name (duneinsolite-postgres, etc.) rather than
+#    letting Compose derive it from the project name - a scalar value, so
+#    the staging overlay must actually override it, not just publish a
+#    different port, or `docker compose ... up` on a box where production
+#    is already running fails outright with "container name already in
+#    use" the moment it tries to create the staging containers. Confirmed
+#    via `config` that without this fix every container_name stayed
+#    identical to the base file despite everything else in the overlay.
 
 services:
   postgres:
-    ports:
+    container_name: duneinsolite-postgres-staging
+    ports: !override
       - "127.0.0.1:5435:5432"   # distinct host port so staging can run beside prod on one box
 
   keycloak:
-    ports:
+    container_name: duneinsolite-keycloak-staging
+    ports: !override
       - "127.0.0.1:8181:8180"
 
   rabbitmq:
-    ports:
+    container_name: duneinsolite-rabbitmq-staging
+    ports: !override
       - "127.0.0.1:5673:5672"
       - "127.0.0.1:15673:15672"
 
   backend:
+    container_name: duneinsolite-backend-staging
     environment:
       SPRING_PROFILES_ACTIVE: staging
-    ports:
+    ports: !override
       - "127.0.0.1:8081:8080"

@@ -156,9 +156,31 @@ and emitting them would be wrong data, not just incomplete.
 ### Sprint 3 — Mon 14 → Tue 15 Sep · 2 d
 *Cut over and watch.*
 
-DI-030 production config, TLS — still open; `nginx/dunes-insolites.com.conf`
-is a draft (never loaded against a real server, TLS paths/upstream ports
-still `TODO`), and nothing sets `DEPLOY_ENV` anywhere yet (see DI-031) ·
+DI-030 production config, TLS — still open on the two things that
+genuinely need a real host: `nginx/dunes-insolites.com.conf` (TLS paths/
+upstream ports still `TODO`, logic verified — see DI-023) and nothing
+setting `DEPLOY_ENV` anywhere yet (see DI-031). What *could* be checked
+without that host now has been: `backend/docker-compose.staging.yml`
+(DI-007's staging overlay) was never actually run before 29 Aug — running
+it surfaced three real bugs, all fixed and verified via `docker compose
+... config` plus a real side-by-side `up`, not just re-read and trusted:
+(1) `ports:` on every service doubled up rather than replaced across the
+`-f` files (Compose appends list-type keys by default), so the overlay
+was publishing both the production *and* staging port simultaneously,
+defeating its own purpose — fixed with the `!override` merge tag; (2)
+`container_name` is hardcoded in the base file and the overlay never
+re-declared it, so staging's containers weren't actually distinct from
+production's; (3) the documented usage command had no `-p` project flag,
+so running it on this box — while the plain dev stack was already
+running under Compose's default project name — recreated the running
+dev containers in place rather than starting a separate stack beside
+them (data survived, same named volume; the *containers* still got torn
+down and replaced, confirmed and then restored). Building and booting
+the actual `backend` image against the fixed, isolated staging stack was
+started but not completed — a slow first-time base-image pull in this
+environment didn't finish in a reasonable wait, not a code or config
+problem; the compose *structure* is verified, a full boot of that
+specific image is not yet ·
 ✅ DI-031 build guard — `frontend/lib/api.ts`'s `get()` now fails a real
 production build hard (`DEPLOY_ENV=production` + no `NEXT_PUBLIC_API_URL`)
 instead of silently shipping seed data; verified with three real local
