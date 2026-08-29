@@ -109,7 +109,21 @@ that's DI-021/DI-026 content, not routing · ⚠️ DI-023 nginx blog split —
 **draft only, unverified** (`nginx/dunes-insolites.com.conf` +
 `nginx/README.md`; nginx isn't in this repo, runs on the host, was written
 blind and needs review + `nginx -t` on the real server before deploy) ·
-DI-024 301 map — **blocked on [Q6](OPEN-QUESTIONS.md)** · ✅ DI-025 sitemap from
+✅ DI-024 301 map — unblocked 29 Aug (Q6 answered: circuits stay on
+`dunes-insolites.com`). Built off the real Sprint 0 baseline crawl (63 URLs,
+`docs/seo-baseline/`), not guessed at — 24 real redirects created via the new
+Redirections backoffice (`/seo/redirections`, `scripts/seed-legacy-redirects.py`),
+verified live (301s confirmed through `frontend/middleware.ts`, not just the
+DB row). The 13 Route Insolite circuit URLs (Ksar Ghilane, Tataouine/Chenini,
+Douz-Matmata, 4x4...) 301 to a new `/circuits` "coming soon" page — real
+translated content across all 6 locales, not a placeholder — rather than 404
+or a soft-404 homepage redirect. `nginx/dunes-insolites.com.conf` updated to
+route all 24 to Next.js (was still falling through to WordPress); found and
+fixed a pre-existing gap in the same file while there — `/account` was a real
+route missing from the native-routes allowlist. Blog content, category
+archives, and a handful of pages with no clear destination (`/panier/`,
+`/review/`) are deliberately left on WordPress / unmapped, not guessed at —
+see the seed script's own header for the full reasoning per URL. · ✅ DI-025 sitemap from
 live data (rebuilt from `lib/api`, includes stays + accommodations,
 canonical-consistent, no more fabricated `lastModified`) · ✅ DI-026 schema
 *(first to cut if the sprint slips)* — `LodgingBusiness` sitewide,

@@ -470,6 +470,10 @@
     },
     "bookingConfirmation": {
       "title": "Ihre Buchung"
+    },
+    "circuits": {
+      "title": "Mehrtägige Rundreisen",
+      "description": "Ksar Ghilane, Tataouine und Chenini, Douz und Matmata per 4x4 — unsere mehrtägigen Rundreisen ab Djerba kommen bald mit Route Insolite."
     }
   },
   "legal": {
@@ -556,5 +560,19 @@
     "eyebrow": "Werden Sie Teil davon",
     "title": "Konto erstellen.",
     "lead": "Behalten Sie Ihre Buchungen an einem Ort, buchen Sie einen Lieblingsausflug mit zwei Klicks erneut und erhalten Sie Ihre Reisefotos schon am nächsten Morgen."
+  },
+  "circuitsPage": {
+    "eyebrow": "Mehrtägige Rundreisen",
+    "title": "Unsere Sahara-Rundreisen kommen bald",
+    "lead": "Ksar Ghilane, Tataouine und Chenini auf der Star-Wars-Drehroute, Douz und Matmata per 4x4 — diese mehrtägigen Rundreisen ab Djerba sind das neue Projekt von Route Insolite, unserer Schwestermarke für längere Ausflüge. Entdecken Sie bis zum Start unsere Übernachtungen und Tagesaktivitäten im Camp von Sabria.",
+    "destinationsLabel": "Bald verfügbare Ziele",
+    "destinations": [
+      "Ksar Ghilane",
+      "Tataouine & Chenini",
+      "Douz & Matmata",
+      "4x4-Rundreisen"
+    ],
+    "ctaLabel": "Unsere Aktivitäten ansehen",
+    "ctaSecondaryLabel": "Kontaktieren Sie uns"
   }
 }

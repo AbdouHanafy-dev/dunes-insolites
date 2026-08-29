@@ -98,21 +98,6 @@ products; no mixed trips.
 
 ---
 
-### Q6 💼 Which nine circuit pages move to Route Insolite?
-
-`dunes-insolites.com` currently sells and ranks for nine multi-day circuit pages
-that are Route Insolite's product — Ksar Ghilane, Tataouine/Chenini, Star Wars,
-2/3/6-day circuits, Douz-Matmata, 4x4. Two owned domains competing on the same
-queries suppress each other.
-
-**Blocks:** the SEO migration — every redirect and sitemap entry depends on it.
-**Default if unanswered:** keep them on `dunes-insolites.com`. Cannibalisation
-continues.
-**Note:** moving them cross-domain costs a 2–3 month ranking dip before recovery.
-Budget for it; do not panic-revert in week three.
-
----
-
 ### Q7 💼 Is the WordPress booking work stopped?
 
 `/services/sejours/`, `/services/tours/`, `/mes-reservations/` and
@@ -161,6 +146,14 @@ defensible if challenged.
 ---
 
 ## Answered
+
+### ✅ Q6 — Which nine circuit pages move to Route Insolite?
+*Answered 29 Aug 2026.* Stay on `dunes-insolites.com` for now — the default.
+Route Insolite is R4 scope and hasn't launched yet; a cross-domain 301
+today would eat the 2–3 month ranking dip for a destination that doesn't
+exist. Revisit once R4 actually ships `route-insolite.com`. DI-024's
+legacy-slug 301 map is unblocked by this and should **not** include these
+nine circuit pages — they stay exactly where they are.
 
 ### ✅ Canonical domain — `www.dunes-insolites.com`
 *Answered 25 Aug 2026.* With `www`, matching the legacy sitemap's declared

@@ -470,6 +470,10 @@
     },
     "bookingConfirmation": {
       "title": "Votre réservation"
+    },
+    "circuits": {
+      "title": "Circuits multi-jours",
+      "description": "Ksar Ghilane, Tataouine et Chenini, Douz et Matmata en 4x4 — nos circuits multi-jours au départ de Djerba arrivent bientôt avec Route Insolite."
     }
   },
   "legal": {
@@ -556,5 +560,19 @@
     "eyebrow": "Rejoignez-nous",
     "title": "Créer un compte.",
     "lead": "Gardez vos réservations au même endroit, réservez à nouveau votre sortie préférée en deux clics, et recevez vos photos de séjour dès le lendemain matin."
+  },
+  "circuitsPage": {
+    "eyebrow": "Circuits multi-jours",
+    "title": "Nos circuits Sahara arrivent bientôt",
+    "lead": "Ksar Ghilane, Tataouine et Chenini sur la piste du tournage Star Wars, Douz et Matmata en 4x4 — ces circuits multi-jours au départ de Djerba sont le nouveau projet de Route Insolite, notre marque sœur dédiée aux excursions longues. En attendant son lancement, découvrez nos nuitées et activités d'une journée au campement de Sabria.",
+    "destinationsLabel": "Destinations à venir",
+    "destinations": [
+      "Ksar Ghilane",
+      "Tataouine & Chenini",
+      "Douz & Matmata",
+      "Circuits 4x4"
+    ],
+    "ctaLabel": "Voir nos activités",
+    "ctaSecondaryLabel": "Nous contacter"
   }
 }

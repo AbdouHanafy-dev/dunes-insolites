@@ -8,15 +8,22 @@ or verify against. Review every `TODO` in the file before deploying it.
 ## Why WordPress is the default, not Next.js
 
 Only 9 pages + the homepage have a real Next.js route today (the DI-022
-legacy-slug rewrites). Everything else — the blog, category archives,
-9 Route Insolite circuit pages pending
-[Q6](../docs/OPEN-QUESTIONS.md#q6--which-nine-circuit-pages-move-to-route-insolite),
-WooCommerce's account/cart pages — is still the live, working WordPress
-site. So the config allowlists the small, known set of paths Next.js
-serves, and falls through to WordPress for everything else. An
+legacy-slug rewrites). Everything else — the blog, category archives, and
+the not-yet-migrated informational pages — is still the live, working
+WordPress site. So the config allowlists the small, known set of paths
+Next.js serves, and falls through to WordPress for everything else. An
 unanticipated URL (an old campaign link, a media file, a page missed by the
 crawl this list was built from) fails safe to the site that has always
 served it, not to a Next 404.
+
+**Update, DI-024 (29 Aug 2026):** [Q6](../docs/OPEN-QUESTIONS.md#-q6--which-nine-circuit-pages-move-to-route-insolite)
+is answered — the Route Insolite circuit pages stay on
+`dunes-insolites.com` rather than moving cross-domain, since Route
+Insolite (R4) hasn't launched. They now have a real redirect target
+(`/circuits`, a "coming soon" page) instead of staying on WordPress, so a
+second allowlist block was added below for everything DI-024 gave a
+redirect target to — see `scripts/seed-legacy-redirects.py` for the full
+list and the reasoning per URL.
 
 ## Keeping the allowlist in sync
 

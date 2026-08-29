@@ -470,6 +470,10 @@
     },
     "bookingConfirmation": {
       "title": "Din booking"
+    },
+    "circuits": {
+      "title": "Flerdagsture",
+      "description": "Ksar Ghilane, Tataouine og Chenini, Douz og Matmata i 4x4 — vores flerdagsture fra Djerba lanceres snart med Route Insolite."
     }
   },
   "legal": {
@@ -556,5 +560,19 @@
     "eyebrow": "Bliv en del af det",
     "title": "Opret en konto.",
     "lead": "Hold dine bookinger samlet ét sted, genbestil en yndlingstur med to tryk, og få dine rejsebilleder allerede morgenen efter."
+  },
+  "circuitsPage": {
+    "eyebrow": "Flerdagsture",
+    "title": "Vores Sahara-ture kommer snart",
+    "lead": "Ksar Ghilane, Tataouine og Chenini på Star Wars-optagelsesruten, Douz og Matmata i 4x4 — disse flerdagsture fra Djerba er det nye projekt fra Route Insolite, vores søstermærke for længere udflugter. Mens vi venter på lanceringen, kan du opdage vores overnatninger og dagsaktiviteter i lejren i Sabria.",
+    "destinationsLabel": "Destinationer på vej",
+    "destinations": [
+      "Ksar Ghilane",
+      "Tataouine & Chenini",
+      "Douz & Matmata",
+      "4x4-ture"
+    ],
+    "ctaLabel": "Se vores aktiviteter",
+    "ctaSecondaryLabel": "Kontakt os"
   }
 }
