@@ -40,11 +40,16 @@ shared with a Java service.
 **types** in it are superseded by `@dunes/api-types` — that package is
 authoritative. The endpoint documentation is still current.
 
-### Two things that will bite
+### Two things that used to bite
 
-**Seed fallback is silent.** `get()` catches every failure and returns seed data.
-A dead backend renders stale marketing prices as though live — no log, no signal.
-Must be gated on `NODE_ENV` before launch (roadmap DI-031).
+**Seed fallback is silent — mostly fixed (DI-031).** `get()` still catches
+a *transient* fetch failure and returns seed data — correct, a blank page
+is worse. What changed: a real production deploy (`DEPLOY_ENV=production`,
+set only on the actual host, never in dev — see `lib/api.ts`'s own comment
+for why this isn't `NODE_ENV`) with `NEXT_PUBLIC_API_URL` unset now fails
+the build hard instead of silently shipping 100% seed/placeholder content
+forever with no signal. A transient failure in production also logs loudly
+now instead of vanishing silently.
 
 **In-memory stores.** `lib/bookings.ts` keeps bookings in a `Map` that dies on
 restart and is per-instance on serverless. Availability is computed from a *hash

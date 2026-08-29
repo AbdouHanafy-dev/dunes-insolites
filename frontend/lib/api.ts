@@ -41,6 +41,24 @@ import type { SlotAvailability } from "@/lib/bookings";
 
 const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
+// DI-031 — a production deploy with no backend configured (or one that's
+// unreachable) would otherwise silently serve 100% seed/placeholder data —
+// stale marketing prices as though they were live — to every real visitor,
+// with no error and no signal anywhere. Tolerable in dev, where running
+// without a backend is the normal, deliberate case; never acceptable once
+// this app is actually deployed.
+//
+// Deliberately NOT process.env.NODE_ENV: `next build` always sets
+// NODE_ENV=production, including a developer running a plain local build
+// to verify something before a backend is even up — the exact workflow
+// this session used repeatedly. Gating on NODE_ENV made `npm run build`
+// fail every time, confirmed by actually running it, not assumed. DEPLOY_ENV
+// is a new, separate variable this codebase doesn't set anywhere yet —
+// the real production host must set DEPLOY_ENV=production explicitly
+// (part of DI-030, not yet done) for this guard to ever fire. Its absence
+// means "not deployed as production" by default, same as today.
+const IS_REAL_PRODUCTION = process.env.DEPLOY_ENV === "production";
+
 /** True once a real backend is configured. */
 export const usingRemoteApi = BASE !== "";
 
@@ -57,19 +75,43 @@ function localeQuery(locale?: string): string {
 type FetchOpts = { revalidate?: number; signal?: AbortSignal };
 
 async function get<T>(path: string, fallback: T, opts: FetchOpts = {}): Promise<T> {
-  // Server components with no backend configured read the seed directly —
-  // fetching our own route handler during a build would deadlock.
-  if (!BASE && typeof window === "undefined") return fallback;
+  if (!BASE) {
+    if (IS_REAL_PRODUCTION) {
+      // A misconfigured production deploy - fail loudly and immediately
+      // rather than quietly shipping a site that looks live but is 100%
+      // placeholder content. This is the one case DI-031 treats as a hard
+      // error, not a degrade: there is no real backend to have hiccuped.
+      throw new Error(
+        `NEXT_PUBLIC_API_URL is not set in production — refusing to silently serve seed data for "${path}".`,
+      );
+    }
+    // Server components with no backend configured read the seed directly —
+    // fetching our own route handler during a build would deadlock. Dev/
+    // preview only; production never reaches this line (see above).
+    if (typeof window === "undefined") return fallback;
+  }
 
   try {
     const res = await fetch(url(path), {
       signal: opts.signal,
       next: opts.revalidate !== undefined ? { revalidate: opts.revalidate } : undefined,
     });
-    if (!res.ok) return fallback;
+    if (!res.ok) {
+      if (IS_REAL_PRODUCTION) {
+        console.error(`[lib/api] ${path} returned ${res.status} — falling back to seed data`);
+      }
+      return fallback;
+    }
     return (await res.json()) as T;
-  } catch {
-    // A backend hiccup should degrade to seed content, never blank the page.
+  } catch (err) {
+    // A transient backend hiccup still degrades to seed content rather than
+    // blanking the page - the difference DI-031 adds is that production no
+    // longer does this in total silence (see the console.error above/below);
+    // an unset NEXT_PUBLIC_API_URL is the one case treated as a hard error
+    // instead, since a permanently-missing backend isn't a hiccup.
+    if (IS_REAL_PRODUCTION) {
+      console.error(`[lib/api] ${path} fetch failed — falling back to seed data`, err);
+    }
     return fallback;
   }
 }

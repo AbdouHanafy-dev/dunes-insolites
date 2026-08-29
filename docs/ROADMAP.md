@@ -146,9 +146,18 @@ and emitting them would be wrong data, not just incomplete.
 ### Sprint 3 — Mon 14 → Tue 15 Sep · 2 d
 *Cut over and watch.*
 
-DI-030 production config, TLS · DI-031 build guard on `NEXT_PUBLIC_API_URL` ·
-DI-032 cutover, WordPress restorable 30 days · DI-033 post-cutover crawl +
-alerting.
+DI-030 production config, TLS — still open; `nginx/dunes-insolites.com.conf`
+is a draft (never loaded against a real server, TLS paths/upstream ports
+still `TODO`), and nothing sets `DEPLOY_ENV` anywhere yet (see DI-031) ·
+✅ DI-031 build guard — `frontend/lib/api.ts`'s `get()` now fails a real
+production build hard (`DEPLOY_ENV=production` + no `NEXT_PUBLIC_API_URL`)
+instead of silently shipping seed data; verified with three real local
+builds (no env → succeeds like today, `DEPLOY_ENV=production` alone →
+fails loudly, both set → succeeds) rather than assumed. `DEPLOY_ENV=
+production` is new and must be set on the real host as part of DI-030 —
+its absence anywhere today (including this repo) means the guard simply
+doesn't fire yet, by design · DI-032 cutover, WordPress restorable 30 days ·
+DI-033 post-cutover crawl + alerting.
 
 ### Go / no-go — Monday 14 September
 

@@ -174,9 +174,15 @@ Web Vitals is a ranking input for a business that lives on organic search.
 TypeScript is `strict` with zero `any`, `as any` or `@ts-ignore` across the tree.
 Keep it that way.
 
-> ⚠️ `lib/api.ts` silently falls back to seed data on any fetch failure. In
-> production that serves stale prices with no error anywhere. It must be gated on
-> `NODE_ENV` before launch — see roadmap DI-031.
+> ✅ DI-031 done (29 Aug 2026). `lib/api.ts` still falls back to seed data on
+> a transient fetch failure — that degrade is correct, a blank page is worse —
+> but a real production deploy (`DEPLOY_ENV=production`, set on the real host
+> as part of DI-030, not `NODE_ENV`: `next build` always sets `NODE_ENV=
+> production`, including a plain local build with no backend, confirmed by
+> actually running it) with `NEXT_PUBLIC_API_URL` unset now fails the build
+> immediately instead of silently shipping 100% seed content. A transient
+> failure in production also now logs loudly (`console.error`) instead of
+> in total silence.
 
 ### The contract
 
