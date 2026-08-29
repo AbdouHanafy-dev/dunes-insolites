@@ -106,9 +106,19 @@ URL rather than the nested route — `lib/legacySlugs.ts` is the single
 source of truth the rewrites, the canonical tags and the sitemap all read
 from); blog/informational/brand-landing pages still have nowhere to land,
 that's DI-021/DI-026 content, not routing · ⚠️ DI-023 nginx blog split —
-**draft only, unverified** (`nginx/dunes-insolites.com.conf` +
-`nginx/README.md`; nginx isn't in this repo, runs on the host, was written
-blind and needs review + `nginx -t` on the real server before deploy) ·
+**routing logic verified 29 Aug, real server access still needed.**
+`nginx/dunes-insolites.com.conf` + `nginx/README.md`. Runs on the host,
+not this repo, so the two real-infra TODOs (upstream host/port, TLS cert
+paths) can't be filled from here — but everything that *could* be checked
+without that access now has been, with evidence, not left as "should
+work": a real `nginx:stable` Docker container caught a genuine bug
+(`nginx -t` failed on a missing `ssl_certificate` directive, since fixed)
+and then, pointed at the real running frontend, confirmed every routing
+category — DI-022 rewrites, DI-024 redirects (real 301s with correct
+`Location` headers), native routes, and the WordPress catch-all — behaves
+correctly. Still needs `nginx -t` + a real crawl against the actual
+production server before deploy; that step still can't happen from this
+machine ·
 ✅ DI-024 301 map — unblocked 29 Aug (Q6 answered: circuits stay on
 `dunes-insolites.com`). Built off the real Sprint 0 baseline crawl (63 URLs,
 `docs/seo-baseline/`), not guessed at — 24 real redirects created via the new

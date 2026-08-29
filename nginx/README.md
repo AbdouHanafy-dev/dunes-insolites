@@ -2,8 +2,33 @@
 
 `dunes-insolites.com.conf` is a **draft**, written without access to the
 production server or its current nginx config — nginx isn't containerized
-in this repo (see `ARCHITECTURE.md` §2), so there was nothing here to read
-or verify against. Review every `TODO` in the file before deploying it.
+in this repo (see `ARCHITECTURE.md` §2), so there was nothing there to read
+or verify against. The two `TODO`s that genuinely need the real server
+(upstream host/port, TLS certificate paths) are still open. Review both
+before deploying.
+
+**What's no longer a TODO, verified 29 Aug 2026:** whether the file is even
+valid nginx config, and whether its routing logic actually does the right
+thing for a real request — checked with a real `nginx:stable` Docker
+container (not assumed, not "should work"): `nginx -t` initially failed
+(`no "ssl_certificate" is defined` — a real, previously-unconfirmed bug in
+the draft, not the TLS-path TODO itself, which is expected to be blank).
+With a throwaway self-signed cert standing in for the real one, the config
+parses cleanly. Then, with the container's upstream pointed at the actual
+running frontend dev server (`host.docker.internal:3000`) and both the
+Spring Boot backend and Postgres up, real HTTPS requests through the
+container confirmed every routing category works as intended: DI-022
+rewrites serve real content (`/nuitee-campement-desert/` → 200), DI-024
+redirects reach Next.js and get real 301s with correct `Location` headers
+(`/ksar-ghilane-desert-tunisia/` → 301 → `/circuits/`, `/mon-compte/` → 301
+→ `/account/`), native routes serve correctly including auth redirects
+(`/account/` → 307 → `/login` when logged out, exactly right), and paths
+NOT in either Next.js allowlist correctly fall through to the WordPress
+upstream (502, since nothing is listening on the test port 8081 — the
+502 itself is the proof nginx tried WordPress and not Next.js). This
+doesn't replace testing against the real production server before go-live
+(see "Before deploying" below) — it proves the config's *logic* is sound,
+which was previously completely unverified.
 
 ## Why WordPress is the default, not Next.js
 
@@ -42,12 +67,52 @@ config was last touched.
 
 ## Before deploying
 
-- Fill in both `TODO`s: the Next.js app's actual host/port in production,
-  and where WordPress is actually served from (a different port on this
-  box, or a different host entirely).
+- Fill in both remaining `TODO`s: the Next.js app's actual host/port in
+  production, and where WordPress is actually served from (a different
+  port on this box, or a different host entirely).
 - Fill in the real TLS certificate paths (whatever the other
   `*.dunesinsolites.com` vhosts already use).
-- Test with `nginx -t` on the actual server before reloading.
+- Test with `nginx -t` on the actual server before reloading — the config's
+  *logic* is already verified (see above), but the real upstream
+  addresses and real certificates are not, and can't be from this
+  machine.
 - Crawl a sample of both "should hit Next" and "should hit WordPress" URLs
-  after deploying — this file has never been loaded by a real nginx
-  process.
+  after deploying, against the real domain this time.
+
+## How to re-run the Docker verification
+
+Useful again after editing the allowlist regex, before touching the real
+server:
+
+```bash
+# from the repo root, with the frontend dev server running on :3000
+docker run -d --rm --name nginx-di023-test \
+  --add-host=host.docker.internal:host-gateway \
+  -v "$(pwd)/nginx/dunes-insolites.com.conf:/tmp/src.conf:ro" \
+  -p 18443:443 -p 18080:80 \
+  nginx:stable sh -c '
+    rm -f /etc/nginx/conf.d/default.conf
+    cp /tmp/src.conf /etc/nginx/conf.d/dunes-insolites.com.conf
+    sed -i "s/server 127.0.0.1:3000;/server host.docker.internal:3000;/" /etc/nginx/conf.d/dunes-insolites.com.conf
+    mkdir -p /etc/letsencrypt/live/dunes-insolites.com
+    openssl req -x509 -newkey rsa:2048 -nodes \
+      -keyout /etc/letsencrypt/live/dunes-insolites.com/privkey.pem \
+      -out /etc/letsencrypt/live/dunes-insolites.com/fullchain.pem \
+      -days 1 -subj "/CN=www.dunes-insolites.com" 2>/dev/null
+    sed -i "s|# ssl_certificate |ssl_certificate |; s|# ssl_certificate_key |ssl_certificate_key |" /etc/nginx/conf.d/dunes-insolites.com.conf
+    nginx -g "daemon off;"
+  '
+
+# then, from inside the container (Windows curl/schannel struggles with
+# the self-signed cert; the container's own curl doesn't):
+docker exec nginx-di023-test curl -sk -o /dev/null -w "%{http_code} %{redirect_url}\n" \
+  --max-redirs 0 -H "Host: www.dunes-insolites.com" "https://127.0.0.1/some-path/"
+
+docker rm -f nginx-di023-test   # when done
+```
+
+On Windows/Git-Bash specifically, prefix the `docker run` with
+`MSYS_NO_PATHCONV=1` — without it, Git-Bash silently mangles the `-v`
+mount's source path and the container starts with nginx's stock default
+config instead (which looks like it started fine in `docker logs`, but
+isn't listening on 443 at all — confirmed the hard way).
