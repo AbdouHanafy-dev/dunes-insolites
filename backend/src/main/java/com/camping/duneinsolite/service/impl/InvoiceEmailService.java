@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.*;
 import com.camping.duneinsolite.model.enums.CompanyType;
 import com.camping.duneinsolite.model.enums.Currency;
@@ -51,7 +52,7 @@ public class InvoiceEmailService {
     @Transactional(readOnly = true)
     public void sendProformaByEmail(UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found: " + invoiceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + invoiceId));
 
         String clientEmail = invoice.getUser().getEmail();
         String clientName  = invoice.getUser().getName();
@@ -81,7 +82,7 @@ public class InvoiceEmailService {
     @Transactional(readOnly = true)
     public void sendFactureByEmail(UUID invoiceId) {
         Invoice invoice = invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found: " + invoiceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + invoiceId));
 
         String clientEmail = invoice.getUser().getEmail();
         String clientName  = invoice.getUser().getName();

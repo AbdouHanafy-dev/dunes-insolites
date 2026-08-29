@@ -3,6 +3,8 @@ package com.camping.duneinsolite.service.impl;
 import com.camping.duneinsolite.dto.request.TourRequest;
 import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
+import com.camping.duneinsolite.exception.ConflictException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourMapper;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.enums.ProductType;
@@ -30,7 +32,7 @@ public class TourServiceImpl implements TourService {
     @Override
     public TourResponse createTour(TourRequest request) {
         if (tourRepository.existsByName(request.getName())) {
-            throw new RuntimeException("A tour with the name '" + request.getName() + "' already exists");
+            throw new ConflictException("A tour with the name '" + request.getName() + "' already exists");
         }
         Tour tour = tourMapper.toEntity(request);
         if (tour.getIsActive() == null) {
@@ -84,6 +86,6 @@ public class TourServiceImpl implements TourService {
 
     private Tour findById(UUID tourId) {
         return tourRepository.findById(tourId)
-                .orElseThrow(() -> new RuntimeException("Tour not found: " + tourId));
+                .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + tourId));
     }
 }

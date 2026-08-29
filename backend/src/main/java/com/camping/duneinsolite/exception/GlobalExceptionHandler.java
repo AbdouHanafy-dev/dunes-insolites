@@ -72,14 +72,15 @@ public class GlobalExceptionHandler {
 
     // ── TRANSITIONAL: the old catch-all for bare RuntimeExceptions ──────
     //
-    // Roughly 37 `throw new RuntimeException(...)` sites in the services still
-    // rely on this mapping to 400. It stays until each is reclassified as a
-    // BusinessException subclass with a correct status.
-    //
-    // It is not safe to simply delete: without it those sites would fall to the
-    // 500 handler below, turning working business errors into server errors for
-    // the Angular apps in production. Shrink it by migrating throw sites, then
-    // remove it once nothing depends on it.
+    // Every literal `throw new RuntimeException(...)` site in the services
+    // has been reclassified into a proper BusinessException subclass (see
+    // BusinessException's own comment) - this handler no longer has any of
+    // those left to catch. It still can't be deleted: a handful of
+    // IllegalArgumentException/IllegalStateException throws (also
+    // RuntimeException subtypes - remise-exceeds-price checks in
+    // KeycloakUserSyncService, staff/status guards in
+    // ReservationServiceImpl) still rely on it for their current status.
+    // Migrate those next, then remove this.
     //
     // Note the leak this still permits: ex.getMessage() on an unclassified
     // exception reaches the client. That is precisely why it is temporary.
@@ -220,4 +221,13 @@ public class GlobalExceptionHandler {
                 null
         );
     }
+
+    // Note: ConflictException and ReservationValidationException are
+    // BusinessException subclasses (see their own class comments), so
+    // handleBusinessException above already reports them at the right
+    // status - 409 and 422 respectively - with no dedicated handler
+    // needed here. Listed for the same reason RepartitionValidationException
+    // (a plain RuntimeException, needs its own handler) is visible above:
+    // finding where a given exception's status comes from should never
+    // require guessing.
 }

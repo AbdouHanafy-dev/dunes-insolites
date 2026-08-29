@@ -4,7 +4,9 @@ import com.camping.duneinsolite.dto.request.RegisterRequest;
 import com.camping.duneinsolite.dto.request.UserProductRemiseRequest;
 import com.camping.duneinsolite.dto.request.UserRequest;
 import com.camping.duneinsolite.exception.EmailAlreadyInUseException;
+import com.camping.duneinsolite.exception.ExternalServiceException;
 import com.camping.duneinsolite.exception.KeycloakSyncException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.exception.TermsNotAcceptedException;
 import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.model.User;
@@ -164,7 +166,7 @@ public class KeycloakUserSyncService {
         assignRole(keycloakUserId, request.getRole().name());
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User already exists in local DB: " + request.getEmail());
+            throw new EmailAlreadyInUseException(request.getEmail());
         }
 
         boolean hasRemise = Boolean.TRUE.equals(request.getHasSpecialRemise());
@@ -202,7 +204,7 @@ public class KeycloakUserSyncService {
     @Transactional
     public void deleteUser(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         List<UserRepresentation> keycloakUsers = keycloak.realm(realm)
                 .users()
@@ -227,7 +229,7 @@ public class KeycloakUserSyncService {
     @Transactional
     public User updateUserRole(UUID userId, UserRole newRole) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         List<UserRepresentation> keycloakUsers = keycloak.realm(realm)
                 .users()
@@ -314,11 +316,15 @@ public class KeycloakUserSyncService {
         int status = response.getStatus();
 
         if (status == 409) {
-            throw new RuntimeException("User already exists in Keycloak: " + email);
+            throw new EmailAlreadyInUseException(email);
         }
         if (status != 201) {
             String body = response.readEntity(String.class);
-            throw new RuntimeException("Failed to create user in Keycloak. Status: " + status + " - " + body);
+            // The specific status/body is Keycloak's own response detail -
+            // logged here, not put in the exception message a client sees
+            // (ExternalServiceException's own doc comment on why).
+            log.error("Keycloak user creation failed for {} - status {}: {}", email, status, body);
+            throw new ExternalServiceException("Keycloak", null);
         }
 
         String locationHeader = response.getHeaderString("Location");
@@ -556,7 +562,7 @@ public class KeycloakUserSyncService {
 
             if (req.getProductType() == ProductType.TOURTYPE) {
                 var tt = tourTypeRepository.findById(req.getProductId())
-                        .orElseThrow(() -> new RuntimeException("TourType not found: " + req.getProductId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + req.getProductId()));
                 double maxAdult = isPartner ? tt.getPartnerAdultPrice() : tt.getPassengerAdultPrice();
                 double maxChild = isPartner ? tt.getPartnerChildPrice() : tt.getPassengerChildPrice();
                 double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
@@ -569,7 +575,7 @@ public class KeycloakUserSyncService {
 
             } else if (req.getProductType() == ProductType.TOUR) {
                 var tour = tourRepository.findById(req.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Tour not found: " + req.getProductId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + req.getProductId()));
                 double maxAdult = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
                 double maxChild = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
                 double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
@@ -582,7 +588,7 @@ public class KeycloakUserSyncService {
 
             } else if (req.getProductType() == ProductType.EXTRA) {
                 var extra = extraRepository.findById(req.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Extra not found: " + req.getProductId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + req.getProductId()));
                 double unitR = req.getUnitRemise() != null ? req.getUnitRemise() : 0.0;
                 if (unitR > extra.getUnitPrice()) throw new IllegalArgumentException(
                         "Unit remise " + unitR + " exceeds price " + extra.getUnitPrice() + " for Extra " + extra.getName());

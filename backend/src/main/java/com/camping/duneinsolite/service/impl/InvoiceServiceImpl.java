@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.dto.request.InvoiceRequest;
 import com.camping.duneinsolite.dto.response.InvoiceResponse;
 import com.camping.duneinsolite.mapper.InvoiceMapper;
@@ -38,7 +39,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public InvoiceResponse createInvoice(InvoiceRequest request) {
         Reservation reservation = reservationRepository.findById(request.getReservationId())
-                .orElseThrow(() -> new RuntimeException("Reservation not found: " + request.getReservationId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + request.getReservationId()));
 
         User user = reservation.getUser();
 
@@ -174,6 +175,6 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private Invoice findById(UUID invoiceId) {
         return invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new RuntimeException("Invoice not found: " + invoiceId));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + invoiceId));
     }
 }

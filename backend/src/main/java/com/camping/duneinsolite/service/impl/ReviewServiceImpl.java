@@ -3,6 +3,9 @@ package com.camping.duneinsolite.service.impl;
 import com.camping.duneinsolite.dto.request.ReviewRequest;
 import com.camping.duneinsolite.dto.request.ReviewUpdateRequest;
 import com.camping.duneinsolite.dto.response.ReviewResponse;
+import com.camping.duneinsolite.exception.ConflictException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
+import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.mapper.ReviewMapper;
 import com.camping.duneinsolite.model.Review;
 import com.camping.duneinsolite.model.enums.ProductType;
@@ -39,12 +42,12 @@ public class ReviewServiceImpl implements ReviewService {
 
         if (reviewRepository.existsByUser_UserIdAndProductIdAndProductType(
                 userId, request.getProductId(), request.getProductType())) {
-            throw new RuntimeException("You have already reviewed this product");
+            throw new ConflictException("You have already reviewed this product");
         }
 
         Review review = Review.builder()
                 .user(userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + userId)))
+                        .orElseThrow(() -> new UserNotFoundException(userId)))
                 .productId(request.getProductId())
                 .productType(request.getProductType())
                 .rating(request.getRating())
@@ -96,7 +99,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     private Review findById(UUID reviewId) {
         return reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found: " + reviewId));
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found: " + reviewId));
     }
 
     private void validateProductExists(UUID productId, ProductType productType) {
@@ -106,7 +109,7 @@ public class ReviewServiceImpl implements ReviewService {
             case EXTRA -> extraRepository.existsById(productId);
         };
         if (!exists) {
-            throw new RuntimeException("Product not found: " + productId);
+            throw new ResourceNotFoundException("Product not found: " + productId);
         }
     }
 

@@ -7,6 +7,8 @@ import com.camping.duneinsolite.dto.request.PaymentRequest;
 import com.camping.duneinsolite.dto.response.PaymentResponse;
 import com.camping.duneinsolite.dto.response.PaymentSummary;
 import com.camping.duneinsolite.dto.response.TransactionResponse;
+import com.camping.duneinsolite.exception.ReservationValidationException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TransactionMapper;
 import com.camping.duneinsolite.model.Reservation;
 import com.camping.duneinsolite.model.Transaction;
@@ -37,7 +39,7 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse recordPayment(UUID reservationId, PaymentRequest request) {
 
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found: " + reservationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
 
         Currency requestedCurrency = request.getCurrency();
 
@@ -54,7 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
         } else {
             // ── Subsequent payment: currency must match reservation ──
             if (requestedCurrency != reservation.getCurrency()) {
-                throw new RuntimeException(
+                throw new ReservationValidationException(
                         "Currency mismatch. This reservation must be paid in "
                                 + reservation.getCurrency().name()
                                 + ". You provided: " + requestedCurrency.name());
@@ -65,12 +67,12 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentSummary current = computePaymentSummary(reservation);
 
         if (current.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new RuntimeException(
+            throw new ReservationValidationException(
                     "This reservation is already fully paid. No further payments are required.");
         }
 
         if (request.getAmount() > current.getRemainingTotal()) {
-            throw new RuntimeException(
+            throw new ReservationValidationException(
                     "Payment amount (" + request.getAmount() + " " + requestedCurrency.name()
                             + ") exceeds the remaining balance ("
                             + current.getRemainingTotal() + " " + reservation.getCurrency().name() + ").");

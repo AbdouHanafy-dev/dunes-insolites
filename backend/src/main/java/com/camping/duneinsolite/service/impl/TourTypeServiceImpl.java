@@ -5,6 +5,7 @@ import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.dto.request.TourTypeRequest;
 import com.camping.duneinsolite.dto.response.TourTypeResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicStayResponse;
+import com.camping.duneinsolite.exception.ConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourTypeMapper;
 import com.camping.duneinsolite.mapper.publicapi.PublicStayMapper;
@@ -35,7 +36,7 @@ public class TourTypeServiceImpl implements TourTypeService {
     @Override
     public TourTypeResponse createTourType(TourTypeRequest request) {
         if (tourTypeRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Tour type already exists: " + request.getName());
+            throw new ConflictException("Tour type already exists: " + request.getName());
         }
         TourType tourType = tourTypeMapper.toEntity(request);
         if (tourType.getIsActive() == null) {
@@ -117,7 +118,7 @@ public class TourTypeServiceImpl implements TourTypeService {
 
     private TourType findById(UUID tourTypeId) {
         return tourTypeRepository.findById(tourTypeId)
-                .orElseThrow(() -> new RuntimeException("TourType not found: " + tourTypeId));
+                .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + tourTypeId));
     }
 
     @Override

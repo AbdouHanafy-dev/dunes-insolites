@@ -10,6 +10,9 @@ import com.camping.duneinsolite.dto.response.PaymentSummary;
 import com.camping.duneinsolite.dto.response.ReservationResponse;
 import com.camping.duneinsolite.dto.response.TransactionResponse;
 import com.camping.duneinsolite.exception.ReservationStatusException;
+import com.camping.duneinsolite.exception.ReservationValidationException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
+import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.mapper.ReservationMapper;
 import com.camping.duneinsolite.mapper.TransactionMapper;
 import com.camping.duneinsolite.model.*;
@@ -83,10 +86,10 @@ public class ReservationServiceImpl implements ReservationService {
     public ReservationResponse createReservation(ReservationRequest request) {
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found: " + request.getUserId()));
+                .orElseThrow(() -> new UserNotFoundException(request.getUserId()));
 
         Source source = sourceRepository.findById(request.getSourceId())
-                .orElseThrow(() -> new RuntimeException("Source not found: " + request.getSourceId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Source not found: " + request.getSourceId()));
 
         boolean isPartner = user.getRole() == UserRole.PARTENAIRE;
 
@@ -130,31 +133,31 @@ public class ReservationServiceImpl implements ReservationService {
 
     private void validateHebergement(ReservationRequest request) {
         if (request.getCheckInDate() == null || request.getCheckOutDate() == null) {
-            throw new RuntimeException("Check-in and check-out dates are required for HEBERGEMENT reservations");
+            throw new ReservationValidationException("Check-in and check-out dates are required for HEBERGEMENT reservations");
         }
         if (request.getTourTypes() == null || request.getTourTypes().isEmpty()) {
-            throw new RuntimeException("At least one tour type is required for HEBERGEMENT reservations");
+            throw new ReservationValidationException("At least one tour type is required for HEBERGEMENT reservations");
         }
     }
 
     private void validateTours(ReservationRequest request) {
         if (request.getTours() == null || request.getTours().isEmpty()) {
-            throw new RuntimeException("A tour selection is required for TOURS reservations");
+            throw new ReservationValidationException("A tour selection is required for TOURS reservations");
         }
         if (request.getTours().size() > 1) {
-            throw new RuntimeException("Only one tour can be selected per reservation");
+            throw new ReservationValidationException("Only one tour can be selected per reservation");
         }
         if (request.getServiceDate() == null) {
-            throw new RuntimeException("Departure date (serviceDate) is required for TOURS reservations");
+            throw new ReservationValidationException("Departure date (serviceDate) is required for TOURS reservations");
         }
     }
 
     private void validateExtras(ReservationRequest request) {
         if (request.getExtras() == null || request.getExtras().isEmpty()) {
-            throw new RuntimeException("At least one extra is required for EXTRAS reservations");
+            throw new ReservationValidationException("At least one extra is required for EXTRAS reservations");
         }
         if (request.getServiceDate() == null) {
-            throw new RuntimeException("Service date is required for EXTRAS reservations");
+            throw new ReservationValidationException("Service date is required for EXTRAS reservations");
         }
     }
 
@@ -239,11 +242,11 @@ public class ReservationServiceImpl implements ReservationService {
             int selChildren = selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0;
 
             if (selAdults > globalAdults) {
-                throw new RuntimeException(
+                throw new ReservationValidationException(
                         "Tour type adults (" + selAdults + ") cannot exceed group adults (" + globalAdults + ")");
             }
             if (selChildren > globalChildren) {
-                throw new RuntimeException(
+                throw new ReservationValidationException(
                         "Tour type children (" + selChildren + ") cannot exceed group children (" + globalChildren + ")");
             }
         }
@@ -254,13 +257,13 @@ public class ReservationServiceImpl implements ReservationService {
                 .mapToInt(t -> t.getNumberOfChildren() != null ? t.getNumberOfChildren() : 0).sum();
 
         if (totalSelAdults < globalAdults) {
-            throw new RuntimeException(
+            throw new ReservationValidationException(
                     "Total adults across all tour types (" + totalSelAdults + ") " +
                             "cannot be less than group adults (" + globalAdults + "). " +
                             "Every person must be assigned to at least one tour type.");
         }
         if (totalSelChildren < globalChildren) {
-            throw new RuntimeException(
+            throw new ReservationValidationException(
                     "Total children across all tour types (" + totalSelChildren + ") " +
                             "cannot be less than group children (" + globalChildren + "). " +
                             "Every child must be assigned to at least one tour type.");
@@ -272,7 +275,7 @@ public class ReservationServiceImpl implements ReservationService {
                                                       int globalAdults, int globalChildren,
                                                       long nights, boolean isPartner, User user) {
         TourType tourType = tourTypeRepository.findById(selection.getTourTypeId())
-                .orElseThrow(() -> new RuntimeException("TourType not found: " + selection.getTourTypeId()));
+                .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + selection.getTourTypeId()));
 
         int adults   = singleTourType ? globalAdults   : (selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0);
         int children = singleTourType ? globalChildren : (selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0);
@@ -329,7 +332,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         for (TourHebergementRequest h : hebergements) {
             TourType tourType = tourTypeRepository.findById(h.getTourTypeId())
-                    .orElseThrow(() -> new RuntimeException("TourType not found: " + h.getTourTypeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + h.getTourTypeId()));
             int nights = (h.getNumberOfNights() != null && h.getNumberOfNights() > 0) ? h.getNumberOfNights() : 1;
 
             ReservationTourHebergement snapshot = ReservationTourHebergement.builder()
@@ -371,7 +374,7 @@ public class ReservationServiceImpl implements ReservationService {
         TourSelectionRequest selection = request.getTours().get(0);
 
         Tour tour = tourRepository.findById(selection.getTourId())
-                .orElseThrow(() -> new RuntimeException("Tour not found: " + selection.getTourId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + selection.getTourId()));
 
         double adultPrice = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
         double childPrice = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
@@ -414,7 +417,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         request.getExtras().forEach(e -> {
             Extra catalog = extraRepository.findById(e.getExtraId())
-                    .orElseThrow(() -> new RuntimeException("Extra not found: " + e.getExtraId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + e.getExtraId()));
 
             double unitPrice = catalog.getUnitPrice();
             UserProductRemise remise = user.getRemises().stream()
@@ -830,7 +833,7 @@ public class ReservationServiceImpl implements ReservationService {
             Jwt jwt = (Jwt) auth.getPrincipal();
             String email = jwt.getClaim("email");
             User authenticatedUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
             if (!reservation.getUser().getUserId().equals(authenticatedUser.getUserId())) {
                 throw new AccessDeniedException("You can only edit your own reservations.");
             }
@@ -873,10 +876,10 @@ public class ReservationServiceImpl implements ReservationService {
                     int selAdults   = selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0;
                     int selChildren = selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0;
 
-                    if (selAdults > globalAdults) throw new RuntimeException(
+                    if (selAdults > globalAdults) throw new ReservationValidationException(
                             "Tour type adults (" + selAdults + ") cannot exceed group adults (" + globalAdults + ")"
                     );
-                    if (selChildren > globalChildren) throw new RuntimeException(
+                    if (selChildren > globalChildren) throw new ReservationValidationException(
                             "Tour type children (" + selChildren + ") cannot exceed group children (" + globalChildren + ")"
                     );
                 }
@@ -886,10 +889,10 @@ public class ReservationServiceImpl implements ReservationService {
                 int totalSelChildren = request.getTourTypes().stream()
                         .mapToInt(t -> t.getNumberOfChildren() != null ? t.getNumberOfChildren() : 0).sum();
 
-                if (totalSelAdults < globalAdults) throw new RuntimeException(
+                if (totalSelAdults < globalAdults) throw new ReservationValidationException(
                         "Total adults across all tour types (" + totalSelAdults + ") cannot be less than group adults (" + globalAdults + ")."
                 );
-                if (totalSelChildren < globalChildren) throw new RuntimeException(
+                if (totalSelChildren < globalChildren) throw new ReservationValidationException(
                         "Total children across all tour types (" + totalSelChildren + ") cannot be less than group children (" + globalChildren + ")."
                 );
             }
@@ -902,7 +905,7 @@ public class ReservationServiceImpl implements ReservationService {
 
             for (TourTypeSelectionRequest selection : request.getTourTypes()) {
                 TourType tourType = tourTypeRepository.findById(selection.getTourTypeId())
-                        .orElseThrow(() -> new RuntimeException("TourType not found: " + selection.getTourTypeId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + selection.getTourTypeId()));
 
                 int adults   = singleTourType ? globalAdults   : (selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0);
                 int children = singleTourType ? globalChildren : (selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0);
@@ -984,7 +987,7 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.getExtras().clear();
             request.getExtras().forEach(e -> {
                 Extra catalog = extraRepository.findById(e.getExtraId())
-                        .orElseThrow(() -> new RuntimeException("Extra not found: " + e.getExtraId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + e.getExtraId()));
 
                 double unitPrice = r2(catalog.getUnitPrice() / extraRate);
                 UserProductRemise remise = updateUser.getRemises().stream()
@@ -1063,7 +1066,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<ReservationResponse> getMyReservations(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
         return reservationRepository.findByUserOrderByCreatedAtDesc(user)
                 .stream()
                 .map(this::toEnrichedResponse)
@@ -1201,7 +1204,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         if ((request.getGuides() == null || request.getGuides().isEmpty()) &&
                 (request.getChauffeurs() == null || request.getChauffeurs().isEmpty())) {
-            throw new RuntimeException("At least one guide or chauffeur must be provided");
+            throw new ReservationValidationException("At least one guide or chauffeur must be provided");
         }
 
         if (request.getGuides() != null && !request.getGuides().isEmpty()) {
@@ -1457,7 +1460,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional
     public ReservationResponse recalculateCurrency(UUID reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found: " + reservationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
 
         switch (reservation.getReservationType()) {
             case HEBERGEMENT -> reservation.setTotalAmount(reservation.calculateTotalTourTypesAmount());
@@ -1504,7 +1507,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     private Reservation findById(UUID reservationId) {
         return reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new RuntimeException("Reservation not found: " + reservationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
     }
 
     private ReservationResponse toEnrichedResponse(Reservation reservation) {

@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.dto.request.NotificationRequest;
 import com.camping.duneinsolite.dto.response.NotificationResponse;
 import com.camping.duneinsolite.mapper.NotificationMapper;
@@ -26,7 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationResponse createNotification(NotificationRequest request) {
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found: " + request.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getUserId()));
 
         Notification notification = Notification.builder()
                 .user(user)
@@ -56,7 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationResponse markAsRead(UUID notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found: " + notificationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
         notification.setIsRead(true);
         return notificationMapper.toResponse(notificationRepository.save(notification));
     }

@@ -108,7 +108,7 @@ public class ExtraServiceImpl implements ExtraService {
 
     private Extra findById(UUID extraId) {
         return extraRepository.findById(extraId)
-                .orElseThrow(() -> new RuntimeException("Extra not found: " + extraId));
+                .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + extraId));
     }
 
     @Override

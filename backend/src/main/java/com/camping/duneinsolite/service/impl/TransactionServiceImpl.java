@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.service.impl;
 
 
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.dto.request.TransactionRequest;
 import com.camping.duneinsolite.dto.response.TransactionResponse;
 import com.camping.duneinsolite.mapper.TransactionMapper;
@@ -28,7 +29,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse createTransaction(TransactionRequest request) {
         Reservation reservation = reservationRepository.findById(request.getReservationId())
-                .orElseThrow(() -> new RuntimeException("Reservation not found: " + request.getReservationId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + request.getReservationId()));
 
         Transaction transaction = Transaction.builder()
                 .transactionNumber(generateTransactionNumber())
@@ -42,7 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
         // Link to invoice if provided, and update invoice payment status
         if (request.getInvoiceId() != null) {
             Invoice invoice = invoiceRepository.findById(request.getInvoiceId())
-                    .orElseThrow(() -> new RuntimeException("Invoice not found: " + request.getInvoiceId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + request.getInvoiceId()));
             transaction.setInvoice(invoice);
 
             // Update invoice paid amount and payment status
@@ -96,6 +97,6 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Transaction findById(UUID transactionId) {
         return transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found: " + transactionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found: " + transactionId));
     }
 }

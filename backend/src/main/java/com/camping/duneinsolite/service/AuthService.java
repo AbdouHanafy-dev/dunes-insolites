@@ -152,11 +152,27 @@ public class AuthService {
                 );
             }
 
-            throw new RuntimeException("Refresh failed: empty response from Keycloak");
+            // Keycloak answered 200 but with no body - not a rejection, an
+            // odd upstream response. Modeled as an external-service failure,
+            // same as an unreachable Keycloak below.
+            throw new ExternalServiceException("Authentication", null);
 
-        } catch (Exception e) {
-            log.error("Token refresh failed: {}", e.getMessage());
-            throw new RuntimeException("Invalid or expired refresh token");
+        } catch (HttpClientErrorException e) {
+            // Keycloak answered and rejected the refresh token (expired,
+            // revoked, or malformed) - a real 401, same distinction login()
+            // above already makes.
+            log.warn("Refresh token rejected: {}", e.getStatusCode());
+            throw new AuthenticationFailedException("Invalid or expired refresh token.");
+
+        } catch (RestClientException e) {
+            // Keycloak could not be reached - not the same as a bad token;
+            // see login()'s own comment on why conflating the two is wrong.
+            log.error("Keycloak unreachable during token refresh: {}", e.getMessage());
+            throw new ExternalServiceException("Authentication", e);
+
+        } catch (ParseException e) {
+            log.error("Could not parse the refreshed access token", e);
+            throw new IllegalStateException("Malformed access token from the identity provider", e);
         }
     }
 }

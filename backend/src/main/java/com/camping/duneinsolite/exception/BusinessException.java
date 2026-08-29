@@ -25,12 +25,22 @@ import org.springframework.http.HttpStatus;
  *       generic 500 that reveals nothing.</li>
  * </ul>
  *
- * <p>Migration is deliberately incremental. The blanket
- * {@code RuntimeException} handler is still in place, so the ~37 existing
- * {@code throw new RuntimeException(...)} sites keep their current behaviour
- * until each is reclassified. Spring dispatches to the most specific handler,
- * so subclasses of this type get the right status the moment they are thrown —
- * no big-bang change, and no window where errors regress to 500.
+ * <p>Migration was deliberately incremental, and every bare
+ * {@code throw new RuntimeException(...)} site in the service layer has now
+ * been reclassified into one of this type's subclasses (mostly
+ * {@link ResourceNotFoundException}, {@link ConflictException} and
+ * {@link ReservationValidationException}, alongside the domain-specific ones
+ * that already existed). The blanket {@code RuntimeException} handler in
+ * {@code GlobalExceptionHandler} still can't be deleted, though: a handful of
+ * {@code IllegalArgumentException}/{@code IllegalStateException} sites
+ * (remise-exceeds-price checks in {@code KeycloakUserSyncService}, staff/
+ * status guards in {@code ReservationServiceImpl}) are a related but distinct
+ * category the original "~37 RuntimeException sites" count never covered,
+ * and still rely on it for their current — reasonable, if unlabeled — status
+ * codes. Migrating those is the next piece of this, not done yet. Spring
+ * dispatches to the most specific handler, so subclasses of this type get
+ * the right status the moment they are thrown — no big-bang change, and no
+ * window where errors regress to 500.
  *
  * <p>When adding a new failure mode, subclass this rather than throwing a bare
  * {@code RuntimeException}.

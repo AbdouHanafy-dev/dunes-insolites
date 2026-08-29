@@ -2,6 +2,9 @@ package com.camping.duneinsolite.service.impl;
 
 import com.camping.duneinsolite.dto.request.UserRequest;
 import com.camping.duneinsolite.dto.response.UserResponse;
+import com.camping.duneinsolite.exception.EmailAlreadyInUseException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
+import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.mapper.UserMapper;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.LoyaltyTier;
@@ -31,7 +34,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse createUser(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+            throw new EmailAlreadyInUseException(request.getEmail());
         }
         User user = User.builder()
                 .name(request.getName())
@@ -57,7 +60,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserByEmail(String email) {
         return userMapper.toResponse(
                 userRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("User not found with email: " + email))
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email))
         );
     }
 
@@ -98,6 +101,6 @@ public class UserServiceImpl implements UserService {
 
     private User findUserById(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 }

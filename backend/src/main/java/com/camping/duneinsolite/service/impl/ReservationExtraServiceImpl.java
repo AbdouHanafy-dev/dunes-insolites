@@ -4,6 +4,8 @@ import com.camping.duneinsolite.config.CurrencyConfig;
 import com.camping.duneinsolite.dto.request.ReservationExtraRequest;
 import com.camping.duneinsolite.dto.response.ReservationExtraResponse;
 import com.camping.duneinsolite.dto.response.ReservationExtrasListResponse;
+import com.camping.duneinsolite.exception.ReservationValidationException;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.ReservationExtraMapper;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.Reservation;
@@ -40,14 +42,14 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
     @Override
     public ReservationExtraResponse createExtra(ReservationExtraRequest request) {
         if (request.getReservationId() == null) {
-            throw new RuntimeException("reservationId is required when adding an extra to an existing reservation");
+            throw new ReservationValidationException("reservationId is required when adding an extra to an existing reservation");
         }
 
         Reservation reservation = reservationRepository.findById(request.getReservationId())
-                .orElseThrow(() -> new RuntimeException("Reservation not found: " + request.getReservationId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + request.getReservationId()));
 
         Extra catalog = extraRepository.findById(request.getExtraId())
-                .orElseThrow(() -> new RuntimeException("Extra not found in catalog: " + request.getExtraId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Extra not found in catalog: " + request.getExtraId()));
 
         validateExtraActivityDate(request.getActivityDate(), reservation);
 
@@ -170,7 +172,7 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
 
     private ReservationExtra findById(UUID extraId) {
         return reservationExtraRepository.findById(extraId)
-                .orElseThrow(() -> new RuntimeException("ReservationExtra not found: " + extraId));
+                .orElseThrow(() -> new ResourceNotFoundException("ReservationExtra not found: " + extraId));
     }
 
     private void validateExtraActivityDate(LocalDate activityDate, Reservation reservation) {
@@ -180,19 +182,19 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
             return;
         }
         if (activityDate == null) {
-            throw new RuntimeException("Activity date is required for each extra");
+            throw new ReservationValidationException("Activity date is required for each extra");
         }
         if (type == ReservationType.HEBERGEMENT) {
             LocalDate checkIn  = reservation.getCheckInDate();
             LocalDate checkOut = reservation.getCheckOutDate();
             if (activityDate.isBefore(checkIn) || activityDate.isAfter(checkOut)) {
-                throw new RuntimeException(
+                throw new ReservationValidationException(
                     "Extra activity date (" + activityDate + ") must be between check-in (" + checkIn + ") and check-out (" + checkOut + ")");
             }
         } else if (type == ReservationType.TOURS) {
             LocalDate serviceDate = reservation.getServiceDate();
             if (activityDate.isBefore(serviceDate)) {
-                throw new RuntimeException(
+                throw new ReservationValidationException(
                     "Extra activity date (" + activityDate + ") must be on or after the tour departure date (" + serviceDate + ")");
             }
         }
