@@ -61,7 +61,35 @@ facture generation, so it adds no volume to the invoice sequence that
 
 ✅ DI-010 legacy French slugs on `Tour`/`TourType`/`Extra` (scoped to the
 catalog rows that exist in `Seed.java` today — the rest backfill as products
-are entered) · ✅ DI-011 `controller.publicapi` with dedicated DTOs · ✅ DI-012
+are entered — **backfilled 29 Aug**: the real product catalog transferred
+into the backend from `frontend/lib/data/*-i18n/*.ts` — the same real,
+already-translated content the live site renders from, not invented —
+2 real nuitées and all 6 real on-site activities, each with real French
+content plus real translations in all 5 other locales
+(`scripts/seed-tourtypes.mjs`, `scripts/seed-extras.mjs`). One real gap
+found doing this: the frontend `Stay` model carries exactly one price per
+nuitée, no adult/child split and no partner rate, while `TourType`
+requires all four non-null — confirmed with the user rather than invented
+a discount; both nuitées currently carry the same real rate on all four
+price columns as a placeholder, flagged in the seed script's own header,
+needs a real admin correction once child/partner rates exist. One real
+bug found and worked around, not yet fixed: updating a `TourType` with a
+full `translations` array 400s with a unique-constraint violation
+(`tour_type_id, locale`) when that row already has translations for the
+same locale — `TourTypeServiceImpl.syncTranslations()` clears the old
+translations and re-adds the new ones in the same flush, and Hibernate
+appears to order the INSERTs before the DELETEs, violating the constraint
+before the old rows are actually gone. Worked around here with a direct
+SQL correction instead of the API (safe: only fixed an already-wrong
+placeholder price and description, left the row's already-correct real
+translations untouched) — the underlying flush-ordering bug in the
+service itself is still open, would resurface for any future edit to a
+`TourType` that already has translations. Also seeded 36 real navigation
+items (`scripts/seed-navigation.py`, transferred from
+`frontend/lib/site.ts`'s live nav + `messages/*.json`'s real translated
+labels) and 9 real media assets (`scripts/seed-media.py`, the actual
+image files already shipping from `frontend/public/images/`) · ✅ DI-011
+`controller.publicapi` with dedicated DTOs · ✅ DI-012
 public reads for stays and activities (marketing-copy fields not stored
 server-side are derived, not invented — see `PublicCatalogText`) · ✅ DI-013
 booking → real `PENDING` reservation, **server-side pricing authoritative**
