@@ -2,17 +2,22 @@ package com.camping.duneinsolite.controller;
 
 
 
+import com.camping.duneinsolite.dto.request.ForgotPasswordRequest;
 import com.camping.duneinsolite.dto.request.LoginRequest;
 import com.camping.duneinsolite.dto.request.RefreshRequest;
 import com.camping.duneinsolite.dto.request.RegisterRequest;
+import com.camping.duneinsolite.dto.request.ResetPasswordRequest;
+import com.camping.duneinsolite.dto.request.VerifyEmailRequest;
 import com.camping.duneinsolite.dto.response.LoginResponse;
 import com.camping.duneinsolite.dto.response.UserResponse;
 import com.camping.duneinsolite.mapper.UserMapper;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.UserRole;
+import com.camping.duneinsolite.service.AccountActionService;
 import com.camping.duneinsolite.service.AuthService;
 import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import com.camping.duneinsolite.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +35,7 @@ public class AuthController {
     private final AuthService authService;
     private final UserService userService;
     private final UserMapper userMapper;
+    private final AccountActionService accountActionService;
 
     /**
      * POST /api/auth/register
@@ -51,6 +57,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest request) {
         User createdUser = keycloakUserSyncService.registerUser(request, UserRole.CLIENT);
+        // Fire-and-forget: EmailService swallows its own MessagingException
+        // and logs (never throws), so a dead SMTP server can't turn a
+        // successful registration into a 500 - see EmailService's own
+        // methods, all @Async with an internal try/catch.
+        accountActionService.sendVerificationEmail(createdUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(createdUser));
     }
 
@@ -74,6 +85,41 @@ public class AuthController {
     public ResponseEntity<LoginResponse> refresh(@RequestBody RefreshRequest request) {
         LoginResponse response = authService.refresh(request.getRefreshToken());
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/auth/verify-email
+     * Redeems a verify-email link. Does not log the caller in or require
+     * a session — the token itself is the only proof of identity needed,
+     * same as a password-reset link. Body: { token }
+     */
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        accountActionService.verifyEmail(request.getToken());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * POST /api/auth/forgot-password
+     * Always responds 204, whether or not the email belongs to a real
+     * account — see AccountActionServiceImpl.requestPasswordReset's own
+     * comment on why the response can't reveal that. Body: { email }
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        accountActionService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     * Redeems a password-reset link and sets the new password in Keycloak.
+     * Body: { token, newPassword }
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        accountActionService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/clients-partenaires")

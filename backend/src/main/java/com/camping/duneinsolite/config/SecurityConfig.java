@@ -56,6 +56,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        // Email-verify and password-reset links are the
+                        // proof of identity here, not a session - same
+                        // reasoning as register/login being public.
+                        .requestMatchers(HttpMethod.POST, "/api/auth/verify-email").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/currency/rates").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
 

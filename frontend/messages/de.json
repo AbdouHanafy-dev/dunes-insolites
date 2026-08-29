@@ -602,5 +602,44 @@
     "body": "Bei dieser Seite ist ein Fehler aufgetreten. Der Rest der Website funktioniert normal.",
     "retry": "Erneut versuchen",
     "home": "Zurück zur Startseite"
+  },
+  "forgotPasswordPage": {
+    "eyebrow": "Passwort vergessen",
+    "title": "Passwort zurücksetzen.",
+    "lead": "Geben Sie Ihre E-Mail ein — wir senden Ihnen einen Link, um ein neues Passwort zu wählen.",
+    "emailLabel": "E-Mail",
+    "sendButton": "Link senden",
+    "sendingButton": "Wird gesendet…",
+    "successTitle": "E-Mail gesendet",
+    "successBody": "Falls ein Konto mit dieser Adresse existiert, erhalten Sie in wenigen Minuten einen Link zum Zurücksetzen.",
+    "backToLogin": "← Zurück zur Anmeldung"
+  },
+  "resetPasswordPage": {
+    "eyebrow": "Neues Passwort",
+    "title": "Wählen Sie ein neues Passwort.",
+    "lead": "Dieser Link ist einmalig gültig und läuft nach einer Stunde ab.",
+    "newPasswordLabel": "Neues Passwort",
+    "confirmPasswordLabel": "Passwort bestätigen",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+    "atLeast8Chars": "Mindestens 8 Zeichen.",
+    "submitButton": "Passwort zurücksetzen",
+    "submittingButton": "Wird gespeichert…",
+    "successTitle": "Passwort aktualisiert",
+    "successBody": "Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
+    "goToLogin": "Anmelden →",
+    "invalidTitle": "Ungültiger oder abgelaufener Link",
+    "invalidBody": "Dieser Link zum Zurücksetzen ist nicht mehr gültig. Fordern Sie einen neuen an.",
+    "requestNewLink": "Neuen Link anfordern",
+    "genericError": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+  },
+  "verifyEmailPage": {
+    "eyebrow": "Bestätigung",
+    "title": "Ihre E-Mail wird bestätigt.",
+    "verifying": "Wird überprüft…",
+    "successTitle": "E-Mail bestätigt",
+    "successBody": "Danke — Ihre E-Mail-Adresse ist jetzt bestätigt.",
+    "errorTitle": "Ungültiger oder abgelaufener Link",
+    "errorBody": "Dieser Bestätigungslink ist nicht mehr gültig.",
+    "continueButton": "Weiter zur Website →"
   }
 }

@@ -424,6 +424,24 @@ export function logout(): Promise<void> {
   return fetch("/api/auth/logout", { method: "POST" }).then(() => undefined);
 }
 
+/**
+ * None of these three set a session cookie, so - unlike login/register -
+ * they go straight to the real backend via post(), the same direct-to-API
+ * path sendContact()/subscribe() already use, rather than through a
+ * same-origin BFF route handler.
+ */
+export function requestPasswordReset(email: string): Promise<WriteResult<{ ok: true }>> {
+  return post<{ ok: true }>("/auth/forgot-password", { email });
+}
+
+export function resetPassword(token: string, newPassword: string): Promise<WriteResult<{ ok: true }>> {
+  return post<{ ok: true }>("/auth/reset-password", { token, newPassword });
+}
+
+export function verifyEmail(token: string): Promise<WriteResult<{ ok: true }>> {
+  return post<{ ok: true }>("/auth/verify-email", { token });
+}
+
 /* ------------------------------------------------------------ account area */
 
 // Real backend shapes (ReservationResponse/ReviewResponse), not the vitrine's

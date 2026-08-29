@@ -112,6 +112,245 @@ public class EmailService {
         }
     }
 
+    /**
+     * Sent right after self-registration (AccountActionServiceImpl). Does
+     * not gate login — the frontend auto-logs a new account in immediately
+     * (see AuthForm.tsx) — this is a trust-building confirmation, not an
+     * access-control step. The link is single-use and expires in 24h; see
+     * AccountActionToken's own doc comment.
+     */
+    @Async
+    public void sendVerificationEmail(String to, String name, String verifyLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Confirmez votre adresse email — Dune Insolite");
+            helper.setText(buildVerifyPlainText(name, verifyLink), false);
+            helper.setText(buildVerifyHtml(name, verifyLink), true);
+
+            mailSender.send(message);
+            log.info("✅ Verification email sent to: {}", to);
+
+        } catch (Exception e) {
+            // Not just MessagingException - a real SMTP auth failure (found
+            // live: this backend's Gmail app-password credential is empty
+            // locally right now) surfaces as Spring's unchecked
+            // MailAuthenticationException from mailSender.send() itself, not
+            // from building the MimeMessage. Catching the narrower type
+            // would let that escape this @Async method uncaught - harmless
+            // (Spring's default async handler just logs it), but noisy, and
+            // the whole point of this catch is "an email failure can never
+            // be the caller's problem" - see the existing methods' own
+            // comments for that same intent.
+            log.error("❌ Failed to send verification email to: {} — {}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * Sent on request from the "forgot password" form. The link is
+     * single-use and expires in 1h — shorter than the verify-email link,
+     * since redeeming it hands over the account outright.
+     */
+    @Async
+    public void sendPasswordResetEmail(String to, String name, String resetLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Réinitialisez votre mot de passe — Dune Insolite");
+            helper.setText(buildResetPlainText(name, resetLink), false);
+            helper.setText(buildResetHtml(name, resetLink), true);
+
+            mailSender.send(message);
+            log.info("✅ Password-reset email sent to: {}", to);
+
+        } catch (Exception e) {
+            // See sendVerificationEmail's comment on why this is Exception,
+            // not MessagingException.
+            log.error("❌ Failed to send password-reset email to: {} — {}", to, e.getMessage());
+        }
+    }
+
+    private String buildVerifyPlainText(String name, String link) {
+        return """
+            Bonjour %s,
+
+            Merci de vous être inscrit sur Dune Insolite. Confirmez votre adresse
+            email en ouvrant ce lien (valable 24h) :
+
+              %s
+
+            Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.
+
+            Cordialement,
+            L'équipe Dune Insolite
+            """.formatted(name, link);
+    }
+
+    private String buildVerifyHtml(String name, String link) {
+        return """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0"
+                           style="background:#ffffff;border-radius:12px;overflow:hidden;
+                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
+                                   padding:36px 40px;text-align:center;">
+                          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;
+                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
+                          <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                            Confirmez votre adresse email
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:40px 40px 28px;">
+                          <p style="margin:0 0 16px;font-size:16px;color:#374151;">
+                            Bonjour <strong>%s</strong>,
+                          </p>
+                          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Merci de vous être inscrit. Confirmez votre adresse email en
+                            cliquant sur le bouton ci-dessous — le lien est valable 24 heures.
+                          </p>
+                          <table width="100%%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td align="center">
+                                <a href="%s"
+                                   style="display:inline-block;background:linear-gradient(135deg,#c8963e,#a07030);
+                                          color:#ffffff;font-size:15px;font-weight:600;
+                                          text-decoration:none;padding:14px 36px;
+                                          border-radius:8px;letter-spacing:0.3px;">
+                                  Confirmer mon email →
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;">
+                            Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
+                                   text-align:center;">
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                            Cet email a été envoyé automatiquement — merci de ne pas y répondre.<br>
+                            © 2025 Dune Insolite. Tous droits réservés.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(name, link);
+    }
+
+    private String buildResetPlainText(String name, String link) {
+        return """
+            Bonjour %s,
+
+            Une réinitialisation de mot de passe a été demandée pour votre compte.
+            Ouvrez ce lien pour choisir un nouveau mot de passe (valable 1 heure) :
+
+              %s
+
+            Si vous n'êtes pas à l'origine de cette demande, ignorez cet email —
+            votre mot de passe actuel reste inchangé.
+
+            Cordialement,
+            L'équipe Dune Insolite
+            """.formatted(name, link);
+    }
+
+    private String buildResetHtml(String name, String link) {
+        return """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0"
+                           style="background:#ffffff;border-radius:12px;overflow:hidden;
+                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
+                                   padding:36px 40px;text-align:center;">
+                          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;
+                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
+                          <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                            Réinitialisation du mot de passe
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:40px 40px 28px;">
+                          <p style="margin:0 0 16px;font-size:16px;color:#374151;">
+                            Bonjour <strong>%s</strong>,
+                          </p>
+                          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Une réinitialisation de mot de passe a été demandée pour votre
+                            compte. Cliquez ci-dessous pour choisir un nouveau mot de passe —
+                            le lien est valable 1 heure.
+                          </p>
+                          <table width="100%%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td align="center">
+                                <a href="%s"
+                                   style="display:inline-block;background:linear-gradient(135deg,#c8963e,#a07030);
+                                          color:#ffffff;font-size:15px;font-weight:600;
+                                          text-decoration:none;padding:14px 36px;
+                                          border-radius:8px;letter-spacing:0.3px;">
+                                  Choisir un nouveau mot de passe →
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;">
+                            Si vous n'êtes pas à l'origine de cette demande, ignorez cet email —
+                            votre mot de passe actuel reste inchangé.
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
+                                   text-align:center;">
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                            Cet email a été envoyé automatiquement — merci de ne pas y répondre.<br>
+                            © 2025 Dune Insolite. Tous droits réservés.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(name, link);
+    }
+
     private String buildReceivedPlainText(String name, LocalDate date, Double total, String currency) {
         String dateLine = date != null
                 ? "\n  Date demandée : " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))

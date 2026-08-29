@@ -602,5 +602,44 @@
     "body": "Denne side stødte på en fejl. Resten af siden fungerer normalt.",
     "retry": "Prøv igen",
     "home": "Tilbage til forsiden"
+  },
+  "forgotPasswordPage": {
+    "eyebrow": "Glemt adgangskode",
+    "title": "Nulstil din adgangskode.",
+    "lead": "Angiv din e-mail — vi sender dig et link til at vælge en ny.",
+    "emailLabel": "E-mail",
+    "sendButton": "Send link",
+    "sendingButton": "Sender…",
+    "successTitle": "E-mail sendt",
+    "successBody": "Hvis der findes en konto med denne adresse, modtager du et nulstillingslink inden for få minutter.",
+    "backToLogin": "← Tilbage til login"
+  },
+  "resetPasswordPage": {
+    "eyebrow": "Ny adgangskode",
+    "title": "Vælg en ny adgangskode.",
+    "lead": "Dette link kan kun bruges én gang og er gyldigt i en time.",
+    "newPasswordLabel": "Ny adgangskode",
+    "confirmPasswordLabel": "Bekræft adgangskode",
+    "passwordMismatch": "Adgangskoderne stemmer ikke overens.",
+    "atLeast8Chars": "Mindst 8 tegn.",
+    "submitButton": "Nulstil adgangskode",
+    "submittingButton": "Gemmer…",
+    "successTitle": "Adgangskode opdateret",
+    "successBody": "Du kan nu logge ind med din nye adgangskode.",
+    "goToLogin": "Log ind →",
+    "invalidTitle": "Ugyldigt eller udløbet link",
+    "invalidBody": "Dette nulstillingslink er ikke længere gyldigt. Anmod om et nyt.",
+    "requestNewLink": "Anmod om nyt link",
+    "genericError": "Noget gik galt. Prøv igen."
+  },
+  "verifyEmailPage": {
+    "eyebrow": "Bekræftelse",
+    "title": "Bekræfter din e-mail.",
+    "verifying": "Bekræfter…",
+    "successTitle": "E-mail bekræftet",
+    "successBody": "Tak — din e-mailadresse er nu bekræftet.",
+    "errorTitle": "Ugyldigt eller udløbet link",
+    "errorBody": "Dette bekræftelseslink er ikke længere gyldigt.",
+    "continueButton": "Fortsæt til siden →"
   }
 }

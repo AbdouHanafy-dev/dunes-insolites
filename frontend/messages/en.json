@@ -602,5 +602,44 @@
     "body": "This page ran into an error. The rest of the site is working normally.",
     "retry": "Try again",
     "home": "Back to home"
+  },
+  "forgotPasswordPage": {
+    "eyebrow": "Forgot password",
+    "title": "Reset your password.",
+    "lead": "Tell us your email — we'll send a link to choose a new one.",
+    "emailLabel": "Email",
+    "sendButton": "Send link",
+    "sendingButton": "Sending…",
+    "successTitle": "Email sent",
+    "successBody": "If an account exists for that address, a reset link will arrive within a few minutes.",
+    "backToLogin": "← Back to login"
+  },
+  "resetPasswordPage": {
+    "eyebrow": "New password",
+    "title": "Choose a new password.",
+    "lead": "This link is single-use and valid for one hour.",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm password",
+    "passwordMismatch": "Passwords don't match.",
+    "atLeast8Chars": "At least 8 characters.",
+    "submitButton": "Reset password",
+    "submittingButton": "Saving…",
+    "successTitle": "Password updated",
+    "successBody": "You can now log in with your new password.",
+    "goToLogin": "Log in →",
+    "invalidTitle": "Invalid or expired link",
+    "invalidBody": "This reset link is no longer valid. Request a new one.",
+    "requestNewLink": "Request a new link",
+    "genericError": "Something went wrong. Try again."
+  },
+  "verifyEmailPage": {
+    "eyebrow": "Verification",
+    "title": "Confirming your email.",
+    "verifying": "Verifying…",
+    "successTitle": "Email confirmed",
+    "successBody": "Thanks — your email address is now confirmed.",
+    "errorTitle": "Invalid or expired link",
+    "errorBody": "This confirmation link is no longer valid.",
+    "continueButton": "Continue to the site →"
   }
 }

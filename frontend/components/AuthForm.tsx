@@ -201,7 +201,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
       {!isSignup && (
         <div className="auth-row">
-          <Link href="/contact" className="link-quiet">
+          <Link href="/forgot-password" className="link-quiet">
             {t("forgotPassword")}
           </Link>
         </div>

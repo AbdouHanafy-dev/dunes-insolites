@@ -80,11 +80,17 @@ public class KeycloakUserSyncService {
             throw new EmailAlreadyInUseException(request.getEmail());
         }
 
-        // Password comes from the request — user chose it themselves
+        // Password comes from the request — user chose it themselves.
+        // emailVerified=false here (unlike the other two callers below) -
+        // self-registration is the one path where AccountActionServiceImpl
+        // actually mails a real verify link afterward (see AuthController);
+        // it does not gate login, so this is a trust signal, not an access
+        // gate - see EmailService.sendVerificationEmail's own comment.
         String keycloakUserId = createKeycloakUser(
                 request.getEmail(),
                 request.getName(),
-                request.getPassword()
+                request.getPassword(),
+                false
         );
 
         assignRole(keycloakUserId, role.name());
@@ -119,7 +125,7 @@ public class KeycloakUserSyncService {
     @Transactional
     public User findOrCreateGuestUser(String name, String email, String phone) {
         return userRepository.findByEmail(email).orElseGet(() -> {
-            String keycloakUserId = createKeycloakUser(email, name, generateSecurePassword());
+            String keycloakUserId = createKeycloakUser(email, name, generateSecurePassword(), true);
             assignRole(keycloakUserId, UserRole.CLIENT.name());
 
             User user = User.builder()
@@ -151,7 +157,8 @@ public class KeycloakUserSyncService {
         String keycloakUserId = createKeycloakUser(
                 request.getEmail(),
                 request.getName(),
-                generatedPassword
+                generatedPassword,
+                true
         );
 
         assignRole(keycloakUserId, request.getRole().name());
@@ -279,8 +286,14 @@ public class KeycloakUserSyncService {
     /**
      * Creates a user in Keycloak and returns the new Keycloak user ID.
      * Throws if user already exists (409) or creation fails.
+     *
+     * emailVerified is a parameter, not hardcoded: self-registration wants
+     * it false (a real verify email follows - see AuthController /
+     * AccountActionServiceImpl); guest checkout and admin-created accounts
+     * keep the previous unconditional true, since neither of those flows
+     * ever sends the guest/staff a link to click.
      */
-    private String createKeycloakUser(String email, String name, String password) {
+    private String createKeycloakUser(String email, String name, String password, boolean emailVerified) {
         RealmResource realmResource = keycloak.realm(realm);
         UsersResource usersResource = realmResource.users();
 
@@ -294,7 +307,7 @@ public class KeycloakUserSyncService {
         keycloakUser.setEmail(email);
         applyName(keycloakUser, name);
         keycloakUser.setEnabled(true);
-        keycloakUser.setEmailVerified(true);
+        keycloakUser.setEmailVerified(emailVerified);
         keycloakUser.setCredentials(List.of(credential));
 
         Response response = usersResource.create(keycloakUser);

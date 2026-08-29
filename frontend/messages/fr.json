@@ -602,5 +602,44 @@
     "body": "Cette page a rencontré une erreur. Le reste du site fonctionne normalement.",
     "retry": "Réessayer",
     "home": "Retour à l'accueil"
+  },
+  "forgotPasswordPage": {
+    "eyebrow": "Mot de passe oublié",
+    "title": "Réinitialiser votre mot de passe.",
+    "lead": "Indiquez votre e-mail — nous vous envoyons un lien pour en choisir un nouveau.",
+    "emailLabel": "E-mail",
+    "sendButton": "Envoyer le lien",
+    "sendingButton": "Envoi…",
+    "successTitle": "E-mail envoyé",
+    "successBody": "Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation d'ici quelques minutes.",
+    "backToLogin": "← Retour à la connexion"
+  },
+  "resetPasswordPage": {
+    "eyebrow": "Nouveau mot de passe",
+    "title": "Choisissez un nouveau mot de passe.",
+    "lead": "Ce lien est à usage unique et valable une heure.",
+    "newPasswordLabel": "Nouveau mot de passe",
+    "confirmPasswordLabel": "Confirmer le mot de passe",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "atLeast8Chars": "Au moins 8 caractères.",
+    "submitButton": "Réinitialiser le mot de passe",
+    "submittingButton": "Enregistrement…",
+    "successTitle": "Mot de passe mis à jour",
+    "successBody": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    "goToLogin": "Se connecter →",
+    "invalidTitle": "Lien invalide ou expiré",
+    "invalidBody": "Ce lien de réinitialisation n'est plus valable. Demandez-en un nouveau.",
+    "requestNewLink": "Demander un nouveau lien",
+    "genericError": "Une erreur est survenue. Réessayez."
+  },
+  "verifyEmailPage": {
+    "eyebrow": "Vérification",
+    "title": "Confirmation de votre e-mail.",
+    "verifying": "Vérification en cours…",
+    "successTitle": "E-mail confirmé",
+    "successBody": "Merci, votre adresse e-mail est maintenant confirmée.",
+    "errorTitle": "Lien invalide ou expiré",
+    "errorBody": "Ce lien de confirmation n'est plus valable.",
+    "continueButton": "Continuer vers le site →"
   }
 }

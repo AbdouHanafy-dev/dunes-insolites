@@ -602,5 +602,44 @@
     "body": "Questa pagina ha riscontrato un errore. Il resto del sito funziona normalmente.",
     "retry": "Riprova",
     "home": "Torna alla home"
+  },
+  "forgotPasswordPage": {
+    "eyebrow": "Password dimenticata",
+    "title": "Reimposta la tua password.",
+    "lead": "Indica la tua email — ti invieremo un link per sceglierne una nuova.",
+    "emailLabel": "Email",
+    "sendButton": "Invia il link",
+    "sendingButton": "Invio…",
+    "successTitle": "Email inviata",
+    "successBody": "Se esiste un account con questo indirizzo, riceverai un link di reimpostazione entro pochi minuti.",
+    "backToLogin": "← Torna al login"
+  },
+  "resetPasswordPage": {
+    "eyebrow": "Nuova password",
+    "title": "Scegli una nuova password.",
+    "lead": "Questo link è monouso e valido per un'ora.",
+    "newPasswordLabel": "Nuova password",
+    "confirmPasswordLabel": "Conferma password",
+    "passwordMismatch": "Le password non corrispondono.",
+    "atLeast8Chars": "Almeno 8 caratteri.",
+    "submitButton": "Reimposta password",
+    "submittingButton": "Salvataggio…",
+    "successTitle": "Password aggiornata",
+    "successBody": "Ora puoi accedere con la tua nuova password.",
+    "goToLogin": "Accedi →",
+    "invalidTitle": "Link non valido o scaduto",
+    "invalidBody": "Questo link di reimpostazione non è più valido. Richiedine uno nuovo.",
+    "requestNewLink": "Richiedi un nuovo link",
+    "genericError": "Si è verificato un errore. Riprova."
+  },
+  "verifyEmailPage": {
+    "eyebrow": "Verifica",
+    "title": "Conferma della tua email.",
+    "verifying": "Verifica in corso…",
+    "successTitle": "Email confermata",
+    "successBody": "Grazie — il tuo indirizzo email è ora confermato.",
+    "errorTitle": "Link non valido o scaduto",
+    "errorBody": "Questo link di conferma non è più valido.",
+    "continueButton": "Continua verso il sito →"
   }
 }
