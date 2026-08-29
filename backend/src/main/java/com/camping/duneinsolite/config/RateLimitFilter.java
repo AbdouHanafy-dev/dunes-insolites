@@ -35,7 +35,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             new Limit("/api/public/bookings", "POST", 10, 60_000),
             new Limit("/api/public/stay-bookings", "POST", 10, 60_000),
             new Limit("/api/auth/register", "POST", 5, 60_000),
-            new Limit("/api/auth/login", "POST", 10, 60_000)
+            new Limit("/api/auth/login", "POST", 10, 60_000),
+            // Contact/newsletter (SEO/vitrine audit fix) - unauthenticated,
+            // free-text input reaching either a real inbox (contact) or a
+            // real DB table (newsletter), same abuse shape as the others above.
+            new Limit("/api/public/contact", "POST", 5, 60_000),
+            new Limit("/api/public/subscribe", "POST", 5, 60_000)
     );
 
     private static final class Window {

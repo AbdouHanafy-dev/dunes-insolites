@@ -233,6 +233,21 @@ public class GlobalExceptionHandler {
                 null
         );
     }
+
+    // ── Handle contact-form email delivery failures ───────────────────────
+    // Real SMTP failure (auth, network) - see application-local.yml's own
+    // empty mail password for a live example of this actually firing
+    // locally. Logged with the cause server-side; the caller only ever sees
+    // a generic message, never SMTP internals.
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailDelivery(EmailDeliveryException ex) {
+        log.error("Email delivery failed: {}", ex.getMessage(), ex.getCause());
+        return buildResponse(
+                HttpStatus.BAD_GATEWAY,   // 502 — external service failed
+                "Your message could not be sent right now. Please try again or contact us on WhatsApp.",
+                null
+        );
+    }
     // ── Handle repartition validation errors ──────────────────────────
     @ExceptionHandler(RepartitionValidationException.class)
     public ResponseEntity<Map<String, Object>> handleRepartitionValidation(

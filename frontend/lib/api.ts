@@ -355,17 +355,22 @@ export function createStayBooking(
   );
 }
 
+// Real backend has these under /public/contact and /public/subscribe
+// (PublicContactController/PublicNewsletterController - SEO/vitrine audit
+// fix: both used to be a local route-handler stand-in that validated the
+// input and threw it away). Same usingRemoteApi branch createBooking above
+// uses, for the same reason: the local stub keeps the shorter path.
 export function sendContact(input: {
   name: string;
   email: string;
   subject?: string;
   message: string;
 }): Promise<WriteResult<{ ok: true }>> {
-  return post<{ ok: true }>("/contact", input);
+  return post<{ ok: true }>(usingRemoteApi ? "/public/contact" : "/contact", input);
 }
 
 export function subscribe(email: string): Promise<WriteResult<{ ok: true }>> {
-  return post<{ ok: true }>("/subscribe", { email });
+  return post<{ ok: true }>(usingRemoteApi ? "/public/subscribe" : "/subscribe", { email });
 }
 
 /* ------------------------------------------------------------------- auth */

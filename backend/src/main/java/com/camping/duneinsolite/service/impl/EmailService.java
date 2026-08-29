@@ -26,6 +26,13 @@ public class EmailService {
     @Value("${app.frontend.url:https://duneinsolite.com}")
     private String frontendUrl;
 
+    // Where the vitrine's contact form actually lands. Defaults to the real,
+    // already-documented business address (frontend/lib/site.ts's
+    // site.email) rather than inventing a new one - overridable per
+    // deployment via CONTACT_TO_EMAIL.
+    @Value("${app.mail.contact-to:hello@dunes-insolites.tn}")
+    private String contactToAddress;
+
     /**
      * Sends a welcome email with temporary password to a newly created user (admin flow).
      * Runs asynchronously so it never blocks the HTTP response.
@@ -173,6 +180,48 @@ public class EmailService {
             // See sendVerificationEmail's comment on why this is Exception,
             // not MessagingException.
             log.error("❌ Failed to send password-reset email to: {} — {}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * The vitrine's contact form (ContactForm.tsx). Deliberately synchronous
+     * (no @Async) and deliberately does not swallow the exception like every
+     * other method in this class - found live (SEO/vitrine audit): the
+     * previous behaviour, before this endpoint existed at all, was the
+     * frontend's local route-handler stub validating the input and
+     * returning success while the message went nowhere,
+     * `// TODO: forward to the inbox / CRM.` The whole point of fixing that
+     * is a visitor either really reaches the inbox or is told it failed -
+     * a silently-swallowed send here would just move the same lie one
+     * layer down. replyTo is set to the visitor's own address so replying
+     * to the notification email reaches them directly.
+     */
+    public void sendContactMessage(String name, String fromEmail, String subject, String body) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setReplyTo(fromEmail);
+            helper.setTo(contactToAddress);
+            helper.setSubject(
+                    "[Contact] " + (subject == null || subject.isBlank() ? "New message from the website" : subject));
+            helper.setText("""
+                New message from the contact form on the website.
+
+                Name: %s
+                Email: %s
+
+                %s
+                """.formatted(name, fromEmail, body));
+
+            mailSender.send(message);
+            log.info("✅ Contact message from {} forwarded to {}", fromEmail, contactToAddress);
+
+        } catch (Exception e) {
+            log.error("❌ Failed to forward contact message from: {} — {}", fromEmail, e.getMessage());
+            throw new com.camping.duneinsolite.exception.EmailDeliveryException(
+                    "Failed to send contact message", e);
         }
     }
 

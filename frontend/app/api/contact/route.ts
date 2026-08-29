@@ -1,3 +1,14 @@
+// Local dev/no-backend stand-in for PublicContactController
+// (POST /api/public/contact) - lib/api.ts's sendContact() only calls this
+// route when NEXT_PUBLIC_API_URL is unset (no real backend configured, per
+// this app's own "everything through lib/api.ts, seed-data fallback"
+// convention - see ARCHITECTURE.md §6.2). With a real backend configured,
+// the message is really emailed to the business inbox; here, there's
+// nothing to forward to, so it just validates and no-ops. This used to
+// silently no-op even with NEXT_PUBLIC_API_URL set, which was the real bug
+// (SEO/vitrine audit) - fixed by giving sendContact() a real backend path
+// to call, not by making this local stub do anything - it's the same
+// intentional placeholder every other local API route in this folder is.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
@@ -19,6 +30,6 @@ export async function POST(req: Request) {
     return Response.json({ errors }, { status: 422 });
   }
 
-  // TODO: forward to the inbox / CRM.
+  // No backend configured in this environment - nothing to forward to.
   return Response.json({ ok: true }, { status: 201 });
 }

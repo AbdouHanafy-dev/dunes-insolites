@@ -89,6 +89,10 @@ public class SecurityConfig {
                         // account server-side; see PublicBookingServiceImpl.
                         .requestMatchers(HttpMethod.POST, "/api/public/bookings", "/api/public/stay-bookings").permitAll()
 
+                        // The vitrine's contact form and newsletter signup (SEO/vitrine
+                        // audit fix) - both rate-limited below, same as bookings/register.
+                        .requestMatchers(HttpMethod.POST, "/api/public/contact", "/api/public/subscribe").permitAll()
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         .requestMatchers("/api/camping/**").hasRole("CAMPING")
