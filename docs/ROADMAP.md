@@ -175,12 +175,32 @@ so running it on this box — while the plain dev stack was already
 running under Compose's default project name — recreated the running
 dev containers in place rather than starting a separate stack beside
 them (data survived, same named volume; the *containers* still got torn
-down and replaced, confirmed and then restored). Building and booting
-the actual `backend` image against the fixed, isolated staging stack was
-started but not completed — a slow first-time base-image pull in this
-environment didn't finish in a reasonable wait, not a code or config
-problem; the compose *structure* is verified, a full boot of that
-specific image is not yet ·
+down and replaced, confirmed and then restored). Building and booting the
+actual `backend` image was completed on a second pass (the first attempt's
+base-image pull was genuinely just slow, not broken) — and that full boot
+surfaced a fourth, much bigger real gap: a completely fresh Keycloak has
+no `duneinsolite` realm at all, so the backend's own startup seeding
+(`Seed.java` → `KeycloakUserSyncService`) crash-looped (first a 404
+creating the seed admin user, since the realm didn't exist; then, after
+adding a realm import, a 403, since the import had been scrubbed of the
+service account's role mappings along with the real client secret it
+correctly needed to lose). This realm has existed only as manually-
+configured state inside one long-lived dev Keycloak container since
+before this repo tracked its history — undocumented, un-reproducible,
+never exercised by a fresh environment until this pass. Exported it for
+real (`backend/docker/keycloak-realm-duneinsolite.json`, see
+`backend/docker/README.md` for exactly what was scrubbed and why), wired
+it into `docker-compose.yml` (`--import-realm`, imports only if the realm
+doesn't already exist — safe against this dev box's own Keycloak), and
+verified end to end from a completely empty volume: realm import, client
+secret regeneration via the Admin API (required — the checked-in file's
+secret is Keycloak's own masked placeholder, which becomes the literal
+secret on import if not rotated, now documented inline in
+`.env.staging.example`), a full backend boot with real seed data, and a
+real `200` from `/api/auth/login` against the freshly seeded staging
+admin account. Every staging container was torn down afterward
+(`down -v`) — nothing left running, dev stack confirmed untouched and
+still serving real logins throughout ·
 ✅ DI-031 build guard — `frontend/lib/api.ts`'s `get()` now fails a real
 production build hard (`DEPLOY_ENV=production` + no `NEXT_PUBLIC_API_URL`)
 instead of silently shipping seed data; verified with three real local

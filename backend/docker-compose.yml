@@ -33,7 +33,21 @@ services:
     image: quay.io/keycloak/keycloak:26.0
     container_name: duneinsolite-keycloak
     restart: unless-stopped
-    command: start-dev
+    # --import-realm loads any realm JSON under /opt/keycloak/data/import/
+    # on boot, but only if that realm doesn't already exist - safe to add
+    # to an environment whose "duneinsolite" realm is already there (this
+    # dev box's Keycloak has had it, unwritten anywhere as code, since
+    # before this repo tracked its history - confirmed via its own Admin
+    # API and exported into docker/keycloak-realm-duneinsolite.json,
+    # scrubbed of the real client secret and the auto-generated service
+    # account user, neither of which a fresh import needs). Without this,
+    # a genuinely fresh Keycloak (a new checkout, staging, or real
+    # production on day one) has no realm at all, and the backend's own
+    # startup seeding (Seed.java -> KeycloakUserSyncService) crash-loops
+    # trying to create a user inside a realm that was never created -
+    # found by actually running docker-compose.staging.yml end to end
+    # (DI-030), not assumed.
+    command: start-dev --import-realm
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -47,6 +61,8 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
       KC_HTTP_PORT: 8180
+    volumes:
+      - ./docker/keycloak-realm-duneinsolite.json:/opt/keycloak/data/import/duneinsolite-realm.json:ro
     ports:
       - "127.0.0.1:8180:8180"   # host-only - reached via nginx (auth.dunesinsolites.com)
     depends_on:
