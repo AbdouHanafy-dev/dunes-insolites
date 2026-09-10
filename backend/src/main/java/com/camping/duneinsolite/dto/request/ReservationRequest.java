@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +45,16 @@ public class ReservationRequest {
    // private Currency currency;
     private String promoCode;
     private String demandeSpecial;
+
+    // Phase 2 — set by PublicBookingServiceImpl for a public guest hold
+    // (now + app.reservation.hold-duration-minutes). Null for staff-created
+    // reservations = no expiry. Not exposed on any public request DTO.
+    private LocalDateTime holdExpiresAt;
+
+    // Optional client-supplied idempotency key (public booking only). A retry
+    // with the same key returns the same reservation. Ignored for staff-created
+    // reservations. See Reservation.idempotencyKey / V7.
+    private String idempotencyKey;
 
     // Required for HEBERGEMENT — validated in service
     private List<TourTypeSelectionRequest> tourTypes;

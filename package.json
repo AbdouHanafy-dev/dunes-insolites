@@ -17,10 +17,20 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "backend:compile": "node scripts/mvn.mjs -q compile",
     "backend:test": "node scripts/mvn.mjs test",
-    "backend:test:unit": "node scripts/mvn.mjs test \"-Dtest=!DuneinsoliteApplicationTests\"",
+    "backend:test:unit": "node scripts/mvn.mjs test",
+    "backend:test:it": "node scripts/mvn.mjs verify",
     "backend:run": "node scripts/mvn.mjs spring-boot:run",
     "backend:package": "node scripts/mvn.mjs -q package -DskipTests",
-    "verify": "npm run typecheck && npm run lint && npm run backend:test:unit"
+    "test:frontend": "npm run test --workspace frontend",
+    "test:admin": "npm run test --workspace admin",
+    "test:web": "npm run test:frontend && npm run test:admin",
+    "validate:prod-config": "node scripts/validate-prod-config.mjs",
+    "verify:seo": "node scripts/verify-production-urls.mjs",
+    "verify:seo:coexistence": "node scripts/nginx-coexistence-test.mjs",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test:web && npm run backend:test:unit && npm run validate:prod-config",
+    "verify:full": "npm run verify && npm run backend:test:it"
   },
   "engines": {
     "node": ">=20"

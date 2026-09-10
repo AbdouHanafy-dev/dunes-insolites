@@ -13,9 +13,9 @@ public class ReservationExtraResponse {
     private String description;
     private String duration;
     private Integer quantity;
-    private Double unitPrice;
-    private Double totalPrice;
+    private java.math.BigDecimal unitPrice;
+    private java.math.BigDecimal totalPrice;
     private Boolean isActive;
     private LocalDate activityDate;
-    private Double tva;
+    private java.math.BigDecimal tva;
 }

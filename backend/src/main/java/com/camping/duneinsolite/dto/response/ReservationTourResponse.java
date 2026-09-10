@@ -12,12 +12,12 @@ public class ReservationTourResponse {
     private String name;
     private String description;
     private String duration;
-    private Double adultPrice;
-    private Double childPrice;
+    private java.math.BigDecimal adultPrice;
+    private java.math.BigDecimal childPrice;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
     private LocalDate departureDate;
-    private Double totalPrice;
-    private Double tva;
+    private java.math.BigDecimal totalPrice;
+    private java.math.BigDecimal tva;
     private List<TourHebergementResponseDto> hebergements;
 }

@@ -1,6 +1,16 @@
 import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 
+/**
+ * Restructured (differentiation pass, 31 Aug 2026) away from the
+ * eyebrow + 2-line-headline + 3-col-grid skeleton every other homepage
+ * section uses, and off the second dark full-width band this section used
+ * to be (Experience.tsx's photo band is the one dark moment the page keeps
+ * now). A numbered vertical index instead — the actual "Field Log" voice:
+ * a compact monospace kicker, then each step as a row (number in a narrow
+ * column, real content beside it), hairline rules between rows instead of
+ * a boxed grid cell. See audit-differentiation.md for what this replaces.
+ */
 export default async function Steps() {
   const t = await getTranslations("steps");
   const steps = [
@@ -10,22 +20,19 @@ export default async function Steps() {
   ];
 
   return (
-    <section className="block steps" id="steps">
+    <section className="log-index" id="steps">
       <div className="wrap">
         <Reveal>
-          <p className="sect-eyebrow">{t("eyebrow")}</p>
-          <h2 className="sect-title">
-            {t("titleLine1")}
-            <br />
-            {t("titleLine2")}
-          </h2>
+          <p className="log-index-kicker">{t("eyebrow")} — 01–03</p>
         </Reveal>
-        <div className="grid">
+        <div className="log-index-list">
           {steps.map((s, i) => (
-            <Reveal key={s.n} className="step" delay={i * 90}>
-              <div className="n">{s.n}</div>
-              <h4>{s.title}</h4>
-              <p>{s.body}</p>
+            <Reveal key={s.n} className="log-row" delay={i * 90}>
+              <span className="log-num">{s.n}</span>
+              <div className="log-row-body">
+                <h4>{s.title}</h4>
+                <p>{s.body}</p>
+              </div>
             </Reveal>
           ))}
         </div>

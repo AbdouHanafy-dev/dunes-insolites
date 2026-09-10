@@ -14,11 +14,11 @@ public class ProduitResponse {
     private String name;
     private String description;
     // Prices — null when not applicable
-    private Double passengerAdultPrice;
-    private Double passengerChildPrice;
-    private Double partnerAdultPrice;
-    private Double partnerChildPrice;
+    private java.math.BigDecimal passengerAdultPrice;
+    private java.math.BigDecimal passengerChildPrice;
+    private java.math.BigDecimal partnerAdultPrice;
+    private java.math.BigDecimal partnerChildPrice;
     // For EXTRA only
-    private Double unitPrice;
-    private Double tva;
+    private java.math.BigDecimal unitPrice;
+    private java.math.BigDecimal tva;
 }

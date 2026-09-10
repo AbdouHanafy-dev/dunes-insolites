@@ -4,7 +4,6 @@ import GalleryGrid from "@/components/GalleryGrid";
 import PageHead from "@/components/PageHead";
 import CTA from "@/components/CTA";
 import { getGallery } from "@/lib/api";
-import { galleryTags } from "@/lib/data/gallery";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 
@@ -30,6 +29,10 @@ export default async function GalleryPage() {
     getLocale(),
   ]);
 
+  // Filter facets come from the content itself now — "All" plus every
+  // distinct tag an editor has used, in first-seen order.
+  const tags = ["All", ...new Set(items.map((i) => i.tag).filter((tag) => tag && tag !== "All"))];
+
   const breadcrumbLd = breadcrumbJsonLd([
     { name: "Home", path: localeHref(locale, "/") },
     { name: t("eyebrow"), path: localeHref(locale, "/gallery") },
@@ -45,7 +48,7 @@ export default async function GalleryPage() {
 
       <section className="section-sand">
         <div className="wrap">
-          <GalleryGrid items={items} tags={galleryTags} />
+          <GalleryGrid items={items} tags={tags} />
         </div>
       </section>
 

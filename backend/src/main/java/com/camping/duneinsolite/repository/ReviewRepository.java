@@ -14,7 +14,18 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     Page<Review> findByProductIdAndProductType(UUID productId, ProductType productType, Pageable pageable);
 
+    // Unpaged variants for the public vitrine feed (DI-012 pattern already
+    // used by stays/activities) - the real review volume for one camp is
+    // small enough that a page-through UI would be over-engineering; the
+    // frontend just wants "all of them, newest first".
+    java.util.List<Review> findByProductIdAndProductTypeOrderByCreatedAtDesc(UUID productId, ProductType productType);
+
+    java.util.List<Review> findAllByOrderByCreatedAtDesc();
+
     Page<Review> findByUser_UserId(UUID userId, Pageable pageable);
+
+    // Self-service data export (Phase 5).
+    java.util.List<Review> findByUser_UserIdOrderByCreatedAtDesc(UUID userId);
 
     long countByProductIdAndProductType(UUID productId, ProductType productType);
 

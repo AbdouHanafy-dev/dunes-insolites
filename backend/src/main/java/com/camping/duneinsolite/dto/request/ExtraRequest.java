@@ -26,7 +26,7 @@ public class ExtraRequest {
 
     @NotNull(message = "Unit price is required")
     @Positive(message = "Unit price must be positive")
-    private Double unitPrice;
+    private java.math.BigDecimal unitPrice;
 
     private Boolean isActive = true;
 
@@ -52,5 +52,5 @@ public class ExtraRequest {
     @NotNull(message = "TVA is required")
     @DecimalMin(value = "0.0", inclusive = true, message = "TVA cannot be negative")
     @DecimalMax(value = "100.0", inclusive = true, message = "TVA cannot exceed 100%")
-    private Double tva;
+    private java.math.BigDecimal tva;
 }

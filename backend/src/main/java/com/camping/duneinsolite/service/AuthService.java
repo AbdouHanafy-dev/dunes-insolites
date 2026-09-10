@@ -2,6 +2,7 @@ package com.camping.duneinsolite.service;
 
 
 
+import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.dto.request.LoginRequest;
 import com.camping.duneinsolite.dto.response.LoginResponse;
 import com.camping.duneinsolite.exception.AuthenticationFailedException;
@@ -90,7 +91,7 @@ public class AuthService {
 
         } catch (HttpClientErrorException e) {
             // Keycloak answered and rejected the credentials - a real 401.
-            log.warn("Login rejected for {}: {}", request.getEmail(), e.getStatusCode());
+            log.warn("Login rejected for {}: {}", maskEmail(request.getEmail()), e.getStatusCode());
             throw new AuthenticationFailedException();
 
         } catch (RestClientException e) {
@@ -104,7 +105,7 @@ public class AuthService {
         } catch (ParseException e) {
             // The token came back but could not be decoded - that is our defect,
             // not the caller's. Let it surface as a 500 with a generic message.
-            log.error("Could not parse the access token returned for {}", request.getEmail(), e);
+            log.error("Could not parse the access token returned for {}", maskEmail(request.getEmail()), e);
             throw new IllegalStateException("Malformed access token from the identity provider", e);
         }
     }

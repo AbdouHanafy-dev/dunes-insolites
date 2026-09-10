@@ -64,6 +64,7 @@ public class RolePermissionSeeder implements CommandLineRunner {
             Map.entry(AdminResource.MEDIA, PermissionLevel.NONE),
             Map.entry(AdminResource.NAVIGATION, PermissionLevel.NONE),
             Map.entry(AdminResource.REDIRECTS, PermissionLevel.NONE),
+            Map.entry(AdminResource.GALLERY, PermissionLevel.NONE),
             Map.entry(AdminResource.MAINTENANCE_WINDOWS, PermissionLevel.NONE)
     );
 
@@ -82,6 +83,7 @@ public class RolePermissionSeeder implements CommandLineRunner {
             Map.entry(AdminResource.MEDIA, PermissionLevel.NONE),
             Map.entry(AdminResource.NAVIGATION, PermissionLevel.NONE),
             Map.entry(AdminResource.REDIRECTS, PermissionLevel.NONE),
+            Map.entry(AdminResource.GALLERY, PermissionLevel.NONE),
             Map.entry(AdminResource.MAINTENANCE_WINDOWS, PermissionLevel.NONE)
     );
 

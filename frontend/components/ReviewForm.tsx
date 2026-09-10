@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/Toast";
+import StarRatingInput from "@/components/StarRatingInput";
 
 export type ReviewableItem = {
   catalogId: string;
@@ -68,17 +69,7 @@ export default function ReviewForm({ items }: { items: ReviewableItem[] }) {
       </div>
       <div className="field">
         <label htmlFor="review-rating">{t("reviewRatingLabel")}</label>
-        <select
-          id="review-rating"
-          value={rating}
-          onChange={(e) => setRating(Number(e.target.value))}
-        >
-          {[5, 4, 3, 2, 1].map((n) => (
-            <option key={n} value={n}>
-              {n} / 5
-            </option>
-          ))}
-        </select>
+        <StarRatingInput id="review-rating" value={rating} onChange={setRating} label={t("reviewRatingLabel")} />
       </div>
       <div className="field span-2">
         <label htmlFor="review-comment">{t("reviewCommentLabel")}</label>

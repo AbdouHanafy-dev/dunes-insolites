@@ -38,7 +38,7 @@ public class InvoiceItem {
     private Integer quantity;
 
     @Column(name = "unit_price", nullable = false)
-    private Double unitPrice;
+    private java.math.BigDecimal unitPrice;
 
     // Line number controls display order on the invoice
     @Column(name = "line_number", nullable = false)
@@ -47,7 +47,7 @@ public class InvoiceItem {
     // TVA rate (%) snapshotted per item; 0 if no TVA
     @Column(name = "tva", nullable = false)
     @Builder.Default
-    private Double tva = 0.0;
+    private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
 
     // Date of the activity/service this line item represents
     @Column(name = "activity_date")
@@ -59,8 +59,8 @@ public class InvoiceItem {
 
     // totalPrice = quantity * unitPrice (HT); not stored
     @Transient
-    public Double getTotalPrice() {
-        if (quantity == null || unitPrice == null) return 0.0;
-        return quantity * unitPrice;
+    public java.math.BigDecimal getTotalPrice() {
+        if (quantity == null || unitPrice == null) return com.camping.duneinsolite.money.Money.ZERO;
+        return com.camping.duneinsolite.money.Money.multiply(unitPrice, quantity);
     }
 }

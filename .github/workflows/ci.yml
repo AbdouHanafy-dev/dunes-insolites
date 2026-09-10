@@ -1,16 +1,13 @@
 name: CI
 
-# The gate CLAUDE.md's own "Commands" section calls out as missing: "npm run
-# verify — the CI gate that does not exist yet." This is that gate.
+# Two gates:
+#   unit         — typecheck, lint, frontend vitest, backend surefire (*Test),
+#                  and the static production-config validation. Fast, no Docker.
+#   integration  — backend failsafe (*IT): full Spring context against real
+#                  Postgres + RabbitMQ via Testcontainers (Docker on the runner).
 #
-# Backend unit tests run here with one deliberate exclusion:
-# DuneinsoliteApplicationTests is a @SpringBootTest that boots the full
-# context against a real Postgres/Keycloak/RabbitMQ (application.yml's
-# defaults point at a specific dev host) - none of that exists on a GitHub
-# runner. Standing up Testcontainers for real integration coverage is R2
-# Sprint 6 scope (docs/ROADMAP.md), not a side effect of adding a workflow
-# file. AuthControllerRegisterSecurityTest and everything else that doesn't
-# need a live Spring context still runs for real.
+# CI fails if EITHER gate fails. Integration tests are not excluded to keep the
+# pipeline green — they run for real (see backend/src/test/**/*IT.java).
 
 on:
   push:
@@ -19,33 +16,81 @@ on:
     branches: [main]
 
 jobs:
-  verify:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
+      - run: npm ci
+      - name: Secret scan (committed files)
+        run: npm run scan:secrets
       - name: Typecheck
         run: npm run typecheck
-
       - name: Lint
         run: npm run lint
-
+      - name: Frontend + admin unit tests (vitest)
+        run: npm run test:web
+        # includes frontend/lib/seo-contract.test.ts — the offline SEO/migration
+        # response-contract guards (canonical strategy, hreflang reciprocity,
+        # redirect-map has no loops/chains/homepage-301s, nginx allowlist stays
+        # in sync with lib/legacySlugs.ts). No network.
+      - name: Production config validation
+        run: npm run validate:prod-config
       - uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "21"
           cache: "maven"
-
-      - name: Backend unit tests
-        # See the file header: excludes the one test that needs live infra
-        # this runner doesn't have. Same script npm run verify uses locally,
-        # so a green `verify` on a dev machine means a green CI run too.
+      - name: Backend unit tests (surefire)
         run: npm run backend:test:unit
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "maven"
+      - name: Backend integration tests (Testcontainers — Postgres + RabbitMQ)
+        # Ubuntu runners ship Docker; Testcontainers uses it directly.
+        run: npm run backend:test:it
+
+      - name: Frontend fail-closed build check
+        # A production build with no backend and no seed opt-in MUST fail.
+        run: |
+          if npm run build --workspace frontend; then
+            echo "::error::frontend build succeeded with no NEXT_PUBLIC_API_URL and no ALLOW_SEED_FALLBACK — it must fail closed"
+            exit 1
+          fi
+          echo "frontend build correctly failed closed"
+        env:
+          NEXT_PUBLIC_API_URL: ""
+          ALLOW_SEED_FALLBACK: ""
+
+  # Optional, opt-in: hits a REAL public host read-only. Runs only when the
+  # repo/environment sets the SEO_BASE_URL variable (never a secret — it is a
+  # public URL). Does not gate merges; it is a live-state canary for the
+  # WordPress baseline before Phase 7, and for the Next.js contract after.
+  seo-live-canary:
+    runs-on: ubuntu-latest
+    if: vars.SEO_BASE_URL != ''
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: SEO URL contract against ${{ vars.SEO_BASE_URL }}
+        run: node scripts/verify-production-urls.mjs
+        env:
+          BASE_URL: ${{ vars.SEO_BASE_URL }}
+          SEO_PROFILE: ${{ vars.SEO_PROFILE || 'wordpress' }}

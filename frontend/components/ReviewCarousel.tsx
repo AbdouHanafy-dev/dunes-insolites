@@ -50,7 +50,7 @@ export default function ReviewCarousel({ reviews }: { reviews: Review[] }) {
             <div className="who">
               <span>
                 <span className="n">{r.name}</span>
-                <span style={{ color: "var(--muted)" }}> · {r.country}</span>
+                {r.country && <span style={{ color: "var(--muted)" }}> · {r.country}</span>}
               </span>
               <PlatformBadge source={r.source} />
             </div>

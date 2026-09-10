@@ -1,0 +1,368 @@
+{
+  "base": "https://www.dunes-insolites.com",
+  "profile": "wordpress",
+  "ranAt": "2026-09-02T20:56:39.694Z",
+  "failures": 0,
+  "results": [
+    {
+      "group": "robots.txt",
+      "url": "/robots.txt",
+      "ok": true,
+      "detail": "status 200"
+    },
+    {
+      "group": "sitemap",
+      "url": "/sitemap.xml",
+      "ok": true,
+      "detail": "status 301, entries ok"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/6-jours-excursion-desert-tunisien/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "homepage",
+      "url": "/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/nuitee-campement-desert/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/circuit-4-jours-desert-tunisien-djerba-tataouine-tozeur/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-slugs-cross-canonical-DECISION_REQUIRED",
+      "url": "/presentation-campement-dunes-insolites/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-duplicate-landing-301-to-canonical-product",
+      "url": "/nuit-desert-tunisien-dunes-insolites/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/circuit-tataouine-et-chenini-au-depart-de-djerba/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-duplicate-landing-301-to-canonical-product",
+      "url": "/bivouac-desert-tunisien-sahara/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/bivouac-desert-tunisie/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-slugs-cross-canonical-DECISION_REQUIRED",
+      "url": "/dunes-insolites-camp-gallery/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/day-trip-desert-douz-and-matmata/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-duplicate-landing-301-to-canonical-product",
+      "url": "/spend-a-night-in-the-tunisian-desert-at-dunes-insolites-camp/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/services/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/desert-3-jour/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/services/activites/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/sandboarding-desert/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/excursion-2-jours-desert-tunisien/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/services/sejours/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/excursion-desert-tunisie-2-jours/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/blog-desert/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/quad-desert/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/services/tours/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/excursion-dune-journee-a-ksar-ghilane/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/mes-reservations/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/excursion-tataouine-chenini-desert-tunisie-star-wars/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/blog-sahara-tunisie/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/bedouin-diner-sahara-tunisien/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/mon-compte/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/immersion-saharienne-2-nuits-daventure-en-camp-et-bivouac/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/mot-de-passe-oublie/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/ksar-ghilane-desert-tunisia/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/are-there-any-deserts-in-tunisia/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/soirees-sous-les-etoiles/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-service-hub-and-account-301",
+      "url": "/dunes-insolites-sabria-evasion-sahara/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/tour-desert-tunisia/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "unmapped-legacy-DECISION_REQUIRED",
+      "url": "/panier/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-circuit-urls-301-to-circuits",
+      "url": "/tunisie-sahara-en-4x4/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "legacy-product-slugs-rewritten-url-unchanged",
+      "url": "/le-pain-de-sabel/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/best-desert-camping-tunisia/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "unmapped-legacy-DECISION_REQUIRED",
+      "url": "/review/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "trailing-slash-enforcement",
+      "url": "/quad-desert",
+      "ok": true,
+      "detail": "status 301 -> 200"
+    },
+    {
+      "group": "unmapped-legacy-DECISION_REQUIRED",
+      "url": "/detail-service/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "http-to-https-www-canonicalisation",
+      "url": "http://www.dunes-insolites.com/",
+      "ok": true,
+      "detail": "status 301 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/guide-excursions-desert-tunisien/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "trailing-slash-enforcement",
+      "url": "/nuitee-campement-desert",
+      "ok": true,
+      "detail": "status 301 -> 200"
+    },
+    {
+      "group": "non-www-to-www",
+      "url": "https://dunes-insolites.com/",
+      "ok": true,
+      "detail": "status 301 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/meteo-dans-le-desert-tunisien-quand-visiter-dunes-insolites-a-sabria-kebili/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "trailing-slash-enforcement",
+      "url": "/blog-desert",
+      "ok": true,
+      "detail": "status 301 -> 200"
+    },
+    {
+      "group": "negative-nonexistent",
+      "url": "/this-page-does-not-exist-xyz/",
+      "ok": true,
+      "detail": "status 404 -> 404"
+    },
+    {
+      "group": "http-to-https-www-canonicalisation",
+      "url": "http://dunes-insolites.com/",
+      "ok": true,
+      "detail": "status 301 -> 200"
+    },
+    {
+      "group": "negative-nonexistent",
+      "url": "/nuitee-campement-desert-typo/",
+      "ok": true,
+      "detail": "status 404 -> 404"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/quand-visiter-le-desert-tunisien/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "negative-nonexistent",
+      "url": "/en/also-does-not-exist/",
+      "ok": true,
+      "detail": "status 404 -> 404"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/ou-se-situe-le-desert-en-tunisie/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/oases-tunisian-desert/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/sahara-desert-tours-tunisia-2025/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/category/sabria/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    },
+    {
+      "group": "blog-and-informational-STAYS-wordpress",
+      "url": "/category/djerba/",
+      "ok": true,
+      "detail": "status 200 -> 200"
+    }
+  ]
+}

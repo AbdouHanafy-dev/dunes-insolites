@@ -1,0 +1,231 @@
+package com.camping.duneinsolite.service.impl;
+
+import com.camping.duneinsolite.dto.request.ReservationRequest;
+import com.camping.duneinsolite.dto.request.publicapi.PublicStayBookingRequest;
+import com.camping.duneinsolite.dto.response.ReservationResponse;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
+import com.camping.duneinsolite.model.Extra;
+import com.camping.duneinsolite.model.Source;
+import com.camping.duneinsolite.model.TourType;
+import com.camping.duneinsolite.model.User;
+import com.camping.duneinsolite.model.enums.ReservationType;
+import com.camping.duneinsolite.model.enums.UserRole;
+import com.camping.duneinsolite.repository.ExtraRepository;
+import com.camping.duneinsolite.repository.SourceRepository;
+import com.camping.duneinsolite.repository.TourTypeRepository;
+import com.camping.duneinsolite.service.KeycloakUserSyncService;
+import com.camping.duneinsolite.service.ReservationService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * PublicBookingServiceImpl turns the vitrine's guest-checkout form into a
+ * real, server-priced Reservation - the exact path verified live during the
+ * DNS-cutover / credential-flow work on 30 Aug 2026 (a real 201, correctly
+ * priced at stay-price x partySize, real reservation_tour_types row). It had
+ * zero tests despite being the actual money path a guest hits with no login
+ * step - these pin the mapping/pricing-input logic that verification
+ * exercised manually, so it can't silently regress.
+ */
+class PublicBookingServiceImplTest {
+
+    private TourTypeRepository tourTypeRepository;
+    private ExtraRepository extraRepository;
+    private SourceRepository sourceRepository;
+    private com.camping.duneinsolite.repository.AccommodationTypeRepository accommodationTypeRepository;
+    private com.camping.duneinsolite.service.AccommodationPricingService accommodationPricingService;
+    private KeycloakUserSyncService keycloakUserSyncService;
+    private ReservationService reservationService;
+    private PublicBookingServiceImpl service;
+
+    private final UUID tourTypeId = UUID.randomUUID();
+    private final UUID sourceId = UUID.randomUUID();
+    private final UUID userId = UUID.randomUUID();
+
+    @BeforeEach
+    void setUp() {
+        tourTypeRepository = mock(TourTypeRepository.class);
+        extraRepository = mock(ExtraRepository.class);
+        sourceRepository = mock(SourceRepository.class);
+        accommodationTypeRepository = mock(com.camping.duneinsolite.repository.AccommodationTypeRepository.class);
+        accommodationPricingService = mock(com.camping.duneinsolite.service.AccommodationPricingService.class);
+        var accommodationAvailabilityService = mock(com.camping.duneinsolite.service.AccommodationAvailabilityService.class);
+        var availabilityMetrics = new com.camping.duneinsolite.observability.AvailabilityMetrics(
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
+        keycloakUserSyncService = mock(KeycloakUserSyncService.class);
+        reservationService = mock(ReservationService.class);
+
+        service = new PublicBookingServiceImpl(
+                tourTypeRepository, extraRepository, sourceRepository,
+                accommodationTypeRepository, accommodationPricingService,
+                accommodationAvailabilityService, availabilityMetrics,
+                keycloakUserSyncService, reservationService,
+                java.time.Clock.systemUTC());
+
+        // status() default (Mockito) returns null → NPE in createStayBooking's
+        // pre-check; stub a benign AVAILABLE result.
+        org.mockito.Mockito.when(accommodationAvailabilityService.status(
+                        org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new com.camping.duneinsolite.service.AccommodationAvailabilityService.Availability(
+                        com.camping.duneinsolite.service.AccommodationAvailabilityService.Status.UNKNOWN, null));
+
+        when(sourceRepository.findByName("Site web"))
+                .thenReturn(Optional.of(Source.builder().sourceId(sourceId).name("Site web").build()));
+        when(keycloakUserSyncService.findOrCreateGuestUser(any(), any(), any()))
+                .thenReturn(User.builder().userId(userId).role(UserRole.CLIENT).build());
+    }
+
+    /** The real service always sets reservationId (see ReservationServiceImpl) -
+     *  a bare `new ReservationResponse()` here would NPE at
+     *  `.getReservationId().toString()`, which is the response-building code,
+     *  not the mapping logic these tests actually target. */
+    private ReservationResponse reservationResponseStub() {
+        ReservationResponse response = new ReservationResponse();
+        response.setReservationId(UUID.randomUUID());
+        return response;
+    }
+
+    private PublicStayBookingRequest baseRequest() {
+        PublicStayBookingRequest request = new PublicStayBookingRequest();
+        request.setStaySlug("nuitee-campement-desert");
+        request.setDate(LocalDate.of(2026, 9, 20));
+        request.setPartySize(2);
+        request.setName("Claude Test Guest");
+        request.setEmail("guest@example.com");
+        request.setPhone("+21650000000");
+        return request;
+    }
+
+    @Test
+    void mapsAStayBookingToAOneNightHebergementReservation() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+
+        ReservationResponse response = new ReservationResponse();
+        response.setReservationId(UUID.randomUUID());
+        response.setTotalAmount(new java.math.BigDecimal("190.0"));
+        when(reservationService.createReservation(any())).thenReturn(response);
+
+        service.createStayBooking(baseRequest());
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        ReservationRequest built = captor.getValue();
+
+        assertThat(built.getUserId()).isEqualTo(userId);
+        assertThat(built.getSourceId()).isEqualTo(sourceId);
+        assertThat(built.getReservationType()).isEqualTo(ReservationType.HEBERGEMENT);
+        // A nuitée is one night - the contract only carries a single date, so
+        // check-out must always be derived as check-in + 1, never left equal
+        // to check-in (that would be a zero-night stay) or taken from the
+        // caller (the contract has no separate check-out field to trust).
+        assertThat(built.getCheckInDate()).isEqualTo(LocalDate.of(2026, 9, 20));
+        assertThat(built.getCheckOutDate()).isEqualTo(LocalDate.of(2026, 9, 21));
+        assertThat(built.getNumberOfAdults()).isEqualTo(2);
+        assertThat(built.getNumberOfChildren()).isZero();
+        assertThat(built.getTourTypes()).hasSize(1);
+        assertThat(built.getTourTypes().get(0).getTourTypeId()).isEqualTo(tourTypeId);
+        assertThat(built.getExtras()).isNull();
+    }
+
+    @Test
+    void unknownOrInactiveStaySlugIsRejectedBeforeTouchingKeycloakOrPricing() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("does-not-exist")).thenReturn(Optional.empty());
+        PublicStayBookingRequest request = baseRequest();
+        request.setStaySlug("does-not-exist");
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        // Reject-before-side-effects: a bad slug must never reach the
+        // guest-account-creation or pricing step (same "validate before you
+        // touch an external system" discipline KeycloakUserSyncService's own
+        // adminCreateUser/registerUser already follow).
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .findOrCreateGuestUser(any(), any(), any());
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
+    void ridesAreCarriedAsExtrasOnTheSameDateAsTheStay() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID extraId = UUID.randomUUID();
+        when(extraRepository.findBySlugAndIsActiveTrue("quad-desert"))
+                .thenReturn(Optional.of(Extra.builder().extraId(extraId).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicStayBookingRequest request = baseRequest();
+        request.setRideSlugs(List.of("quad-desert"));
+        service.createStayBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var extras = captor.getValue().getExtras();
+
+        assertThat(extras).hasSize(1);
+        assertThat(extras.get(0).getExtraId()).isEqualTo(extraId);
+        assertThat(extras.get(0).getActivityDate()).isEqualTo(LocalDate.of(2026, 9, 20));
+    }
+
+    @Test
+    void accommodationChoiceResolvesToATierAndDrivesPricing_notFreeText() {
+        // Phase 1: the picked tier is a real, server-priced product. It must be
+        // resolved to an AccommodationType id + unit count on the selection so
+        // ReservationService prices it per unit — the earlier "notes only, never
+        // affects price" behaviour was the defect this phase fixes.
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID accId = UUID.randomUUID();
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "dune-suite"))
+                .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
+                        .id(accId).slug("dune-suite").name("Dune Suite").capacity(4).active(true)
+                        .unitPriceTtc(new java.math.BigDecimal("165.000")).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicStayBookingRequest request = baseRequest();
+        request.setAccommodationSlug("dune-suite");
+        request.setAccommodationQty(2);
+        service.createStayBooking(request);
+
+        // fail-closed pre-check ran before any reservation was built
+        verify(accommodationPricingService).resolveById(accId, 2, 1, 2);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var selection = captor.getValue().getTourTypes().get(0);
+        assertThat(selection.getAccommodationTypeId()).isEqualTo(accId);
+        assertThat(selection.getAccommodationUnits()).isEqualTo(2);
+    }
+
+    @Test
+    void unknownAccommodationSlugIsRejectedBeforeAnySideEffect() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "gold-yurt"))
+                .thenReturn(Optional.empty());
+
+        PublicStayBookingRequest request = baseRequest();
+        request.setAccommodationSlug("gold-yurt");
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(ResourceNotFoundException.class);
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .findOrCreateGuestUser(any(), any(), any());
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+}

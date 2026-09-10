@@ -17,9 +17,11 @@ import com.camping.duneinsolite.mapper.ReservationMapper;
 import com.camping.duneinsolite.mapper.TransactionMapper;
 import com.camping.duneinsolite.model.*;
 import com.camping.duneinsolite.model.enums.*;
-import com.camping.duneinsolite.model.DocumentSequence;
 import com.camping.duneinsolite.repository.*;
 import com.camping.duneinsolite.repository.specification.ReservationSpecification;
+import com.camping.duneinsolite.money.Money;
+import com.camping.duneinsolite.service.AccommodationAvailabilityService;
+import com.camping.duneinsolite.service.AccommodationPricingService;
 import com.camping.duneinsolite.service.InvoiceService;
 import com.camping.duneinsolite.service.NotificationPublisher;
 import com.camping.duneinsolite.service.PaymentService;
@@ -35,16 +37,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,10 +68,14 @@ public class ReservationServiceImpl implements ReservationService {
     private final TransactionRepository      transactionRepository;
     private final InvoiceRepository           invoiceRepository;
     private final InvoiceService              invoiceService;
-    private final DocumentSequenceRepository  documentSequenceRepository;
     private final ReservationCapacityValidator reservationCapacityValidator;
     private final CurrencyConfig              currencyConfig;
     private final EmailService                emailService;
+    private final AccommodationPricingService accommodationPricingService;
+    private final AccommodationAvailabilityService accommodationAvailabilityService;
+    private final com.camping.duneinsolite.security.CallerContext caller;
+    private final com.camping.duneinsolite.service.ReservationStateMachine stateMachine;
+    private final com.camping.duneinsolite.service.ReservationInvoiceService reservationInvoiceService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -83,7 +85,35 @@ public class ReservationServiceImpl implements ReservationService {
     // ─────────────────────────────────────────────────────────────
 
     @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<ReservationResponse> findByIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) return java.util.Optional.empty();
+        return reservationRepository.findByIdempotencyKey(idempotencyKey).map(this::toEnrichedResponse);
+    }
+
+    @Override
     public ReservationResponse createReservation(ReservationRequest request) {
+
+        // Public booking idempotency (V7): a network retry with the same key
+        // returns the reservation the first request created — no duplicate, no
+        // duplicate hold. The partial unique index on idempotency_key is the
+        // atomic guarantee for a concurrent double-submit (the loser's INSERT
+        // fails; PublicBookingServiceImpl catches it and re-reads by key).
+        String idem = request.getIdempotencyKey();
+        if (idem != null && !idem.isBlank()) {
+            var existing = reservationRepository.findByIdempotencyKey(idem);
+            if (existing.isPresent()) {
+                return toEnrichedResponse(existing.get());
+            }
+        }
+
+        // A non-staff caller can only create a reservation for THEMSELVES — the
+        // request's userId is otherwise a mass-assignment hole (a CLIENT could
+        // attribute bookings to any other account). Staff (ADMIN/CAMPING) and the
+        // server-side public-booking path may set it to anyone.
+        if (caller.isAuthenticatedUser() && !caller.isStaff()) {
+            request.setUserId(caller.requireUserId());
+        }
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new UserNotFoundException(request.getUserId()));
@@ -110,6 +140,7 @@ public class ReservationServiceImpl implements ReservationService {
             applyReservationCurrencyConversion(reservation, request.getInitialPayment().getCurrency());
         }
 
+        enforceAccommodationAvailability(reservation, null);
         reservationCapacityValidator.validate(reservation, null);
 
         Reservation savedReservation = reservationRepository.save(reservation);
@@ -182,6 +213,9 @@ public class ReservationServiceImpl implements ReservationService {
                 .currency(Currency.TND)
                 .promoCode(request.getPromoCode())
                 .status(ReservationStatus.PENDING)
+                .holdExpiresAt(request.getHoldExpiresAt())
+                .idempotencyKey(request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()
+                        ? request.getIdempotencyKey() : null)
                 .build();
     }
 
@@ -280,18 +314,18 @@ public class ReservationServiceImpl implements ReservationService {
         int adults   = singleTourType ? globalAdults   : (selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0);
         int children = singleTourType ? globalChildren : (selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0);
 
-        double adultPrice = isPartner ? tourType.getPartnerAdultPrice() : tourType.getPassengerAdultPrice();
-        double childPrice = isPartner ? tourType.getPartnerChildPrice() : tourType.getPassengerChildPrice();
+        java.math.BigDecimal adultPrice = isPartner ? tourType.getPartnerAdultPrice() : tourType.getPassengerAdultPrice();
+        java.math.BigDecimal childPrice = isPartner ? tourType.getPartnerChildPrice() : tourType.getPassengerChildPrice();
 
         UserProductRemise remise = user.getRemises().stream()
                 .filter(r -> r.getProductId().equals(tourType.getTourTypeId()))
                 .findFirst().orElse(null);
         if (remise != null) {
-            if (remise.getAdultRemise() != null) adultPrice = Math.max(0, adultPrice - remise.getAdultRemise());
-            if (remise.getChildRemise() != null) childPrice = Math.max(0, childPrice - remise.getChildRemise());
+            adultPrice = applyRemise(adultPrice, remise.getAdultRemise());
+            childPrice = applyRemise(childPrice, remise.getChildRemise());
         }
 
-        return ReservationTourType.builder()
+        var builder = ReservationTourType.builder()
                 .catalogTourTypeId(tourType.getTourTypeId())
                 .name(tourType.getName())
                 .description(tourType.getDescription())
@@ -302,8 +336,45 @@ public class ReservationServiceImpl implements ReservationService {
                 .numberOfChildren(children)
                 .numberOfNights(1)
                 .activityDate(selection.getActivityDate())
-                .tva(tourType.getTva())
-                .build();
+                .tva(tourType.getTva());
+
+        // Phase 1: if the guest picked an accommodation tier, the server
+        // resolves its price (fails closed if unpriced/inactive/undersized) and
+        // snapshots it — this line is then priced per unit, not per person.
+        if (selection.getAccommodationTypeId() != null) {
+            int units = selection.getAccommodationUnits() != null ? selection.getAccommodationUnits() : 1;
+            var priced = accommodationPricingService.resolveById(
+                    selection.getAccommodationTypeId(), units, 1, adults + children);
+            builder.accommodationTypeId(priced.accommodationTypeId())
+                    .accommodationName(priced.name())
+                    .accommodationUnits(priced.units())
+                    .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
+                    .accommodationTvaRate(priced.tvaRate());
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Phase 2 — for every accommodation-priced stay line, take the tier's
+     * {@code FOR UPDATE} lock and verify the requested units fit under
+     * {@code maxUnits} for the reservation's nights. The lock is held to
+     * transaction commit, so the check→persist window cannot be raced. No-op
+     * when a tier has no {@code maxUnits} configured.
+     */
+    private void enforceAccommodationAvailability(Reservation reservation, UUID excludeReservationId) {
+        if (reservation.getReservationType() != ReservationType.HEBERGEMENT
+                || reservation.getCheckInDate() == null || reservation.getCheckOutDate() == null) {
+            return;
+        }
+        for (ReservationTourType line : reservation.getTourTypes()) {
+            if (line.isAccommodationPriced()) {
+                accommodationAvailabilityService.allocate(
+                        line.getAccommodationTypeId(), line.getAccommodationUnits(),
+                        reservation.getCheckInDate(), reservation.getCheckOutDate(),
+                        excludeReservationId);
+            }
+        }
     }
 
     // ── TOURS ─────────────────────────────────────────────────────────────────────
@@ -376,9 +447,11 @@ public class ReservationServiceImpl implements ReservationService {
         Tour tour = tourRepository.findById(selection.getTourId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + selection.getTourId()));
 
-        double adultPrice = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
-        double childPrice = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
-        double totalPrice = (globalAdults * adultPrice) + (globalChildren * childPrice);
+        java.math.BigDecimal adultPrice = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
+        java.math.BigDecimal childPrice = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
+        java.math.BigDecimal totalPrice = Money.add(
+                Money.multiply(adultPrice, globalAdults),
+                Money.multiply(childPrice, globalChildren));
 
         return ReservationTour.builder()
                 .catalogTourId(tour.getTourId())
@@ -419,12 +492,13 @@ public class ReservationServiceImpl implements ReservationService {
             Extra catalog = extraRepository.findById(e.getExtraId())
                     .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + e.getExtraId()));
 
-            double unitPrice = catalog.getUnitPrice();
+            java.math.BigDecimal unitPrice = Money.nz(catalog.getUnitPrice());
             UserProductRemise remise = user.getRemises().stream()
                     .filter(r -> r.getProductId().equals(catalog.getExtraId()))
                     .findFirst().orElse(null);
             if (remise != null && remise.getUnitRemise() != null) {
-                unitPrice = Math.max(0, unitPrice - remise.getUnitRemise());
+                java.math.BigDecimal discounted = Money.subtract(unitPrice, remise.getUnitRemise());
+                unitPrice = discounted.signum() < 0 ? Money.ZERO : discounted;
             }
 
             ReservationExtra extra = ReservationExtra.builder()
@@ -434,7 +508,7 @@ public class ReservationServiceImpl implements ReservationService {
                     .duration(catalog.getDuration())
                     .quantity(e.getQuantity())
                     .unitPrice(unitPrice)
-                    .totalPrice(r2(unitPrice * e.getQuantity()))
+                    .totalPrice(Money.multiply(unitPrice, e.getQuantity()))
                     .activityDate(e.getActivityDate())
                     .tva(catalog.getTva())
                     .isActive(true)
@@ -481,7 +555,13 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     @Transactional(readOnly = true)
     public ReservationResponse getReservationById(UUID reservationId) {
-        return toEnrichedResponse(findById(reservationId));
+        Reservation reservation = findById(reservationId);
+        // IDOR fix (Phase 4): the endpoint is only isAuthenticated(); without
+        // this any logged-in CLIENT could read any reservation by id — full
+        // guest PII, dates and price. Staff (ADMIN/CAMPING) see any; a
+        // CLIENT/PARTENAIRE sees only their own.
+        caller.requireStaffOrOwner(reservation.getUser() != null ? reservation.getUser().getUserId() : null);
+        return toEnrichedResponse(reservation);
     }
 
     // Was an unbounded findAll() - loaded the entire reservation table into
@@ -557,24 +637,20 @@ public class ReservationServiceImpl implements ReservationService {
 
         ReservationStatus current = reservation.getStatus();
 
-        if (current == ReservationStatus.COMPLETED) {
-            throw new ReservationStatusException("This reservation is already completed and cannot be modified.");
-        }
-        if (current == ReservationStatus.CANCELLED) {
-            throw new ReservationStatusException("This reservation has already been cancelled and cannot be modified.");
-        }
-        if (current == ReservationStatus.CHECKED_IN && status != ReservationStatus.COMPLETED) {
-            throw new ReservationStatusException("A checked-in reservation can only be marked as completed.");
-        }
-        if (current == ReservationStatus.REJECTED) {
-            throw new ReservationStatusException("This reservation has been rejected and cannot be modified.");
-        }
+        // The reservation lifecycle is defined in one place. This also rejects a
+        // no-op X→X (a double-confirm click used to re-run the CONFIRMED side
+        // effects and mint a second proforma).
+        stateMachine.assertAllowed(current, status);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdminOrCamping = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_CAMPING"));
+        boolean isAdminOrCamping = caller.isStaff();
 
         if (!isAdminOrCamping) {
+            // IDOR fix (Phase 4): a non-staff caller may only cancel their OWN
+            // reservation. Previously the only checks were "status == CANCELLED"
+            // and the 48h window — nothing tied the caller to the reservation,
+            // so any CLIENT could cancel anyone's booking by id.
+            caller.requireStaffOrOwner(reservation.getUser() != null ? reservation.getUser().getUserId() : null);
+
             if (status != ReservationStatus.CANCELLED) {
                 throw new AccessDeniedException("You are not authorized to set this status. Only cancellation is allowed.");
             }
@@ -610,13 +686,33 @@ public class ReservationServiceImpl implements ReservationService {
         boolean wasOccupying = current == ReservationStatus.CONFIRMED || current == ReservationStatus.CHECKED_IN;
         boolean willOccupy   = status  == ReservationStatus.CONFIRMED || status  == ReservationStatus.CHECKED_IN;
         if (willOccupy && !wasOccupying) {
+            // Phase 2: re-check accommodation inventory at confirm time — a
+            // hold may have expired and another booking taken its unit.
+            enforceAccommodationAvailability(reservation, reservationId);
             reservationCapacityValidator.validate(reservation, reservationId);
+        }
+        // Confirming clears the hold expiry — a CONFIRMED reservation never expires.
+        if (status == ReservationStatus.CONFIRMED) {
+            reservation.setHoldExpiresAt(null);
         }
 
         Reservation savedReservation = reservationRepository.save(reservation);
 
-        if (status == ReservationStatus.CONFIRMED) {
+        // Side effects per transition — see ReservationStateMachine's effect
+        // table. Each is idempotent-safe against the state machine's no-op X→X
+        // rejection (a double-confirm can no longer re-run onConfirmed).
+        switch (status) {
+            case CONFIRMED -> onConfirmed(savedReservation, companyType);
+            case COMPLETED -> onCompleted(savedReservation, companyType);
+            case REJECTED  -> onRejected(savedReservation);
+            default -> { }
+        }
 
+        return toEnrichedResponse(savedReservation);
+    }
+
+    /** CONFIRMED: notify client + CAMPING, auto-generate the PROFORMA, e-mail the payment link if set. */
+    private void onConfirmed(Reservation savedReservation, CompanyType companyType) {
             // ── Build confirmation message — include staff if already assigned ──
             boolean hasGuides     = !savedReservation.getGuides().isEmpty();
             boolean hasChauffeurs = !savedReservation.getChauffeurs().isEmpty();
@@ -665,56 +761,16 @@ public class ReservationServiceImpl implements ReservationService {
                             .build()
             );
 
-            // ── Auto-generate PROFORMA invoice ────────────────────────────────
-            double proformaTotal =
-                    (savedReservation.getTotalAmount()       != null ? savedReservation.getTotalAmount()       : 0.0)
-                  + (savedReservation.getTotalExtrasAmount() != null ? savedReservation.getTotalExtrasAmount() : 0.0);
-
-            PaymentSummary alreadyPaid = paymentService.computePaymentSummary(savedReservation);
-            double paidSoFar = alreadyPaid.getTotalPaid();
-
-            PaymentStatus proformaPaymentStatus;
-            if (paidSoFar <= 0) {
-                proformaPaymentStatus = PaymentStatus.UNPAID;
-            } else if (paidSoFar < proformaTotal) {
-                proformaPaymentStatus = PaymentStatus.PARTIALLY_PAID;
-            } else {
-                proformaPaymentStatus = PaymentStatus.PAID;
-            }
-
-// ── Auto-generate PROFORMA invoice ────────────────────────────────
-            Invoice proforma = Invoice.builder()
-                    .invoiceNumber(generateProformaNumber())
-                    .invoiceType(InvoiceType.PROFORMA)
-                    .invoiceDate(LocalDate.now())
-                    .paidAmount(paidSoFar)
-                    .status(InvoiceStatus.DRAFT)
-                    .paymentStatus(proformaPaymentStatus)
-                    .currency(savedReservation.getCurrency())
-                    .reservation(savedReservation)
-                    .user(savedReservation.getUser())
-                    .companyType(companyType)
-                    .build();
-
-            double[] tvaBreakdown = populateInvoiceItems(savedReservation, proforma);  // ← ONLY call
-            double totalHt  = tvaBreakdown[0];
-            double totalTva = tvaBreakdown[1];
-            double totalTtc = r2(totalHt + totalTva);
-
-            proforma.setTotalHt(totalHt);
-            proforma.setTvaRate(0.0);
-            proforma.setTvaAmount(totalTva);
-            proforma.setTotalTtc(totalTtc);
-            proforma.setTotalAmount(totalTtc);
-
-            invoiceRepository.save(proforma);
+            // ── Auto-generate PROFORMA invoice (see ReservationInvoiceService / ADR-0004) ──
+            Invoice proforma = reservationInvoiceService.generateProforma(savedReservation, companyType);
+            java.math.BigDecimal totalTtc = proforma.getTotalTtc();
 
             // ── Email the client: only when the admin actually provided a payment link ──
             if (savedReservation.getPaymentLink() != null && !savedReservation.getPaymentLink().isBlank()) {
                 LocalDate paymentDueDate = savedReservation.getCheckInDate() != null
                         ? savedReservation.getCheckInDate()
                         : savedReservation.getServiceDate();
-                double minPaymentAmount = r2(totalTtc * 0.10);
+                java.math.BigDecimal minPaymentAmount = Money.multiply(totalTtc, new java.math.BigDecimal("0.10"));
 
                 emailService.sendReservationConfirmedPaymentEmail(
                         savedReservation.getUser().getEmail(),
@@ -727,52 +783,13 @@ public class ReservationServiceImpl implements ReservationService {
                         savedReservation.getPaymentLink()
                 );
             }
-        }
+    }
 
-        if (status == ReservationStatus.COMPLETED) {
-
+    /** COMPLETED: generate the FACTURE if a companyType was given, then notify the client. */
+    private void onCompleted(Reservation savedReservation, CompanyType companyType) {
             if (companyType != null) {
-                // ── Generate facture ──────────────────────────────────────────
-                double rawTotal =
-                        (savedReservation.getTotalAmount()       != null ? savedReservation.getTotalAmount()       : 0.0)
-                      + (savedReservation.getTotalExtrasAmount() != null ? savedReservation.getTotalExtrasAmount() : 0.0);
-
-                Currency currency   = savedReservation.getCurrency() != null ? savedReservation.getCurrency() : Currency.TND;
-                double timbreFiscal = getTimbreFiscal(savedReservation);
-                LocalDate completedDate = savedReservation.getCompletedAt().toLocalDate();
-
-                Invoice facture = Invoice.builder()
-                        .invoiceNumber(generateFactureNumber())
-                        .invoiceType(InvoiceType.STANDARD)
-                        .invoiceDate(completedDate)
-                        .totalAmount(rawTotal)
-                        .timbreFiscal(timbreFiscal)
-                        .status(InvoiceStatus.DRAFT)
-                        .currency(currency)
-                        .reservation(savedReservation)
-                        .user(savedReservation.getUser())
-                        .companyType(companyType)
-                        .build();
-
-                double[] tvaBreakdown = populateInvoiceItems(savedReservation, facture);
-                double totalHt  = tvaBreakdown[0];
-                double totalTva = tvaBreakdown[1];
-                double totalTtc = r2(totalHt + totalTva + timbreFiscal);
-                facture.setTotalHt(totalHt);
-                facture.setTvaRate(0.0);
-                facture.setTvaAmount(totalTva);
-                facture.setTotalTtc(totalTtc);
-
-                PaymentSummary paid = paymentService.computePaymentSummary(savedReservation);
-                double paidSoFar    = paid.getTotalPaid();
-                PaymentStatus facturePaymentStatus;
-                if (paidSoFar <= 0)            facturePaymentStatus = PaymentStatus.UNPAID;
-                else if (paidSoFar < totalTtc) facturePaymentStatus = PaymentStatus.PARTIALLY_PAID;
-                else                           facturePaymentStatus = PaymentStatus.PAID;
-                facture.setPaymentStatus(facturePaymentStatus);
-                facture.setPaidAmount(paidSoFar);
-
-                invoiceRepository.save(facture);
+                // ── Generate facture (see ReservationInvoiceService / ADR-0004) ──
+                reservationInvoiceService.generateFacture(savedReservation, companyType);
 
                 notificationPublisher.publish(
                         RabbitMQConfig.RESERVATION_CONFIRMED,
@@ -801,25 +818,23 @@ public class ReservationServiceImpl implements ReservationService {
                                 .build()
                 );
             }
-        }
+    }
 
-        if (status == ReservationStatus.REJECTED) {
-            notificationPublisher.publish(
-                    RabbitMQConfig.RESERVATION_REJECTED,
-                    NotificationMessage.builder()
-                            .targetUserId(savedReservation.getUser().getUserId())
-                            .type(NotificationType.RESERVATION_REJECTED)
-                            .title("Réservation rejetée")
-                            .reservationId(savedReservation.getReservationId())
-                            .message("Votre réservation pour le groupe \""
-                                    + savedReservation.getGroupName() + "\" a été rejetée."
-                                    + (savedReservation.getRejectionReason() != null
-                                    ? " Raison: " + savedReservation.getRejectionReason() : ""))
-                            .build()
-            );
-        }
-
-        return toEnrichedResponse(savedReservation);
+    /** REJECTED: notify the client, with the reason if one was given. */
+    private void onRejected(Reservation savedReservation) {
+        notificationPublisher.publish(
+                RabbitMQConfig.RESERVATION_REJECTED,
+                NotificationMessage.builder()
+                        .targetUserId(savedReservation.getUser().getUserId())
+                        .type(NotificationType.RESERVATION_REJECTED)
+                        .title("Réservation rejetée")
+                        .reservationId(savedReservation.getReservationId())
+                        .message("Votre réservation pour le groupe \""
+                                + savedReservation.getGroupName() + "\" a été rejetée."
+                                + (savedReservation.getRejectionReason() != null
+                                ? " Raison: " + savedReservation.getRejectionReason() : ""))
+                        .build()
+        );
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -830,19 +845,10 @@ public class ReservationServiceImpl implements ReservationService {
     public ReservationResponse updateReservation(UUID reservationId, ReservationUpdateRequest request) {
         Reservation reservation = findById(reservationId);
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        if (!isAdmin) {
-            Jwt jwt = (Jwt) auth.getPrincipal();
-            String email = jwt.getClaim("email");
-            User authenticatedUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
-            if (!reservation.getUser().getUserId().equals(authenticatedUser.getUserId())) {
-                throw new AccessDeniedException("You can only edit your own reservations.");
-            }
-        }
+        // Staff (ADMIN/CAMPING) may edit any reservation; a CLIENT/PARTENAIRE
+        // only their own. Same "staff or owner" rule as getReservationById /
+        // updateReservationStatus, resolved from the JWT subject.
+        caller.requireStaffOrOwner(reservation.getUser() != null ? reservation.getUser().getUserId() : null);
 
         if (reservation.getStatus() == ReservationStatus.CHECKED_IN  ||
                 reservation.getStatus() == ReservationStatus.COMPLETED   ||
@@ -902,11 +908,25 @@ public class ReservationServiceImpl implements ReservationService {
                 );
             }
 
+            // Phase 1 regression guard: capture the existing accommodation
+            // snapshots before the rebuild wipes them. A historical reservation
+            // stays financially stable — editing an unrelated field (or the
+            // admin form round-tripping tourTypes) must NOT revert an
+            // accommodation-priced line to per-person pricing, and must NOT
+            // re-read the current catalogue price. Repricing only happens when
+            // the request explicitly carries a new accommodationTypeId.
+            Map<UUID, ReservationTourType> priorAccommodation = new LinkedHashMap<>();
+            for (ReservationTourType old : reservation.getTourTypes()) {
+                if (old.isAccommodationPriced() && old.getCatalogTourTypeId() != null) {
+                    priorAccommodation.put(old.getCatalogTourTypeId(), old);
+                }
+            }
+
             reservation.getTourTypes().clear();
             reservation.getRepartitions().clear();
 
             User resUser = reservation.getUser();
-            double tourTypeRate = currencyConfig.effectiveRate(reservation);
+            java.math.BigDecimal tourTypeRate = currencyConfig.effectiveRate(reservation);
 
             for (TourTypeSelectionRequest selection : request.getTourTypes()) {
                 TourType tourType = tourTypeRepository.findById(selection.getTourTypeId())
@@ -915,31 +935,53 @@ public class ReservationServiceImpl implements ReservationService {
                 int adults   = singleTourType ? globalAdults   : (selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0);
                 int children = singleTourType ? globalChildren : (selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0);
 
-                double adultPrice = isPartner ? tourType.getPartnerAdultPrice() : tourType.getPassengerAdultPrice();
-                double childPrice = isPartner ? tourType.getPartnerChildPrice() : tourType.getPassengerChildPrice();
+                java.math.BigDecimal adultPrice = isPartner ? tourType.getPartnerAdultPrice() : tourType.getPassengerAdultPrice();
+                java.math.BigDecimal childPrice = isPartner ? tourType.getPartnerChildPrice() : tourType.getPassengerChildPrice();
 
                 UserProductRemise remise = resUser.getRemises().stream()
                         .filter(r -> r.getProductId().equals(tourType.getTourTypeId()))
                         .findFirst().orElse(null);
                 if (remise != null) {
-                    if (remise.getAdultRemise() != null) adultPrice = Math.max(0, adultPrice - remise.getAdultRemise());
-                    if (remise.getChildRemise() != null) childPrice = Math.max(0, childPrice - remise.getChildRemise());
+                    adultPrice = applyRemise(adultPrice, remise.getAdultRemise());
+                    childPrice = applyRemise(childPrice, remise.getChildRemise());
                 }
 
-                ReservationTourType snapshot = ReservationTourType.builder()
+                var snapshotBuilder = ReservationTourType.builder()
                         .catalogTourTypeId(tourType.getTourTypeId())
                         .name(tourType.getName())
                         .description(tourType.getDescription())
                         .duration(tourType.getDuration())
-                        .adultPrice(r2(adultPrice / tourTypeRate))
-                        .childPrice(r2(childPrice / tourTypeRate))
+                        .adultPrice(Money.divide(adultPrice, tourTypeRate))
+                        .childPrice(Money.divide(childPrice, tourTypeRate))
                         .numberOfAdults(adults)
                         .numberOfChildren(children)
                         .numberOfNights(1)
                         .activityDate(selection.getActivityDate())
-                        .tva(tourType.getTva())
-                        .build();
+                        .tva(tourType.getTva());
 
+                if (selection.getAccommodationTypeId() != null) {
+                    // Explicit re-selection in the request → reprice (deliberate).
+                    int units = selection.getAccommodationUnits() != null ? selection.getAccommodationUnits() : 1;
+                    var priced = accommodationPricingService.resolveById(
+                            selection.getAccommodationTypeId(), units, 1, adults + children);
+                    snapshotBuilder.accommodationTypeId(priced.accommodationTypeId())
+                            .accommodationName(priced.name())
+                            .accommodationUnits(priced.units())
+                            .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
+                            .accommodationTvaRate(priced.tvaRate());
+                } else {
+                    // Carry the prior snapshot forward unchanged — no repricing.
+                    ReservationTourType prior = priorAccommodation.get(tourType.getTourTypeId());
+                    if (prior != null) {
+                        snapshotBuilder.accommodationTypeId(prior.getAccommodationTypeId())
+                                .accommodationName(prior.getAccommodationName())
+                                .accommodationUnits(prior.getAccommodationUnits())
+                                .accommodationUnitPriceTtc(prior.getAccommodationUnitPriceTtc())
+                                .accommodationTvaRate(prior.getAccommodationTvaRate());
+                    }
+                }
+
+                ReservationTourType snapshot = snapshotBuilder.build();
                 reservation.addTourType(snapshot);
 
                 if (selection.getRepartitions() != null) {
@@ -986,7 +1028,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         if (request.getExtras() != null) {
-            double extraRate = currencyConfig.effectiveRate(reservation);
+            java.math.BigDecimal extraRate = currencyConfig.effectiveRate(reservation);
 
             User updateUser = reservation.getUser();
             reservation.getExtras().clear();
@@ -994,14 +1036,16 @@ public class ReservationServiceImpl implements ReservationService {
                 Extra catalog = extraRepository.findById(e.getExtraId())
                         .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + e.getExtraId()));
 
-                double unitPrice = r2(catalog.getUnitPrice() / extraRate);
+                java.math.BigDecimal unitPrice = Money.divide(catalog.getUnitPrice(), extraRate);
                 UserProductRemise remise = updateUser.getRemises().stream()
                         .filter(r -> r.getProductId().equals(catalog.getExtraId()))
                         .findFirst().orElse(null);
                 if (remise != null && remise.getUnitRemise() != null) {
-                    unitPrice = Math.max(0, r2(unitPrice - remise.getUnitRemise() / extraRate));
+                    java.math.BigDecimal discounted = Money.subtract(
+                            unitPrice, Money.divide(remise.getUnitRemise(), extraRate));
+                    unitPrice = discounted.signum() < 0 ? Money.ZERO : discounted;
                 }
-                double totalPrice = r2(unitPrice * e.getQuantity());
+                java.math.BigDecimal totalPrice = Money.multiply(unitPrice, e.getQuantity());
 
                 ReservationExtra extra = ReservationExtra.builder()
                         .catalogExtraId(catalog.getExtraId())
@@ -1020,6 +1064,7 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.setTotalExtrasAmount(reservation.calculateTotalExtrasAmount());
         }
 
+        enforceAccommodationAvailability(reservation, reservationId);
         reservationCapacityValidator.validate(reservation, reservationId);
 
         Reservation savedReservation = reservationRepository.save(reservation);
@@ -1406,56 +1451,48 @@ public class ReservationServiceImpl implements ReservationService {
 
     // ─────────────────────────────────────────────────────────────
     // GENERATE FACTURE LATER
+    //
+    // TODO(company-scoping, blocked on docs/OPEN-QUESTIONS.md Q1/Q2/Q4):
+    // `companyType` below is a free parameter the caller (an ADMIN) types
+    // in - nothing validates it against what the reservation actually
+    // contains, because TourType/Tour/Extra carry no company field to check
+    // it against (see docs/data-sharing-inventory.md §5, confirmed live
+    // 30 Aug 2026: zero real invoices exist yet, so this is a dormant risk,
+    // not an active one). Harmless today because only Dunes products are
+    // bookable at all. Becomes a real audit-integrity gap the moment Route
+    // Insolite reservations exist - at that point this needs to derive
+    // companyType from the reservation's own line items (once they carry
+    // one) and reject a mismatch, not trust the caller. Do not "fix" this
+    // by guessing a company-scoping design now - it is a business/legal
+    // decision (Q1, Q2, Q4), not a code default.
     // ─────────────────────────────────────────────────────────────
 
     @Override
     public InvoiceResponse generateFactureLater(UUID reservationId, CompanyType companyType) {
         Reservation reservation = findById(reservationId);
 
-        double rawTotal =
-                (reservation.getTotalAmount()       != null ? reservation.getTotalAmount()       : 0.0)
-              + (reservation.getTotalExtrasAmount() != null ? reservation.getTotalExtrasAmount() : 0.0);
+        // Phase 4 — fail closed instead of trusting the caller's companyType.
+        // A reservation carries no company today (business-blocked on
+        // OPEN-QUESTIONS Q1/Q2/Q4 — see docs/adr/0002-company-scoping.md), and
+        // only Dunes Insolites products are bookable. So: an absent value
+        // resolves to DUNES_INSOLITES, and an explicit ROUTE_INSOLITE is
+        // rejected — nobody can mint a Route Insolite invoice until the
+        // ownership model exists and can be checked against the line items.
+        if (companyType == null) {
+            companyType = CompanyType.DUNES_INSOLITES;
+        } else if (companyType != CompanyType.DUNES_INSOLITES) {
+            throw new AccessDeniedException(
+                    "Invoices can only be issued for DUNES_INSOLITES until company scoping is in place.");
+        }
 
-        Currency currency   = reservation.getCurrency() != null ? reservation.getCurrency() : Currency.TND;
-        double timbreFiscal = getTimbreFiscal(reservation);
-        LocalDate invoiceDate = reservation.getCompletedAt() != null
-                ? reservation.getCompletedAt().toLocalDate() : LocalDate.now();
-
-        Invoice facture = Invoice.builder()
-                .invoiceNumber(generateFactureNumber())
-                .invoiceType(InvoiceType.STANDARD)
-                .invoiceDate(invoiceDate)
-                .totalAmount(rawTotal)
-                .timbreFiscal(timbreFiscal)
-                .status(InvoiceStatus.DRAFT)
-                .currency(currency)
-                .reservation(reservation)
-                .user(reservation.getUser())
-                .companyType(companyType)
-                .build();
-
-        double[] tvaBreakdown = populateInvoiceItems(reservation, facture);
-        double totalHt  = tvaBreakdown[0];
-        double totalTva = tvaBreakdown[1];
-        double totalTtc = r2(totalHt + totalTva + timbreFiscal);
-        facture.setTotalHt(totalHt);
-        facture.setTvaRate(0.0);
-        facture.setTvaAmount(totalTva);
-        facture.setTotalTtc(totalTtc);
-
-        PaymentSummary paid = paymentService.computePaymentSummary(reservation);
-        double paidSoFar    = paid.getTotalPaid();
-        PaymentStatus facturePaymentStatus;
-        if (paidSoFar <= 0)            facturePaymentStatus = PaymentStatus.UNPAID;
-        else if (paidSoFar < totalTtc) facturePaymentStatus = PaymentStatus.PARTIALLY_PAID;
-        else                           facturePaymentStatus = PaymentStatus.PAID;
-        facture.setPaymentStatus(facturePaymentStatus);
-        facture.setPaidAmount(paidSoFar);
-
-        invoiceRepository.save(facture);
-
-        List<InvoiceResponse> invoices = invoiceService.getInvoicesByReservation(reservationId);
-        return invoices.get(invoices.size() - 1);
+        // Extraction (ADR-0004): the facture build/persist now lives in
+        // ReservationInvoiceService, which returns the row it just created — so
+        // the response is that facture deterministically, not "the last invoice
+        // getInvoicesByReservation happens to return" (which was order-undefined
+        // once a proforma already existed — the reason this method used to be
+        // able to echo back the proforma).
+        Invoice facture = reservationInvoiceService.generateFacture(reservation, companyType);
+        return invoiceService.getInvoiceById(facture.getInvoiceId());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1590,212 +1627,34 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.setCurrency(Currency.TND);
             return;
         }
-        double rate = currencyConfig.rateFor(targetCurrency);
+        java.math.BigDecimal rate = currencyConfig.rateFor(targetCurrency);
         reservation.setExchangeRateApplied(rate);
 
-        if (reservation.getTotalAmount() != null)
-            reservation.setTotalAmount(r2(reservation.getTotalAmount() / rate));
-        if (reservation.getTotalExtrasAmount() != null)
-            reservation.setTotalExtrasAmount(r2(reservation.getTotalExtrasAmount() / rate));
+        reservation.setTotalAmount(Money.divide(reservation.getTotalAmount(), rate));
+        reservation.setTotalExtrasAmount(Money.divide(reservation.getTotalExtrasAmount(), rate));
 
         reservation.getTourTypes().forEach(tt -> {
-            tt.setAdultPrice(r2(tt.getAdultPrice() / rate));
-            tt.setChildPrice(r2(tt.getChildPrice() / rate));
+            tt.setAdultPrice(Money.divide(tt.getAdultPrice(), rate));
+            tt.setChildPrice(Money.divide(tt.getChildPrice(), rate));
         });
-
         reservation.getTours().forEach(tour -> {
-            tour.setAdultPrice(r2(tour.getAdultPrice() / rate));
-            tour.setChildPrice(r2(tour.getChildPrice() / rate));
-            tour.setTotalPrice(r2(tour.getTotalPrice() / rate));
+            tour.setAdultPrice(Money.divide(tour.getAdultPrice(), rate));
+            tour.setChildPrice(Money.divide(tour.getChildPrice(), rate));
+            tour.setTotalPrice(Money.divide(tour.getTotalPrice(), rate));
         });
-
         reservation.getExtras().forEach(extra -> {
-            extra.setUnitPrice(r2(extra.getUnitPrice() / rate));
-            extra.setTotalPrice(r2(extra.getTotalPrice() / rate));
+            extra.setUnitPrice(Money.divide(extra.getUnitPrice(), rate));
+            extra.setTotalPrice(Money.divide(extra.getTotalPrice(), rate));
         });
 
         reservation.setCurrency(targetCurrency);
     }
 
-    private static double r2(double value) {
-        return Math.round(value * 100.0) / 100.0;
+    /** Catalogue price minus a discount, floored at zero. Null discount → price unchanged. */
+    private static java.math.BigDecimal applyRemise(java.math.BigDecimal price, java.math.BigDecimal remise) {
+        if (remise == null) return Money.round(price);
+        java.math.BigDecimal r = Money.subtract(price, remise);
+        return r.signum() < 0 ? Money.ZERO : r;
     }
 
-    private double[] populateInvoiceItems(Reservation reservation, Invoice invoice) {
-        double sumHt = 0, sumTva = 0;
-        int line = 1;
-
-        if (reservation.getReservationType() == ReservationType.HEBERGEMENT
-                && reservation.getTourTypes() != null
-                && !reservation.getTourTypes().isEmpty()) {
-
-            // Group nights into one invoice line only when they're truly the same stay:
-            // same tour, same headcount, and same price. A night with a different adult/child
-            // count or price (catalog change, per-night promo, etc.) starts its own group/line
-            // instead of being blended into an unrelated night's line.
-            record TourTypeGroupKey(UUID catalogTourTypeId, Integer adults, Integer children,
-                                     Double adultPrice, Double childPrice) {}
-
-            Map<TourTypeGroupKey, List<ReservationTourType>> grouped = new LinkedHashMap<>();
-            for (ReservationTourType tt : reservation.getTourTypes()) {
-                UUID catalogId = tt.getCatalogTourTypeId() != null
-                        ? tt.getCatalogTourTypeId()
-                        : tt.getReservationTourTypeId();
-                TourTypeGroupKey key = new TourTypeGroupKey(
-                        catalogId, tt.getNumberOfAdults(), tt.getNumberOfChildren(),
-                        tt.getAdultPrice(), tt.getChildPrice());
-                grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(tt);
-            }
-
-            for (List<ReservationTourType> group : grouped.values()) {
-                ReservationTourType first = group.get(0);
-                int    nights   = group.size();
-                double rate     = first.getTva() != null ? first.getTva() : 0.0;
-                int    adults   = first.getNumberOfAdults()   != null ? first.getNumberOfAdults()   : 0;
-                int    children = first.getNumberOfChildren() != null ? first.getNumberOfChildren() : 0;
-                double ap       = first.getAdultPrice()  != null ? first.getAdultPrice()  : 0.0;
-                double cp       = first.getChildPrice()  != null ? first.getChildPrice()  : 0.0;
-
-                LocalDate minDate = group.stream()
-                        .map(ReservationTourType::getActivityDate)
-                        .filter(d -> d != null)
-                        .min(Comparator.naturalOrder())
-                        .orElse(null);
-                LocalDate maxDate = group.stream()
-                        .map(ReservationTourType::getActivityDate)
-                        .filter(d -> d != null)
-                        .max(Comparator.naturalOrder())
-                        .orElse(null);
-                // endDate is checkout day (last night + 1); only set for multi-night
-                LocalDate endDate = (maxDate != null && nights > 1) ? maxDate.plusDays(1) : null;
-
-                if (adults > 0) {
-                    double lineTtc = r2(ap * adults * nights);
-                    double lineHt  = rate > 0 ? r2(lineTtc / (1 + rate / 100)) : lineTtc;
-                    sumHt  += lineHt;
-                    sumTva += r2(lineTtc - lineHt);
-                    invoice.addItem(InvoiceItem.builder()
-                            .description(first.getName() + " (Adulte)")
-                            .itemType("HEBERGEMENT")
-                            .quantity(adults)
-                            .unitPrice(rate > 0 ? r2((ap * nights) / (1 + rate / 100)) : r2(ap * nights))
-                            .tva(rate)
-                            .activityDate(minDate)
-                            .activityEndDate(endDate)
-                            .lineNumber(line++)
-                            .build());
-                }
-                if (children > 0) {
-                    double lineTtc = r2(cp * children * nights);
-                    double lineHt  = rate > 0 ? r2(lineTtc / (1 + rate / 100)) : lineTtc;
-                    sumHt  += lineHt;
-                    sumTva += r2(lineTtc - lineHt);
-                    invoice.addItem(InvoiceItem.builder()
-                            .description(first.getName() + " (Enfant)")
-                            .itemType("HEBERGEMENT")
-                            .quantity(children)
-                            .unitPrice(rate > 0 ? r2((cp * nights) / (1 + rate / 100)) : r2(cp * nights))
-                            .tva(rate)
-                            .activityDate(minDate)
-                            .activityEndDate(endDate)
-                            .lineNumber(line++)
-                            .build());
-                }
-            }
-        } else if (reservation.getReservationType() == ReservationType.TOURS
-                && reservation.getTours() != null
-                && !reservation.getTours().isEmpty()) {
-            for (ReservationTour t : reservation.getTours()) {
-                double rate     = t.getTva() != null ? t.getTva() : 0.0;
-                int    adults   = t.getNumberOfAdults()   != null ? t.getNumberOfAdults()   : 0;
-                int    children = t.getNumberOfChildren() != null ? t.getNumberOfChildren() : 0;
-                double ap       = t.getAdultPrice()  != null ? t.getAdultPrice()  : 0.0;
-                double cp       = t.getChildPrice()  != null ? t.getChildPrice()  : 0.0;
-
-                if (adults > 0) {
-                    double lineTtc = r2(ap * adults);
-                    double lineHt  = rate > 0 ? r2(lineTtc / (1 + rate / 100)) : lineTtc;
-                    sumHt  += lineHt;
-                    sumTva += r2(lineTtc - lineHt);
-                    invoice.addItem(InvoiceItem.builder()
-                            .description(t.getName() + " (Adulte)")
-                            .itemType("TOURS")
-                            .quantity(adults)
-                            .unitPrice(rate > 0 ? r2(ap / (1 + rate / 100)) : ap)
-                            .tva(rate)
-                            .activityDate(t.getDepartureDate())
-                            .lineNumber(line++)
-                            .build());
-                }
-                if (children > 0) {
-                    double lineTtc = r2(cp * children);
-                    double lineHt  = rate > 0 ? r2(lineTtc / (1 + rate / 100)) : lineTtc;
-                    sumHt  += lineHt;
-                    sumTva += r2(lineTtc - lineHt);
-                    invoice.addItem(InvoiceItem.builder()
-                            .description(t.getName() + " (Enfant)")
-                            .itemType("TOURS")
-                            .quantity(children)
-                            .unitPrice(rate > 0 ? r2(cp / (1 + rate / 100)) : cp)
-                            .tva(rate)
-                            .activityDate(t.getDepartureDate())
-                            .lineNumber(line++)
-                            .build());
-                }
-            }
-        }
-
-        if (reservation.getExtras() != null) {
-            for (ReservationExtra extra : reservation.getExtras()) {
-                if (Boolean.TRUE.equals(extra.getIsActive())) {
-                    double rate    = extra.getTva() != null ? extra.getTva() : 0.0;
-                    int    qty     = extra.getQuantity() != null ? extra.getQuantity() : 1;
-                    double unitP   = extra.getUnitPrice() != null ? extra.getUnitPrice() : 0.0;
-                    double lineTtc = extra.getTotalPrice() != null ? extra.getTotalPrice() : r2(unitP * qty);
-                    double lineHt  = rate > 0 ? r2(lineTtc / (1 + rate / 100)) : lineTtc;
-                    sumHt  += lineHt;
-                    sumTva += r2(lineTtc - lineHt);
-                    invoice.addItem(InvoiceItem.builder()
-                            .description(extra.getName())
-                            .itemType("EXTRA")
-                            .quantity(qty)
-                            .unitPrice(rate > 0 ? r2(unitP / (1 + rate / 100)) : unitP)
-                            .tva(rate)
-                            .activityDate(extra.getActivityDate())
-                            .lineNumber(line++)
-                            .build());
-                }
-            }
-        }
-
-        return new double[]{ r2(sumHt), r2(sumTva) };
-    }
-
-    private String generateProformaNumber() {
-        int year = LocalDate.now().getYear();
-        DocumentSequence seq = documentSequenceRepository
-                .findByTypeAndYearForUpdate("PROFORMA", year)
-                .orElseGet(() -> DocumentSequence.builder()
-                        .type("PROFORMA").year(year).lastNumber(0).build());
-        seq.setLastNumber(seq.getLastNumber() + 1);
-        documentSequenceRepository.save(seq);
-        return String.format("%03d/%d", seq.getLastNumber(), year);
-    }
-
-    private String generateFactureNumber() {
-        int year = LocalDate.now().getYear();
-        DocumentSequence seq = documentSequenceRepository
-                .findByTypeAndYearForUpdate("FACTURE", year)
-                .orElseGet(() -> DocumentSequence.builder()
-                        .type("FACTURE").year(year).lastNumber(0).build());
-        seq.setLastNumber(seq.getLastNumber() + 1);
-        documentSequenceRepository.save(seq);
-        return String.format("%03d/%d", seq.getLastNumber(), year);
-    }
-
-    private double getTimbreFiscal(Reservation reservation) {
-        Currency currency = reservation.getCurrency() != null ? reservation.getCurrency() : Currency.TND;
-        if (currency == Currency.TND) return 1.000;
-        return Math.round((1.0 / currencyConfig.effectiveRate(reservation)) * 1000.0) / 1000.0;
-    }
 }

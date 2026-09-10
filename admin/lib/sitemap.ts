@@ -42,3 +42,27 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
     return [];
   }
 }
+
+/**
+ * Every real, currently-published page path (locale-prefixed where
+ * applicable), relative — `/camp/nuitee-campement-desert/`, not the full
+ * `https://www.dunes-insolites.com/...` `loc`. `site.url` is hardcoded to
+ * the real production domain even in local dev (frontend/lib/site.ts), so
+ * this strips whatever origin comes back rather than assuming one -
+ * correct in dev and in production alike. Used by the maintenance-window
+ * editor's page picker (components/crud/MaintenanceCrud.tsx) so a window
+ * can only ever target a path that genuinely exists, never a typo.
+ */
+export async function getSitemapPaths(): Promise<string[]> {
+  const entries = await getSitemapEntries();
+  const paths = entries
+    .map((e) => {
+      try {
+        return new URL(e.loc).pathname;
+      } catch {
+        return null;
+      }
+    })
+    .filter((p): p is string => p !== null);
+  return [...new Set(paths)].sort();
+}

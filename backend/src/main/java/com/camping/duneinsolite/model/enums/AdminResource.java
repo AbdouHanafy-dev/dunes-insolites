@@ -26,5 +26,6 @@ public enum AdminResource {
     MEDIA,
     NAVIGATION,
     REDIRECTS,
+    GALLERY,
     MAINTENANCE_WINDOWS
 }

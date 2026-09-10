@@ -52,6 +52,7 @@
     "scroll": "مرر للأسفل",
     "guestsGuided": "ضيوف تم إرشادهم",
     "averageRating": "متوسط التقييم",
+    "newRating": "جديد",
     "yearsSuffix": "سنوات",
     "ofExperience": "من الخبرة"
   },
@@ -71,6 +72,7 @@
     "body": "مجموعات صغيرة، مرشدون محليون، ودون أي استعجال. كل رحلة في سابرية مُوقّتة بحيث لا تزال الرمال تحتفظ بدفء النهار والسماء مشتعلة بالألوان.",
     "guestsGuided": "ضيوف تم إرشادهم",
     "averageRating": "متوسط التقييم",
+    "newRating": "جديد",
     "onTheDunes": "على الكثبان",
     "yearsUnit": "سنوات",
     "bgAlt": "مشهد صحراوي في صبرية"
@@ -112,16 +114,16 @@
     "cta": "شاهد المعرض كاملاً ←"
   },
   "ctaDefault": {
-    "title": "مستعدون للكثبان؟",
-    "body": "تُحجز مواعيد ساعة الغروب الذهبي بسرعة. احجزوا مغامرتكم الصحراوية وسنتولى الباقي.",
-    "label": "احجز رحلة ←"
+    "title": "احجزوا ليلتكم في صبرية.",
+    "body": "تُحجز مواعيد ساعة الغروب الذهبي بسرعة. احجزوا مباشرة والتأكيد خلال يوم واحد — بلا وسيط، بلا عمولة.",
+    "label": "احجز ليلتك ←"
   },
   "ctaGallery": {
-    "title": "تريدون صوركم الخاصة؟",
-    "body": "كل رحلة تأتي مع صور ومقاطع فيديو من مرشدكم، تُرسل في صباح اليوم التالي."
+    "title": "صوركم الخاصة، تصلكم صباح اليوم التالي.",
+    "body": "كل رحلة تأتي بصور حقيقية من مرشدكم — لا صور جاهزة أبدًا."
   },
   "ctaCamp": {
-    "title": "لست متأكدًا أيهما تختار؟",
+    "title": "أخبرونا بعددكم، وسنقترح الليلة المناسبة.",
     "body": "أخبرونا بعددكم وما ترغبون في فعله — وسنقترح عليكم الليلة المناسبة.",
     "label": "اسألونا ←"
   },
@@ -375,18 +377,64 @@
   },
   "account": {
     "navLabel": "التنقل في الحساب",
-    "tabAccount": "حسابي",
-    "tabBookings": "حجوزاتي",
+    "tabAccount": "الملف الشخصي",
+    "tabBookings": "رحلاتي",
     "tabPayments": "المدفوعات",
     "tabReviews": "التقييمات",
-    "tabSupport": "الدعم",
+    "tabSupport": "المساعدة",
     "logout": "تسجيل الخروج",
+    "welcomeBack": "مرحبًا بعودتك، {name}",
+    "nextAdventureTitle": "مغامرتك القادمة في الصحراء بانتظارك.",
+    "noAdventureTitle": "مغامرتك القادمة تبدأ هنا.",
+    "yourNextExperience": "تجربتك القادمة",
+    "guestsLabel": "الضيوف",
+    "bookingRefLabel": "الحجز",
+    "viewYourTrip": "عرض رحلتك",
+    "exploreExperiencesCta": "اكتشف التجارب",
+    "paymentStatus": {
+      "PAID": "مدفوع",
+      "PARTIALLY_PAID": "مدفوع جزئيًا",
+      "UNPAID": "الدفع معلق",
+      "OVERDUE": "متأخر",
+      "REFUNDED": "تم الاسترداد"
+    },
+    "sidebarUpcoming": "{count, plural, one {تجربة قادمة واحدة} other {# تجارب قادمة}}",
+    "sidebarActionRequired": "{count, plural, one {إجراء واحد مطلوب} other {# إجراءات مطلوبة}}",
+    "glanceTitle": "رحلتك في لمحة",
+    "glanceDatesLabel": "تواريخ تجربتك",
+    "glanceGuestsLabel": "مشمول في حجزك",
+    "glancePaymentPendingNote": "أكمل دفعتك قبل رحلتك",
+    "glancePaymentDoneNote": "كل شيء جاهز",
+    "glanceLocationLabel": "جنوب تونس",
+    "journeyTitle": "مسار رحلتك",
+    "journey": {
+      "received": "تم استلام الحجز",
+      "confirmed": "مؤكد",
+      "prepare": "استعد لرحلتك",
+      "enjoy": "استمتع بتجربتك",
+      "share": "شارك تجربتك"
+    },
+    "beforeTripTitle": "قبل رحلتك",
+    "beforeTripLead": "مغامرتك في الصحراء تقترب.",
+    "beforeTripPacking": "ما الذي يجب إحضاره",
+    "beforeTripPackingDesc": "اكتشف ما يجب تحضيره لتجربتك.",
+    "beforeTripHelp": "بحاجة إلى مساعدة؟",
+    "beforeTripHelpDesc": "تواصل مع فريقنا بخصوص حجزك.",
+    "beforeTripDetails": "عرض تفاصيل الحجز",
+    "beforeTripDetailsDesc": "اطّلع على جميع معلومات حجزك.",
+    "recommendTitle": "أكمل تجربتك في الصحراء",
+    "recommendLead": "قد يعجبك أيضًا",
+    "discoverCta": "اكتشف",
+    "helpTitle": "بحاجة إلى مساعدة بخصوص رحلتك؟",
+    "helpLead": "فريقنا هنا لمساعدتك على التحضير لتجربتك في الصحراء.",
+    "contactSupportCta": "تواصل مع الدعم",
+    "whatsappCta": "واتساب",
     "overviewTitle": "حسابي",
     "overviewLead": "معلوماتك الشخصية.",
     "nameLabel": "الاسم",
     "emailLabel": "البريد الإلكتروني",
     "roleLabel": "نوع الحساب",
-    "bookingsTitle": "حجوزاتي",
+    "bookingsTitle": "رحلاتي",
     "bookingsLead": "سجل حجوزاتك لدى Dunes Insolites.",
     "bookingsEmpty": "ليس لديك أي حجز بعد.",
     "statusLabel": "الحالة",
@@ -415,6 +463,19 @@
     "reviewSending": "جارٍ الإرسال…",
     "reviewSent": "شكرًا، تم نشر تقييمك.",
     "reviewGenericError": "لم نتمكن من حفظ هذا التقييم. حاول مرة أخرى.",
+    "status": {
+      "pending": "قيد الانتظار",
+      "confirmed": "مؤكد",
+      "checked_in": "تم تسجيل الوصول",
+      "cancelled": "ملغى",
+      "rejected": "مرفوض",
+      "completed": "مكتمل"
+    },
+    "reservationType": {
+      "HEBERGEMENT": "مبيت في الصحراء",
+      "TOURS": "جولة",
+      "EXTRAS": "نشاط"
+    },
     "role": {
       "CLIENT": "عميل",
       "PARTENAIRE": "شريك",

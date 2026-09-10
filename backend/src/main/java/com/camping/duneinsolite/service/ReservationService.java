@@ -17,6 +17,15 @@ import java.util.UUID;
 public interface ReservationService {
     ReservationResponse createReservation(ReservationRequest request);
     ReservationResponse getReservationById(UUID reservationId);
+
+    /**
+     * Look up a reservation by its public-booking idempotency key. Deliberately
+     * NOT ownership-guarded: the key is a per-attempt capability token held only
+     * by the client that created the booking, so possession of the key is the
+     * authorization. Used by the public booking flow to make a network retry
+     * return the same reservation. Empty if unknown / soft-deleted.
+     */
+    java.util.Optional<ReservationResponse> findByIdempotencyKey(String idempotencyKey);
     Page<ReservationResponse> getAllReservations(Pageable pageable);
     List<ReservationResponse> getReservationsByUser(UUID userId);
     List<ReservationResponse> getNonCompletedReservationsByUser(UUID userId);

@@ -30,7 +30,7 @@ public class Transaction {
     private String transactionNumber;
 
     @Column(name = "amount", nullable = false)
-    private Double amount;
+    private java.math.BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", length = 3, nullable = false)

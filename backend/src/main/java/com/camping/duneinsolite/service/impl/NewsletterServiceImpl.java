@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.model.NewsletterSubscriber;
 import com.camping.duneinsolite.repository.NewsletterSubscriberRepository;
 import com.camping.duneinsolite.service.NewsletterService;
@@ -20,11 +21,11 @@ public class NewsletterServiceImpl implements NewsletterService {
     public void subscribe(String email) {
         String normalized = email.trim().toLowerCase();
         if (newsletterSubscriberRepository.existsByEmail(normalized)) {
-            log.info("Newsletter: {} already subscribed - no-op", normalized);
+            log.info("Newsletter: {} already subscribed - no-op", maskEmail(normalized));
             return;
         }
         newsletterSubscriberRepository.save(
                 NewsletterSubscriber.builder().email(normalized).build());
-        log.info("Newsletter: new subscriber {}", normalized);
+        log.info("Newsletter: new subscriber {}", maskEmail(normalized));
     }
 }

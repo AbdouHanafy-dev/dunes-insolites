@@ -16,6 +16,7 @@ to exist.
 
     python scripts/seed-navigation.py
 """
+import os
 import json
 import sys
 import urllib.request
@@ -63,7 +64,7 @@ def req(method, path, token=None, body=None):
 
 def login():
     status, data = req("POST", "/auth/login", body={
-        "email": "testadmin@dunes.local", "password": "AdminPass1!",
+        "email": os.environ.get("SEED_ADMIN_EMAIL", "testadmin@dunes.local"), "password": os.environ.get("SEED_ADMIN_PASSWORD", "AdminPass1!"),
     })
     assert status == 200, f"login failed: {status} {data}"
     return data["accessToken"]

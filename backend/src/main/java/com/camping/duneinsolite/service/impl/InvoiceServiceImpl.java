@@ -30,6 +30,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ReservationRepository reservationRepository;
     private final UserRepository userRepository;
     private final InvoiceMapper invoiceMapper;
+    private final com.camping.duneinsolite.security.CallerContext caller;
 
     // Sentinel bounds an open-ended startDate/endDate resolves to, so the repository
     // query always binds two concrete LocalDate values — see InvoiceRepository for why.
@@ -48,7 +49,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .invoiceType(request.getInvoiceType())
                 .dueDate(request.getDueDate())
                 .totalAmount(request.getTotalAmount())
-                .paidAmount(0.0)
+                .paidAmount(com.camping.duneinsolite.money.Money.ZERO)
                 .status(InvoiceStatus.DRAFT)
                 .paymentStatus(PaymentStatus.UNPAID)
                 .reservation(reservation)
@@ -72,7 +73,21 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public InvoiceResponse getInvoiceById(UUID invoiceId) {
-        return invoiceMapper.toResponse(findById(invoiceId));
+        Invoice invoice = findById(invoiceId);
+        // IDOR fix (Phase 4): endpoint is only isAuthenticated(); an invoice is
+        // a financial document carrying the customer's name, address and
+        // matricule fiscal. Staff see any; a customer sees only their own.
+        caller.requireStaffOrOwner(ownerOf(invoice));
+        return invoiceMapper.toResponse(invoice);
+    }
+
+    /** The customer a invoice belongs to — its own user, or its reservation's. */
+    private UUID ownerOf(Invoice invoice) {
+        if (invoice.getUser() != null) return invoice.getUser().getUserId();
+        if (invoice.getReservation() != null && invoice.getReservation().getUser() != null) {
+            return invoice.getReservation().getUser().getUserId();
+        }
+        return null;
     }
 
     @Override
@@ -89,9 +104,20 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public List<InvoiceResponse> getInvoicesByReservation(UUID reservationId) {
+        requireReservationAccess(reservationId);
         return invoiceRepository.findByReservationIdWithItems(reservationId).stream()
                 .map(invoiceMapper::toResponse)
                 .toList();
+    }
+
+    // IDOR fix (Phase 4): the /reservation/{id} and /factures/reservation/{id}
+    // endpoints are only isAuthenticated(). Scope them to the reservation's
+    // owner (or staff) before listing its invoices.
+    private void requireReservationAccess(UUID reservationId) {
+        if (caller.isStaff()) return;
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
+        caller.requireStaffOrOwner(reservation.getUser() != null ? reservation.getUser().getUserId() : null);
     }
 
     @Override
@@ -129,12 +155,23 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional(readOnly = true)
     public List<InvoiceResponse> getFacturesByReservation(UUID reservationId) {
+        requireReservationAccess(reservationId);
         return invoiceRepository
                 .findByInvoiceTypeAndReservationIdWithItems(InvoiceType.STANDARD, reservationId).stream()
                 .map(invoiceMapper::toResponse)
                 .toList();
     }
 
+    // TODO(company-scoping, blocked on docs/OPEN-QUESTIONS.md Q4): no status
+    // check - a SENT, numbered, stamped invoice can have its legal entity
+    // flipped by this call exactly as freely as a DRAFT. ARCHITECTURE.md
+    // §13 Critical #2 already tracks this; not fixed here on purpose - the
+    // correct remedy (credit note + reissue vs. blocking the toggle once
+    // issued) is Q4's call, needs the accountant, and touches the same
+    // DocumentSequence gap Q4 is already paused on. Re-confirmed live
+    // 30 Aug 2026: zero real invoices exist yet, so nothing has been
+    // wrongly toggled today - this is the exact code path to guard the
+    // moment invoicing starts for real.
     @Override
     public InvoiceResponse toggleCompanyType(UUID invoiceId) {
         Invoice invoice = findById(invoiceId);

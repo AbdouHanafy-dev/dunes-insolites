@@ -14,8 +14,8 @@ public class SnapshotLineDto {
     private String  description;
     private String  itemType;
     private Integer quantity;
-    private Double  unitPrice;
-    private Double  tva;
+    private java.math.BigDecimal unitPrice;
+    private java.math.BigDecimal tva;
     private String  activityDate;
     private String  activityEndDate;
 }

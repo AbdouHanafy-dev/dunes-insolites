@@ -20,9 +20,9 @@ public class ExtraResponse {
     private String slug;
     private String description;
     private String duration;
-    private Double unitPrice;
+    private java.math.BigDecimal unitPrice;
     private Boolean isActive;
-    private Double tva;
+    private java.math.BigDecimal tva;
 
     private String aboutText;
     private List<String> highlights;

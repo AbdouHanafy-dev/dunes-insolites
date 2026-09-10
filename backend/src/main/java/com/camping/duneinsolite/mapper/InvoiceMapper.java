@@ -27,9 +27,10 @@ public interface InvoiceMapper {
 
     default String buildArrete(Invoice invoice) {
         if (invoice.getTotalTtc() == null) return null;
-        double amount   = invoice.getTotalTtc();
-        long   dinars   = (long) amount;
-        long   millimes = Math.round((amount - dinars) * 1000);
+        java.math.BigDecimal amount = com.camping.duneinsolite.money.Money.round(invoice.getTotalTtc());
+        long dinars   = amount.longValue();
+        long millimes = amount.remainder(java.math.BigDecimal.ONE)
+                .movePointRight(3).abs().longValue();
         return String.format("%d DINARS ET %03d MILLIMES", dinars, millimes);
     }
 }

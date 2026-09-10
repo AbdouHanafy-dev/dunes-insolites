@@ -18,12 +18,12 @@ public class TourResponse {
     private String slug;
     private String description;
     private String duration;
-    private Double passengerAdultPrice;
-    private Double passengerChildPrice;
-    private Double partnerAdultPrice;
-    private Double partnerChildPrice;
+    private java.math.BigDecimal passengerAdultPrice;
+    private java.math.BigDecimal passengerChildPrice;
+    private java.math.BigDecimal partnerAdultPrice;
+    private java.math.BigDecimal partnerChildPrice;
     private Boolean isActive;
-    private Double tva;
+    private java.math.BigDecimal tva;
 
     private String aboutText;
     private List<String> highlights;

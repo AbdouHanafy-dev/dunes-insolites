@@ -38,33 +38,26 @@ function seatsTaken(activitySlug: string, date: string, slot: TimeSlot): number 
   return taken;
 }
 
-/**
- * Deterministic pseudo-availability so the same date always renders the same
- * way across server and client. Real implementation reads the ops calendar.
- */
-function baselineTaken(activitySlug: string, date: string, slot: TimeSlot): number {
-  const key = `${activitySlug}|${date}|${slot}`;
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return hash % (SLOT_CAPACITY + 1);
-}
-
 export type SlotAvailability = {
   slot: TimeSlot;
   seatsLeft: number;
   available: boolean;
 };
 
+/**
+ * Local-dev-only slot availability. The fabricated `hash(date)` baseline was
+ * removed (production-hardening Phase 2 — never present fake availability as
+ * real). This now reflects ONLY the in-memory dev store, so every slot reads as
+ * available until a dev actually books one. There is no backend endpoint for
+ * activity-slot capacity — per ARCHITECTURE, the camp confirms the hour on
+ * arrival, so activities have no online time-of-day inventory to enforce.
+ */
 export function getAvailability(activitySlug: string, date: string): SlotAvailability[] {
   const activity = getActivity(activitySlug);
   if (!activity || !isFutureDate(date)) return [];
 
   return activity.slots.map((slot) => {
-    const taken = Math.min(
-      SLOT_CAPACITY,
-      baselineTaken(activitySlug, date, slot) + seatsTaken(activitySlug, date, slot),
-    );
-    const seatsLeft = SLOT_CAPACITY - taken;
+    const seatsLeft = Math.max(0, SLOT_CAPACITY - seatsTaken(activitySlug, date, slot));
     return { slot, seatsLeft, available: seatsLeft > 0 };
   });
 }

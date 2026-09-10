@@ -11,12 +11,12 @@ public class ReservationTourTypeResponse {
     private String name;
     private String description;
     private String duration;
-    private Double adultPrice;
-    private Double childPrice;
+    private java.math.BigDecimal adultPrice;
+    private java.math.BigDecimal childPrice;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
-    private Double totalPrice;
+    private java.math.BigDecimal totalPrice;
     private Integer numberOfNights;
     private LocalDate activityDate;
-    private Double tva;
+    private java.math.BigDecimal tva;
 }

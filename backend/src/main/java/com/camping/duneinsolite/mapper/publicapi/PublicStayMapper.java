@@ -1,9 +1,12 @@
 package com.camping.duneinsolite.mapper.publicapi;
 
 import com.camping.duneinsolite.dto.response.publicapi.PublicStayResponse;
+import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.TourTypeTranslation;
 import com.camping.duneinsolite.model.enums.ContentLocale;
+import com.camping.duneinsolite.repository.AccommodationTypeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,7 +21,10 @@ import java.util.Optional;
  * MapStruct interface.
  */
 @Component
+@RequiredArgsConstructor
 public class PublicStayMapper {
+
+    private final AccommodationTypeRepository accommodationTypeRepository;
 
     /** @param locale e.g. "de"; null/"fr"/unknown all resolve to TourType's own (French) fields. */
     public PublicStayResponse toResponse(TourType tourType, String locale) {
@@ -57,7 +63,29 @@ public class PublicStayMapper {
         response.setArrivalTime("");
         response.setDepartureTime("");
         response.setItinerary(List.of());
-        response.setAccommodations(List.of());
+        response.setAccommodations(bookableAccommodations(tourType));
         return response;
+    }
+
+    /** Only active + priced tiers reach the vitrine — never an option we can't quote. */
+    private List<PublicStayResponse.Accommodation> bookableAccommodations(TourType tourType) {
+        return accommodationTypeRepository
+                .findByTourType_TourTypeIdOrderByDisplayOrderAsc(tourType.getTourTypeId())
+                .stream()
+                .filter(AccommodationType::isBookable)
+                .map(a -> {
+                    PublicStayResponse.Accommodation dto = new PublicStayResponse.Accommodation();
+                    dto.setSlug(a.getSlug());
+                    dto.setTitle(a.getName());
+                    dto.setTagline("");
+                    dto.setDescription(a.getDescription());
+                    dto.setImage(a.getImageUrl());
+                    dto.setPriceFrom(a.getUnitPriceTtc());
+                    dto.setSleeps("Jusqu'à " + a.getCapacity()
+                            + (a.getCapacity() > 1 ? " personnes" : " personne"));
+                    dto.setFeatures(List.copyOf(a.getFeatures()));
+                    return dto;
+                })
+                .toList();
     }
 }

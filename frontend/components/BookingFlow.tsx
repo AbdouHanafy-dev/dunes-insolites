@@ -77,6 +77,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     };
   }, [key]);
 
+  // Display-only estimate — never submitted. createBooking sends slug, date,
+  // slot, party and contact; the server computes the authoritative price.
   const total = activity ? activity.priceFrom * partySize : 0;
   const selectedSlot = slots.find((s) => s.slot === timeSlot);
   // A slot picked before the date changed stops counting once the new

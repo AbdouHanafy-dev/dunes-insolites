@@ -21,7 +21,7 @@ public class PublicActivityResponse {
     private String heroImage;
     private String cardImage;
     private List<String> gallery;
-    private Double priceFrom;
+    private java.math.BigDecimal priceFrom;
     private Integer durationMins;
     private String difficulty;
     private String groupSize;

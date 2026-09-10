@@ -12,7 +12,7 @@ public class PaymentRequest {
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")
-    private Double amount;
+    private java.math.BigDecimal amount;
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;

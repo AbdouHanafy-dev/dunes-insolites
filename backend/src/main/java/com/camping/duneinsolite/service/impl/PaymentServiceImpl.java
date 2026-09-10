@@ -17,6 +17,7 @@ import com.camping.duneinsolite.repository.ReservationRepository;
 import com.camping.duneinsolite.repository.TransactionRepository;
 import com.camping.duneinsolite.service.NotificationPublisher;
 import com.camping.duneinsolite.service.PaymentService;
+import com.camping.duneinsolite.money.Money;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final TransactionMapper transactionMapper;
     private final NotificationPublisher notificationPublisher;
     private final CurrencyConfig currencyConfig;
+    private final com.camping.duneinsolite.security.CallerContext caller;
 
     @Override
     public PaymentResponse recordPayment(UUID reservationId, PaymentRequest request) {
@@ -41,11 +43,16 @@ public class PaymentServiceImpl implements PaymentService {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
 
+        // IDOR fix (Phase 4): PaymentController's comment claimed this check
+        // lived here — it did not. A non-staff caller may only pay for, and
+        // read the PaymentSummary of, their OWN reservation.
+        caller.requireStaffOrOwner(reservation.getUser() != null ? reservation.getUser().getUserId() : null);
+
         Currency requestedCurrency = request.getCurrency();
 
         // ── Step 1: Check if this is the first payment ────────────
-        boolean isFirstPayment = transactionRepository
-                .sumCompletedAmountByReservationId(reservationId) == 0.0;
+        boolean isFirstPayment = Money.isZeroOrNull(
+                transactionRepository.sumCompletedAmountByReservationId(reservationId));
 
         if (isFirstPayment) {
             // ── First payment: apply conversion if currency differs ──
@@ -71,7 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
                     "This reservation is already fully paid. No further payments are required.");
         }
 
-        if (request.getAmount() > current.getRemainingTotal()) {
+        if (Money.gt(request.getAmount(), current.getRemainingTotal())) {
             throw new ReservationValidationException(
                     "Payment amount (" + request.getAmount() + " " + requestedCurrency.name()
                             + ") exceeds the remaining balance ("
@@ -113,28 +120,24 @@ public class PaymentServiceImpl implements PaymentService {
             reservation.setCurrency(Currency.TND);
             return;
         }
-        double rate = currencyConfig.rateFor(targetCurrency);
+        java.math.BigDecimal rate = currencyConfig.rateFor(targetCurrency);
         reservation.setExchangeRateApplied(rate);
 
-        if (reservation.getTotalAmount() != null)
-            reservation.setTotalAmount(r2(reservation.getTotalAmount() / rate));
-        if (reservation.getTotalExtrasAmount() != null)
-            reservation.setTotalExtrasAmount(r2(reservation.getTotalExtrasAmount() / rate));
+        reservation.setTotalAmount(Money.divide(reservation.getTotalAmount(), rate));
+        reservation.setTotalExtrasAmount(Money.divide(reservation.getTotalExtrasAmount(), rate));
 
         reservation.getTourTypes().forEach(tt -> {
-            tt.setAdultPrice(r2(tt.getAdultPrice() / rate));
-            tt.setChildPrice(r2(tt.getChildPrice() / rate));
+            tt.setAdultPrice(Money.divide(tt.getAdultPrice(), rate));
+            tt.setChildPrice(Money.divide(tt.getChildPrice(), rate));
         });
-
         reservation.getTours().forEach(tour -> {
-            tour.setAdultPrice(r2(tour.getAdultPrice() / rate));
-            tour.setChildPrice(r2(tour.getChildPrice() / rate));
-            tour.setTotalPrice(r2(tour.getTotalPrice() / rate));
+            tour.setAdultPrice(Money.divide(tour.getAdultPrice(), rate));
+            tour.setChildPrice(Money.divide(tour.getChildPrice(), rate));
+            tour.setTotalPrice(Money.divide(tour.getTotalPrice(), rate));
         });
-
         reservation.getExtras().forEach(extra -> {
-            extra.setUnitPrice(r2(extra.getUnitPrice() / rate));
-            extra.setTotalPrice(r2(extra.getTotalPrice() / rate));
+            extra.setUnitPrice(Money.divide(extra.getUnitPrice(), rate));
+            extra.setTotalPrice(Money.divide(extra.getTotalPrice(), rate));
         });
 
         reservation.setCurrency(targetCurrency);
@@ -143,35 +146,30 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional(readOnly = true)
     public PaymentSummary computePaymentSummary(Reservation reservation) {
-        double main   = reservation.getTotalAmount()       != null ? reservation.getTotalAmount()       : 0.0;
-        double extras = reservation.getTotalExtrasAmount() != null ? reservation.getTotalExtrasAmount() : 0.0;
-        double total  = r2(main + extras);
+        java.math.BigDecimal main   = Money.nz(reservation.getTotalAmount());
+        java.math.BigDecimal extras = Money.nz(reservation.getTotalExtrasAmount());
+        java.math.BigDecimal total  = Money.add(main, extras);
 
-        double totalPaid = transactionRepository
-                .sumCompletedAmountByReservationId(reservation.getReservationId());
+        java.math.BigDecimal totalPaid = Money.nz(transactionRepository
+                .sumCompletedAmountByReservationId(reservation.getReservationId()));
 
-        double remainingMain;
-        double remainingExtras;
-
-        if (totalPaid >= main) {
-            remainingMain   = 0.0;
-            double overflow = totalPaid - main;
-            remainingExtras = Math.max(0.0, r2(extras - overflow));
+        java.math.BigDecimal remainingMain;
+        java.math.BigDecimal remainingExtras;
+        if (Money.gte(totalPaid, main)) {
+            remainingMain = Money.ZERO;
+            java.math.BigDecimal overflow = Money.subtract(totalPaid, main);
+            java.math.BigDecimal r = Money.subtract(extras, overflow);
+            remainingExtras = r.signum() < 0 ? Money.ZERO : r;
         } else {
-            remainingMain   = r2(main - totalPaid);
+            remainingMain = Money.subtract(main, totalPaid);
             remainingExtras = extras;
         }
-
-        double remainingTotal = r2(remainingMain + remainingExtras);
+        java.math.BigDecimal remainingTotal = Money.add(remainingMain, remainingExtras);
 
         PaymentStatus paymentStatus;
-        if (totalPaid <= 0) {
-            paymentStatus = PaymentStatus.UNPAID;
-        } else if (remainingTotal > 0) {
-            paymentStatus = PaymentStatus.PARTIALLY_PAID;
-        } else {
-            paymentStatus = PaymentStatus.PAID;
-        }
+        if (totalPaid.signum() <= 0)          paymentStatus = PaymentStatus.UNPAID;
+        else if (remainingTotal.signum() > 0) paymentStatus = PaymentStatus.PARTIALLY_PAID;
+        else                                  paymentStatus = PaymentStatus.PAID;
 
         return PaymentSummary.builder()
                 .originalMainAmount(main)
@@ -183,10 +181,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .remainingTotal(remainingTotal)
                 .paymentStatus(paymentStatus)
                 .build();
-    }
-
-    private static double r2(double value) {
-        return Math.round(value * 100.0) / 100.0;
     }
 
     @Override
@@ -206,7 +200,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public void publishPaymentReceivedInternal(Reservation reservation, Double amount) {
+    public void publishPaymentReceivedInternal(Reservation reservation, java.math.BigDecimal amount) {
         String amountFormatted = String.format("%.2f %s",
                 amount, reservation.getCurrency().name());
 

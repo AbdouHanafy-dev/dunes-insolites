@@ -17,7 +17,7 @@ public class TransactionRequest {
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")
-    private Double amount;
+    private java.math.BigDecimal amount;
 
     @NotNull(message = "Currency is required")
     private Currency currency;

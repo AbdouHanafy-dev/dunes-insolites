@@ -7,11 +7,27 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      # Flyway owns the schema (see spring.flyway below and
+      # docs/runbooks/database-migrations.md). `validate` lets Hibernate verify
+      # the entities match the migrated schema on boot and fail fast if they
+      # drift — it never mutates the database. Do NOT set this back to `update`.
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
+  flyway:
+    enabled: true
+    # The DB up to 2 Sep 2026 was built entirely by ddl-auto:update and has no
+    # flyway_schema_history. baseline-on-migrate stamps such a database at
+    # version 1 (V1__baseline_schema.sql) WITHOUT executing it, then applies
+    # V2+. A brand-new empty database runs V1 normally.
+    baseline-on-migrate: true
+    baseline-version: 1
+    baseline-description: "pre-Flyway schema (ddl-auto:update era)"
+    # Fail the boot rather than silently leave a partially-migrated schema.
+    validate-on-migrate: true
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:79.143.185.33}
@@ -20,6 +36,10 @@ spring:
     password: ${SPRING_RABBITMQ_PASSWORD}
     listener:
       simple:
+        # Default factory (NotificationConsumer): manual ack, handled in-code.
+        # The transactional-email path uses its own factory with real retry +
+        # dead-lettering - see RabbitMQConfig.emailListenerContainerFactory and
+        # `app.email.retry.*` below.
         acknowledge-mode: manual
         retry:
           enabled: true
@@ -83,17 +103,87 @@ server:
   port: 8080
 
 management:
+  # PRODUCTION monitoring: set the env var MANAGEMENT_SERVER_PORT to a private
+  # port (e.g. 9099) that the Prometheus scraper reaches on the internal network
+  # but that is NOT published to the internet / Cloudflare, plus (bare host)
+  # MANAGEMENT_SERVER_ADDRESS=127.0.0.1. Spring then serves the actuator surface
+  # ONLY on that port and the actuatorSecurityFilterChain in SecurityConfig lets
+  # the scrape through without a JWT — safe only because the port is
+  # unreachable from outside. Left unset here so the default is unchanged:
+  # actuator on the main port, /actuator/** ADMIN-only. application-local.yml
+  # sets it to 9099 for local dev. See docs/runbooks/production-monitoring.md.
   endpoints:
     web:
       exposure:
-        include: health
+        # health is public (SecurityConfig); metrics/prometheus/info are
+        # ADMIN-only on the main port, or unauthenticated on a private
+        # MANAGEMENT_SERVER_PORT. Nothing that dumps env / config / heap is exposed.
+        include: health,info,metrics,prometheus
   endpoint:
     health:
-      show-details: never
+      # Unauthenticated callers see only {"status":"UP"}; an authenticated
+      # ADMIN sees per-component detail. No secrets in either case.
+      show-details: when-authorized
+      show-components: when-authorized
+      probes:
+        enabled: true
+      group:
+        # readiness fails - and the instance is pulled from rotation - when a
+        # dependency it cannot serve without is down, not merely when the JVM
+        # is alive.
+        readiness:
+          include: readinessState, db, rabbit
+        liveness:
+          include: livenessState
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  info:
+    env:
+      enabled: false
+    java:
+      enabled: true
+    os:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  # Set LOG_FORMAT=ecs on production for structured JSON logs (one object per
+  # line, MDC fields included) that a log aggregator can index. Empty = the
+  # human-readable console format for local dev.
+  structured:
+    format:
+      console: ${LOG_FORMAT:}
+  pattern:
+    # Every log line carries the correlation id that follows a unit of work
+    # across HTTP -> RabbitMQ -> consumer -> DLQ -> replay. Empty ("-") for
+    # background work that started without one. (Ignored when LOG_FORMAT is set.)
+    level: "%5p [%X{correlationId:-}]"
 
 # ── App-level properties (used in EmailService) ─────────────────
 app:
   upload-dir: ${APP_UPLOAD_DIR:uploads}   # local disk, see MediaServiceImpl/WebConfig
+  email:
+    retry:
+      # Transactional-email listener (ReservationEmailConsumer). After
+      # max-attempts the message is dead-lettered to notification.dlq.
+      max-attempts: ${APP_EMAIL_RETRY_MAX_ATTEMPTS:4}
+      initial-interval-ms: ${APP_EMAIL_RETRY_INITIAL_MS:2000}
+      multiplier: ${APP_EMAIL_RETRY_MULTIPLIER:2.0}
+      max-interval-ms: ${APP_EMAIL_RETRY_MAX_MS:15000}
+  reservation:
+    # Phase 2 — how long a public guest hold reserves accommodation inventory
+    # before HoldExpiryJob releases it. Default 4320 = 72h.
+    # BUSINESS DECISION (F-3): confirm the real hold window for launch.
+    hold-duration-minutes: ${APP_RESERVATION_HOLD_MINUTES:4320}
+    # How often the expiry sweep runs. Not correctness-critical (availability
+    # already ignores expired holds) — just housekeeping.
+    hold-expiry-sweep-ms: ${APP_RESERVATION_HOLD_SWEEP_MS:300000}
   mail:
     from: noreply@duneinsolite.com        # display sender address in outgoing emails
   frontend:

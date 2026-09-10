@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.exception.InvalidTokenException;
 import com.camping.duneinsolite.model.AccountActionToken;
 import com.camping.duneinsolite.model.User;
@@ -81,7 +82,7 @@ public class AccountActionServiceImpl implements AccountActionService {
                 .toRepresentation();
         keycloakUser.setEmailVerified(true);
         keycloak.realm(realm).users().get(user.getUserId().toString()).update(keycloakUser);
-        log.info("Email verified for user {}", user.getEmail());
+        log.info("Email verified for user {}", maskEmail(user.getEmail()));
     }
 
     @Override
@@ -96,7 +97,7 @@ public class AccountActionServiceImpl implements AccountActionService {
         credential.setTemporary(false);
 
         keycloak.realm(realm).users().get(user.getUserId().toString()).resetPassword(credential);
-        log.info("Password reset for user {}", user.getEmail());
+        log.info("Password reset for user {}", maskEmail(user.getEmail()));
     }
 
     // ── helpers ──────────────────────────────────────────────────────

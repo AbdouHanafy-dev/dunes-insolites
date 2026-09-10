@@ -1,0 +1,580 @@
+Discovered 63 URLs from live sitemaps. Crawling...
+{
+  "crawledAt": "2026-08-30T16:28:53.714Z",
+  "origin": "https://www.dunes-insolites.com",
+  "totalUrls": 63,
+  "status200": 63,
+  "broken": 0,
+  "records": [
+    {
+      "url": "https://www.dunes-insolites.com/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dunes insolites Home page - Campement Dunes Insolites",
+      "metaDescription": "Découvrez Dunes Insolites, votre campement de rêve au cœur du désert tunisien. Profitez d&#039;excursions sahariennes sur mesure, de nuits sous les étoiles, et d’activités uniques comme balades à dos de dromadaire, quad, sandboarding, et dîner bédouin. Vivez une aventure authentique et inoubliable au Sahara avec hébergement tout confort, accueil chaleureux et paysages à couper le souffle en Tunisie.",
+      "canonical": "https://www.dunes-insolites.com/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/6-jours-excursion-desert-tunisien/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursion de 6 Jours au Désert Tunisien - Campement Dunes Insolites",
+      "metaDescription": "Vivez une aventure inoubliable dans le désert tunisien avec cette excursion de 6 jours. Traversez les majestueuses dunes de sable, découvrez des oasis secrètes, explorez le mausolée de Sidi Jemil et profitez de nuits magiques sous les étoiles. Réservez votre place maintenant !",
+      "canonical": "https://www.dunes-insolites.com/6-jours-excursion-desert-tunisien/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/?templately_library=wisetrips-blogs-page",
+      "status": 200,
+      "redirectTo": null,
+      "title": "WiseTrips Blogs Page - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/?templately_library=wisetrips-blogs-page",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/?templately_library=wisetrips-footer",
+      "status": 200,
+      "redirectTo": null,
+      "title": "WiseTrips Footer - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/?templately_library=wisetrips-footer",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/?templately_library=wisetrips-header",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dunes Insolites Header - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/?templately_library=wisetrips-header",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/?templately_library=wisetrips-single-post-page",
+      "status": 200,
+      "redirectTo": null,
+      "title": "WiseTrips Single Post Page - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/?templately_library=wisetrips-single-post-page",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/are-there-any-deserts-in-tunisia/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Are There Any Deserts in Tunisia? - Campement Dunes Insolites",
+      "metaDescription": "Discover if there are any deserts in Tunisia. Learn about the vast Sahara, its iconic dunes, oases, and thrilling desert adventures. Plan your journey to the Tunisian desert and explore its wonders.",
+      "canonical": "https://www.dunes-insolites.com/are-there-any-deserts-in-tunisia/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/beauty-of-tunisian-desert-affordable-adventures/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Discover the Beauty of the Tunisian Desert - Campement Dunes Insolites",
+      "metaDescription": "Explore the stunning landscapes of the Tunisian desert through affordable tours. Learn about Tunisia desert tour options, 4x4 excursions, and pricing, with insights on safe travels and adventure spots in the Sahara.",
+      "canonical": "https://www.dunes-insolites.com/beauty-of-tunisian-desert-affordable-adventures/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/bedouin-diner-sahara-tunisien/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dîner bédouin dans le camp du Sahara tunisien - Campement Dunes Insolites",
+      "metaDescription": "Découvrez l&#039;authenticité d&#039;un dîner bédouin au camp &quot;Dunes Insolites&quot; dans le désert tunisien. Savourez un repas traditionnel, assistez à des démonstrations culturelles et profitez d&#039;un coucher de soleil spectaculaire sur le Sahara. Réservez maintenant !",
+      "canonical": "https://www.dunes-insolites.com/bedouin-diner-sahara-tunisien/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/best-desert-camping-tunisia/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Discover the Best Desert Camping in Tunisia - Campement Dunes Insolites",
+      "metaDescription": "Explore Tunisia’s Sahara – the ultimate desert camping experience. Enjoy camel rides, quad biking, stargazing, and luxury tents with hot showers and traditional Bedouin dinners. Perfect for an unforgettable desert adventure!",
+      "canonical": "https://www.dunes-insolites.com/best-desert-camping-tunisia/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/bivouac-desert-tunisie/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Une Nuitée En Bivouac à Sabria Tunisie - Campement Dunes Insolites",
+      "metaDescription": "Découvrez une nuitée inoubliable en bivouac dans le désert tunisien. Profitez d&#039;une aventure authentique, de balades à dos de dromadaire, et de soirées au coin du feu sous un ciel étoilé. Réservez maintenant pour une expérience unique.",
+      "canonical": "https://www.dunes-insolites.com/bivouac-desert-tunisie/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/bivouac-desert-tunisien-sahara/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Bivouac dans le Désert Tunisien au Cœur du Sahara - Campement Dunes Insolites",
+      "metaDescription": "Vivez une aventure unique avec un bivouac dans le Sahara tunisien. Partez à dos de dromadaire depuis le campement Dunes Insolites, admirez le coucher de soleil, profitez d&#039;un dîner bédouin sous les étoiles, et passez une nuit inoubliable au cœur des dunes.",
+      "canonical": "https://www.dunes-insolites.com/bivouac-desert-tunisien-sahara/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/blog-desert/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Blog Désert Tunisie - Campement Dunes Insolites",
+      "metaDescription": "Découvrez le guide complet des excursions dans le désert tunisien : balades en dromadaire, bivouac sous les étoiles, aventures en quad, et exploration des oasis. Préparez votre aventure unique au cœur du Sahara avec nos conseils et astuces pour vivre une expérience inoubliable.",
+      "canonical": "https://www.dunes-insolites.com/blog-desert/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/blog-sahara-tunisie/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Tunisie : Une Aventure Inoubliable dans le Désert - Campement Dunes Insolites",
+      "metaDescription": "Dunes Insolites à Sabria, Tunisie : Vivez une aventure unique dans le Sahara tunisien avec des couchers de soleil spectaculaires, nuits en bivouac sous les étoiles, excursions en dromadaire, sandboarding, quad et plus encore. Réservez maintenant sur dunes-insolites.com",
+      "canonical": "https://www.dunes-insolites.com/blog-sahara-tunisie/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/category/djerba/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Archives des Djerba - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/category/djerba/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/category/douz/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Archives des Douz - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/category/douz/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/category/dunes-insolites/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Archives des Sahara Tourisme Voyage - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/category/dunes-insolites/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/category/guides/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Archives des Guides - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/category/guides/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/category/home/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Archives des Circuits - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/category/home/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/category/sabria/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Archives des Sabria - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/category/sabria/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/circuit-4-jours-desert-tunisien-djerba-tataouine-tozeur/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Circuit 4 Jours au Désert Tunisien : Oasis, Ksour &amp; Dunes Dorées | Djerba – Tataouine – Tozeur - Campement Dunes Insolites",
+      "metaDescription": "🚙 Partez pour un circuit de 4 jours au désert tunisien : découvrez les ksour de Tataouine, baignez-vous à Ksar Ghilane, explorez les oasis de Chebika et Tameghza, et traversez le Chott el Jerid. 🌵 Une aventure inoubliable entre dunes dorées et villages berbères ! Réservez dès maintenant !",
+      "canonical": "https://www.dunes-insolites.com/circuit-4-jours-desert-tunisien-djerba-tataouine-tozeur/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/circuit-tataouine-et-chenini-au-depart-de-djerba/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Circuit Tataouine et Chenini au Départ de Djerba - Campement Dunes Insolites",
+      "metaDescription": "Découvrez une nuitée inoubliable en bivouac dans le désert tunisien. Profitez d&#039;une aventure authentique, de balades à dos de dromadaire, et de soirées au coin du feu sous un ciel étoilé. Réservez maintenant pour une expérience unique.",
+      "canonical": "https://www.dunes-insolites.com/circuit-tataouine-et-chenini-au-depart-de-djerba/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/day-trip-desert-douz-and-matmata/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Day Trip Desert Douz and Matmata - Campement Dunes Insolites",
+      "metaDescription": "Découvrez une nuitée inoubliable en bivouac dans le désert tunisien. Profitez d&#039;une aventure authentique, de balades à dos de dromadaire, et de soirées au coin du feu sous un ciel étoilé. Réservez maintenant pour une expérience unique.",
+      "canonical": "https://www.dunes-insolites.com/day-trip-desert-douz-and-matmata/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/desert-3-jour/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Aventure desert de 3 Jours au Départ de Djerba - Campement Dunes Insolites",
+      "metaDescription": "Découvrez une aventure de 3 jours inoubliable au départ de Djerba, à travers les villages berbères, les ksours et le désert saharien. Explorez Tataouine, Chenini, Ksar Ghilane et Matmata, profitez de couchers de soleil magiques sur les dunes et vivez des moments authentiques dans des maisons troglodytes et des camps sous les étoiles.",
+      "canonical": "https://www.dunes-insolites.com/desert-3-jour/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/desert-safari-tunisia-djerba-itinerary/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "The Ultimate Desert Safari in Tunisia: A Full Itinerary - Campement Dunes Insolites",
+      "metaDescription": "Embark on an unforgettable journey across the Tunisian desert, a destination known for its golden dunes, ancient Berber culture, and unique experiences like camel safaris, stargazing, and authentic Bedouin cuisine. Starting from the beautiful island of Djerba",
+      "canonical": "https://www.dunes-insolites.com/desert-safari-tunisia-djerba-itinerary/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/detail-service/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Détail Service - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/detail-service/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/dunes-insolites-camp-gallery/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Désert Tunisien Galerie - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/dunes-insolites-camp-gallery/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/dunes-insolites-sabria-evasion-sahara/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dunes Insolites campement au Cœur du Sahara - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/dunes-insolites-sabria-evasion-sahara/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/excursion-2-jours-desert-tunisien/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursion de 2 Jours dans le Désert Tunisien - Campement Dunes Insolites",
+      "metaDescription": "Envie d’une aventure inoubliable au cœur du Sahara tunisien ? Découvrez notre circuit exclusif de 2 jours au départ de Tunis, Sousse, Hammamet ou Djerba, combinant nature, culture et immersion totale dans le désert. Un voyage saharien authentique, entre oasis de montagne, campement traditionnel et ciel étoilé.",
+      "canonical": "https://www.dunes-insolites.com/excursion-2-jours-desert-tunisien/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/excursion-desert-tunisie-2-jours/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursion Vers Le Désert Tunisien 2 Jours - Campement Dunes Insolites",
+      "metaDescription": "Partez pour une excursion inoubliable de 2 jours dans le désert tunisien au départ de Djerba ! Découvrez Toujane, Matmata et passez une nuit magique dans un campement saharien sous les étoiles. Balade en dromadaire, dunes dorées et immersion dans la culture berbère.",
+      "canonical": "https://www.dunes-insolites.com/excursion-desert-tunisie-2-jours/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/excursion-dune-journee-a-ksar-ghilane/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursion d&#039;une journée à Ksar Ghilane - Campement Dunes Insolites",
+      "metaDescription": "Découvrez une nuitée inoubliable en bivouac dans le désert tunisien. Profitez d&#039;une aventure authentique, de balades à dos de dromadaire, et de soirées au coin du feu sous un ciel étoilé. Réservez maintenant pour une expérience unique.",
+      "canonical": "https://www.dunes-insolites.com/excursion-dune-journee-a-ksar-ghilane/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/excursion-tataouine-chenini-desert-tunisie-star-wars/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursion d&#039;une Journée Vers Tataouine et Chenini Star Wars - Campement Dunes Insolites",
+      "metaDescription": "Partez à la découverte du désert tunisien lors d&#039;une excursion d&#039;une journée depuis Djerba vers Tataouine et Chenini. Explorez les lieux de tournage de Star Wars, visitez des ksars impressionnants, et plongez dans la culture berbère. Réservez dès maintenant votre aventure unique !",
+      "canonical": "https://www.dunes-insolites.com/excursion-tataouine-chenini-desert-tunisie-star-wars/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/excursions-tunisian-desert-prices-itineraries/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursions in the Tunisian Desert: Prices and Itineraries - Campement Dunes Insolites",
+      "metaDescription": "Discover the best excursions in the Tunisian desert! From camel treks to 4x4 safaris, explore prices and detailed itineraries for unforgettable adventures in the Sahara. Perfect for travelers seeking unique experiences in Tunisia.",
+      "canonical": "https://www.dunes-insolites.com/excursions-tunisian-desert-prices-itineraries/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/guide-excursions-desert-tunisien/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Guide Complet des Excursions dans le Désert Tunisien - Campement Dunes Insolites",
+      "metaDescription": "Découvrez le guide complet des excursions dans le désert tunisien : balades en dromadaire, bivouac sous les étoiles, aventures en quad, et exploration des oasis. Préparez votre aventure unique au cœur du Sahara avec nos conseils et astuces pour vivre une expérience inoubliable.",
+      "canonical": "https://www.dunes-insolites.com/guide-excursions-desert-tunisien/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/guide-exploring-tunisian-desert/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Your Ultimate Guide to Exploring the Tunisian Desert - Campement Dunes Insolites",
+      "metaDescription": "Planning a journey to the Tunisian desert? Discover essential tips for your Sahara adventure, from packing lists and safety advice to choosing the best time to visit. Make your desert experience safe, memorable, and hassle-free!",
+      "canonical": "https://www.dunes-insolites.com/guide-exploring-tunisian-desert/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/immersion-saharienne-2-nuits-daventure-en-camp-et-bivouac/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Immersion Saharienne : 2 Nuits d&#039;Aventure en Camp et Bivouac - Campement Dunes Insolites",
+      "metaDescription": "Découvrez une nuitée inoubliable en bivouac dans le désert tunisien. Profitez d&#039;une aventure authentique, de balades à dos de dromadaire, et de soirées au coin du feu sous un ciel étoilé. Réservez maintenant pour une expérience unique.",
+      "canonical": "https://www.dunes-insolites.com/immersion-saharienne-2-nuits-daventure-en-camp-et-bivouac/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/ksar-ghilane-desert-tunisia/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Adventure to Ksar Ghilane - Campement Dunes Insolites",
+      "metaDescription": "Discover the magic of Ksar Ghilane in the Tunisian Sahara on a one-day adventure. Experience the oasis, explore ancient ruins, and enjoy thrilling dune activities. Book your unforgettable desert experience today!",
+      "canonical": "https://www.dunes-insolites.com/ksar-ghilane-desert-tunisia/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/le-pain-de-sabel/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Le Pain De Sable - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/le-pain-de-sabel/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/mes-reservations/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Mes Réservations - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/mes-reservations/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/meteo-dans-le-desert-tunisien-quand-visiter-dunes-insolites-a-sabria-kebili/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Météo dans le désert tunisien - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/meteo-dans-le-desert-tunisien-quand-visiter-dunes-insolites-a-sabria-kebili/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/mon-compte/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Mon Compte - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/mon-compte/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/mot-de-passe-oublie/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Mot de passe oublié - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/mot-de-passe-oublie/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/nuit-desert-tunisien-dunes-insolites/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Envie d’une Nuit Magique dans le Désert Tunisien ? - Campement Dunes Insolites",
+      "metaDescription": "Vivez une expérience unique au cœur du désert tunisien avec le campement Dunes Insolites. Hébergements confortables (tentes doubles, triples, familiales), restaurant de qualité, activités sahariennes comme le dromadaire, le quad et le sandboarding, et une nuit étoilée inoubliable. Réservez dès maintenant !",
+      "canonical": "https://www.dunes-insolites.com/nuit-desert-tunisien-dunes-insolites/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/nuitee-campement-desert/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Nuitée au Desert au Campement Dunes Insolites - Campement Dunes Insolites",
+      "metaDescription": "Découvrez l&#039;expérience inoubliable d&#039;une nuitée au campement Dunes Insolites dans le désert tunisien : activités en dromadaire, quad, dîner traditionnel sous les étoiles, et nuit confortable sous un ciel étoilé. Réservez dès maintenant !",
+      "canonical": "https://www.dunes-insolites.com/nuitee-campement-desert/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/oases-tunisian-desert/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Top 10 Oases to Discover in the Tunisian Desert - Campement Dunes Insolites",
+      "metaDescription": "Discover the top 10 oases in the Tunisian desert, from the stunning Ksar Ghilane to the mystical Nefta. Explore breathtaking landscapes, rich culture, and unforgettable desert adventures.",
+      "canonical": "https://www.dunes-insolites.com/oases-tunisian-desert/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/ou-commence-sahara-en-tunisie/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Où Commence le Sahara en Tunisie ? - Campement Dunes Insolites",
+      "metaDescription": "Découvrez où commence le Sahara en Tunisie et explorez les premières portes du désert. De Douz à Ksar Ghilane, partez à la découverte des merveilles du Sahara tunisien et réservez vos aventures dès maintenant !",
+      "canonical": "https://www.dunes-insolites.com/ou-commence-sahara-en-tunisie/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/ou-se-situe-le-desert-en-tunisie/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Où se situe le désert en Tunisie ? - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/ou-se-situe-le-desert-en-tunisie/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/panier/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Mon Panier - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/panier/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Qui Sommes Nous - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/quad-desert/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dunes Insolites campement excursion Quad - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/quad-desert/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/quand-visiter-le-desert-tunisien/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Quand Visiter le Désert Tunisien ? - Campement Dunes Insolites",
+      "metaDescription": "Découvrez quand visiter le désert tunisien pour profiter pleinement des paysages sahariens. Explorez les meilleures périodes pour un séjour dans le désert, avec des températures agréables et des aventures inoubliables. Réservez votre excursion dès maintenant !",
+      "canonical": "https://www.dunes-insolites.com/quand-visiter-le-desert-tunisien/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/review/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dunes Insolites Reviews | Tunisia Sahara Desert Tours",
+      "metaDescription": "Share your review of Dunes Insolites Camp and Route Insolites after your Sahara desert tour or overnight camp experience in Tunisia.",
+      "canonical": "https://www.dunes-insolites.com/review/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/sahara-desert-tours-tunisia-2025/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "The Best Sahara Desert Tours in Tunisia for 2025 - Campement Dunes Insolites",
+      "metaDescription": "Discover the best Sahara Desert tours in Tunisia for 2025 with Dunes Insolites. From camel treks and quad adventures to Star Wars sites and wild bivouacs, we offer unforgettable experiences. Book your desert safari today!",
+      "canonical": "https://www.dunes-insolites.com/sahara-desert-tours-tunisia-2025/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/sandboarding-desert/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Dunes Insolites campement sandboarding - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/sandboarding-desert/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/services/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Nos Services — Séjours, Tours &amp; Activités | Dunes Insolites",
+      "metaDescription": "Services campement désert Tunisie à Sabria : séjours en tente, bivouac, tours Sahara, excursions et activités. Réservez directement en ligne.",
+      "canonical": "https://www.dunes-insolites.com/services/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/services/activites/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Activités &amp; Événements Désert Sahara | Dunes Insolites",
+      "metaDescription": "Activités désert Sahara Tunisie : quad, 4×4, dromadaire, sandboarding, soirée musicale, repas bédouin. À la carte — Dunes Insolites Sabria.",
+      "canonical": "https://www.dunes-insolites.com/services/activites/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/services/sejours/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Séjours Campement Désert Tunisie | Dunes Insolites Sabria",
+      "metaDescription": "Séjour campement désert Tunisie à Sabria : tente, bivouac, demi-pension ou complète. Réservez votre nuit sous les étoiles.",
+      "canonical": "https://www.dunes-insolites.com/services/sejours/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/services/tours/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Tours &amp; Excursions Désert Sahara | Dunes Insolites Tunisie",
+      "metaDescription": "Tours désert Tunisie : circuits 2 et 3 jours depuis le Nord, journée Ksar Ghilane et Tataouine. Guide, transport et repas inclus.",
+      "canonical": "https://www.dunes-insolites.com/services/tours/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/soirees-sous-les-etoiles/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Découvrez la Magie des Soirées Sous les Étoiles - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/soirees-sous-les-etoiles/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/spend-a-night-in-the-tunisian-desert-at-dunes-insolites-camp/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "A Night Under the Stars - Campement Dunes Insolites",
+      "metaDescription": "Experience the magic of the Tunisian desert with an overnight adventure at Dunes Insolites Camp. Journey from Djerba or Sousse, explore Matmata, and enjoy camel rides, traditional cuisine, and a night under the stars in the Sahara. Book your unforgettable desert experience now!",
+      "canonical": "https://www.dunes-insolites.com/spend-a-night-in-the-tunisian-desert-at-dunes-insolites-camp/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/tarifs-excursion-desert-tunisien/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Excursion dans le désert tunisien : tarifs, formules &amp; conseils - Campement Dunes Insolites",
+      "metaDescription": "Tarifs complets des excursions dans le désert tunisien en 2025 : circuits 1 à 6 jours avec nuit au camp saharien, bivouac, oasis, villages berbères. Départs de Djerba, Tunis, Hammamet. Infos, prix, options &amp; itinéraires pour voyager dans le Sahara en toute sécurité.",
+      "canonical": "https://www.dunes-insolites.com/tarifs-excursion-desert-tunisien/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/tour-desert-tunisia/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Tour Desert Tunisia - Campement Dunes Insolites",
+      "metaDescription": "Explore the best desert destinations and tours in Tunisia. From thrilling camel rides in Douz to serene oases like Ksar Ghilane, discover unforgettable Sahara experiences and plan your ultimate desert adventure",
+      "canonical": "https://www.dunes-insolites.com/tour-desert-tunisia/",
+      "error": null
+    },
+    {
+      "url": "https://www.dunes-insolites.com/tunisie-sahara-en-4x4/",
+      "status": 200,
+      "redirectTo": null,
+      "title": "Tunisie Sahara en 4x4 - Campement Dunes Insolites",
+      "metaDescription": null,
+      "canonical": "https://www.dunes-insolites.com/tunisie-sahara-en-4x4/",
+      "error": null
+    }
+  ]
+}
+
+Done. 63/63 returned 200, 0 broken.
+Suggested filename: docs/seo-baseline/2026-08-30T16-28-53-713Z.json

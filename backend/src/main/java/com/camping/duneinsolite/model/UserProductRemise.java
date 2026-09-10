@@ -34,12 +34,12 @@ public class UserProductRemise {
 
     // For TOUR and TOURTYPE — null for EXTRA
     @Column(name = "adult_remise")
-    private Double adultRemise;
+    private java.math.BigDecimal adultRemise;
 
     @Column(name = "child_remise")
-    private Double childRemise;
+    private java.math.BigDecimal childRemise;
 
     // For EXTRA only — null for TOUR and TOURTYPE
     @Column(name = "unit_remise")
-    private Double unitRemise;
+    private java.math.BigDecimal unitRemise;
 }

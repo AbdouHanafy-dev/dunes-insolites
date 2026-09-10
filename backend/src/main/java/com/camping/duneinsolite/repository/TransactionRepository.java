@@ -15,10 +15,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByInvoiceInvoiceId(UUID invoiceId);
     List<Transaction> findByStatus(TransactionStatus status);
 
+    // Self-service data export (Phase 5): every transaction on any of the
+    // user's reservations. Ownership is the reservation's user.
+    List<Transaction> findByReservation_User_UserIdOrderByTransactionDateDesc(UUID userId);
+
     // ── NEW — Sum of all COMPLETED transaction amounts for a reservation ──
     // Used in PaymentService to compute totalPaid without loading all objects
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t " +
             "WHERE t.reservation.reservationId = :reservationId " +
             "AND t.status = 'COMPLETED'")
-    Double sumCompletedAmountByReservationId(@Param("reservationId") UUID reservationId);
+    java.math.BigDecimal sumCompletedAmountByReservationId(@Param("reservationId") UUID reservationId);
 }

@@ -11,7 +11,7 @@ public class UserProductRemiseResponse {
     private UUID productId;
     private ProductType productType;
     private String productName;
-    private Double adultRemise;
-    private Double childRemise;
-    private Double unitRemise;
+    private java.math.BigDecimal adultRemise;
+    private java.math.BigDecimal childRemise;
+    private java.math.BigDecimal unitRemise;
 }

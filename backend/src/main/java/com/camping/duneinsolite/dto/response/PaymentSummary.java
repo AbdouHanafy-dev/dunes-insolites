@@ -9,19 +9,19 @@ import lombok.Data;
 public class PaymentSummary {
 
     // ── Original amounts (from reservation at booking time) ───────
-    private Double originalMainAmount;    // totalAmount (tours or tourTypes)
-    private Double originalExtrasAmount;  // totalExtrasAmount
-    private Double originalTotalAmount;   // sum of both — grand total to pay
+    private java.math.BigDecimal originalMainAmount;
+    private java.math.BigDecimal originalExtrasAmount;  // totalExtrasAmount
+    private java.math.BigDecimal originalTotalAmount;
 
     // ── What has been paid so far (sum of all COMPLETED transactions) ──
-    private Double totalPaid;
+    private java.math.BigDecimal totalPaid;
 
     // ── What remains after allocation ─────────────────────────────
     // Allocation rule:
     //   payment covers mainAmount first → overflow goes to extrasAmount
-    private Double remainingMainAmount;
-    private Double remainingExtrasAmount;
-    private Double remainingTotal;        // remainingMain + remainingExtras
+    private java.math.BigDecimal remainingMainAmount;
+    private java.math.BigDecimal remainingExtrasAmount;
+    private java.math.BigDecimal remainingTotal;
 
     // ── Current payment status ────────────────────────────────────
     // UNPAID         → totalPaid == 0

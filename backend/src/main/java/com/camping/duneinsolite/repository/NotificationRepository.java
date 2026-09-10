@@ -17,6 +17,11 @@
         // count unread notifications — used for bell badge number
         long countByUser_UserIdAndIsReadFalse(UUID userId);
 
+        // Idempotency (V6): has this exact message already been delivered to
+        // this user? Fast path before insert; the partial unique index is the
+        // real guarantee under a concurrent duplicate.
+        boolean existsByUser_UserIdAndDedupeKey(UUID userId, String dedupeKey);
+
         // Ephemeral, no audit/financial significance - safe to cascade-clean
         // when a user is deleted (see KeycloakUserSyncService.deleteUser's
         // own comment).

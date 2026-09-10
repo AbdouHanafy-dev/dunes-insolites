@@ -8,7 +8,25 @@ import { BACKEND_BASE } from "@/lib/authProxy";
  * instead of hitting the backend directly. This one handler covers every
  * entity rather than a bespoke route per resource.
  */
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/** Reject a cross-site mutating request even if a cookie somehow rode along. */
+function crossSiteMutation(request: Request): boolean {
+  if (SAFE_METHODS.has(request.method)) return false;
+  const origin = request.headers.get("origin");
+  if (!origin) return false; // same-origin fetch / server call — no Origin header
+  try {
+    return new URL(origin).host !== new URL(request.url).host;
+  } catch {
+    return true;
+  }
+}
+
 async function handler(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
+  if (crossSiteMutation(request)) {
+    return Response.json({ error: "Cross-site request rejected" }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session) return Response.json({ error: "Not authenticated" }, { status: 401 });
 

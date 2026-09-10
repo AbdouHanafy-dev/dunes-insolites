@@ -16,6 +16,7 @@ import com.camping.duneinsolite.model.enums.ReservationType;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.ReservationExtraRepository;
 import com.camping.duneinsolite.repository.ReservationRepository;
+import com.camping.duneinsolite.security.CallerContext;
 import com.camping.duneinsolite.service.ReservationExtraService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,19 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
     private final ExtraRepository extraRepository;          // ← catalog
     private final ReservationExtraMapper reservationExtraMapper;
     private final CurrencyConfig currencyConfig;
+    private final CallerContext caller;
+
+    // IDOR fix (final-hardening pass): these endpoints are only
+    // hasAnyRole(...CLIENT, PARTENAIRE) / isAuthenticated() at the controller,
+    // and a ReservationExtra belongs to exactly one reservation's owner. Without
+    // this check a CLIENT could add a paid extra to — or read the extras of —
+    // any other customer's reservation by supplying its id. Same "staff or
+    // owner" rule as ReservationServiceImpl (Phase 4).
+    private void requireAccess(Reservation reservation) {
+        caller.requireStaffOrOwner(
+                reservation != null && reservation.getUser() != null
+                        ? reservation.getUser().getUserId() : null);
+    }
 
     /**
      * Scenario 2 — Client adds an extra to an already existing reservation.
@@ -49,6 +63,8 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
 
         Reservation reservation = reservationRepository.findById(request.getReservationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + request.getReservationId()));
+
+        requireAccess(reservation);
 
         Extra catalog = extraRepository.findById(request.getExtraId())
                 .orElseThrow(() -> new ResourceNotFoundException("Extra not found in catalog: " + request.getExtraId()));
@@ -65,19 +81,20 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
         // other two extra-adding flows in ReservationServiceImpl. Uses the reservation's own
         // locked-in rate (if it has one) so this stays consistent even if the live config
         // rate changes later.
-        double rate = currencyConfig.effectiveRate(reservation);
+        java.math.BigDecimal rate = currencyConfig.effectiveRate(reservation);
 
-        double unitPrice = r2(catalog.getUnitPrice() / rate);
+        java.math.BigDecimal unitPrice = com.camping.duneinsolite.money.Money.divide(catalog.getUnitPrice(), rate);
 
         User user = reservation.getUser();
         UserProductRemise remise = user.getRemises().stream()
                 .filter(r -> r.getProductId().equals(catalog.getExtraId()))
                 .findFirst().orElse(null);
         if (remise != null && remise.getUnitRemise() != null) {
-            unitPrice = Math.max(0, r2(unitPrice - remise.getUnitRemise() / rate));
+            java.math.BigDecimal discounted = com.camping.duneinsolite.money.Money.subtract(unitPrice, com.camping.duneinsolite.money.Money.divide(remise.getUnitRemise(), rate));
+            unitPrice = discounted.signum() < 0 ? com.camping.duneinsolite.money.Money.ZERO : discounted;
         }
 
-        double totalExtraPrice = r2(unitPrice * request.getQuantity());
+        java.math.BigDecimal totalExtraPrice = com.camping.duneinsolite.money.Money.multiply(unitPrice, request.getQuantity());
 
         ReservationExtra extra = ReservationExtra.builder()
                 .reservation(reservation)
@@ -96,9 +113,7 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
         ReservationExtra saved = reservationExtraRepository.save(extra);
 
         // Update totalExtrasAmount on the reservation
-        double currentExtrasTotal = reservation.getTotalExtrasAmount() != null
-                ? reservation.getTotalExtrasAmount() : 0.0;
-        reservation.setTotalExtrasAmount(currentExtrasTotal + totalExtraPrice);
+        reservation.setTotalExtrasAmount(com.camping.duneinsolite.money.Money.add(reservation.getTotalExtrasAmount(), totalExtraPrice));
         reservationRepository.save(reservation);
 
         return reservationExtraMapper.toResponse(saved);
@@ -107,7 +122,9 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
     @Override
     @Transactional(readOnly = true)
     public ReservationExtraResponse getExtraById(UUID extraId) {
-        return reservationExtraMapper.toResponse(findById(extraId));
+        ReservationExtra extra = findById(extraId);
+        requireAccess(extra.getReservation());
+        return reservationExtraMapper.toResponse(extra);
     }
 
     // Was an unbounded findAll() (ARCHITECTURE.md §13 item 15) - every extra
@@ -124,14 +141,13 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
     @Override
     @Transactional(readOnly = true)
     public ReservationExtrasListResponse getExtrasByReservation(UUID reservationId) {
+        reservationRepository.findById(reservationId).ifPresent(this::requireAccess);
         List<ReservationExtraResponse> extras = reservationExtraRepository
                 .findByReservationReservationId(reservationId).stream()
                 .map(reservationExtraMapper::toResponse)
                 .toList();
 
-        double totalExtrasAmount = extras.stream()
-                .mapToDouble(e -> e.getTotalPrice() != null ? e.getTotalPrice() : 0.0)
-                .sum();
+        java.math.BigDecimal totalExtrasAmount = com.camping.duneinsolite.money.Money.sum(extras.stream().map(e -> e.getTotalPrice()).toList());
 
         return new ReservationExtrasListResponse(extras, totalExtrasAmount);
     }
@@ -163,17 +179,10 @@ public class ReservationExtraServiceImpl implements ReservationExtraService {
 
         // Update reservation's totalExtrasAmount before deleting
         Reservation reservation = extra.getReservation();
-        double currentTotal = reservation.getTotalExtrasAmount() != null
-                ? reservation.getTotalExtrasAmount() : 0.0;
-        reservation.setTotalExtrasAmount(
-                Math.max(0.0, currentTotal - extra.getTotalPrice())
-        );
+        java.math.BigDecimal afterRemoval = com.camping.duneinsolite.money.Money.subtract(reservation.getTotalExtrasAmount(), extra.getTotalPrice());
+        reservation.setTotalExtrasAmount(afterRemoval.signum() < 0 ? com.camping.duneinsolite.money.Money.ZERO : afterRemoval);
         reservationRepository.save(reservation);
         reservationExtraRepository.delete(extra);
-    }
-
-    private static double r2(double value) {
-        return Math.round(value * 100.0) / 100.0;
     }
 
     private ReservationExtra findById(UUID extraId) {

@@ -52,6 +52,7 @@
     "scroll": "Scrollen",
     "guestsGuided": "Geführte Gäste",
     "averageRating": "Durchschnittsbewertung",
+    "newRating": "Neu",
     "yearsSuffix": "Jahre",
     "ofExperience": "Erfahrung"
   },
@@ -71,6 +72,7 @@
     "body": "Kleine Gruppen, lokale Guides und keine Eile. Jede Sabria-Tour ist so getaktet, dass der Sand noch die Wärme des Tages hält und der Himmel in Flammen steht.",
     "guestsGuided": "Geführte Gäste",
     "averageRating": "Durchschnittsbewertung",
+    "newRating": "Neu",
     "onTheDunes": "Auf den Dünen",
     "yearsUnit": "Jahre",
     "bgAlt": "Wüstenszene in Sabria"
@@ -112,16 +114,16 @@
     "cta": "Zur vollständigen Galerie →"
   },
   "ctaDefault": {
-    "title": "Bereit für die Dünen?",
-    "body": "Golden-Hour-Termine sind schnell ausgebucht. Reservieren Sie Ihr Sahara-Abenteuer, wir kümmern uns um den Rest.",
-    "label": "Tour buchen →"
+    "title": "Reservieren Sie Ihre Nacht in Sabria.",
+    "body": "Die Golden-Hour-Termine sind schnell ausgebucht. Direkt buchen, Bestätigung innerhalb eines Tages — keine Plattform, keine Provision.",
+    "label": "Nacht reservieren →"
   },
   "ctaGallery": {
-    "title": "Eigene Fotos gewünscht?",
-    "body": "Jede Tour beinhaltet Fotos und Videos von Ihrem Guide, die am nächsten Morgen zugesandt werden."
+    "title": "Ihre eigenen Fotos, am nächsten Morgen verschickt.",
+    "body": "Jede Tour kommt mit echten Aufnahmen Ihres Guides — niemals Stockfotos."
   },
   "ctaCamp": {
-    "title": "Noch unsicher?",
+    "title": "Sagen Sie uns, wer Sie sind — wir finden die passende Nacht.",
     "body": "Sagen Sie uns, wie viele Sie sind und was Sie erleben möchten — wir schlagen die passende Nacht vor.",
     "label": "Fragen Sie uns →"
   },
@@ -375,18 +377,64 @@
   },
   "account": {
     "navLabel": "Kontonavigation",
-    "tabAccount": "Mein Konto",
-    "tabBookings": "Meine Buchungen",
+    "tabAccount": "Profil",
+    "tabBookings": "Meine Reisen",
     "tabPayments": "Zahlungen",
     "tabReviews": "Bewertungen",
-    "tabSupport": "Support",
+    "tabSupport": "Hilfe",
     "logout": "Abmelden",
+    "welcomeBack": "Willkommen zurück, {name}",
+    "nextAdventureTitle": "Ihr nächstes Sahara-Abenteuer wartet.",
+    "noAdventureTitle": "Ihr nächstes Abenteuer beginnt hier.",
+    "yourNextExperience": "Ihr nächstes Erlebnis",
+    "guestsLabel": "Gäste",
+    "bookingRefLabel": "Buchung",
+    "viewYourTrip": "Ihre Reise ansehen",
+    "exploreExperiencesCta": "Erlebnisse entdecken",
+    "paymentStatus": {
+      "PAID": "Bezahlt",
+      "PARTIALLY_PAID": "Teilweise bezahlt",
+      "UNPAID": "Zahlung ausstehend",
+      "OVERDUE": "Überfällig",
+      "REFUNDED": "Erstattet"
+    },
+    "sidebarUpcoming": "{count, plural, one {# bevorstehendes Erlebnis} other {# bevorstehende Erlebnisse}}",
+    "sidebarActionRequired": "{count, plural, one {# Aktion erforderlich} other {# Aktionen erforderlich}}",
+    "glanceTitle": "Ihre Reise auf einen Blick",
+    "glanceDatesLabel": "Die Termine Ihres Erlebnisses",
+    "glanceGuestsLabel": "In Ihrer Buchung enthalten",
+    "glancePaymentPendingNote": "Schließen Sie Ihre Zahlung vor der Reise ab",
+    "glancePaymentDoneNote": "Alles erledigt",
+    "glanceLocationLabel": "Südtunesien",
+    "journeyTitle": "Ihre Reise-Etappen",
+    "journey": {
+      "received": "Buchung erhalten",
+      "confirmed": "Bestätigt",
+      "prepare": "Bereiten Sie sich vor",
+      "enjoy": "Genießen Sie Ihr Erlebnis",
+      "share": "Teilen Sie Ihr Erlebnis"
+    },
+    "beforeTripTitle": "Vor Ihrer Reise",
+    "beforeTripLead": "Ihr Sahara-Abenteuer steht kurz bevor.",
+    "beforeTripPacking": "Was Sie mitbringen sollten",
+    "beforeTripPackingDesc": "Erfahren Sie, was Sie für Ihr Erlebnis einpacken sollten.",
+    "beforeTripHelp": "Brauchen Sie Hilfe?",
+    "beforeTripHelpDesc": "Kontaktieren Sie unser Team zu Ihrer Reservierung.",
+    "beforeTripDetails": "Buchungsdetails ansehen",
+    "beforeTripDetailsDesc": "Sehen Sie alle Informationen zu Ihrer Reservierung.",
+    "recommendTitle": "Vervollständigen Sie Ihr Sahara-Erlebnis",
+    "recommendLead": "Das könnte Ihnen auch gefallen",
+    "discoverCta": "Entdecken",
+    "helpTitle": "Brauchen Sie Hilfe bei Ihrer Reise?",
+    "helpLead": "Unser Team hilft Ihnen gerne bei der Vorbereitung Ihres Sahara-Erlebnisses.",
+    "contactSupportCta": "Support kontaktieren",
+    "whatsappCta": "WhatsApp",
     "overviewTitle": "Mein Konto",
     "overviewLead": "Ihre persönlichen Daten.",
     "nameLabel": "Name",
     "emailLabel": "E-Mail",
     "roleLabel": "Kontotyp",
-    "bookingsTitle": "Meine Buchungen",
+    "bookingsTitle": "Meine Reisen",
     "bookingsLead": "Ihr Buchungsverlauf bei Dunes Insolites.",
     "bookingsEmpty": "Sie haben noch keine Buchung.",
     "statusLabel": "Status",
@@ -415,6 +463,19 @@
     "reviewSending": "Wird gesendet…",
     "reviewSent": "Danke, Ihre Bewertung wurde veröffentlicht.",
     "reviewGenericError": "Wir konnten diese Bewertung nicht speichern. Versuchen Sie es erneut.",
+    "status": {
+      "pending": "Ausstehend",
+      "confirmed": "Bestätigt",
+      "checked_in": "Eingecheckt",
+      "cancelled": "Storniert",
+      "rejected": "Abgelehnt",
+      "completed": "Abgeschlossen"
+    },
+    "reservationType": {
+      "HEBERGEMENT": "Wüstenübernachtung",
+      "TOURS": "Rundreise",
+      "EXTRAS": "Aktivität"
+    },
     "role": {
       "CLIENT": "Kunde",
       "PARTENAIRE": "Partner",

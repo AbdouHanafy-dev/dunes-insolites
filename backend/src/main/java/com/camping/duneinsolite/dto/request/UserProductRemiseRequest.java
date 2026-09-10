@@ -18,9 +18,9 @@ public class UserProductRemiseRequest {
     private String productName;
 
     // For TOURTYPE and TOUR
-    private Double adultRemise;
-    private Double childRemise;
+    private java.math.BigDecimal adultRemise;
+    private java.math.BigDecimal childRemise;
 
     // For EXTRA
-    private Double unitRemise;
+    private java.math.BigDecimal unitRemise;
 }

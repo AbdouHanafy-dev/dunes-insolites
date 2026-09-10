@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.service.impl;
 
 import jakarta.mail.MessagingException;
+import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,11 +51,11 @@ public class EmailService {
             helper.setText(buildHtml(name, to, temporaryPassword), true);
 
             mailSender.send(message);
-            log.info("✅ Welcome email sent to: {}", to);
+            log.info("✅ Welcome email sent to: {}", maskEmail(to));
 
         } catch (MessagingException e) {
             // Log the error but do NOT crash the user-creation flow
-            log.error("❌ Failed to send welcome email to: {} — {}", to, e.getMessage());
+            log.error("❌ Failed to send welcome email to: {} — {}", maskEmail(to), e.getMessage());
         }
     }
 
@@ -66,7 +67,7 @@ public class EmailService {
      */
     @Async
     public void sendReservationConfirmedPaymentEmail(String to, String name, String groupName,
-                                                       double totalAmount, double minPaymentAmount,
+                                                       java.math.BigDecimal totalAmount, java.math.BigDecimal minPaymentAmount,
                                                        String currency, LocalDate dueDate, String paymentLink) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -83,10 +84,10 @@ public class EmailService {
                     true);
 
             mailSender.send(message);
-            log.info("✅ Payment-reminder email sent to: {}", to);
+            log.info("✅ Payment-reminder email sent to: {}", maskEmail(to));
 
         } catch (MessagingException e) {
-            log.error("❌ Failed to send payment-reminder email to: {} — {}", to, e.getMessage());
+            log.error("❌ Failed to send payment-reminder email to: {} — {}", maskEmail(to), e.getMessage());
         }
     }
 
@@ -97,10 +98,17 @@ public class EmailService {
      * this deliberately promises nothing about timing or price finality.
      * date/total may be null (not every reservation type prices the same
      * way) - both are skipped from the email rather than shown blank.
+     *
+     * <p><b>Synchronous and it throws.</b> Unlike the account emails above,
+     * this one is driven by a RabbitMQ listener ({@code ReservationEmailConsumer})
+     * on a dedicated container factory with retry + dead-lettering. It must run
+     * on the listener thread and propagate failure so the broker can retry and
+     * ultimately dead-letter - the previous {@code @Async} + swallow meant the
+     * message was acked before the send even ran, so a failure was lost with no
+     * signal. Do not add {@code @Async} back.
      */
-    @Async
     public void sendReservationReceivedEmail(String to, String name, LocalDate date,
-                                              Double total, String currency) {
+                                              java.math.BigDecimal total, String currency) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -112,10 +120,14 @@ public class EmailService {
             helper.setText(buildReceivedHtml(name, date, total, currency), true);
 
             mailSender.send(message);
-            log.info("✅ Reservation-received email sent to: {}", to);
+            log.info("✅ Reservation-received email sent to: {}", maskEmail(to));
 
-        } catch (MessagingException e) {
-            log.error("❌ Failed to send reservation-received email to: {} — {}", to, e.getMessage());
+        } catch (MessagingException | org.springframework.mail.MailException e) {
+            // Propagate so the listener's retry/DLQ machinery engages. Caller
+            // (ReservationEmailConsumer) records the failure on email_dispatch
+            // before rethrowing.
+            throw new com.camping.duneinsolite.exception.TransactionalEmailException(
+                    "reservation-received email to " + to + " failed: " + e.getMessage(), e);
         }
     }
 
@@ -139,7 +151,7 @@ public class EmailService {
             helper.setText(buildVerifyHtml(name, verifyLink), true);
 
             mailSender.send(message);
-            log.info("✅ Verification email sent to: {}", to);
+            log.info("✅ Verification email sent to: {}", maskEmail(to));
 
         } catch (Exception e) {
             // Not just MessagingException - a real SMTP auth failure (found
@@ -152,7 +164,7 @@ public class EmailService {
             // the whole point of this catch is "an email failure can never
             // be the caller's problem" - see the existing methods' own
             // comments for that same intent.
-            log.error("❌ Failed to send verification email to: {} — {}", to, e.getMessage());
+            log.error("❌ Failed to send verification email to: {} — {}", maskEmail(to), e.getMessage());
         }
     }
 
@@ -174,12 +186,12 @@ public class EmailService {
             helper.setText(buildResetHtml(name, resetLink), true);
 
             mailSender.send(message);
-            log.info("✅ Password-reset email sent to: {}", to);
+            log.info("✅ Password-reset email sent to: {}", maskEmail(to));
 
         } catch (Exception e) {
             // See sendVerificationEmail's comment on why this is Exception,
             // not MessagingException.
-            log.error("❌ Failed to send password-reset email to: {} — {}", to, e.getMessage());
+            log.error("❌ Failed to send password-reset email to: {} — {}", maskEmail(to), e.getMessage());
         }
     }
 
@@ -216,10 +228,10 @@ public class EmailService {
                 """.formatted(name, fromEmail, body));
 
             mailSender.send(message);
-            log.info("✅ Contact message from {} forwarded to {}", fromEmail, contactToAddress);
+            log.info("✅ Contact message from {} forwarded to {}", maskEmail(fromEmail), maskEmail(contactToAddress));
 
         } catch (Exception e) {
-            log.error("❌ Failed to forward contact message from: {} — {}", fromEmail, e.getMessage());
+            log.error("❌ Failed to forward contact message from: {} — {}", maskEmail(fromEmail), e.getMessage());
             throw new com.camping.duneinsolite.exception.EmailDeliveryException(
                     "Failed to send contact message", e);
         }
@@ -400,7 +412,7 @@ public class EmailService {
             """.formatted(name, link);
     }
 
-    private String buildReceivedPlainText(String name, LocalDate date, Double total, String currency) {
+    private String buildReceivedPlainText(String name, LocalDate date, java.math.BigDecimal total, String currency) {
         String dateLine = date != null
                 ? "\n  Date demandée : " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 : "";
@@ -421,7 +433,7 @@ public class EmailService {
             """.formatted(name, dateLine, totalLine);
     }
 
-    private String buildReceivedHtml(String name, LocalDate date, Double total, String currency) {
+    private String buildReceivedHtml(String name, LocalDate date, java.math.BigDecimal total, String currency) {
         String dateRow = date != null
                 ? """
                   <tr>
@@ -506,7 +518,7 @@ public class EmailService {
             """.formatted(name, dateRow, totalRow);
     }
 
-    private String buildPaymentPlainText(String name, String groupName, double totalAmount, double minPaymentAmount,
+    private String buildPaymentPlainText(String name, String groupName, java.math.BigDecimal totalAmount, java.math.BigDecimal minPaymentAmount,
                                           String currency, LocalDate dueDate, String paymentLink) {
         String deadlineLine = dueDate != null
                 ? "avant le " + dueDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -530,7 +542,7 @@ public class EmailService {
             """.formatted(name, groupName, deadlineLine, totalAmount, currency, minPaymentAmount, currency, linkLine);
     }
 
-    private String buildPaymentHtml(String name, String groupName, double totalAmount, double minPaymentAmount,
+    private String buildPaymentHtml(String name, String groupName, java.math.BigDecimal totalAmount, java.math.BigDecimal minPaymentAmount,
                                      String currency, LocalDate dueDate, String paymentLink) {
         String deadlineText = dueDate != null
                 ? "avant le <strong>" + dueDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + "</strong>"

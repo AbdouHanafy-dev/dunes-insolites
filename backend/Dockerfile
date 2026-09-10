@@ -31,7 +31,11 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
+# In-container check — must hit loopback, never an external address. The old
+# value hardcoded the production IP, which made the container report unhealthy
+# on any other host (and needlessly depended on the public IP being routable
+# from inside the container). Matches docker-compose.yml's healthcheck.
 HEALTHCHECK --interval=15s --timeout=5s --start-period=45s --retries=5 \
-    CMD curl -f http://79.143.185.33:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.service;
 
 import com.camping.duneinsolite.dto.request.RegisterRequest;
+import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.dto.request.UserProductRemiseRequest;
 import com.camping.duneinsolite.dto.request.UserRequest;
 import com.camping.duneinsolite.exception.EmailAlreadyInUseException;
@@ -98,6 +99,9 @@ public class KeycloakUserSyncService {
                 request.getEmail(),
                 request.getName(),
                 request.getPassword(),
+                false,
+                // Not temporary — this is the password she just chose herself,
+                // not a generated one someone else needs to hand her.
                 false
         );
 
@@ -118,7 +122,7 @@ public class KeycloakUserSyncService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("User {} registered and saved with id {}", request.getEmail(), savedUser.getUserId());
+        log.info("User {} registered and saved with id {}", maskEmail(request.getEmail()), savedUser.getUserId());
         return savedUser;
     }
 
@@ -126,14 +130,50 @@ public class KeycloakUserSyncService {
     // GUEST CHECKOUT (vitrine booking, no login step)
     // Called from PublicBookingServiceImpl. Reuses an existing account by
     // email if one exists (returning guest, or an already-registered user);
-    // otherwise creates a CLIENT account with a random password the guest
-    // never sees - the booking flow itself needs no password.
+    // otherwise creates a CLIENT account with a random password.
+    //
+    // Found live (booking-flow walkthrough): this used to generate that
+    // password, hand it straight to Keycloak, and never tell anyone what
+    // it was — not the guest, not staff. The account was real (a genuine
+    // Keycloak identity + Postgres row, correctly linked) but functionally
+    // unreachable: nobody could ever log into it, since nobody knew the
+    // password. Fixed by capturing the generated password instead of
+    // discarding it, and mailing it via sendWelcomeEmail (already existed,
+    // fully built, with a real "please change your password" notice in
+    // its own template - it was just never called from this path).
+    //
+    // temporary=false, deliberately, NOT true - a second real bug, found
+    // and reverted the same day it was introduced: this method briefly
+    // marked the credential temporary to force Keycloak's UPDATE_PASSWORD
+    // on first login, verified via Keycloak's own admin API that
+    // requiredActions was set correctly - but never verified the actual
+    // login attempt. AuthService's real login call is Keycloak's direct
+    // "password" grant (grant_type=password), and direct grant cannot
+    // service ANY pending required action - Keycloak rejects the whole
+    // token request with invalid_grant "Account is not fully set up"
+    // (the exact same error class this codebase already has a comment
+    // about elsewhere, for a different required action). Reproduced live:
+    // a guest with her real, correct temporary password got a generic
+    // "Invalid email or password" 401 from this app's own login form -
+    // wrong password shown for a right one, strictly worse than the
+    // original silent-unreachable-account bug, since it looks like a
+    // fresh defect rather than a known limitation. This app's login
+    // architecture has no browser-hosted Keycloak flow anywhere for a
+    // required action to be resolved through, so "enforce a change on
+    // first login" isn't achievable here without a larger auth redesign -
+    // not something to improvise around. The welcome email's own written
+    // request to change the password is what's left to do that job.
     // ─────────────────────────────────────────────────────────────────────
 
     @Transactional
     public User findOrCreateGuestUser(String name, String email, String phone) {
-        return userRepository.findByEmail(email).orElseGet(() -> {
-            String keycloakUserId = createKeycloakUser(email, name, generateSecurePassword(), true);
+        return userRepository.findByEmail(email).orElseGet(() -> createGuestUser(name, email, phone));
+    }
+
+    private User createGuestUser(String name, String email, String phone) {
+        try {
+            String temporaryPassword = generateSecurePassword();
+            String keycloakUserId = createKeycloakUser(email, name, temporaryPassword, true, false);
             assignRole(keycloakUserId, UserRole.CLIENT.name());
 
             User user = User.builder()
@@ -147,9 +187,14 @@ public class KeycloakUserSyncService {
                     .build();
 
             User savedUser = userRepository.save(user);
-            log.info("Guest booking created account for {} with id {}", email, savedUser.getUserId());
+            log.info("Guest booking created account for {} with id {}", maskEmail(email), savedUser.getUserId());
+            emailService.sendWelcomeEmail(email, name, temporaryPassword);
             return savedUser;
-        });
+        } catch (org.springframework.dao.DataIntegrityViolationException race) {
+            // A concurrent guest checkout for the same email lost the unique-email
+            // race — the other request created the account. Re-read it.
+            return userRepository.findByEmail(email).orElseThrow(() -> race);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -182,13 +227,22 @@ public class KeycloakUserSyncService {
         }
 
         String generatedPassword = generateSecurePassword();
-        log.info("Generated temporary password for new user {}", request.getEmail());
+        log.info("Generated temporary password for new user {}", maskEmail(request.getEmail()));
 
         String keycloakUserId = createKeycloakUser(
                 request.getEmail(),
                 request.getName(),
                 generatedPassword,
-                true
+                true,
+                // false, not true - see findOrCreateGuestUser's own comment.
+                // This app's login is Keycloak's direct "password" grant,
+                // which cannot service a pending required action at all;
+                // temporary=true here reproduces the exact same real,
+                // verified-live login break (invalid_grant "Account is not
+                // fully set up") for a staff/partner account instead of a
+                // guest one. The welcome email below still tells them to
+                // change it - that's as far as this architecture can enforce.
+                false
         );
 
         assignRole(keycloakUserId, request.getRole().name());
@@ -207,14 +261,16 @@ public class KeycloakUserSyncService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("User {} created and saved with id {}", request.getEmail(), savedUser.getUserId());
+        log.info("User {} created and saved with id {}", maskEmail(request.getEmail()), savedUser.getUserId());
 
         if (hasRemise && request.getRemises() != null && !request.getRemises().isEmpty()) {
             saveRemises(savedUser, request.getRemises(), request.getRole());
         }
 
-        // ── Send welcome email with generated password ──
-       // emailService.sendWelcomeEmail(request.getEmail(), request.getName(), generatedPassword);
+        // Same fix as findOrCreateGuestUser's own comment explains: a generated
+        // password nobody is ever told is a real account nobody can log into.
+        // This was already sitting here, commented out, doing nothing.
+        emailService.sendWelcomeEmail(request.getEmail(), request.getName(), generatedPassword);
 
         return reloadWithRemises(savedUser);
     }
@@ -276,10 +332,10 @@ public class KeycloakUserSyncService {
                     .users()
                     .get(keycloakUsers.get(0).getId())
                     .remove();
-            log.info("User {} deleted from Keycloak", user.getEmail());
+            log.info("User {} deleted from Keycloak", maskEmail(user.getEmail()));
         }
 
-        log.info("User {} deleted from local DB", user.getEmail());
+        log.info("User {} deleted from local DB", maskEmail(user.getEmail()));
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -315,7 +371,7 @@ public class KeycloakUserSyncService {
                         .toRepresentation();
                 realmResource.users().get(keycloakUserId)
                         .roles().realmLevel().add(List.of(role));
-                log.info("User {} role updated to {} in Keycloak", user.getEmail(), newRole);
+                log.info("User {} role updated to {} in Keycloak", maskEmail(user.getEmail()), newRole);
             } catch (Exception e) {
                 log.warn("Could not assign new role: {}", e.getMessage());
             }
@@ -354,15 +410,23 @@ public class KeycloakUserSyncService {
      * AccountActionServiceImpl); guest checkout and admin-created accounts
      * keep the previous unconditional true, since neither of those flows
      * ever sends the guest/staff a link to click.
+     *
+     * temporary is likewise a parameter, not hardcoded false the way it
+     * used to be: false when the account holder chose the password
+     * themselves (self-registration), true when it was generated for them
+     * (guest checkout, admin-created) - see this method's two callers'
+     * own comments for why a generated password with temporary=false was
+     * a real, live bug (an unreachable account, not just a bad default).
      */
-    private String createKeycloakUser(String email, String name, String password, boolean emailVerified) {
+    private String createKeycloakUser(
+            String email, String name, String password, boolean emailVerified, boolean temporary) {
         RealmResource realmResource = keycloak.realm(realm);
         UsersResource usersResource = realmResource.users();
 
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setType(CredentialRepresentation.PASSWORD);
         credential.setValue(password);
-        credential.setTemporary(false); // true = user must change password on first login
+        credential.setTemporary(temporary); // true = user must change password on first login
 
         UserRepresentation keycloakUser = new UserRepresentation();
         keycloakUser.setUsername(email);
@@ -383,13 +447,13 @@ public class KeycloakUserSyncService {
             // The specific status/body is Keycloak's own response detail -
             // logged here, not put in the exception message a client sees
             // (ExternalServiceException's own doc comment on why).
-            log.error("Keycloak user creation failed for {} - status {}: {}", email, status, body);
+            log.error("Keycloak user creation failed for {} - status {}: {}", maskEmail(email), status, body);
             throw new ExternalServiceException("Keycloak", null);
         }
 
         String locationHeader = response.getHeaderString("Location");
         String keycloakUserId = locationHeader.substring(locationHeader.lastIndexOf("/") + 1);
-        log.info("User {} created in Keycloak with id {}", email, keycloakUserId);
+        log.info("User {} created in Keycloak with id {}", maskEmail(email), keycloakUserId);
         return keycloakUserId;
     }
 
@@ -600,7 +664,7 @@ public class KeycloakUserSyncService {
         }
 
         userRepository.save(user);
-        log.info("User {} (ID: {}) updated successfully in DB", user.getEmail(), userId);
+        log.info("User {} (ID: {}) updated successfully in DB", maskEmail(user.getEmail()), userId);
 
         // ── 5. Return fresh entity with remises loaded from DB ──────────────
         return reloadWithRemises(user);
@@ -648,32 +712,32 @@ public class KeycloakUserSyncService {
             if (req.getProductType() == ProductType.TOURTYPE) {
                 var tt = tourTypeRepository.findById(req.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + req.getProductId()));
-                double maxAdult = isPartner ? tt.getPartnerAdultPrice() : tt.getPassengerAdultPrice();
-                double maxChild = isPartner ? tt.getPartnerChildPrice() : tt.getPassengerChildPrice();
-                double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
-                double childR = req.getChildRemise() != null ? req.getChildRemise() : 0.0;
-                if (adultR > maxAdult) throw new IllegalArgumentException(
+                java.math.BigDecimal maxAdult = isPartner ? tt.getPartnerAdultPrice() : tt.getPassengerAdultPrice();
+                java.math.BigDecimal maxChild = isPartner ? tt.getPartnerChildPrice() : tt.getPassengerChildPrice();
+                java.math.BigDecimal adultR = com.camping.duneinsolite.money.Money.nz(req.getAdultRemise());
+                java.math.BigDecimal childR = com.camping.duneinsolite.money.Money.nz(req.getChildRemise());
+                if (com.camping.duneinsolite.money.Money.gt(adultR, maxAdult)) throw new IllegalArgumentException(
                         "Adult remise " + adultR + " exceeds price " + maxAdult + " for TourType " + tt.getName());
-                if (childR > maxChild) throw new IllegalArgumentException(
+                if (com.camping.duneinsolite.money.Money.gt(childR, maxChild)) throw new IllegalArgumentException(
                         "Child remise " + childR + " exceeds price " + maxChild + " for TourType " + tt.getName());
 
             } else if (req.getProductType() == ProductType.TOUR) {
                 var tour = tourRepository.findById(req.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + req.getProductId()));
-                double maxAdult = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
-                double maxChild = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
-                double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
-                double childR = req.getChildRemise() != null ? req.getChildRemise() : 0.0;
-                if (adultR > maxAdult) throw new IllegalArgumentException(
+                java.math.BigDecimal maxAdult = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
+                java.math.BigDecimal maxChild = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
+                java.math.BigDecimal adultR = com.camping.duneinsolite.money.Money.nz(req.getAdultRemise());
+                java.math.BigDecimal childR = com.camping.duneinsolite.money.Money.nz(req.getChildRemise());
+                if (com.camping.duneinsolite.money.Money.gt(adultR, maxAdult)) throw new IllegalArgumentException(
                         "Adult remise " + adultR + " exceeds price " + maxAdult + " for Tour " + tour.getName());
-                if (childR > maxChild) throw new IllegalArgumentException(
+                if (com.camping.duneinsolite.money.Money.gt(childR, maxChild)) throw new IllegalArgumentException(
                         "Child remise " + childR + " exceeds price " + maxChild + " for Tour " + tour.getName());
 
             } else if (req.getProductType() == ProductType.EXTRA) {
                 var extra = extraRepository.findById(req.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + req.getProductId()));
-                double unitR = req.getUnitRemise() != null ? req.getUnitRemise() : 0.0;
-                if (unitR > extra.getUnitPrice()) throw new IllegalArgumentException(
+                java.math.BigDecimal unitR = com.camping.duneinsolite.money.Money.nz(req.getUnitRemise());
+                if (com.camping.duneinsolite.money.Money.gt(unitR, extra.getUnitPrice())) throw new IllegalArgumentException(
                         "Unit remise " + unitR + " exceeds price " + extra.getUnitPrice() + " for Extra " + extra.getName());
             }
         }
@@ -692,34 +756,34 @@ public class KeycloakUserSyncService {
             if (req.getProductType() == ProductType.TOURTYPE) {
                 var tt = tourTypeRepository.findById(req.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + req.getProductId()));
-                double maxAdult = isPartner ? tt.getPartnerAdultPrice() : tt.getPassengerAdultPrice();
-                double maxChild = isPartner ? tt.getPartnerChildPrice() : tt.getPassengerChildPrice();
-                double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
-                double childR = req.getChildRemise() != null ? req.getChildRemise() : 0.0;
-                if (adultR > maxAdult) throw new IllegalArgumentException(
+                java.math.BigDecimal maxAdult = isPartner ? tt.getPartnerAdultPrice() : tt.getPassengerAdultPrice();
+                java.math.BigDecimal maxChild = isPartner ? tt.getPartnerChildPrice() : tt.getPassengerChildPrice();
+                java.math.BigDecimal adultR = com.camping.duneinsolite.money.Money.nz(req.getAdultRemise());
+                java.math.BigDecimal childR = com.camping.duneinsolite.money.Money.nz(req.getChildRemise());
+                if (com.camping.duneinsolite.money.Money.gt(adultR, maxAdult)) throw new IllegalArgumentException(
                         "Adult remise " + adultR + " exceeds price " + maxAdult + " for TourType " + tt.getName());
-                if (childR > maxChild) throw new IllegalArgumentException(
+                if (com.camping.duneinsolite.money.Money.gt(childR, maxChild)) throw new IllegalArgumentException(
                         "Child remise " + childR + " exceeds price " + maxChild + " for TourType " + tt.getName());
                 builder.adultRemise(adultR).childRemise(childR);
 
             } else if (req.getProductType() == ProductType.TOUR) {
                 var tour = tourRepository.findById(req.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + req.getProductId()));
-                double maxAdult = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
-                double maxChild = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
-                double adultR = req.getAdultRemise() != null ? req.getAdultRemise() : 0.0;
-                double childR = req.getChildRemise() != null ? req.getChildRemise() : 0.0;
-                if (adultR > maxAdult) throw new IllegalArgumentException(
+                java.math.BigDecimal maxAdult = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
+                java.math.BigDecimal maxChild = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
+                java.math.BigDecimal adultR = com.camping.duneinsolite.money.Money.nz(req.getAdultRemise());
+                java.math.BigDecimal childR = com.camping.duneinsolite.money.Money.nz(req.getChildRemise());
+                if (com.camping.duneinsolite.money.Money.gt(adultR, maxAdult)) throw new IllegalArgumentException(
                         "Adult remise " + adultR + " exceeds price " + maxAdult + " for Tour " + tour.getName());
-                if (childR > maxChild) throw new IllegalArgumentException(
+                if (com.camping.duneinsolite.money.Money.gt(childR, maxChild)) throw new IllegalArgumentException(
                         "Child remise " + childR + " exceeds price " + maxChild + " for Tour " + tour.getName());
                 builder.adultRemise(adultR).childRemise(childR);
 
             } else if (req.getProductType() == ProductType.EXTRA) {
                 var extra = extraRepository.findById(req.getProductId())
                         .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + req.getProductId()));
-                double unitR = req.getUnitRemise() != null ? req.getUnitRemise() : 0.0;
-                if (unitR > extra.getUnitPrice()) throw new IllegalArgumentException(
+                java.math.BigDecimal unitR = com.camping.duneinsolite.money.Money.nz(req.getUnitRemise());
+                if (com.camping.duneinsolite.money.Money.gt(unitR, extra.getUnitPrice())) throw new IllegalArgumentException(
                         "Unit remise " + unitR + " exceeds price " + extra.getUnitPrice() + " for Extra " + extra.getName());
                 builder.unitRemise(unitR);
             }

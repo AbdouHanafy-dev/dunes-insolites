@@ -1,8 +1,10 @@
 package com.camping.duneinsolite.model;
 
+import com.camping.duneinsolite.money.Money;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -35,10 +37,10 @@ public class ReservationTourType {
 
     // Price snapshotted based on user role at booking time
     @Column(name = "adult_price", nullable = false)
-    private Double adultPrice;
+    private java.math.BigDecimal adultPrice;
 
     @Column(name = "child_price", nullable = false)
-    private Double childPrice;
+    private java.math.BigDecimal childPrice;
 
     @Column(name = "number_of_adults", nullable = false)
     private Integer numberOfAdults;
@@ -54,12 +56,46 @@ public class ReservationTourType {
 
     @Column(name = "tva", nullable = false)
     @Builder.Default
-    private Double tva = 0.0;
+    private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
 
-    // Computed — not stored in DB. Prices are stored as TTC so no TVA multiplication needed.
+    // ── Accommodation snapshot (production-hardening Phase 1) ────────────
+    // Set at booking time when the guest picked a tier (Desert Tent / Room /
+    // Dune Suite). All nullable: a legacy or bivouac line leaves them null and
+    // keeps the per-person pricing below. Snapshotted, so a later catalogue
+    // price change never moves an existing reservation's total.
+    @Column(name = "accommodation_type_id")
+    private UUID accommodationTypeId;
+
+    @Column(name = "accommodation_name")
+    private String accommodationName;
+
+    @Column(name = "accommodation_units")
+    private Integer accommodationUnits;
+
+    @Column(name = "accommodation_unit_price_ttc", precision = 15, scale = 3)
+    private BigDecimal accommodationUnitPriceTtc;
+
+    @Column(name = "accommodation_tva_rate", precision = 6, scale = 3)
+    private BigDecimal accommodationTvaRate;
+
+    /** True when this line is priced per accommodation unit, not per person. */
     @Transient
-    public Double getTotalPrice() {
+    public boolean isAccommodationPriced() {
+        return accommodationUnitPriceTtc != null
+                && accommodationUnits != null && accommodationUnits > 0;
+    }
+
+    // Computed — not stored. Prices are TTC, so no TVA multiplication.
+    // Pure BigDecimal end to end (Phase 3).
+    @Transient
+    public BigDecimal getTotalPrice() {
         int nights = numberOfNights != null && numberOfNights > 0 ? numberOfNights : 1;
-        return ((numberOfAdults * adultPrice) + (numberOfChildren * childPrice)) * nights;
+        if (isAccommodationPriced()) {
+            return Money.lineTotal(accommodationUnitPriceTtc, accommodationUnits, nights);
+        }
+        BigDecimal perNight = Money.add(
+                Money.multiply(adultPrice, numberOfAdults),
+                Money.multiply(childPrice, numberOfChildren));
+        return Money.multiply(perNight, nights);
     }
 }

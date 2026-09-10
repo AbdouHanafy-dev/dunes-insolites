@@ -25,10 +25,10 @@ public class ReservationResponse {
     private Integer numberOfChildren;
     private ReservationStatus status;
     private String rejectionReason;
-    private Double totalAmount;
-    private Double totalExtrasAmount;
+    private java.math.BigDecimal totalAmount;
+    private java.math.BigDecimal totalExtrasAmount;
     private Currency currency;
-    private Double exchangeRateApplied;
+    private java.math.BigDecimal exchangeRateApplied;
     private String promoCode;
     private String demandeSpecial;
     private String paymentLink;

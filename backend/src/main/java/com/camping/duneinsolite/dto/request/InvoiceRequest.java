@@ -24,7 +24,7 @@ public class InvoiceRequest {
 
     @NotNull(message = "Total amount is required")
     @Positive(message = "Total amount must be positive")
-    private Double totalAmount;
+    private java.math.BigDecimal totalAmount;
 
     @NotEmpty(message = "At least one invoice item is required")
     private List<InvoiceItemRequest> items;

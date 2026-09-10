@@ -10,6 +10,7 @@ import com.camping.duneinsolite.model.TourTypeTranslation;
 import com.camping.duneinsolite.model.enums.ContentLocale;
 import com.camping.duneinsolite.model.enums.UserRole;
 
+import java.util.List;
 import java.util.Map;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.SourceRepository;
@@ -47,6 +48,7 @@ public class Seed implements CommandLineRunner {
     private final TourTypeRepository tourTypeRepository;
     private final TourRepository tourRepository;
     private final ExtraRepository extraRepository;
+    private final com.camping.duneinsolite.repository.GalleryImageRepository galleryImageRepository;
 
     @Value("${seed.admin.email:}")
     private String adminEmail;
@@ -67,6 +69,7 @@ public class Seed implements CommandLineRunner {
         seedTourTypes();
         seedTours();
         seedExtras();
+        seedGallery();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -121,13 +124,13 @@ public class Seed implements CommandLineRunner {
                 .description("Decouvrez une experience inoubliable lors de notre excursion d'une nuitee " +
                         "en bivouac dans le desert, au depart du campement Dunes Insolites a Sabria Kebili Tunisie.")
                 .duration("1 Nuitee")
-                .passengerAdultPrice(95.0)
-                .passengerChildPrice(50.0)
+                .passengerAdultPrice(new java.math.BigDecimal("95.0"))
+                .passengerChildPrice(new java.math.BigDecimal("50.0"))
                 // Partner (wholesale) pricing wasn't available to seed accurately - defaulted to
                 // match passenger price for now. Adjust the real partner rate via Catalogue.
-                .partnerAdultPrice(95.0)
-                .partnerChildPrice(50.0)
-                .tva(13.0)
+                .partnerAdultPrice(new java.math.BigDecimal("95.0"))
+                .partnerChildPrice(new java.math.BigDecimal("50.0"))
+                .tva(new java.math.BigDecimal("13.0"))
                 .isActive(true)
                 .build());
 
@@ -172,12 +175,12 @@ public class Seed implements CommandLineRunner {
                         "fascinants, villages berberes perches, et sites iconiques de tournage de Star Wars, " +
                         "cette journee vous transporte dans un univers ou histoire et cinema se croisent.")
                 .duration("1 Jour")
-                .passengerAdultPrice(85.0)
-                .passengerChildPrice(45.0)
+                .passengerAdultPrice(new java.math.BigDecimal("85.0"))
+                .passengerChildPrice(new java.math.BigDecimal("45.0"))
                 // Same note as above - partner rate defaulted to passenger price, adjust via Catalogue.
-                .partnerAdultPrice(85.0)
-                .partnerChildPrice(45.0)
-                .tva(13.0)
+                .partnerAdultPrice(new java.math.BigDecimal("85.0"))
+                .partnerChildPrice(new java.math.BigDecimal("45.0"))
+                .tva(new java.math.BigDecimal("13.0"))
                 .isActive(true)
                 .build());
         log.info("Seed: created tour {}", name);
@@ -194,8 +197,8 @@ public class Seed implements CommandLineRunner {
                 .description("Session de quad de 30 minutes dans le desert autour du campement.")
                 .duration("30 minute")
                 // Best-effort placeholder - verify/adjust the real unit price via Catalogue.
-                .unitPrice(35.0)
-                .tva(13.0)
+                .unitPrice(new java.math.BigDecimal("35.0"))
+                .tva(new java.math.BigDecimal("13.0"))
                 .isActive(true)
                 .build());
 
@@ -218,5 +221,38 @@ public class Seed implements CommandLineRunner {
                 ExtraTranslation.builder().extra(extra).locale(locale).name(text[0]).description(text[1]).build()));
         extraRepository.save(extra);
         log.info("Seed: created extra {}", name);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // GALLERY — vitrine photos, previously hardcoded in the frontend
+    // (lib/data/gallery.ts). Alt text kept in English to match the
+    // frontend's galleryGrid.alt translation keys; images are the ones
+    // already shipped in frontend/public/images.
+    // ─────────────────────────────────────────────────────────────
+
+    private void seedGallery() {
+        if (galleryImageRepository.count() > 0) return;
+
+        record Photo(String url, String alt, String tag, boolean tall) { }
+        List<Photo> photos = List.of(
+                new Photo("/images/hero-combined.jpg", "Camel, quads and sandboarding on one dune", "All", true),
+                new Photo("/images/camel.jpg", "Camel trek at golden hour", "Camel Trek", false),
+                new Photo("/images/quad.jpg", "Quad bikes crossing the sand sea", "Quad Safari", false),
+                new Photo("/images/gate.jpg", "The lantern-lit Sabria gate", "The Gate", true),
+                new Photo("/images/sandboard.jpg", "Sandboarder carving a dune face", "Sandboarding", false)
+        );
+
+        int position = 0;
+        for (Photo p : photos) {
+            galleryImageRepository.save(com.camping.duneinsolite.model.GalleryImage.builder()
+                    .imageUrl(p.url())
+                    .alt(p.alt())
+                    .tag(p.tag())
+                    .tall(p.tall())
+                    .position(position++)
+                    .companyType(com.camping.duneinsolite.model.enums.CompanyType.DUNES_INSOLITES)
+                    .build());
+        }
+        log.info("Seed: created {} gallery photos", photos.size());
     }
 }

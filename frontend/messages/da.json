@@ -52,6 +52,7 @@
     "scroll": "Rul ned",
     "guestsGuided": "Guidede gæster",
     "averageRating": "Gennemsnitlig vurdering",
+    "newRating": "Nyt",
     "yearsSuffix": "År",
     "ofExperience": "Erfaring"
   },
@@ -71,6 +72,7 @@
     "body": "Små grupper, lokale guider og ingen hastværk. Hver tur i Sabria er tilrettelagt, så sandet stadig holder på dagens varme, og himlen står i flammer.",
     "guestsGuided": "Guidede gæster",
     "averageRating": "Gennemsnitlig vurdering",
+    "newRating": "Nyt",
     "onTheDunes": "På klitterne",
     "yearsUnit": "år",
     "bgAlt": "Ørkenscene i Sabria"
@@ -112,16 +114,16 @@
     "cta": "Se hele galleriet →"
   },
   "ctaDefault": {
-    "title": "Klar til klitterne?",
-    "body": "Golden-hour-pladser bliver hurtigt fyldt op. Reserver dit Sahara-eventyr, så klarer vi resten.",
-    "label": "Book en tur →"
+    "title": "Book din nat i Sabria.",
+    "body": "Golden-hour-tiderne bliver hurtigt fyldt op. Book direkte, bekræftelse inden for en dag — ingen platform, ingen kommission.",
+    "label": "Book din nat →"
   },
   "ctaGallery": {
-    "title": "Vil du have dine egne?",
-    "body": "Hver tur kommer med billeder og video fra din guide, sendt næste morgen."
+    "title": "Dine egne billeder, sendt næste morgen.",
+    "body": "Hver tur følger med rigtige billeder fra din guide — aldrig stockfotos."
   },
   "ctaCamp": {
-    "title": "Ikke sikker på hvilken?",
+    "title": "Fortæl os om jer, så finder vi den rette nat.",
     "body": "Fortæl os, hvor mange I er, og hvad I gerne vil lave — så foreslår vi den rette nat.",
     "label": "Spørg os →"
   },
@@ -375,18 +377,64 @@
   },
   "account": {
     "navLabel": "Kontonavigation",
-    "tabAccount": "Min konto",
-    "tabBookings": "Mine bookinger",
+    "tabAccount": "Profil",
+    "tabBookings": "Mine rejser",
     "tabPayments": "Betalinger",
     "tabReviews": "Anmeldelser",
-    "tabSupport": "Support",
+    "tabSupport": "Hjælp",
     "logout": "Log ud",
+    "welcomeBack": "Velkommen tilbage, {name}",
+    "nextAdventureTitle": "Dit næste Sahara-eventyr venter.",
+    "noAdventureTitle": "Dit næste eventyr starter her.",
+    "yourNextExperience": "Din næste oplevelse",
+    "guestsLabel": "Gæster",
+    "bookingRefLabel": "Booking",
+    "viewYourTrip": "Se din rejse",
+    "exploreExperiencesCta": "Udforsk oplevelser",
+    "paymentStatus": {
+      "PAID": "Betalt",
+      "PARTIALLY_PAID": "Delvist betalt",
+      "UNPAID": "Betaling afventer",
+      "OVERDUE": "Forfalden",
+      "REFUNDED": "Refunderet"
+    },
+    "sidebarUpcoming": "{count, plural, one {# kommende oplevelse} other {# kommende oplevelser}}",
+    "sidebarActionRequired": "{count, plural, one {# handling påkrævet} other {# handlinger påkrævet}}",
+    "glanceTitle": "Din rejse i overblik",
+    "glanceDatesLabel": "Datoerne for din oplevelse",
+    "glanceGuestsLabel": "Inkluderet i din booking",
+    "glancePaymentPendingNote": "Fuldfør din betaling inden rejsen",
+    "glancePaymentDoneNote": "Alt er klaret",
+    "glanceLocationLabel": "Det sydlige Tunesien",
+    "journeyTitle": "Din rejse",
+    "journey": {
+      "received": "Booking modtaget",
+      "confirmed": "Bekræftet",
+      "prepare": "Forbered din rejse",
+      "enjoy": "Nyd din oplevelse",
+      "share": "Del din oplevelse"
+    },
+    "beforeTripTitle": "Før din rejse",
+    "beforeTripLead": "Dit Sahara-eventyr nærmer sig.",
+    "beforeTripPacking": "Hvad du skal medbringe",
+    "beforeTripPackingDesc": "Find ud af, hvad du bør pakke til din oplevelse.",
+    "beforeTripHelp": "Brug for hjælp?",
+    "beforeTripHelpDesc": "Kontakt vores team omkring din reservation.",
+    "beforeTripDetails": "Se bookingdetaljer",
+    "beforeTripDetailsDesc": "Se alle oplysninger om din reservation.",
+    "recommendTitle": "Fuldend din Sahara-oplevelse",
+    "recommendLead": "Du vil måske også kunne lide",
+    "discoverCta": "Udforsk",
+    "helpTitle": "Brug for hjælp til din rejse?",
+    "helpLead": "Vores team er her for at hjælpe dig med at forberede din Sahara-oplevelse.",
+    "contactSupportCta": "Kontakt support",
+    "whatsappCta": "WhatsApp",
     "overviewTitle": "Min konto",
     "overviewLead": "Dine personlige oplysninger.",
     "nameLabel": "Navn",
     "emailLabel": "Email",
     "roleLabel": "Kontotype",
-    "bookingsTitle": "Mine bookinger",
+    "bookingsTitle": "Mine rejser",
     "bookingsLead": "Din bookinghistorik hos Dunes Insolites.",
     "bookingsEmpty": "Du har endnu ingen bookinger.",
     "statusLabel": "Status",
@@ -415,6 +463,19 @@
     "reviewSending": "Sender…",
     "reviewSent": "Tak, din anmeldelse er blevet offentliggjort.",
     "reviewGenericError": "Vi kunne ikke gemme denne anmeldelse. Prøv igen.",
+    "status": {
+      "pending": "Afventer",
+      "confirmed": "Bekræftet",
+      "checked_in": "Tjekket ind",
+      "cancelled": "Annulleret",
+      "rejected": "Afvist",
+      "completed": "Gennemført"
+    },
+    "reservationType": {
+      "HEBERGEMENT": "Ørkenovernatning",
+      "TOURS": "Rundtur",
+      "EXTRAS": "Aktivitet"
+    },
     "role": {
       "CLIENT": "Kunde",
       "PARTENAIRE": "Partner",

@@ -7,9 +7,9 @@ import lombok.Data;
 @Builder
 public class RevenueDistributionDTO {
 
-    private Double partnerRevenue;
-    private Double directRevenue;
+    private java.math.BigDecimal partnerRevenue;
+    private java.math.BigDecimal directRevenue;
     private Double partnerPercentage;
     private Double directPercentage;
-    private Double totalRevenue;
+    private java.math.BigDecimal totalRevenue;
 }

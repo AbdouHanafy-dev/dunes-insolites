@@ -2,6 +2,7 @@ import path from "node:path";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { LEGACY_STAY_SLUGS, LEGACY_ACTIVITY_SLUGS } from "./lib/legacySlugs";
+import { routing } from "./i18n/routing";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
@@ -42,20 +43,40 @@ const nextConfig: NextConfig = {
   // informational pages, the sabria-evasion landing page) has no page to
   // rewrite to yet and is tracked as a remaining DI-022/DI-026 gap.
   //
-  // French-only, and both source AND destination carry the internal /fr
-  // prefix: next-intl's middleware runs before these rewrites and already
-  // rewrote the unprefixed public URL (e.g. /quad-desert) to its internal
-  // default-locale form (/fr/quad-desert) by the time this config sees it,
-  // even though the browser never shows that prefix. These legacy slugs
-  // never had a non-French version on WordPress, so there's nothing to add
-  // for the other 5 locales.
+  // Every locale, not just French — found live (UI/UX audit, 30 Aug 2026):
+  // this used to be /fr/-only, reasoned as fine because "these legacy
+  // slugs never had a non-French version on WordPress". True, but
+  // irrelevant to what actually happens: next-intl's Accept-Language
+  // detection (a real, wanted feature - kept ON, see i18n/routing.ts's own
+  // comment) sends any English-preferring first-time visitor with no
+  // NEXT_LOCALE cookie yet to /en/nuitee-campement-desert/ before this
+  // config is ever consulted - a plain `curl` with no Accept-Language
+  // header never showed this, which is exactly how it went unnoticed.
+  // That path 404'd for every one of the 9 legacy URLs, breaking a real,
+  // Google-ranked SEO URL for a large share of real first-time visitors
+  // the moment DNS points here. The destination pages already exist in
+  // all 6 locales (app/[locale]/(site)/camp/[slug], /activities/[slug],
+  // /about, /gallery), so the fix is to rewrite for every locale next-intl
+  // might land a visitor on, not to fight the detection itself.
   async rewrites() {
-    return [
-      ...LEGACY_STAY_SLUGS.map((slug) => ({ source: `/fr/${slug}`, destination: `/fr/camp/${slug}` })),
-      ...LEGACY_ACTIVITY_SLUGS.map((slug) => ({ source: `/fr/${slug}`, destination: `/fr/activities/${slug}` })),
-      { source: "/fr/presentation-campement-dunes-insolites", destination: "/fr/about" },
-      { source: "/fr/dunes-insolites-camp-gallery", destination: "/fr/gallery" },
-    ];
+    return routing.locales.flatMap((locale) => [
+      ...LEGACY_STAY_SLUGS.map((slug) => ({
+        source: `/${locale}/${slug}`,
+        destination: `/${locale}/camp/${slug}`,
+      })),
+      ...LEGACY_ACTIVITY_SLUGS.map((slug) => ({
+        source: `/${locale}/${slug}`,
+        destination: `/${locale}/activities/${slug}`,
+      })),
+      {
+        source: `/${locale}/presentation-campement-dunes-insolites`,
+        destination: `/${locale}/about`,
+      },
+      {
+        source: `/${locale}/dunes-insolites-camp-gallery`,
+        destination: `/${locale}/gallery`,
+      },
+    ]);
   },
 
   // SEO/security audit, step 8. Four headers with no downside for this

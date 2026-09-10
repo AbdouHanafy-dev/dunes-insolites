@@ -26,7 +26,7 @@ export default async function Experience() {
             <div className="k">{t("guestsGuided")}</div>
           </div>
           <div className="stat">
-            <div className="v serif">{stats.avgRating}</div>
+            <div className="v serif">{stats.avgRating ?? t("newRating")}</div>
             <div className="k">{t("averageRating")}</div>
           </div>
           <div className="stat">

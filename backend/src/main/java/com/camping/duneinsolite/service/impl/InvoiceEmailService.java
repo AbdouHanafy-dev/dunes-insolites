@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.*;
 import com.camping.duneinsolite.model.enums.CompanyType;
@@ -64,15 +65,15 @@ public class InvoiceEmailService {
             List<ItemRow> items = buildItemRows(invoice);
             // Same formula buildPageHtml uses internally, so the total shown in the
             // email body always matches the total shown in the attached PDF exactly.
-            double total = r2(items.stream().mapToDouble(ItemRow::totalTtc).sum());
+            java.math.BigDecimal total = com.camping.duneinsolite.money.Money.sum(items.stream().map(ItemRow::totalTtc).toList());
 
             byte[] pdf     = generatePdf(buildPageHtml(invoice, false, items));
             String subject = "Proforma " + invoice.getInvoiceNumber() + " — Rappel de paiement";
             String body    = buildEmailBody(clientName, invoice.getInvoiceNumber(), false,
-                    total, invoice.getPaidAmount() != null ? invoice.getPaidAmount() : 0.0, invoice.getCurrency());
+                    total, com.camping.duneinsolite.money.Money.nz(invoice.getPaidAmount()), invoice.getCurrency());
 
             send(clientEmail, subject, body, pdf, "Proforma_" + invoice.getInvoiceNumber() + ".pdf");
-            log.info("Proforma email sent to {} for {}", clientEmail, invoice.getInvoiceNumber());
+            log.info("Proforma email sent to {} for {}", maskEmail(clientEmail), invoice.getInvoiceNumber());
         } catch (Exception e) {
             log.error("Failed to send proforma email for {}: {}", invoiceId, e.getMessage(), e);
         }
@@ -94,18 +95,18 @@ public class InvoiceEmailService {
             List<ItemRow> items = buildItemRows(invoice);
             // Same formula buildPageHtml uses internally, so the total shown in the
             // email body always matches the total shown in the attached PDF exactly.
-            double totalHt  = items.stream().mapToDouble(ItemRow::totalHt).sum();
-            double totalTva = items.stream().mapToDouble(r -> r.totalTtc() - r.totalHt()).sum();
-            double timbre   = invoice.getTimbreFiscal() != null ? invoice.getTimbreFiscal() : 0.0;
-            double ttc      = r2(totalHt + totalTva + timbre);
-            double paid     = invoice.getPaidAmount() != null ? invoice.getPaidAmount() : 0.0;
+            java.math.BigDecimal totalHt  = com.camping.duneinsolite.money.Money.sum(items.stream().map(ItemRow::totalHt).toList());
+            java.math.BigDecimal totalTva = com.camping.duneinsolite.money.Money.sum(items.stream().map(r -> com.camping.duneinsolite.money.Money.subtract(r.totalTtc(), r.totalHt())).toList());
+            java.math.BigDecimal timbre   = com.camping.duneinsolite.money.Money.nz(invoice.getTimbreFiscal());
+            java.math.BigDecimal ttc      = com.camping.duneinsolite.money.Money.add(totalHt, totalTva, timbre);
+            java.math.BigDecimal paid     = com.camping.duneinsolite.money.Money.nz(invoice.getPaidAmount());
 
             byte[] pdf     = generatePdf(buildPageHtml(invoice, true, items));
             String subject = "Facture " + invoice.getInvoiceNumber() + " — Rappel de paiement";
             String body    = buildEmailBody(clientName, invoice.getInvoiceNumber(), true, ttc, paid, invoice.getCurrency());
 
             send(clientEmail, subject, body, pdf, "Facture_" + invoice.getInvoiceNumber() + ".pdf");
-            log.info("Facture email sent to {} for {}", clientEmail, invoice.getInvoiceNumber());
+            log.info("Facture email sent to {} for {}", maskEmail(clientEmail), invoice.getInvoiceNumber());
         } catch (Exception e) {
             log.error("Failed to send facture email for {}: {}", invoiceId, e.getMessage(), e);
         }
@@ -135,12 +136,12 @@ public class InvoiceEmailService {
         // exactly what the in-app facture/proforma modal does — instead of trusting
         // the invoice's own stored totals, so the numbers on screen never diverge
         // from the numbers in the table above them.
-        double totalHt  = r2(items.stream().mapToDouble(ItemRow::totalHt).sum());
-        double totalTva = r2(items.stream().mapToDouble(r -> r.totalTtc() - r.totalHt()).sum());
-        double timbre   = isFacture && inv.getTimbreFiscal() != null ? inv.getTimbreFiscal() : 0.0;
-        double ttc       = isFacture
-                ? r2(totalHt + totalTva + timbre)
-                : r2(items.stream().mapToDouble(ItemRow::totalTtc).sum());
+        java.math.BigDecimal totalHt  = com.camping.duneinsolite.money.Money.sum(items.stream().map(ItemRow::totalHt).toList());
+        java.math.BigDecimal totalTva = com.camping.duneinsolite.money.Money.sum(items.stream().map(r -> com.camping.duneinsolite.money.Money.subtract(r.totalTtc(), r.totalHt())).toList());
+        java.math.BigDecimal timbre   = isFacture ? com.camping.duneinsolite.money.Money.nz(inv.getTimbreFiscal()) : com.camping.duneinsolite.money.Money.ZERO;
+        java.math.BigDecimal ttc       = isFacture
+                ? com.camping.duneinsolite.money.Money.add(totalHt, totalTva, timbre)
+                : com.camping.duneinsolite.money.Money.sum(items.stream().map(ItemRow::totalTtc).toList());
 
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"/>")
@@ -233,7 +234,7 @@ public class InvoiceEmailService {
                   .append("<td style=\"padding:8px 10px;border:1px solid #e5e7eb;text-align:center;\">").append(fmtPct(row.tva())).append(" %</td>")
                   .append("<td style=\"padding:8px 10px;border:1px solid #e5e7eb;text-align:center;\">").append(fmt(row.totalHt())).append(" ").append(cur).append("</td>");
             } else {
-                double unitTtc = row.unitPriceHt() * (1 + row.tva() / 100);
+                java.math.BigDecimal unitTtc = com.camping.duneinsolite.money.Money.round(row.unitPriceHt().multiply(java.math.BigDecimal.ONE.add(row.tva().movePointLeft(2))));
                 sb.append("<td style=\"padding:8px 10px;border:1px solid #e5e7eb;text-align:center;\">").append(fmt(unitTtc)).append(" ").append(cur).append("</td>")
                   .append("<td style=\"padding:8px 10px;border:1px solid #e5e7eb;text-align:center;\">").append(fmt(row.totalTtc())).append(" ").append(cur).append("</td>");
             }
@@ -267,8 +268,9 @@ public class InvoiceEmailService {
 
         // ── Arrêté (facture only) — full width, below the totals+cachet block ──
         if (isFacture) {
-            long dinars   = (long) ttc;
-            long millimes = Math.round((ttc - dinars) * 1000);
+            java.math.BigDecimal ttcRounded = com.camping.duneinsolite.money.Money.round(ttc);
+            long dinars   = ttcRounded.longValue();
+            long millimes = ttcRounded.remainder(java.math.BigDecimal.ONE).movePointRight(3).abs().longValue();
             sb.append("<p style=\"font-size:11px;color:#1e293b;margin-bottom:16px;\">")
               .append("ARRETE LA PRESENTE FACTURE A LA SOMME DE : ")
               .append(dinars).append(" DINARS ET ").append(String.format("%03d", millimes))
@@ -337,8 +339,8 @@ public class InvoiceEmailService {
     // ── Email HTML body ───────────────────────────────────────────
 
     private String buildEmailBody(String clientName, String invoiceNumber,
-                                  boolean isFacture, double total, double paid, Currency currency) {
-        double remaining = total - paid;
+                                  boolean isFacture, java.math.BigDecimal total, java.math.BigDecimal paid, Currency currency) {
+        java.math.BigDecimal remaining = com.camping.duneinsolite.money.Money.subtract(total, paid);
         String typeLabel = isFacture ? "facture" : "proforma";
         String cur = currencyLabel(currency != null ? currency.name() : "TND");
         return "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"/></head>"
@@ -396,11 +398,11 @@ public class InvoiceEmailService {
         return invoice.getItems().stream()
                 .sorted(Comparator.comparing(i -> i.getLineNumber() != null ? i.getLineNumber() : 0))
                 .map(i -> {
-                    double tva         = i.getTva() != null ? i.getTva() : 0.0;
-                    double unitPriceHt = i.getUnitPrice() != null ? i.getUnitPrice() : 0.0;
+                    java.math.BigDecimal tva         = com.camping.duneinsolite.money.Money.nz(i.getTva());
+                    java.math.BigDecimal unitPriceHt = com.camping.duneinsolite.money.Money.nz(i.getUnitPrice());
                     int    qty         = i.getQuantity() != null ? i.getQuantity() : 0;
-                    double totalHt     = r2(qty * unitPriceHt);
-                    double totalTtc    = r2(totalHt * (1 + tva / 100));
+                    java.math.BigDecimal totalHt     = com.camping.duneinsolite.money.Money.multiply(unitPriceHt, qty);
+                    java.math.BigDecimal totalTtc    = com.camping.duneinsolite.money.Money.round(totalHt.multiply(java.math.BigDecimal.ONE.add(tva.movePointLeft(2))));
                     return new ItemRow(
                             formatItemDate(i.getActivityDate(), i.getActivityEndDate()),
                             i.getDescription(), qty, unitPriceHt, tva, totalHt, totalTtc);
@@ -414,7 +416,7 @@ public class InvoiceEmailService {
         return DATE_FMT.format(start);
     }
 
-    private static double r2(double v) { return Math.round(v * 1000.0) / 1000.0; }
+    private static java.math.BigDecimal r2(java.math.BigDecimal v) { return com.camping.duneinsolite.money.Money.round(v); }
 
     // ── Helpers ───────────────────────────────────────────────────
 
@@ -426,8 +428,8 @@ public class InvoiceEmailService {
                 + "<br/><span style=\"white-space:nowrap;\">EMAIL : dunesinsolites@gmail.com</span>";
     }
 
-    private String fmt(double v)             { return String.format("%.3f", v); }
-    private String fmtPct(double v)          { return v == Math.floor(v) ? String.valueOf((long) v) : String.valueOf(v); }
+    private String fmt(java.math.BigDecimal v)               { return String.format("%.3f", com.camping.duneinsolite.money.Money.nz(v)); }
+    private String fmtPct(java.math.BigDecimal v)            { java.math.BigDecimal x = com.camping.duneinsolite.money.Money.nz(v); return x.stripTrailingZeros().scale() <= 0 ? String.valueOf(x.longValue()) : x.stripTrailingZeros().toPlainString(); }
     private boolean notBlank(String s)       { return s != null && !s.isBlank(); }
     private String  safeStr(String s)        { return s != null ? s : "—"; }
 
@@ -441,5 +443,5 @@ public class InvoiceEmailService {
     }
 
     private record ItemRow(String date, String description, int quantity,
-                            double unitPriceHt, double tva, double totalHt, double totalTtc) {}
+                            java.math.BigDecimal unitPriceHt, java.math.BigDecimal tva, java.math.BigDecimal totalHt, java.math.BigDecimal totalTtc) {}
 }

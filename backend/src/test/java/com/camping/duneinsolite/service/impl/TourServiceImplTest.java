@@ -72,11 +72,11 @@ class TourServiceImplTest {
 
         TourUpdateRequest request = new TourUpdateRequest();
         request.setName("New name");
-        request.setPassengerAdultPrice(100.0);
-        request.setPassengerChildPrice(50.0);
-        request.setPartnerAdultPrice(80.0);
-        request.setPartnerChildPrice(40.0);
-        request.setTva(13.0);
+        request.setPassengerAdultPrice(new java.math.BigDecimal("100.0"));
+        request.setPassengerChildPrice(new java.math.BigDecimal("50.0"));
+        request.setPartnerAdultPrice(new java.math.BigDecimal("80.0"));
+        request.setPartnerChildPrice(new java.math.BigDecimal("40.0"));
+        request.setTva(new java.math.BigDecimal("13.0"));
         // isActive left null - a PUT that only touches content/pricing.
 
         service.updateTour(tourId, request);

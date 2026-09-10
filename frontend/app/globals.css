@@ -922,13 +922,6 @@ body:has(.auth-page) .site-header {
   transform: translateY(var(--intro-y, 0px));
   opacity: var(--intro-opacity, 1);
   pointer-events: none;
-  /* Where the front/behind cut falls, as a share of the wordmark's own
-     height. Biased well past the midline so most of each letter reads
-     as a solid shape in front of the gate, with only its foot sinking
-     behind — a 50/50 cut fell right through the letters' busiest
-     stroke and the crossbar-height brickwork behind it, turning
-     "SABRIA" into noise instead of a wordmark. */
-  --split: 68%;
 }
 /* Behind the gate. */
 .hero-stack.type {
@@ -950,22 +943,20 @@ body:has(.auth-page) .site-header {
   visibility: hidden;
 }
 
-/* Complementary halves. `.front` paints the top of the letterforms over the
-   arch; `.type` paints the bottom, and the gate cuts across it. Splitting the
-   word this way rather than drawing it twice at full height matters — two
-   overlapping copies would composite to a denser white in the open sky and
-   give the trick away.
-
-   The cut is hard, not feathered. Two ramps that fade past each other are not
-   complements under alpha compositing — the halves each drop toward 50% at the
-   crossover and leave a visible dim band straight through the letters. */
+/* The gate arch used to cut across the wordmark here — `.front` painted only
+   the letters' top portion in front of the arch, `.type` the bottom portion
+   behind it, so the gate's towers visually crossed through "SABRIA". Removed
+   on request: the word now renders whole, entirely in front of the gate.
+   `.type` stays in the DOM (Hero.tsx keeps both layers so their layout
+   matches to the pixel) but paints nothing — otherwise it would draw a full
+   second copy of the word behind the arch, doubling to a denser white
+   wherever the gate photo has open sky/alpha. */
 .hero-stack.front .wordmark {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0 var(--split), transparent var(--split));
-  mask-image: linear-gradient(to bottom, #000 0 var(--split), transparent var(--split));
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 .hero-stack.type .wordmark {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0 var(--split), #000 var(--split));
-  mask-image: linear-gradient(to bottom, transparent 0 var(--split), #000 var(--split));
+  visibility: hidden;
 }
 
 .wordmark {
@@ -1327,9 +1318,19 @@ body:has(.auth-page) .site-header {
 }
 /* `backwards`, never `forwards`/`both`, on anything whose opacity or transform
    is driven by a scroll variable — a retained final keyframe would pin the
-   value and the element would refuse to fade out on scroll. */
+   value and the element would refuse to fade out on scroll.
+   Found live (Core Web Vitals audit): this exact element - the real,
+   visible SABRIA text in .hero-stack.fore - is the page's LCP candidate
+   (confirmed via a real PerformanceObserver reading, not assumed: giant
+   hero type outsizes both background images by rendered area). At the old
+   1.7s/0.55s timing, Chrome doesn't credit the paint until the fade is
+   essentially done, measured live at 2540-2664ms - just over the 2500ms
+   "good" threshold, landing in "needs improvement". Trimmed to 0.9s/0.2s -
+   still a real fade-and-rise entrance, just fast enough that the credited
+   paint lands well inside "good". Re-verified live after the change (see
+   commit) rather than assumed from the CSS alone. */
 .wordmark {
-  animation: wordIn 1.7s 0.55s backwards var(--ease-out-expo);
+  animation: wordIn 0.9s 0.2s backwards var(--ease-out-expo);
 }
 .hero-stack .eyebrow {
   animation: fadeUp 1.1s 0.95s both var(--ease-out-expo);
@@ -1526,39 +1527,64 @@ section.block {
 }
 
 /* ---------- how it works ---------- */
-.steps {
-  background: var(--maroon);
-  color: var(--paper);
-  padding: 128px 0;
+/* ---------- log-index: the numbered route list (Steps.tsx) ----------
+   Deliberately NOT the eyebrow+2-line-headline+3-col-grid skeleton every
+   other section on this page uses, and NOT a second dark band — see
+   Steps.tsx's own comment. A real editorial list: monospace kicker, then
+   rows with a narrow tabular-numeral column and a hairline rule between
+   each, on the page's normal paper ground. */
+.log-index {
+  padding: 96px 0;
+  background: var(--paper);
 }
-.steps .sect-eyebrow {
-  color: #f0a558;
+.log-index-kicker {
+  font-family: ui-monospace, "SF Mono", "Roboto Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
-.steps .grid {
+.log-index-list {
+  margin-top: 36px;
+}
+.log-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  margin-top: 64px;
+  grid-template-columns: 96px 1fr;
+  align-items: baseline;
+  gap: 28px;
+  padding: 30px 0;
+  border-top: 1px solid rgba(42, 21, 16, 0.14);
 }
-.step {
-  border-top: 1px solid rgba(253, 241, 225, 0.22);
-  padding-top: 26px;
+.log-row:last-child {
+  border-bottom: 1px solid rgba(42, 21, 16, 0.14);
 }
-.step .n {
+.log-num {
+  font-family: ui-monospace, "SF Mono", "Roboto Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem;
+  color: var(--accent);
+}
+.log-row-body h4 {
   font-family: var(--font-display), sans-serif;
-  font-size: 62px;
-  line-height: 1;
-  color: #f0a558;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--ink);
 }
-.step h4 {
-  font-size: 1.32rem;
-  font-weight: 700;
-  margin: 18px 0 12px;
-}
-.step p {
-  color: rgba(253, 241, 225, 0.72);
+.log-row-body p {
+  margin-top: 8px;
+  color: var(--muted);
   font-size: 1rem;
   line-height: 1.55;
+  max-width: 62ch;
+}
+@media (max-width: 640px) {
+  .log-row {
+    grid-template-columns: 56px 1fr;
+    gap: 18px;
+  }
+  .log-num {
+    font-size: 1.2rem;
+  }
 }
 
 /* ---------- experience band ---------- */
@@ -1624,34 +1650,55 @@ section.block {
 }
 
 /* ---------- gallery ---------- */
-.gallery {
+.log-gallery {
   background: var(--sand);
   padding: 120px 0 128px;
 }
-.gallery .strip {
+.log-gallery-title {
+  margin-top: 14px;
+  font-weight: 600;
+  font-size: clamp(28px, 3.2vw, 44px);
+  line-height: 1.1;
+}
+.log-gallery-strip {
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
   grid-auto-rows: 240px;
-  gap: 18px;
+  gap: 22px 18px;
   margin-top: 56px;
 }
-.gallery .g {
-  position: relative;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 18px 44px rgba(42, 16, 8, 0.14);
+.log-gallery-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.gallery .g img {
+.log-gallery-frame {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  border: 1px solid rgba(42, 21, 16, 0.14);
+}
+.log-gallery-frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.8s var(--ease-out-expo);
 }
-.gallery .g:hover img {
-  transform: scale(1.06);
+.log-gallery-item figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
-.gallery .tall {
+.log-gallery-item figcaption .log-num {
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+.log-gallery-item.tall {
   grid-row: span 2;
+}
+.log-gallery-item.tall .log-gallery-frame {
+  flex: 1;
 }
 
 /* ---------- CTA ---------- */
@@ -1752,6 +1799,25 @@ section.block {
   transform: none;
   box-shadow: none;
 }
+/* Plain typed link — arrow + underline, no pill/box — for the Field Log
+   voice where a boxed button would repeat the site's own CTA shape too
+   often on one page. */
+.log-link {
+  display: inline-block;
+  margin-top: 40px;
+  font-family: ui-monospace, "SF Mono", "Roboto Mono", "Courier New", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  border-bottom: 1px solid rgba(42, 21, 16, 0.35);
+  padding-bottom: 2px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.log-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .btn-quiet {
   display: inline-flex;
   align-items: center;
@@ -1819,6 +1885,44 @@ section.block {
   font-size: 0.85rem;
   color: #a8371a;
 }
+.star-rating-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(42, 21, 16, 0.18);
+  border-radius: 12px;
+  padding: 12px 16px;
+  width: fit-content;
+}
+.star-rating-input button {
+  background: none;
+  border: none;
+  padding: 2px;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: rgba(42, 21, 16, 0.22);
+  transition: color 0.12s, transform 0.12s;
+}
+.star-rating-input button[data-filled="true"] {
+  color: var(--accent);
+}
+.star-rating-input button:hover,
+.star-rating-input button:focus-visible {
+  transform: scale(1.12);
+}
+.star-rating-input button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.star-rating-value {
+  margin-inline-start: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
 .field[data-invalid="true"] input,
 .field[data-invalid="true"] select,
 .field[data-invalid="true"] textarea {
@@ -1873,6 +1977,14 @@ footer.site-footer .brand + p {
   font-size: 0.95rem;
   line-height: 1.5;
 }
+footer.site-footer .footer-coords {
+  margin-top: 10px;
+  max-width: 320px;
+  font-family: ui-monospace, "SF Mono", "Roboto Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  opacity: 0.55;
+}
 footer.site-footer .cols {
   display: flex;
   gap: 64px;
@@ -1907,6 +2019,17 @@ footer.site-footer .bar {
   flex-wrap: wrap;
   font-size: 0.82rem;
   opacity: 0.7;
+  /* The fixed WhatsApp button (.wa-float) always sits over the page's
+     bottom-right corner, right where this bar's last item lands — reserve
+     its footprint so the social links never run under it. */
+  padding-right: calc(120px + env(safe-area-inset-right, 0px));
+}
+footer.site-footer .bar-legal {
+  display: flex;
+  gap: 18px;
+}
+footer.site-footer .bar-social a:hover {
+  color: #f0a558;
 }
 
 /* ---------- generic light section ---------- */
@@ -2362,7 +2485,17 @@ footer.site-footer .bar {
 /* ---------- booking flow ---------- */
 .book-page {
   background: var(--sand);
-  padding: 150px 0 120px;
+  /* Found live (UI/UX audit, 31 Aug 2026): the fixed header's own height
+     varies slightly with content length - German's longer nav labels
+     ("ÜBERNACHTUNG", "SICHERHEIT") made it a few px taller at common
+     laptop widths, and 150px stopped being enough clearance: the account
+     page's welcome heading rendered overlapping the header. 150px was
+     already razor-thin even in French/English at 1440px - this wasn't a
+     new problem, just one the account redesign's unwrapped header text
+     (no card padding to absorb the shortfall, unlike the old plain
+     "My account" heading) finally made visible. Bumped with real margin,
+     not the minimum that happened to work in one locale at one width. */
+  padding: 190px 0 120px;
   min-height: 100vh;
 }
 .stepper {
@@ -2808,37 +2941,656 @@ footer.site-footer .bar {
 }
 
 /* ---------- client account area ---------- */
-.account-tabs {
+/* Redesigned from a floating row of pill-tabs (looked like a generic
+   dev-scaffolding page, not a paid product's account area) to a real
+   sidebar, matching the vitrine's own established premium bar - the
+   split-photo login page, the cinematic hero - which this space did not
+   live up to before. */
+.account-shell {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.account-content {
+  min-width: 0;
+}
+
+.account-sidebar {
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 20px;
+  padding: 20px 14px;
+  box-shadow: 0 18px 40px rgba(42, 16, 8, 0.08);
+  position: sticky;
+  top: 120px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 40px;
+  flex-direction: column;
+  gap: 4px;
 }
-.account-tabs a {
-  padding: 10px 20px;
-  border-radius: 999px;
-  border: 1px solid rgba(42, 21, 16, 0.18);
-  background: transparent;
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+.account-sidebar-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 18px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(42, 21, 16, 0.1);
 }
-.account-tabs a[data-active="true"] {
+.account-sidebar-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
   background: var(--accent);
-  border-color: var(--accent);
   color: var(--paper);
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
 }
+.account-sidebar-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.account-sidebar-logout {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-top: 2px;
+  font: inherit;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.account-sidebar-logout:hover {
+  color: #a4292b;
+}
+
+.account-sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.account-sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--muted);
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.16s, color 0.16s;
+}
+.account-sidebar a:hover {
+  background: rgba(42, 21, 16, 0.05);
+  color: var(--ink);
+}
+.account-sidebar a[data-active="true"] {
+  background: rgba(200, 100, 47, 0.12);
+  color: var(--accent);
+}
+.account-sidebar-icon {
+  display: flex;
+  flex-shrink: 0;
+  color: currentColor;
+  opacity: 0.85;
+}
+.account-sidebar-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.2;
+}
+.account-sidebar-context {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--accent);
+  opacity: 0.85;
+}
+
 .account-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 .account-empty {
   color: var(--muted);
   font-style: italic;
   padding: 8px 0 4px;
+}
+
+/* Real, specific booking cards - not bare label/value pairs. */
+.account-booking-card {
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 20px;
+  padding: 28px 30px;
+  box-shadow: 0 18px 44px rgba(42, 16, 8, 0.1);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.account-booking-card:hover {
+  box-shadow: 0 24px 56px rgba(42, 16, 8, 0.14);
+  transform: translateY(-2px);
+}
+.account-booking-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.account-booking-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-booking-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(200, 100, 47, 0.12);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.account-booking-title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.account-booking-sub {
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.account-booking-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(42, 21, 16, 0.08);
+}
+.account-booking-grid .k {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+.account-booking-grid .v {
+  margin-top: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-pill[data-status="pending"] {
+  background: rgba(180, 120, 20, 0.14);
+  color: #a4700f;
+}
+.status-pill[data-status="confirmed"] {
+  background: rgba(44, 122, 61, 0.14);
+  color: #2c7a3d;
+}
+.status-pill[data-status="cancelled"],
+.status-pill[data-status="rejected"] {
+  background: rgba(164, 41, 43, 0.12);
+  color: #a4292b;
+}
+.status-pill[data-status="completed"] {
+  background: rgba(42, 21, 16, 0.08);
+  color: var(--muted);
+}
+
+/* ---------- account overview: the trip-centric redesign ---------- */
+.account-overview-header {
+  margin-bottom: 22px;
+}
+.account-overview-eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.account-overview-heading {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: clamp(22px, 2.4vw, 30px);
+  color: var(--ink);
+  margin-top: 4px;
+  line-height: 1.15;
+}
+
+.next-trip-hero {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 26px 60px rgba(42, 16, 8, 0.14);
+  margin-bottom: 28px;
+}
+.next-trip-hero-media {
+  position: relative;
+  min-height: 220px;
+}
+.next-trip-hero-media img {
+  object-fit: cover;
+}
+.next-trip-hero-body {
+  padding: 28px 30px;
+  display: flex;
+  flex-direction: column;
+}
+.next-trip-hero-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.next-trip-hero-title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: clamp(20px, 2.2vw, 26px);
+  color: var(--ink);
+  margin-top: 6px;
+  line-height: 1.15;
+}
+.next-trip-hero-ref {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+.next-trip-hero-facts {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  font-size: 0.92rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+.next-trip-hero-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.next-trip-hero-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.next-trip-hero-total {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.next-trip-empty {
+  background: var(--paper);
+  border: 1px dashed rgba(42, 21, 16, 0.2);
+  border-radius: 22px;
+  padding: 36px 30px;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+/* ---------- account overview: second pass, the sections below the hero ---------- */
+.dash-section {
+  margin-top: 32px;
+}
+.dash-section-title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.dash-section-lead {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Trip at a glance */
+.glance-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.glance-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+}
+.glance-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(200, 100, 47, 0.1);
+  color: var(--accent);
+}
+.glance-value {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.glance-note {
+  margin-top: 2px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* Your journey - a quiet horizontal progress track */
+.journey-track {
+  margin-top: 22px;
+  display: flex;
+  align-items: flex-start;
+}
+.journey-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.journey-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(42, 21, 16, 0.2);
+  background: var(--paper);
+  font-size: 0.7rem;
+  color: transparent;
+  z-index: 1;
+}
+.journey-step[data-state="done"] .journey-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--paper);
+}
+.journey-step[data-state="current"] .journey-dot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(200, 100, 47, 0.16);
+}
+.journey-line {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: rgba(42, 21, 16, 0.14);
+  z-index: 0;
+}
+.journey-step[data-state="done"] .journey-line {
+  background: var(--accent);
+}
+.journey-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 100px;
+}
+.journey-step[data-state="current"] .journey-label {
+  color: var(--accent);
+}
+.journey-step[data-state="done"] .journey-label {
+  color: var(--ink);
+}
+
+/* Before your trip */
+.before-trip-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.before-trip-card {
+  display: block;
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 16px;
+  padding: 18px 20px;
+  transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+}
+.before-trip-card:hover {
+  box-shadow: 0 16px 34px rgba(42, 16, 8, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(200, 100, 47, 0.4);
+}
+.before-trip-card-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--accent);
+}
+.before-trip-card-desc {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Complete your experience */
+.recommend-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.recommend-card {
+  display: block;
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.recommend-card:hover {
+  box-shadow: 0 18px 40px rgba(42, 16, 8, 0.12);
+  transform: translateY(-2px);
+}
+.recommend-card-media {
+  position: relative;
+  aspect-ratio: 4/3;
+}
+.recommend-card-media img {
+  object-fit: cover;
+}
+.recommend-card-body {
+  padding: 14px 16px 16px;
+}
+.recommend-card-title {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: var(--ink);
+}
+.recommend-card-tagline {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.recommend-card-cta {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Need help */
+.need-help-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--paper);
+  border: 1px solid rgba(42, 21, 16, 0.1);
+  border-radius: 18px;
+  padding: 22px 26px;
+}
+.need-help-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(42, 21, 16, 0.22);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: border-color 0.18s, background 0.18s;
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  background: rgba(200, 100, 47, 0.06);
+}
+
+@media (max-width: 640px) {
+  .next-trip-hero {
+    grid-template-columns: 1fr;
+  }
+  .next-trip-hero-media {
+    min-height: 160px;
+  }
+  .glance-grid,
+  .before-trip-grid,
+  .recommend-grid {
+    grid-template-columns: 1fr;
+  }
+  .journey-track {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .journey-step {
+    flex-direction: row;
+    text-align: start;
+    gap: 12px;
+  }
+  .journey-line {
+    display: none;
+  }
+  .journey-label {
+    max-width: none;
+  }
+  .need-help-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+@media (max-width: 900px) and (min-width: 641px) {
+  .glance-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .before-trip-grid,
+  .recommend-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .account-shell {
+    grid-template-columns: 1fr;
+  }
+  .account-sidebar {
+    position: static;
+    padding: 14px;
+  }
+  .account-sidebar-identity {
+    padding: 0 0 14px;
+    margin-bottom: 10px;
+  }
+  .account-sidebar-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .account-sidebar-label,
+  .account-sidebar-context {
+    display: none;
+  }
+  .account-sidebar a {
+    padding: 10px;
+  }
+  .account-booking-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ---------- gallery page ---------- */
@@ -3682,14 +4434,13 @@ body:has(.drawer[data-open="true"]) .wa-float {
   .masonry {
     grid-template-columns: 1fr 1fr;
   }
-  .cards,
-  .steps .grid {
+  .cards {
     grid-template-columns: 1fr;
   }
-  .gallery .strip {
+  .log-gallery-strip {
     grid-template-columns: 1fr 1fr;
   }
-  .gallery .tall {
+  .log-gallery-item.tall {
     grid-row: span 1;
   }
   /* Below this width everything lives in the drawer, including the whole

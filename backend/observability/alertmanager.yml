@@ -1,0 +1,32 @@
+# Alertmanager routing. The receiver below is a placeholder webhook — replace
+# `url` with a real Slack/PagerDuty/Opsgenie/email integration before go-live
+# and put the secret in the environment, never here.
+
+route:
+  receiver: default
+  group_by: ["alertname"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [severity="critical"]
+      receiver: default
+      repeat_interval: 1h
+
+receivers:
+  - name: default
+    webhook_configs:
+      # local dev: points at the `alert-sink` container, which just logs every
+      # firing alert so you can SEE the pipeline work end to end.
+      - url: http://alert-sink:5001/
+        send_resolved: true
+    # PRODUCTION — replace the above with e.g.:
+    # slack_configs:
+    #   - api_url_file: /run/secrets/slack_webhook_url
+    #     channel: "#dunes-alerts"
+    #     send_resolved: true
+
+inhibit_rules:
+  - source_matchers: [alertname="BackendMetricsUnreachable"]
+    target_matchers: [severity="warning"]
+    equal: ["service"]

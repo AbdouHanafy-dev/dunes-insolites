@@ -1,6 +1,9 @@
+import { seedRouteDisabled } from "@/lib/seedGuard";
 import { reviews } from "@/lib/data/reviews";
 
 export async function GET(req: Request) {
+  const _seedOff = seedRouteDisabled();
+  if (_seedOff) return _seedOff;
   const { searchParams } = new URL(req.url);
   const activity = searchParams.get("activity");
   const stay = searchParams.get("stay");

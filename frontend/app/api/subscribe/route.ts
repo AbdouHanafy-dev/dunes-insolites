@@ -1,3 +1,4 @@
+import { seedRouteDisabled } from "@/lib/seedGuard";
 // Local dev/no-backend stand-in for PublicNewsletterController
 // (POST /api/public/subscribe) - see app/api/contact/route.ts's own
 // comment, same reasoning exactly. With a real backend configured, the
@@ -6,6 +7,8 @@
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
+  const _seedOff = seedRouteDisabled();
+  if (_seedOff) return _seedOff;
   let body: { email?: string };
   try {
     body = await req.json();

@@ -4,26 +4,34 @@ import com.camping.duneinsolite.config.RabbitMQConfig;
 import com.camping.duneinsolite.dto.message.NotificationMessage;
 import com.camping.duneinsolite.model.Reservation;
 import com.camping.duneinsolite.model.User;
+import com.camping.duneinsolite.model.enums.EmailType;
 import com.camping.duneinsolite.model.enums.ReservationType;
+import com.camping.duneinsolite.observability.CorrelationId;
+import com.camping.duneinsolite.observability.EmailMetrics;
 import com.camping.duneinsolite.repository.ReservationRepository;
 import com.camping.duneinsolite.service.impl.EmailService;
-import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDate;
 
 /**
- * Sends the "we received your booking request" email (DI-014). Separate
- * queue/consumer from NotificationConsumer (which persists + fans out over
- * SSE to staff) - same published message, routed to both via the topic
- * exchange's fan-out, see RabbitMQConfig.emailBinding().
+ * Sends the "we received your booking request" email (DI-014).
+ *
+ * <p>Reliability contract (production-hardening item 2):
+ * <ul>
+ *   <li>Runs on {@code emailListenerContainerFactory} (AUTO ack + retry). The
+ *       message is acked only when this method returns normally - i.e. after the
+ *       email was actually sent or was provably a duplicate.</li>
+ *   <li>On failure it rethrows: the container retries with backoff, then
+ *       dead-letters to {@code notification.dlq} where {@code DeadLetterConsumer}
+ *       records it for replay.</li>
+ *   <li>Idempotent via {@code email_dispatch} - a redelivered message whose
+ *       dispatch row is already {@code SENT} is skipped, never re-mailed.</li>
+ *   <li>Carries the correlation id from the message into MDC for its logs.</li>
+ * </ul>
  */
 @Slf4j
 @Service
@@ -31,44 +39,55 @@ import java.time.LocalDate;
 public class ReservationEmailConsumer {
 
     private final ReservationRepository reservationRepository;
+    private final EmailDispatchService emailDispatchService;
     private final EmailService emailService;
+    private final EmailMetrics emailMetrics;
 
-    @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE)
-    @Transactional(readOnly = true)
-    public void consume(
-            NotificationMessage message,
-            Channel channel,
-            @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag
-    ) throws IOException {
-        try {
-            Reservation reservation = reservationRepository.findById(message.getReservationId())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Reservation not found: " + message.getReservationId()));
+    @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE, containerFactory = "emailListenerContainerFactory")
+    public void consume(NotificationMessage message) {
+        try (CorrelationId.Scope ignored = CorrelationId.scope(message.getCorrelationId())) {
+            RecipientView view = loadRecipient(message);
 
-            User user = reservation.getUser();
-            emailService.sendReservationReceivedEmail(
-                    user.getEmail(),
-                    user.getName(),
-                    reservationDate(reservation),
-                    reservationTotal(reservation),
-                    reservation.getCurrency() != null ? reservation.getCurrency().name() : "TND"
-            );
+            var claim = emailDispatchService.claim(
+                    message.getReservationId(), EmailType.RESERVATION_RECEIVED,
+                    view.email(), message.getCorrelationId());
 
-            channel.basicAck(deliveryTag, false);
-        } catch (Exception e) {
-            log.error("Failed to send reservation-received email: {}", e.getMessage());
-            channel.basicNack(deliveryTag, false, false);
+            if (claim.alreadySent()) {
+                log.info("reservation-received email already sent for reservation {} - skipping duplicate delivery",
+                        message.getReservationId());
+                emailMetrics.emailSkippedDuplicate();
+                return;
+            }
+
+            try {
+                emailService.sendReservationReceivedEmail(
+                        view.email(), view.name(), view.date(), view.total(), view.currency());
+                emailDispatchService.markSent(claim.dispatchId());
+                emailMetrics.emailSent();
+                log.info("reservation-received email delivered for reservation {} (attempt {})",
+                        message.getReservationId(), claim.attempts());
+            } catch (RuntimeException sendFailure) {
+                emailDispatchService.markFailed(claim.dispatchId(), sendFailure.toString());
+                emailMetrics.emailFailed();
+                log.error("reservation-received email FAILED for reservation {} (attempt {}) - {}",
+                        message.getReservationId(), claim.attempts(), sendFailure.getMessage());
+                throw sendFailure; // -> container retry -> DLQ
+            }
         }
     }
 
-    private LocalDate reservationDate(Reservation reservation) {
-        if (reservation.getCheckInDate() != null) return reservation.getCheckInDate();
-        return reservation.getServiceDate();
-    }
+    private record RecipientView(String email, String name, LocalDate date, java.math.BigDecimal total, String currency) {}
 
-    private Double reservationTotal(Reservation reservation) {
-        return reservation.getReservationType() == ReservationType.EXTRAS
-                ? reservation.getTotalExtrasAmount()
-                : reservation.getTotalAmount();
+    private RecipientView loadRecipient(NotificationMessage message) {
+        Reservation reservation = reservationRepository.findByIdWithUser(message.getReservationId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Reservation not found: " + message.getReservationId()));
+        User user = reservation.getUser();
+        LocalDate date = reservation.getCheckInDate() != null
+                ? reservation.getCheckInDate() : reservation.getServiceDate();
+        java.math.BigDecimal total = reservation.getReservationType() == ReservationType.EXTRAS
+                ? reservation.getTotalExtrasAmount() : reservation.getTotalAmount();
+        String currency = reservation.getCurrency() != null ? reservation.getCurrency().name() : "TND";
+        return new RecipientView(user.getEmail(), user.getName(), date, total, currency);
     }
 }

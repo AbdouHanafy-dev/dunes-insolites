@@ -45,6 +45,13 @@ public class Notification {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Idempotency key from the source NotificationMessage. Nullable (historical
+    // rows, and any message published without one). The partial unique index
+    // ux_notifications_user_dedupe (V6) on (user_id, dedupe_key) makes a
+    // redelivery of the same message a no-op.
+    @Column(name = "dedupe_key", length = 64)
+    private String dedupeKey;
+
     // ──────────────────────────────────────────────
     // RELATION — sent to one User (any role)
     // ──────────────────────────────────────────────

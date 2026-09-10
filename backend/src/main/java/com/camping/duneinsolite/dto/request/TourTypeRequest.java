@@ -44,22 +44,22 @@ public class TourTypeRequest {
 
     @NotNull(message = "Passenger adult price is required")
     @Positive(message = "Price must be positive")
-    private Double passengerAdultPrice;
+    private java.math.BigDecimal passengerAdultPrice;
 
     @NotNull(message = "Passenger child price is required")
     @Positive(message = "Price must be positive")
-    private Double passengerChildPrice;
+    private java.math.BigDecimal passengerChildPrice;
 
     @NotNull(message = "Partner adult price is required")
     @Positive(message = "Price must be positive")
-    private Double partnerAdultPrice;
+    private java.math.BigDecimal partnerAdultPrice;
 
     @NotNull(message = "Partner child price is required")
     @Positive(message = "Price must be positive")
-    private Double partnerChildPrice;
+    private java.math.BigDecimal partnerChildPrice;
 
     @NotNull(message = "TVA is required")
     @DecimalMin(value = "0.0", inclusive = true, message = "TVA cannot be negative")
     @DecimalMax(value = "100.0", inclusive = true, message = "TVA cannot exceed 100%")
-    private Double tva;
+    private java.math.BigDecimal tva;
 }

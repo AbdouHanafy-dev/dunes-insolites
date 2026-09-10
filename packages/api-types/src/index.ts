@@ -134,7 +134,11 @@ export type GalleryItem = {
  *  presentational ("40 000+", "4,9") and formatted at the source. */
 export type Stats = {
   guestsGuided: string;
-  avgRating: string;
+  /** Optional: undefined means no real reviews exist yet to average - the
+   *  honest state for a business with zero reviews, not a placeholder
+   *  number. Never fabricate a value here; the UI shows a "New" label
+   *  instead when this is absent. */
+  avgRating?: string;
   yearsRunning: string;
 };
 
@@ -143,7 +147,11 @@ export type Stats = {
 export type Review = {
   id: string;
   name: string;
-  country: string;
+  /** Optional: a review from this app's own direct in-app system (the only
+   *  real source today) has no country on file - inventing one would be
+   *  the same fabrication this field exists to avoid elsewhere. Only a
+   *  genuine platform export (TripAdvisor/GetYourGuide/Google) carries it. */
+  country?: string;
   rating: 1 | 2 | 3 | 4 | 5;
   /** ISO date, YYYY-MM-DD. */
   date: string;

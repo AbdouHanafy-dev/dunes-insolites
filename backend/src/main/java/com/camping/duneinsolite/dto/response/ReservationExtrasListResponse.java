@@ -8,5 +8,5 @@ import java.util.List;
 @AllArgsConstructor
 public class ReservationExtrasListResponse {
     private List<ReservationExtraResponse> extras;
-    private Double totalExtrasAmount; // sum of all totalPrice in the list
+    private java.math.BigDecimal totalExtrasAmount;
 }

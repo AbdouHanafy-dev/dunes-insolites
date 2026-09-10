@@ -21,6 +21,6 @@ public interface PaymentService {
     PaymentSummary computePaymentSummary(Reservation reservation);
 
     Transaction buildTransaction(Reservation reservation, PaymentRequest request);
-    void publishPaymentReceivedInternal(Reservation reservation, Double amount);
+    void publishPaymentReceivedInternal(Reservation reservation, java.math.BigDecimal amount);
     void publishPaymentCompletedInternal(Reservation reservation);
 }

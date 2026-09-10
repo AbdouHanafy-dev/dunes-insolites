@@ -41,8 +41,8 @@ async function req(method, path, token, body) {
 
 async function login() {
   const { status, data } = await req("POST", "/auth/login", null, {
-    email: "testadmin@dunes.local",
-    password: "AdminPass1!",
+    email: process.env.SEED_ADMIN_EMAIL ?? "testadmin@dunes.local",
+    password: process.env.SEED_ADMIN_PASSWORD ?? "AdminPass1!",
   });
   if (status !== 200) throw new Error(`login failed: ${status} ${JSON.stringify(data)}`);
   return data.accessToken;

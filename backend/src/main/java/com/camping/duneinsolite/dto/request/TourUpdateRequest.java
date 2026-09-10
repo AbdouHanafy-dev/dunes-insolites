@@ -35,21 +35,21 @@ public class TourUpdateRequest {
     private List<Photo> photos;
 
     @NotNull(message = "Passenger adult price is required")
-    private Double passengerAdultPrice;
+    private java.math.BigDecimal passengerAdultPrice;
 
     @NotNull(message = "Passenger child price is required")
-    private Double passengerChildPrice;
+    private java.math.BigDecimal passengerChildPrice;
 
     @NotNull(message = "Partner adult price is required")
-    private Double partnerAdultPrice;
+    private java.math.BigDecimal partnerAdultPrice;
 
     @NotNull(message = "Partner child price is required")
-    private Double partnerChildPrice;
+    private java.math.BigDecimal partnerChildPrice;
 
     private Boolean isActive;
 
     @NotNull(message = "TVA is required")
     @DecimalMin(value = "0.0", inclusive = true, message = "TVA cannot be negative")
     @DecimalMax(value = "100.0", inclusive = true, message = "TVA cannot exceed 100%")
-    private Double tva;
+    private java.math.BigDecimal tva;
 }

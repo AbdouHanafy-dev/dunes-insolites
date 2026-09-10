@@ -244,11 +244,15 @@ accommodation from it client-side.
 ```
 Strings, not numbers — they render verbatim in the experience band.
 
-### `GET /gallery`
+### `GET /public/gallery`
 ```json
-{ "items": [ { "src": "/images/camel.jpg", "alt": "Camel at sunset", "tag": "Camel Trek", "tall": true } ] }
+[ { "src": "/images/camel.jpg", "alt": "Camel at sunset", "tag": "Camel Trek", "tall": true } ]
 ```
-`tag` must match one of the filter labels; `tall` makes the tile span two rows.
+Bare array, ordered for display (backend `position` then `createdAt`). `tag`
+is the filter facet on `/gallery` (free text — the page derives its filter
+chips from the distinct tags it receives); `tall` makes the tile span two
+rows. Real backoffice content since V8 — managed under `GET/POST/PUT/DELETE
+/api/gallery` (`AdminResource.GALLERY`), seeded from the old hardcoded list.
 
 ### `GET /reviews` · `GET /reviews?activity={slug}` · `GET /reviews?stay={slug}`
 ```json

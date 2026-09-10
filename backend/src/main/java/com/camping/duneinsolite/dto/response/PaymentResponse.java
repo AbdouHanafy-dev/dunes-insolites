@@ -14,7 +14,7 @@ public class PaymentResponse {
     // ── The transaction that was just created ─────────────────────
     private UUID transactionId;
     private String transactionNumber;
-    private Double amount;
+    private java.math.BigDecimal amount;
     private Currency currency;
     private PaymentMethod paymentMethod;
     private TransactionStatus status;

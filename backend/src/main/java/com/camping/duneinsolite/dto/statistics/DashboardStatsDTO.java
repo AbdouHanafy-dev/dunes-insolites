@@ -9,8 +9,8 @@ import lombok.Data;
 public class DashboardStatsDTO {
 
     // Revenue KPIs
-    private Double totalRevenue;
-    private Double revenueGrowth;          // % vs previous period
+    private java.math.BigDecimal totalRevenue;
+    private java.math.BigDecimal revenueGrowth;          // % vs previous period
 
     // Reservation KPIs
     private Long totalReservations;
@@ -20,9 +20,9 @@ public class DashboardStatsDTO {
     private Double reservationGrowth;      // % vs previous period
 
     // Direct passengers block
-    private Double passengerDirectRevenue;
+    private java.math.BigDecimal passengerDirectRevenue;
     private Long   passengerDirectCount;
-    private Double passengerRevenuePercentage;
+    private java.math.BigDecimal passengerRevenuePercentage;
 
     // Period used for the query (30 or 90 days)
     private Integer period;

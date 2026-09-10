@@ -320,7 +320,7 @@ export default function Hero({
           </div>
           <div className="rule" aria-hidden="true" />
           <div className="s">
-            <dt className="v">{stats.avgRating}</dt>
+            <dt className="v">{stats.avgRating ?? t("newRating")}</dt>
             <dd className="k">{t("averageRating")}</dd>
           </div>
           <div className="rule" aria-hidden="true" />

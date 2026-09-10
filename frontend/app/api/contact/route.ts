@@ -1,3 +1,4 @@
+import { seedRouteDisabled } from "@/lib/seedGuard";
 // Local dev/no-backend stand-in for PublicContactController
 // (POST /api/public/contact) - lib/api.ts's sendContact() only calls this
 // route when NEXT_PUBLIC_API_URL is unset (no real backend configured, per
@@ -12,6 +13,8 @@
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
+  const _seedOff = seedRouteDisabled();
+  if (_seedOff) return _seedOff;
   let body: { name?: string; email?: string; subject?: string; message?: string };
   try {
     body = await req.json();

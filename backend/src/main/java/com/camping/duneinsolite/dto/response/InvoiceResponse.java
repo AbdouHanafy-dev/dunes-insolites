@@ -17,9 +17,9 @@ public class InvoiceResponse {
     private InvoiceType invoiceType;
     private LocalDate invoiceDate;
     private LocalDate dueDate;
-    private Double totalAmount;
-    private Double paidAmount;
-    private Double remainingAmount;
+    private java.math.BigDecimal totalAmount;
+    private java.math.BigDecimal paidAmount;
+    private java.math.BigDecimal remainingAmount;
     private InvoiceStatus status;
     private PaymentStatus paymentStatus;
     private Currency currency;
@@ -32,11 +32,11 @@ public class InvoiceResponse {
     private String userPhone;
     private String userMatriculeFiscal;
     private String userAgencyAddress;
-    private Double totalHt;
-    private Double tvaRate;
-    private Double tvaAmount;
-    private Double timbreFiscal;
-    private Double totalTtc;
+    private java.math.BigDecimal totalHt;
+    private java.math.BigDecimal tvaRate;
+    private java.math.BigDecimal tvaAmount;
+    private java.math.BigDecimal timbreFiscal;
+    private java.math.BigDecimal totalTtc;
     private String arreteLaPresente;
 
     private List<InvoiceItemResponse> items;

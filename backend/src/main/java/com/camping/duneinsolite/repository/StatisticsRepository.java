@@ -25,7 +25,7 @@ public interface StatisticsRepository extends JpaRepository<Transaction, UUID> {
           AND t.transactionDate >= :since
           AND t.transactionDate < :until
     """)
-    Double getTotalRevenue(
+    java.math.BigDecimal getTotalRevenue(
             @Param("since") LocalDateTime since,
             @Param("until") LocalDateTime until
     );
@@ -78,7 +78,7 @@ public interface StatisticsRepository extends JpaRepository<Transaction, UUID> {
           AND t.transactionDate >= :since
           AND t.transactionDate < :until
     """)
-    Double getDirectPassengerRevenue(
+    java.math.BigDecimal getDirectPassengerRevenue(
             @Param("since") LocalDateTime since,
             @Param("until") LocalDateTime until
     );

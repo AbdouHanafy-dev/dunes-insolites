@@ -39,6 +39,7 @@ const GROUPS: NavGroup[] = [
       { label: "Blocs de contenu", href: "/content/blocks", icon: "🧩" },
       { label: "Navigation", href: "/content/navigation", icon: "🔗" },
       { label: "Médiathèque", href: "/content/media", icon: "🖼️" },
+      { label: "Galerie photos", href: "/content/gallery", icon: "🏞️" },
       { label: "Avis clients", href: "/content/avis", icon: "⭐" },
     ],
   },

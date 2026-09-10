@@ -26,6 +26,7 @@ const RESOURCE_LABELS: Record<AdminResource, string> = {
   MEDIA: "Médiathèque",
   NAVIGATION: "Navigation",
   REDIRECTS: "Redirections",
+  GALLERY: "Galerie photos",
   MAINTENANCE_WINDOWS: "Maintenance",
 };
 

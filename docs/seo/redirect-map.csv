@@ -1,0 +1,69 @@
+source,expected_status,destination,owner,reason,canonical_after_redirect,language,rollback_target,notes
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Phase 6 deterministic redirect map. Derived from: the real crawl docs/seo-baseline/20260826T084416Z.json (63 URLs),
+# scripts/seed-legacy-redirects.py (the CMS Redirect-table seed), and frontend/next.config.ts's rewrites.
+# expected_status 200 = served in place (rewrite, URL unchanged). 301 = permanent redirect. All sources are trailing-slash (next.config.ts trailingSlash:true).
+# "rollback_target" = what the URL resolves to after nginx is switched back to WordPress-only (i.e. the current live behaviour).
+# Do NOT invent a destination. Unknown => DECISION_REQUIRED.
+# --------------------------------------------------------------------------------------------------------------------------------------
+#
+# === Group A: legacy product slugs — served in place by Next.js (next.config.ts rewrite), URL and canonical unchanged ===
+/nuitee-campement-desert/,200,/nuitee-campement-desert/,dunes,Ranked FR URL; rewritten to /camp/nuitee-campement-desert internally,/nuitee-campement-desert/,fr,WordPress /nuitee-campement-desert/,canonical stays the flat slug via lib/legacySlugs.ts
+/bivouac-desert-tunisie/,200,/bivouac-desert-tunisie/,dunes,Ranked FR URL; rewritten to /camp/bivouac-desert-tunisie,/bivouac-desert-tunisie/,fr,WordPress /bivouac-desert-tunisie/,
+/sandboarding-desert/,200,/sandboarding-desert/,dunes,Ranked FR URL; rewritten to /activities/sandboarding-desert,/sandboarding-desert/,fr,WordPress /sandboarding-desert/,
+/quad-desert/,200,/quad-desert/,dunes,Ranked FR URL; rewritten to /activities/quad-desert,/quad-desert/,fr,WordPress /quad-desert/,
+/bedouin-diner-sahara-tunisien/,200,/bedouin-diner-sahara-tunisien/,dunes,Ranked FR URL; rewritten to /activities/bedouin-diner-sahara-tunisien,/bedouin-diner-sahara-tunisien/,fr,WordPress /bedouin-diner-sahara-tunisien/,
+/soirees-sous-les-etoiles/,200,/soirees-sous-les-etoiles/,dunes,Ranked FR URL; rewritten to /activities/soirees-sous-les-etoiles,/soirees-sous-les-etoiles/,fr,WordPress /soirees-sous-les-etoiles/,
+/le-pain-de-sabel/,200,/le-pain-de-sabel/,dunes,Ranked FR URL; rewritten to /activities/le-pain-de-sabel,/le-pain-de-sabel/,fr,WordPress /le-pain-de-sabel/,
+#
+# === Group B: legacy slugs rewritten to a DIFFERENT clean URL — canonical direction is a DECISION ===
+/presentation-campement-dunes-insolites/,200,/presentation-campement-dunes-insolites/,dunes,Rewritten to /about; page currently declares canonical /about/ (cross-URL canonical on a ranked page),DECISION_REQUIRED,fr,WordPress /presentation-campement-dunes-insolites/,DECISION: keep self-canonical (add to lib/legacySlugs.ts) OR consolidate to /about via a real 301
+/dunes-insolites-camp-gallery/,200,/dunes-insolites-camp-gallery/,dunes,Rewritten to /gallery; page currently declares canonical /gallery/,DECISION_REQUIRED,fr,WordPress /dunes-insolites-camp-gallery/,same DECISION as the row above
+#
+# === Group C: legacy circuit URLs — 301 to the /circuits "coming soon" page (Q6: Route Insolite product, not launched) ===
+/6-jours-excursion-desert-tunisien/,301,/circuits/,dunes,No equivalent content; Route Insolite product not launched (Q6),/circuits/,fr,WordPress /6-jours-excursion-desert-tunisien/,CMS Redirect table (middleware.ts). Never 301 to homepage.
+/circuit-4-jours-desert-tunisien-djerba-tataouine-tozeur/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/circuit-tataouine-et-chenini-au-depart-de-djerba/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/day-trip-desert-douz-and-matmata/,301,/circuits/,dunes,idem,/circuits/,en,WordPress original,
+/desert-3-jour/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/excursion-2-jours-desert-tunisien/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/excursion-desert-tunisie-2-jours/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/excursion-dune-journee-a-ksar-ghilane/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/excursion-tataouine-chenini-desert-tunisie-star-wars/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/immersion-saharienne-2-nuits-daventure-en-camp-et-bivouac/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+/ksar-ghilane-desert-tunisia/,301,/circuits/,dunes,idem,/circuits/,en,WordPress original,
+/tour-desert-tunisia/,301,/circuits/,dunes,idem,/circuits/,en,WordPress original,
+/tunisie-sahara-en-4x4/,301,/circuits/,dunes,idem,/circuits/,fr,WordPress original,
+#
+# === Group D: near-duplicate landing pages — 301 to the canonical product page ===
+/nuit-desert-tunisien-dunes-insolites/,301,/nuitee-campement-desert/,dunes,Duplicate of the nuitee page,/nuitee-campement-desert/,fr,WordPress original,CMS Redirect table
+/bivouac-desert-tunisien-sahara/,301,/bivouac-desert-tunisie/,dunes,Duplicate of the bivouac page,/bivouac-desert-tunisie/,fr,WordPress original,
+/spend-a-night-in-the-tunisian-desert-at-dunes-insolites-camp/,301,/nuitee-campement-desert/,dunes,EN duplicate of the nuitee page,/nuitee-campement-desert/,en,WordPress original,EN source -> FR-slug destination; acceptable (same product) but note the language switch
+#
+# === Group E: WooCommerce / theme hub + account pages — 301 to the new app equivalent ===
+/services/,301,/activities/,dunes,Service hub -> experiences list,/activities/,fr,WordPress original,
+/services/activites/,301,/activities/,dunes,idem,/activities/,fr,WordPress original,
+/services/sejours/,301,/camp/,dunes,Stays hub -> camp list,/camp/,fr,WordPress original,
+/services/tours/,301,/circuits/,dunes,Tours hub -> circuits coming-soon,/circuits/,fr,WordPress original,
+/mes-reservations/,301,/bookings/,dunes,Account: my bookings,DECISION_REQUIRED,fr,WordPress original,/bookings is auth-gated (307 -> /login when logged out); private -> robots-disallowed; NOT a public canonical
+/mon-compte/,301,/account/,dunes,Account home,DECISION_REQUIRED,fr,WordPress original,private route; robots-disallowed
+/mot-de-passe-oublie/,301,/login/,dunes,Password reset,DECISION_REQUIRED,fr,WordPress original,/login exists as a route; the app's real reset page is /forgot-password — verify the target
+/dunes-insolites-sabria-evasion-sahara/,301,/about/,dunes,Standalone landing; closest equivalent is About,/about/,fr,WordPress original,
+#
+# === Group F: blog + informational — STAY on WordPress in Stage 1 (nginx fallthrough). No redirect. ===
+/blog-desert/,200,/blog-desert/,wordpress,Not migrating; served by WordPress behind the nginx split,/blog-desert/,fr,WordPress /blog-desert/,~16 posts + 2 blog index pages
+/blog-sahara-tunisie/,200,/blog-sahara-tunisie/,wordpress,idem,/blog-sahara-tunisie/,fr,WordPress original,
+/category/*,200,/category/*,wordpress,WordPress taxonomy archives; not indexed content per the SEO plan,unchanged,fr,WordPress original,6 category archives (djerba douz dunes-insolites guides home sabria)
+/are-there-any-deserts-in-tunisia/,200,unchanged,wordpress,Informational post; stays on WordPress,unchanged,en,WordPress original,represents ~14 informational EN/FR posts
+#
+# === Group G: unmapped — NO destination decided. Stay on WordPress. Do NOT invent a redirect. ===
+/panier/,200,DECISION_REQUIRED,dunes,WooCommerce cart; no equivalent in the new app,DECISION_REQUIRED,fr,WordPress /panier/,revisit if it carries real backlinks
+/review/,200,DECISION_REQUIRED,dunes,Legacy review page; no equivalent,DECISION_REQUIRED,fr,WordPress /review/,
+/detail-service/,200,DECISION_REQUIRED,dunes,Legacy service-detail template page; no equivalent,DECISION_REQUIRED,fr,WordPress /detail-service/,
+#
+# === Group H: infrastructure ===
+http://www.dunes-insolites.com/*,301,https://www.dunes-insolites.com/*,cloudflare,Force HTTPS,as requested,*,unchanged,Cloudflare "Always Use HTTPS"; 1 hop
+http://dunes-insolites.com/*,301,https://www.dunes-insolites.com/*,cloudflare+origin,Force HTTPS + www,as requested,*,unchanged,CURRENTLY 2 HOPS (https upgrade keeps host; then origin adds www). Pre-existing minor chain — see phase6-nginx-seo.md risk R-4
+https://dunes-insolites.com/*,301,https://www.dunes-insolites.com/*,origin,Force www,as requested,*,unchanged,1 hop
+/sitemap.xml,200,/sitemap.xml,nextjs,Next serves it directly (WordPress currently 301s /sitemap.xml -> /sitemap_index.xml),/sitemap.xml,*,WordPress 301 -> /sitemap_index.xml,POST-MIGRATION: submit the new /sitemap.xml in Search Console; keep /sitemap_index.xml resolving (WordPress) until decommission
+*,308,*/ ,nextjs,Add trailing slash (trailingSlash:true),*/,*,WordPress 301 adds slash,Next uses 308; WordPress uses 301. Both permanent — acceptable.

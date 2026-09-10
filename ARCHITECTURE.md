@@ -251,7 +251,11 @@ multi-day circuits at all.
 - Owns stays, tours, extras, participants, staff assignment, room distribution,
   invoices and transactions
 
-This breadth is why `ReservationServiceImpl` is 1,788 lines. See
+This breadth is why `ReservationServiceImpl` is large (1,660 lines, down from a
+peak of ~1,960). Invoice / proforma generation was extracted into
+`ReservationInvoiceService` on 4 Sep 2026 ([ADR-0004](docs/adr/0004-reservation-invoice-service.md));
+the reservation lifecycle transition table lives in `ReservationStateMachine`
+([ADR-0003](docs/adr/0003-reservation-state-machine.md)). See
 [§13](#13-known-architectural-debt).
 
 ### 5.3 Enumerations
@@ -391,10 +395,10 @@ actuator health, and read-only catalogue — `/api/tours`, `/api/tour-types`,
 ```mermaid
 graph TD
     E["exception thrown"] --> B{"BusinessException?"}
-    B -->|yes| S["its own status<br/>401 / 404 / 409 / 503<br/>message shown to caller"]
-    B -->|no| R{"RuntimeException?"}
-    R -->|yes| D["400 — DEPRECATED path<br/>message still leaks"]
-    R -->|no| G["500 — generic message<br/>stack trace logged only"]
+    B -->|yes| S["its own status<br/>401 / 404 / 409 / 422 / 502 / 503<br/>message shown to caller"]
+    B -->|no| C{"IllegalArgumentException /<br/>DataIntegrityViolationException /<br/>EntityNotFoundException / etc?"}
+    C -->|yes| M["specific status via its own<br/>@ExceptionHandler — see<br/>GlobalExceptionHandler"]
+    C -->|no| G["500 — generic message<br/>stack trace logged only"]
 ```
 
 `BusinessException` is the base for failures that are part of the contract: the
@@ -403,14 +407,21 @@ Each subclass carries its own `HttpStatus`.
 
 Anything else is a **defect** and returns a generic 500 that reveals nothing.
 
-**The migration is deliberately incremental.** The blanket
-`RuntimeException → 400` handler is still registered and marked `@Deprecated`,
-because roughly 37 `throw new RuntimeException(...)` sites depend on it. Deleting
-it wholesale would turn working business errors into 500s for the Angular apps in
-production. Spring dispatches to the most specific handler, so new subclasses get
-correct statuses immediately while the fallback shrinks.
+**The migration this section used to describe as incremental is finished.**
+There was a blanket `RuntimeException → 400` handler, `@Deprecated`, covering
+roughly 37 `throw new RuntimeException(...)` sites that hadn't yet been given
+their own status. Re-checked directly against the real code (30 Aug 2026, not
+assumed from this doc): `GlobalExceptionHandler` no longer has that handler,
+and a full-codebase search turns up zero remaining `throw new
+RuntimeException(...)` sites. Every throw site now resolves to either a
+`BusinessException` subclass with its own status, one of the other specific
+handlers below (`IllegalArgumentException`, `IllegalStateException`,
+`DataIntegrityViolationException`, `EntityNotFoundException`,
+`NoResourceFoundException`, `AccessDeniedException`, ...), or falls through to
+the generic 500 deliberately (a genuine defect, not a business rule — see
+`AuthService`'s own two throw sites for the worked example below).
 
-Migrated so far — `AuthService`, the case that actually misled users:
+Migrated — `AuthService`, the case that actually misled users:
 
 | Situation | Before | Now |
 |---|---|---|
@@ -797,29 +808,32 @@ line references, is in `docs/`.
 | 5 | **Statistics have no company dimension** | The dashboard sums two legal entities' revenue into one figure meaningful to neither |
 | 6 | **Catalogue is not company-scoped** | Djerba circuits and Sabria nuitées are one undifferentiated list |
 | 7 | **Roles have no company dimension** | A Sabria `CAMPING` user can read every Route Insolite reservation |
-| 8 | **`ddl-auto: update` against a live database** | Uncontrolled schema mutation on every boot. No rollback path |
-| 9 | **Silent seed-data fallback** in `lib/api.ts` | A dead backend serves stale prices with no error anywhere |
-| 10 | **No tests** — ~18,500 LOC, one empty context-load test | No regression safety on a money-handling flow |
-| 11 | **No CI/CD** | Nothing gates a merge |
+| 8 | ~~**`ddl-auto: update` against a live database**~~ **Fixed (prod-hardening item 1)** — Flyway owns the schema (`V1__baseline_schema.sql` from the real dump, `baseline-on-migrate`); `ddl-auto: validate` now, never mutates. `FlywayMigrationsIT` (Testcontainers) guards it. See `docs/runbooks/database-migrations.md` |
+| 9 | ~~**Seed-data fallback** in `lib/api.ts`~~ **Fixed (prod-hardening item 3)** — fails closed: seed data is served ONLY with an explicit `ALLOW_SEED_FALLBACK=true` opt-in (local dev). Otherwise a missing `NEXT_PUBLIC_API_URL` is a hard error (build + runtime) and a backend failure returns a neutral empty state, never seed. `app/api/*` seed routes 503 without the opt-in. `lib/api.test.ts` (vitest) + a CI fail-closed build check guard it |
+| 10 | **Thin test coverage** — ~18,500 LOC, 21 unit tests across 7 files (30 Aug 2026, up from "one empty context-load test") | Real, but still nowhere near enough to safely refactor `ReservationServiceImpl` (see #12) — recent additions target the guest-checkout money path (`PublicBookingServiceImplTest`) and the account-credential fix (`KeycloakUserSyncServiceGuestCheckoutTest`) specifically, not broad coverage |
+| 11 | ~~No CI/CD~~ **Fixed, then hardened (prod-hardening item 6)** — `.github/workflows/ci.yml` now has two gates: `unit` (typecheck + lint + frontend/admin vitest + backend surefire + `validate:prod-config`) and `integration` (backend failsafe `*IT` — real Postgres + RabbitMQ via Testcontainers — plus a fail-closed frontend-build check). CI fails if either does |
 
 ### Medium
 
 | # | Issue |
 |---|---|
-| 12 | `ReservationServiceImpl` is 1,788 lines — creation, status, staff, pricing, querying in one class |
+| 12 | `ReservationServiceImpl` is **1,660 lines** (was 1,788, peaked ~1,960) — still does creation, status, staff, pricing, querying. **Two focused extractions done with a characterization-test net first:** `ReservationStateMachine` (ADR-0003) and `ReservationInvoiceService` (ADR-0004, 4 Sep 2026 — proforma/facture generation, `populateInvoiceItems`, the `DocumentSequence` counters, timbre fiscal). Remaining split (pricing, cancellation, currency) is lower-value and follows the same discipline |
 | 13 | No audit trail on destructive or financial actions |
-| 14 | ~37 unclassified `RuntimeException` throw sites still mapped to 400 |
-| 15 | 11 unbounded `findAll()` calls filtered in memory; `ReservationServiceImpl:487` loads the whole reservation table |
-| 16 | `AuthController.register` returns the `User` entity rather than a DTO |
-| 17 | Notification endpoints are not scoped to the calling principal (IDOR) |
-| 18 | No rate limiting anywhere |
-| 19 | Observability limited to `/actuator/health` |
+| 14 | ~~~37 unclassified `RuntimeException` throw sites still mapped to 400~~ **Fixed** — re-verified live 30 Aug 2026: the deprecated blanket handler is gone, zero `throw new RuntimeException(...)` sites remain codebase-wide. See §8 |
+| 15 | ~~11 unbounded `findAll()` calls filtered in memory; `ReservationServiceImpl:487` loads the whole reservation table~~ **The named line is fixed** — `getAllReservations` is paginated like its siblings. The remaining 7 `findAll()` calls are all small, bounded catalogue tables (`Extra`, `TourType`, `Tour`, `Source`) — a real desert camp's product list, not a table that grows with traffic; not the same risk class |
+| 16 | ~~`AuthController.register` returns the `User` entity rather than a DTO~~ **Fixed** (committed 29 Aug 2026) — returns `UserResponse` via the existing `UserMapper` |
+| 17 | ~~Notification endpoints are not scoped to the calling principal (IDOR)~~ **Fixed 29 Aug 2026** — see `CLAUDE.md`'s own changelog entry; verified against a real cross-user attempt, not assumed |
+| 18 | ~~No rate limiting anywhere~~ **Fixed (DI-015)** — `RateLimitFilter`, fixed-window, covers the unauthenticated public-write endpoints (guest checkout, self-registration). In-memory/single-instance only — revisit with Redis if the backend is ever scaled beyond one container |
+| 19 | ~~Observability limited to `/actuator/health`~~ **Baseline done (prod-hardening item 5)** — liveness/readiness probes (readiness gated on DB + RabbitMQ), `/actuator/metrics` + `/actuator/prometheus` (ADMIN-only), correlation id threaded HTTP→queue→DLQ, `LOG_FORMAT=ecs` for JSON logs, alert list in `docs/runbooks/observability.md`. No metrics *backend* provisioned yet |
 | 20 | Hardcoded IP defaults in `application.yml`; no dev/staging/prod profile split |
 | 21 | Keycloak served over plaintext HTTP internally |
 | 22 | Stack fragmentation — 2 Angular apps + 2 Next.js apps, one developer |
 | 23 | `admin` defines its own request/response types instead of importing `packages/api-types` — see [§4](#4-the-contract-layer) |
 | 24 | `admin` inherits the no-company-scoping debt (items 4–7) unmitigated — any `ADMIN` session sees both entities' data with no separation |
-| 25 | No test coverage for `admin`'s BFF proxy or session-cookie auth flow |
+| 26 | **PostgreSQL backups are host-local only** — `scripts/db-backup.sh` + `db-restore-verify.sh` exist and the restore is *tested* (prod-hardening item 4), and a `docker-compose.backup.yml` sidecar runs them on a schedule, but `OFFSITE_CMD` is unset: the archives sit on the same host as the database. Off-host copy is a **launch blocker**. See `docs/runbooks/backup-restore.md` |
+| 28 | **Per-tier accommodation inventory (`max_units`) and the hold duration are unset** — Phase 2 built truthful, concurrency-safe availability (pessimistic tier lock, expiring PENDING holds, `AccommodationAvailabilityService`, `GET /api/public/stays/{slug}/availability`, `AccommodationConcurrencyIT` proving one-winner). Until an admin sets `max_units` per tier, availability reports `UNKNOWN` and no ceiling is enforced — bookings behave as pre-Phase-2. **Business decisions:** real unit counts (F-2b) + hold window (F-3, default 72h). See `docs/reports/phase2-availability.md` |
+| 27 | **Transactional-email `NotificationConsumer` (staff SSE) still swallows-and-nacks** rather than throwing — it does not retry, though its failures now dead-letter and are recorded (`DeadLetterConsumer`, prod-hardening item 2). Lower stakes than the customer-facing email path, which was fully fixed. Align it with `ReservationEmailConsumer` in a later pass |
+| 25 | ~~No test coverage for `admin`'s BFF proxy or session-cookie auth flow~~ **Fixed (prod-hardening item 7)** — `admin/app/api/bff.test.ts` (13 vitest cases): token never in a client response, cookie is httpOnly + `SameSite=Strict`, proxy 401s unauthenticated, rejects cross-site mutations (new `Origin` check), propagates backend 401/403 |
 
 ---
 
@@ -871,9 +885,11 @@ valid as trips of one, and the three Angular applications consuming
 `/api/reservations` are unaffected. That is what makes it shippable
 incrementally rather than as a big-bang release.
 
-Shrinking `Reservation`'s responsibilities is also the honest way to break up a
-1,788-line service class — it is currently doing both the commercial and the
-operational job.
+Shrinking `Reservation`'s responsibilities is also the honest way to keep
+breaking up the large service class — it still does both the commercial and the
+operational job, though invoice generation ([ADR-0004](docs/adr/0004-reservation-invoice-service.md))
+and the lifecycle transition table ([ADR-0003](docs/adr/0003-reservation-state-machine.md))
+are now their own collaborators.
 
 **Sequencing is deliberately the inverse of the source proposal.** That document
 puts `TravelOrder` first and money types fourth. Introducing a new commercial

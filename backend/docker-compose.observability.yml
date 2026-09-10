@@ -1,0 +1,74 @@
+# Monitoring stack — Prometheus + Alertmanager + blackbox + Grafana.
+#
+#   docker compose -f backend/docker-compose.observability.yml up -d
+#
+# Scrapes the backend on its PRIVATE management port (MANAGEMENT_SERVER_PORT
+# = 9099 — set in application-local.yml locally, an env var in prod). Grafana
+# on :3300 (admin/admin), Prometheus :9090, Alertmanager :9093.
+#
+# PRODUCTION: run this on the internal network only, put Grafana behind the
+# same auth as the admin app (or an SSO proxy), and replace the alert-sink
+# receiver in alertmanager.yml with a real Slack/PagerDuty integration.
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: dunes-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus_data:/prometheus
+    ports: ["9090:9090"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: dunes-alertmanager
+    restart: unless-stopped
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports: ["9093:9093"]
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.25.0
+    container_name: dunes-blackbox
+    restart: unless-stopped
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - ./observability/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    ports: ["9115:9115"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: dunes-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./observability/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ./observability/grafana/dunes-overview.json:/var/lib/grafana/dashboards/dunes-overview.json:ro
+      - grafana_data:/var/lib/grafana
+    ports: ["3300:3000"]
+
+  # Dev-only: logs every alert Alertmanager sends, so the pipeline is visible
+  # end to end. Remove / replace in production.
+  alert-sink:
+    image: mendhak/http-https-echo:34
+    container_name: dunes-alert-sink
+    restart: unless-stopped
+    environment:
+      HTTP_PORT: "5001"
+    ports: ["5001:5001"]
+
+volumes:
+  prometheus_data:
+  grafana_data:

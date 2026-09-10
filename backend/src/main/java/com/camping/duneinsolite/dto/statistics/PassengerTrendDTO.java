@@ -12,6 +12,6 @@ public class PassengerTrendDTO {
     private List<String> labels;       // ["Jan", "Fév", ...]
     private List<Double> revenue;
     private List<Long>   reservations;
-    private Double       totalRevenue;
+    private java.math.BigDecimal       totalRevenue;
     private Long         totalCount;
 }

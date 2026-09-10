@@ -20,6 +20,6 @@ public class PublicBookingResponse {
     private String phone;
     private String notes;
     private String status;
-    private Double total;
+    private java.math.BigDecimal total;
     private LocalDateTime createdAt;
 }

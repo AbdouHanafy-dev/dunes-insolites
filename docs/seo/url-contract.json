@@ -1,0 +1,353 @@
+{
+  "$comment": "Machine-readable SEO response contract for the WordPress -> Next.js strangler migration. Driven by scripts/verify-production-urls.mjs. Two profiles: 'wordpress' = the CURRENT live state (baseline, must not regress before Phase 7), 'nextjs' = the EXPECTED state once nginx/dunes-insolites.com.conf is deployed at Stage 1. Do not add a URL here without a source in docs/reports/phase6-url-inventory.md or docs/seo/redirect-map.csv.",
+  "origin": "https://www.dunes-insolites.com",
+  "canonicalHost": "https://www.dunes-insolites.com",
+  "trailingSlash": true,
+  "robots": {
+    "wordpress": {
+      "status": 200,
+      "mustContain": [
+        "Sitemap:"
+      ],
+      "sitemap": "https://www.dunes-insolites.com/sitemap_index.xml"
+    },
+    "nextjs": {
+      "status": 200,
+      "mustContain": [
+        "Sitemap: https://www.dunes-insolites.com/sitemap.xml"
+      ],
+      "mustDisallow": [
+        "/api/",
+        "/book",
+        "/bookings/"
+      ],
+      "mustNotDisallow": [
+        "/"
+      ]
+    }
+  },
+  "sitemap": {
+    "wordpress": {
+      "path": "/sitemap.xml",
+      "status": 301,
+      "location": "https://www.dunes-insolites.com/sitemap_index.xml"
+    },
+    "nextjs": {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "contentTypeIncludes": "xml",
+      "everyUrlMustBe": {
+        "status": 200,
+        "selfCanonical": true,
+        "noRedirect": true
+      },
+      "mustNotContain": [
+        "/api/",
+        "/book/",
+        "/account/",
+        "localhost",
+        "127.0.0.1",
+        "/admin",
+        "?"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "name": "homepage",
+      "urls": [
+        "/"
+      ],
+      "wordpress": {
+        "status": 200,
+        "canonical": "https://www.dunes-insolites.com/"
+      },
+      "nextjs": {
+        "status": 200,
+        "canonical": "https://www.dunes-insolites.com/",
+        "hreflang": [
+          "fr",
+          "en",
+          "de",
+          "it",
+          "da",
+          "ar",
+          "x-default"
+        ]
+      }
+    },
+    {
+      "name": "legacy-product-slugs-rewritten-url-unchanged",
+      "note": "next.config.ts rewrites these to /camp|/activities|/about|/gallery invisibly. URL and canonical must NOT change.",
+      "urls": [
+        "/nuitee-campement-desert/",
+        "/bivouac-desert-tunisie/",
+        "/sandboarding-desert/",
+        "/quad-desert/",
+        "/bedouin-diner-sahara-tunisien/",
+        "/soirees-sous-les-etoiles/",
+        "/le-pain-de-sabel/"
+      ],
+      "wordpress": {
+        "status": 200,
+        "selfCanonical": true
+      },
+      "nextjs": {
+        "status": 200,
+        "selfCanonical": true,
+        "hreflang": [
+          "fr",
+          "x-default"
+        ]
+      }
+    },
+    {
+      "name": "legacy-slugs-cross-canonical-DECISION_REQUIRED",
+      "note": "/presentation-campement-dunes-insolites/ and /dunes-insolites-camp-gallery/ are ranked WordPress URLs that next.config.ts rewrites to /about and /gallery. Unlike the 7 product slugs they are NOT in lib/legacySlugs.ts, so they serve 200 but declare canonical /about/ and /gallery/ — a cross-URL canonical on a ranked page. Intent unconfirmed (consolidate vs preserve). See phase6-nginx-seo.md / redirect-map.csv. Contract asserts only that they resolve 200; the canonical direction is a DECISION.",
+      "urls": [
+        "/presentation-campement-dunes-insolites/",
+        "/dunes-insolites-camp-gallery/"
+      ],
+      "wordpress": {
+        "status": 200,
+        "selfCanonical": true
+      },
+      "nextjs": {
+        "status": 200,
+        "decisionRequired": true
+      }
+    },
+    {
+      "name": "legacy-circuit-urls-301-to-circuits",
+      "note": "docs/seo/redirect-map.csv — Route Insolite product, not launched (Q6). 301 to /circuits/ 'coming soon', never homepage.",
+      "urls": [
+        "/6-jours-excursion-desert-tunisien/",
+        "/circuit-4-jours-desert-tunisien-djerba-tataouine-tozeur/",
+        "/circuit-tataouine-et-chenini-au-depart-de-djerba/",
+        "/day-trip-desert-douz-and-matmata/",
+        "/desert-3-jour/",
+        "/excursion-2-jours-desert-tunisien/",
+        "/excursion-desert-tunisie-2-jours/",
+        "/excursion-dune-journee-a-ksar-ghilane/",
+        "/excursion-tataouine-chenini-desert-tunisie-star-wars/",
+        "/immersion-saharienne-2-nuits-daventure-en-camp-et-bivouac/",
+        "/ksar-ghilane-desert-tunisia/",
+        "/tour-desert-tunisia/",
+        "/tunisie-sahara-en-4x4/"
+      ],
+      "wordpress": {
+        "status": 200
+      },
+      "nextjs": {
+        "status": 301,
+        "location": "https://www.dunes-insolites.com/circuits/",
+        "finalStatus": 200,
+        "maxHops": 1
+      },
+      "requires": "cms-redirects"
+    },
+    {
+      "name": "legacy-duplicate-landing-301-to-canonical-product",
+      "urls": [
+        "/nuit-desert-tunisien-dunes-insolites/",
+        "/bivouac-desert-tunisien-sahara/",
+        "/spend-a-night-in-the-tunisian-desert-at-dunes-insolites-camp/"
+      ],
+      "wordpress": {
+        "status": 200
+      },
+      "nextjs": {
+        "status": 301,
+        "locationOneOf": [
+          "https://www.dunes-insolites.com/nuitee-campement-desert/",
+          "https://www.dunes-insolites.com/bivouac-desert-tunisie/"
+        ],
+        "finalStatus": 200,
+        "maxHops": 1
+      },
+      "requires": "cms-redirects"
+    },
+    {
+      "name": "legacy-service-hub-and-account-301",
+      "urls": [
+        "/services/",
+        "/services/activites/",
+        "/services/sejours/",
+        "/services/tours/",
+        "/mes-reservations/",
+        "/mon-compte/",
+        "/mot-de-passe-oublie/",
+        "/dunes-insolites-sabria-evasion-sahara/"
+      ],
+      "wordpress": {
+        "status": 200
+      },
+      "nextjs": {
+        "status": 301,
+        "finalStatusOneOf": [
+          200,
+          307
+        ],
+        "maxHops": 2,
+        "note": "/mes-reservations -> /bookings/ (auth-gated, 307 to /login when logged out is acceptable); /mon-compte -> /account/; /mot-de-passe-oublie -> /login/; /services -> /activities|/camp|/circuits; sabria-evasion -> /about/"
+      },
+      "requires": "cms-redirects"
+    },
+    {
+      "name": "blog-and-informational-STAYS-wordpress",
+      "note": "Not migrating in Stage 1. nginx falls through to WordPress. Must stay 200 from WordPress with unchanged canonical.",
+      "urls": [
+        "/blog-desert/",
+        "/blog-sahara-tunisie/",
+        "/are-there-any-deserts-in-tunisia/",
+        "/best-desert-camping-tunisia/",
+        "/guide-excursions-desert-tunisien/",
+        "/meteo-dans-le-desert-tunisien-quand-visiter-dunes-insolites-a-sabria-kebili/",
+        "/quand-visiter-le-desert-tunisien/",
+        "/ou-se-situe-le-desert-en-tunisie/",
+        "/oases-tunisian-desert/",
+        "/sahara-desert-tours-tunisia-2025/",
+        "/category/sabria/",
+        "/category/djerba/"
+      ],
+      "wordpress": {
+        "status": 200,
+        "selfCanonical": true
+      },
+      "nextjs": {
+        "status": 200,
+        "selfCanonical": true,
+        "servedBy": "wordpress"
+      }
+    },
+    {
+      "name": "unmapped-legacy-DECISION_REQUIRED",
+      "note": "No destination decided. Stage 1: still WordPress (nginx fallthrough). Do NOT invent a redirect.",
+      "urls": [
+        "/panier/",
+        "/review/",
+        "/detail-service/"
+      ],
+      "wordpress": {
+        "status": 200
+      },
+      "nextjs": {
+        "status": 200,
+        "servedBy": "wordpress",
+        "decisionRequired": true
+      }
+    },
+    {
+      "name": "new-application-routes",
+      "note": "Native Next.js routes. WordPress's handling is not asserted (some slugs collide with WP theme/Woo pages e.g. /camp/, /login/ 302 today) — only the nextjs profile matters here.",
+      "urls": [
+        "/faq/",
+        "/guides/",
+        "/circuits/",
+        "/camp/",
+        "/activities/",
+        "/contact/",
+        "/safety/",
+        "/about/",
+        "/gallery/",
+        "/legal/privacy/",
+        "/legal/terms/"
+      ],
+      "nextjs": {
+        "status": 200,
+        "selfCanonical": true,
+        "hreflang": [
+          "fr",
+          "x-default"
+        ]
+      }
+    },
+    {
+      "name": "trailing-slash-enforcement",
+      "note": "Test only on paths that actually resolve, so a bare 404 isn't mistaken for a missing slash redirect.",
+      "urls": [
+        "/quad-desert",
+        "/nuitee-campement-desert",
+        "/blog-desert"
+      ],
+      "wordpress": {
+        "status": 301,
+        "locationEndsWith": "/"
+      },
+      "nextjs": {
+        "statusOneOf": [
+          301,
+          308
+        ],
+        "locationEndsWith": "/",
+        "maxHops": 1
+      }
+    },
+    {
+      "name": "http-to-https-www-canonicalisation",
+      "note": "http://www -> https://www is 1 hop. http://non-www currently takes 2 hops (Cloudflare upgrades scheme first, keeping the host, then origin adds www) — a known pre-existing minor chain, see phase6-nginx-seo.md.",
+      "urls": [
+        "http://www.dunes-insolites.com/",
+        "http://dunes-insolites.com/"
+      ],
+      "wordpress": {
+        "status": 301,
+        "locationStartsWith": "https://",
+        "finalStatus": 200,
+        "maxHops": 2
+      },
+      "nextjs": {
+        "status": 301,
+        "locationStartsWith": "https://",
+        "finalStatus": 200,
+        "maxHops": 2
+      }
+    },
+    {
+      "name": "non-www-to-www",
+      "urls": [
+        "https://dunes-insolites.com/"
+      ],
+      "wordpress": {
+        "status": 301,
+        "location": "https://www.dunes-insolites.com/"
+      },
+      "nextjs": {
+        "status": 301,
+        "location": "https://www.dunes-insolites.com/"
+      }
+    },
+    {
+      "name": "negative-nonexistent",
+      "urls": [
+        "/this-page-does-not-exist-xyz/",
+        "/nuitee-campement-desert-typo/",
+        "/en/also-does-not-exist/"
+      ],
+      "wordpress": {
+        "status": 404
+      },
+      "nextjs": {
+        "status": 404
+      }
+    },
+    {
+      "name": "negative-private-routes-not-indexable",
+      "note": "These render (or auth-redirect) but must be robots-disallowed and never in the sitemap. WordPress behaviour not asserted.",
+      "urls": [
+        "/book/",
+        "/bookings/",
+        "/account/"
+      ],
+      "nextjs": {
+        "statusOneOf": [
+          200,
+          307,
+          404
+        ],
+        "mustBeRobotsDisallowedOrNotFound": true,
+        "mustNotBeInSitemap": true
+      }
+    }
+  ]
+}

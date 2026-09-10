@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getMaintenanceWindowById } from "@/lib/api";
+import { getSitemapPaths } from "@/lib/sitemap";
 import { MaintenanceEditor } from "@/components/crud/MaintenanceCrud";
 
 export default async function EditMaintenancePage({
@@ -12,8 +13,12 @@ export default async function EditMaintenancePage({
   const session = await getSession();
   if (!session) return null;
 
-  const item = await getMaintenanceWindowById(session.accessToken, id);
+  const [item, paths] = await Promise.all([
+    getMaintenanceWindowById(session.accessToken, id),
+    getSitemapPaths(),
+  ]);
   if (!item) notFound();
 
-  return <MaintenanceEditor id={id} initialData={item} />;
+  const pageOptions = paths.map((p) => ({ value: p, label: p }));
+  return <MaintenanceEditor id={id} initialData={item} pageOptions={pageOptions} />;
 }

@@ -5,6 +5,7 @@ import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.ReservationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,8 +18,36 @@ import java.util.UUID;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, UUID>, JpaSpecificationExecutor<Reservation> {
     List<Reservation> findByUserUserIdOrderByCreatedAtDesc(UUID userId);
+
+    // Public booking idempotency (V7). The @SQLRestriction on the entity means
+    // a soft-deleted reservation with this key is not returned — a retry after
+    // deletion correctly creates a fresh one.
+    java.util.Optional<Reservation> findByIdempotencyKey(String idempotencyKey);
     List<Reservation> findByUserUserIdAndStatusIn(UUID userId, List<ReservationStatus> statuses);
     List<Reservation> findByStatus(ReservationStatus status);
+
+    // For the email consumer: loads the owning User in the same query so the
+    // recipient can be read outside any open session (the consumer runs on a
+    // RabbitMQ listener thread, not inside a service transaction).
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user WHERE r.reservationId = :id")
+    java.util.Optional<Reservation> findByIdWithUser(@Param("id") UUID id);
+
+    @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.tourTypes WHERE r.reservationId = :id")
+    java.util.Optional<Reservation> findByIdWithTourTypes(@Param("id") UUID id);
+
+    // Phase 2 — hold-expiry sweep. Idempotent: only flips PENDING holds whose
+    // expiry has passed. Availability already treats these as non-consuming, so
+    // this is housekeeping/reporting, not correctness-critical.
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            UPDATE Reservation r
+               SET r.status = com.camping.duneinsolite.model.enums.ReservationStatus.EXPIRED,
+                   r.updatedAt = :now
+             WHERE r.status = com.camping.duneinsolite.model.enums.ReservationStatus.PENDING
+               AND r.holdExpiresAt IS NOT NULL
+               AND r.holdExpiresAt <= :now
+            """)
+    int expireStaleHolds(@Param("now") java.time.LocalDateTime now);
     List<Reservation> findByUserOrderByCreatedAtDesc(User user);
     @Query("SELECT r FROM Reservation r WHERE LOWER(r.user.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Reservation> searchByUserName(@Param("name") String name);

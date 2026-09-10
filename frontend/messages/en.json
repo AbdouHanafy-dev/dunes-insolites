@@ -52,6 +52,7 @@
     "scroll": "Scroll",
     "guestsGuided": "Guests guided",
     "averageRating": "Average rating",
+    "newRating": "New",
     "yearsSuffix": "Years",
     "ofExperience": "Of experience"
   },
@@ -71,6 +72,7 @@
     "body": "Small groups, local guides, and no rush. Every Sabria trip is timed so the sand still holds the day's warmth and the sky is on fire.",
     "guestsGuided": "Guests guided",
     "averageRating": "Average rating",
+    "newRating": "New",
     "onTheDunes": "On the dunes",
     "yearsUnit": "yrs",
     "bgAlt": "Sabria desert scene"
@@ -112,17 +114,17 @@
     "cta": "See the full gallery →"
   },
   "ctaDefault": {
-    "title": "Ready for the dunes?",
-    "body": "Golden-hour slots fill fast. Reserve your Sahara adventure and we'll handle the rest.",
-    "label": "Book a trip →"
+    "title": "Reserve your night at Sabria.",
+    "body": "Golden-hour slots go first. Book directly and we confirm within a day — no platform, no commission.",
+    "label": "Reserve your night →"
   },
   "ctaGallery": {
-    "title": "Want your own?",
-    "body": "Every trip comes with photos and video from your guide, sent the next morning."
+    "title": "Your own photos, sent the next morning.",
+    "body": "Every trip comes with real shots from your own guide — never stock photography."
   },
   "ctaCamp": {
-    "title": "Not sure which one?",
-    "body": "Tell us how many of you there are and what you'd like to do — we'll suggest the right night.",
+    "title": "Tell us your group, we'll match the night.",
+    "body": "How many of you, and what you'd like to do — we'll suggest the right night.",
     "label": "Ask us →"
   },
   "about": {
@@ -375,18 +377,64 @@
   },
   "account": {
     "navLabel": "Account navigation",
-    "tabAccount": "My account",
-    "tabBookings": "My bookings",
+    "tabAccount": "Profile",
+    "tabBookings": "My trips",
     "tabPayments": "Payments",
     "tabReviews": "Reviews",
-    "tabSupport": "Support",
+    "tabSupport": "Help",
     "logout": "Log out",
+    "welcomeBack": "Welcome back, {name}",
+    "nextAdventureTitle": "Your next Sahara adventure is waiting.",
+    "noAdventureTitle": "Your next adventure starts here.",
+    "yourNextExperience": "Your next experience",
+    "guestsLabel": "Guests",
+    "bookingRefLabel": "Booking",
+    "viewYourTrip": "View your trip",
+    "exploreExperiencesCta": "Explore experiences",
+    "paymentStatus": {
+      "PAID": "Paid",
+      "PARTIALLY_PAID": "Partially paid",
+      "UNPAID": "Payment pending",
+      "OVERDUE": "Overdue",
+      "REFUNDED": "Refunded"
+    },
+    "sidebarUpcoming": "{count, plural, one {# upcoming experience} other {# upcoming experiences}}",
+    "sidebarActionRequired": "{count, plural, one {# action required} other {# actions required}}",
+    "glanceTitle": "Your trip at a glance",
+    "glanceDatesLabel": "Your experience dates",
+    "glanceGuestsLabel": "Included in your booking",
+    "glancePaymentPendingNote": "Complete your payment before your trip",
+    "glancePaymentDoneNote": "You're all set",
+    "glanceLocationLabel": "Southern Tunisia",
+    "journeyTitle": "Your journey",
+    "journey": {
+      "received": "Booking received",
+      "confirmed": "Confirmed",
+      "prepare": "Prepare for your trip",
+      "enjoy": "Enjoy your experience",
+      "share": "Share your experience"
+    },
+    "beforeTripTitle": "Before your trip",
+    "beforeTripLead": "Your Sahara adventure is coming soon.",
+    "beforeTripPacking": "What to bring",
+    "beforeTripPackingDesc": "Discover what you should pack for your experience.",
+    "beforeTripHelp": "Need help?",
+    "beforeTripHelpDesc": "Contact our team regarding your reservation.",
+    "beforeTripDetails": "View booking details",
+    "beforeTripDetailsDesc": "See your complete reservation information.",
+    "recommendTitle": "Complete your Sahara experience",
+    "recommendLead": "You may also like",
+    "discoverCta": "Discover",
+    "helpTitle": "Need help with your trip?",
+    "helpLead": "Our team is here to help you prepare for your Sahara experience.",
+    "contactSupportCta": "Contact support",
+    "whatsappCta": "WhatsApp",
     "overviewTitle": "My account",
     "overviewLead": "Your personal information.",
     "nameLabel": "Name",
     "emailLabel": "Email",
     "roleLabel": "Account type",
-    "bookingsTitle": "My bookings",
+    "bookingsTitle": "My trips",
     "bookingsLead": "Your booking history with Dunes Insolites.",
     "bookingsEmpty": "You don't have any bookings yet.",
     "statusLabel": "Status",
@@ -415,6 +463,19 @@
     "reviewSending": "Sending…",
     "reviewSent": "Thanks, your review has been posted.",
     "reviewGenericError": "We couldn't save that review. Try again.",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "checked_in": "Checked in",
+      "cancelled": "Cancelled",
+      "rejected": "Declined",
+      "completed": "Completed"
+    },
+    "reservationType": {
+      "HEBERGEMENT": "Desert stay",
+      "TOURS": "Circuit",
+      "EXTRAS": "Activity"
+    },
     "role": {
       "CLIENT": "Client",
       "PARTENAIRE": "Partner",

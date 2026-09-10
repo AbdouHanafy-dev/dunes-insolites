@@ -46,4 +46,8 @@ public class PublicStayBookingRequest {
     private String phone;
 
     private String notes;
+
+    // Optional idempotency key — one UUID per booking attempt, re-used on a
+    // network retry so the retry returns the same reservation. See V7.
+    private String idempotencyKey;
 }

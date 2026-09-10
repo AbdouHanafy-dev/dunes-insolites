@@ -79,6 +79,13 @@ in the accounts.
 accountant before the sequence is changed.
 **Severity:** highest open item in the project.
 
+**Status (30 Aug 2026):** raised with the business owner directly. Decision:
+get the accountant's read on the correct remedy (credit-note-and-reissue vs. a
+documented gap explanation) before any change to `DocumentSequence` or the
+already-issued documents — **not** the "split the sequence, let past gaps
+stand" partial fix, and **not** deferred as not-yet-urgent. No code change
+made against this item. Still blocking until the accountant weighs in.
+
 ---
 
 ### Q5 🛠💼 How does a trip span two domains?

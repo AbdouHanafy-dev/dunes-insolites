@@ -10,10 +10,10 @@ public class InvoiceItemResponse {
     private String description;
     private String itemType;
     private Integer quantity;
-    private Double unitPrice;
-    private Double totalPrice;
+    private java.math.BigDecimal unitPrice;
+    private java.math.BigDecimal totalPrice;
     private Integer lineNumber;
-    private Double tva;
+    private java.math.BigDecimal tva;
     private LocalDate activityDate;
     private LocalDate activityEndDate;
 }

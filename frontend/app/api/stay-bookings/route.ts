@@ -1,7 +1,10 @@
+import { seedRouteDisabled } from "@/lib/seedGuard";
 import { createStayBooking, validateStayBooking } from "@/lib/stayBookings";
 import type { StayBookingInput } from "@/lib/types";
 
 export async function POST(req: Request) {
+  const _seedOff = seedRouteDisabled();
+  if (_seedOff) return _seedOff;
   let body: Partial<StayBookingInput>;
   try {
     body = await req.json();

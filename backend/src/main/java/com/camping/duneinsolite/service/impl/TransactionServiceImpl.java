@@ -49,12 +49,13 @@ public class TransactionServiceImpl implements TransactionService {
             transaction.setInvoice(invoice);
 
             // Update invoice paid amount and payment status
-            double newPaidAmount = invoice.getPaidAmount() + request.getAmount();
+            java.math.BigDecimal newPaidAmount =
+                    com.camping.duneinsolite.money.Money.add(invoice.getPaidAmount(), request.getAmount());
             invoice.setPaidAmount(newPaidAmount);
 
-            if (newPaidAmount <= 0) {
+            if (newPaidAmount.signum() <= 0) {
                 invoice.setPaymentStatus(PaymentStatus.UNPAID);
-            } else if (newPaidAmount < invoice.getTotalAmount()) {
+            } else if (com.camping.duneinsolite.money.Money.lt(newPaidAmount, invoice.getTotalAmount())) {
                 invoice.setPaymentStatus(PaymentStatus.PARTIALLY_PAID);
             } else {
                 invoice.setPaymentStatus(PaymentStatus.PAID);

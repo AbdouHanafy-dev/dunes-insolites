@@ -20,9 +20,9 @@ public class CurrencyController {
     // unconditionally at app boot, before login has necessarily happened, so it
     // can preview a conversion before a reservation has locked in its own rate.
     @GetMapping("/rates")
-    public ResponseEntity<Map<String, Double>> getRates() {
+    public ResponseEntity<Map<String, java.math.BigDecimal>> getRates() {
         return ResponseEntity.ok(Map.of(
-                "TND", 1.0,
+                "TND", java.math.BigDecimal.ONE,
                 "EUR", currencyConfig.getEurRate(),
                 "USD", currencyConfig.getUsdRate()
         ));

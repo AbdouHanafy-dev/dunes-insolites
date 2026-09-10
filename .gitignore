@@ -38,3 +38,7 @@ yarn-error.log*
 /backend/duneinsolite/
 /dunes insolites/
 .qodo/
+.nginx-coexist-*/
+
+# local backup archives / off-host pull dir — never commit
+backend/backups/

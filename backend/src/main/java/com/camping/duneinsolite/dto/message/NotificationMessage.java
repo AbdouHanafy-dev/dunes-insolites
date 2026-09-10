@@ -39,4 +39,17 @@ public class NotificationMessage {
     // WHICH event triggered this
     // example: "reservation.created", "reservation.confirmed"
     private String routingKey;
+
+    // Follows the unit of work across HTTP -> broker -> consumer -> DLQ -> replay.
+    // Stamped by NotificationPublisher from the request's X-Correlation-Id (or a
+    // fresh id); consumers bind it to MDC for their own logging. See
+    // com.camping.duneinsolite.observability.CorrelationId.
+    private String correlationId;
+
+    // Idempotency key — one UUID per publish, set by NotificationPublisher.
+    // The consumer records it on every recipient row; the partial unique index
+    // ux_notifications_user_dedupe (V6) makes a redelivery of this message a
+    // no-op instead of a duplicate. A replay re-uses the SAME key on purpose
+    // (a replayed message is the same message, not a new one).
+    private String dedupeKey;
 }

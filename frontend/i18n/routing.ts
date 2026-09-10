@@ -6,6 +6,18 @@ import { defineRouting } from "next-intl/routing";
  * rewrites, their canonical tags, and the sitemap's canonical URLs are all
  * default-locale paths (e.g. /quad-desert/, not /fr/quad-desert/). Every
  * other locale gets a real prefix.
+ *
+ * Automatic Accept-Language detection stays ON (the default) - it's a real
+ * feature (a first-time English-preferring visitor lands on /en/ instead
+ * of French) and disabling it sitewide was tried and reverted (UI/UX audit,
+ * 30 Aug 2026): it also silences the NEXT_LOCALE cookie, so a returning
+ * visitor who explicitly picked English via LanguageSwitcher would see
+ * French again at the bare root domain. The real bug this detection
+ * exposed - the 9 legacy-slug rewrites in next.config.ts only existed for
+ * the /fr/ prefix, so detection correctly sent an English browser to
+ * /en/nuitee-campement-desert/ and THAT 404s - is fixed at its actual
+ * source: next.config.ts's rewrites now cover every locale, not just
+ * French, since the destination pages already exist in all 6 languages.
  */
 export const routing = defineRouting({
   locales: ["fr", "en", "de", "it", "da", "ar"],

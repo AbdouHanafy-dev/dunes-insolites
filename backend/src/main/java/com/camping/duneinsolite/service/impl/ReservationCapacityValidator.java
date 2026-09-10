@@ -41,16 +41,21 @@ public class ReservationCapacityValidator {
      *                            pool (update/confirm paths); null on create
      */
     public void validate(Reservation candidate, UUID excludeReservationId) {
-        Optional<CampingSettings> settings = campingSettingsRepository.findById(SETTINGS_ID);
-        if (settings.isEmpty()) {
-            return; // unconfigured — treat as unlimited
-        }
-        int maxCapacity = settings.get().getMaxCapacity();
-
         Map<LocalDate, Integer> candidateNights = computeNights(candidate);
         if (candidateNights.isEmpty()) {
             return; // EXTRAS, or TOURS with no lodging component — nothing to check
         }
+
+        // Pessimistic lock on the settings row FIRST. This serialises every
+        // capacity-checked booking: a concurrent confirmation for a different
+        // tier on the same night waits here until we commit, so the sitewide
+        // total can never be exceeded by a check-then-act race (the per-tier
+        // inventory is separately guarded by AccommodationTypeRepository.lockById).
+        Optional<CampingSettings> settings = campingSettingsRepository.findByIdForUpdate(SETTINGS_ID);
+        if (settings.isEmpty()) {
+            return; // unconfigured — treat as unlimited
+        }
+        int maxCapacity = settings.get().getMaxCapacity();
 
         LocalDate rangeStart = Collections.min(candidateNights.keySet());
         LocalDate rangeEnd = Collections.max(candidateNights.keySet()).plusDays(1);

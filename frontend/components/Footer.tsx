@@ -9,11 +9,19 @@ export default async function Footer() {
   const locale = await getLocale();
   const [activities, t] = await Promise.all([getActivities(locale), getTranslations("footer")]);
 
+  // Two real nav columns, not three — the third ("Follow") folds into the
+  // bottom bar below. A coordinates line replaces a decorative divider with
+  // an actual fact (site.coords is real, from the live site). Both changes
+  // are part of the differentiation pass (see audit-differentiation.md):
+  // the old three-equal-column "Adventures / Company / Follow" shape was a
+  // near-exact structural match to the competitor's footer.
+  const coords = `${site.coords.lat.toFixed(4)}°N, ${site.coords.lng.toFixed(4)}°E`;
+
   return (
     <footer className="site-footer">
       <div className="wrap">
         <div className="top">
-          <div>
+          <div className="footer-brand">
             <Link href="/" className="brand">
               <Image src="/logo-mark.png" alt="" width={62} height={62} />
               <span className="brand-text">
@@ -22,6 +30,9 @@ export default async function Footer() {
               </span>
             </Link>
             <p>{t("tagline")}</p>
+            <p className="footer-coords">
+              {coords} — {site.address}
+            </p>
             <Newsletter />
           </div>
           <div className="cols">
@@ -61,27 +72,24 @@ export default async function Footer() {
                 </li>
               </ul>
             </div>
-            <div>
-              <h5>{t("follow")}</h5>
-              <ul>
-                {site.social.map((s) => (
-                  <li key={s.label}>
-                    <a href={s.href} target="_blank" rel="noreferrer noopener">
-                      {s.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
         </div>
         <div className="bar">
           <span>© {new Date().getFullYear()} {site.legalName}.</span>
-          <span style={{ display: "flex", gap: 18 }}>
+          <span className="bar-legal">
             <Link href="/legal/privacy">{t("privacy")}</Link>
             <Link href="/legal/terms">{t("terms")}</Link>
           </span>
-          <span>{t("location")}</span>
+          <span className="bar-social">
+            {site.social.map((s, i) => (
+              <span key={s.label}>
+                <a href={s.href} target="_blank" rel="noreferrer noopener">
+                  {s.label}
+                </a>
+                {i < site.social.length - 1 && <span aria-hidden="true"> · </span>}
+              </span>
+            ))}
+          </span>
         </div>
       </div>
     </footer>

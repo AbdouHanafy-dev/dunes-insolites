@@ -21,7 +21,7 @@ public class PublicStayResponse {
     private List<String> longDescription;
     private String image;
     private List<String> gallery;
-    private Double priceFrom;
+    private java.math.BigDecimal priceFrom;
     private String groupSize;
     private List<String> included;
     private List<String> notIncluded;
@@ -29,15 +29,28 @@ public class PublicStayResponse {
     private String arrivalTime;
     private String departureTime;
     private List<ItineraryStep> itinerary;
-    // Accommodation (Desert Tent/Room/Dune Suite) isn't modeled on TourType
-    // yet - always empty until that's built. An empty array satisfies the
-    // contract's optional Accommodation[] just as well as an absent key.
-    private List<Object> accommodations;
+    // Phase 1: real AccommodationType rows, but ONLY those that are active AND
+    // priced — the vitrine never shows an option it can't quote. Empty for the
+    // bivouac nuitée and for any nuitée whose tiers are still unpriced.
+    private List<Accommodation> accommodations;
 
     @Data
     public static class ItineraryStep {
         private String time;
         private String title;
         private String description;
+    }
+
+    /** Field-for-field match of packages/api-types' Accommodation. */
+    @Data
+    public static class Accommodation {
+        private String slug;
+        private String title;
+        private String tagline;
+        private String description;
+        private String image;
+        private java.math.BigDecimal priceFrom;
+        private String sleeps;
+        private List<String> features;
     }
 }

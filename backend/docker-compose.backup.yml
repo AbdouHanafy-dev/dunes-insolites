@@ -1,0 +1,50 @@
+# Scheduled logical backups for the docker-compose stack.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.backup.yml up -d db-backup
+#
+# ⚠️  THIS IS NOT DISASTER RECOVERY.  It writes to ./backups/postgres on the
+#     SAME HOST as the database. If that host or disk is lost, the backups are
+#     lost with it. For real protection you MUST also copy archives OFF the host:
+#     set OFFSITE_CMD (see scripts/db-backup.sh) to an `aws s3 cp` / `rclone
+#     copy` / `scp` and confirm those copies land somewhere the DB host cannot
+#     take down with it. See docs/runbooks/backup-restore.md.
+
+services:
+  db-backup:
+    image: postgres:16
+    container_name: duneinsolite-db-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      BACKUP_DIR: /backups
+      BACKUP_DATABASES: "duneinsolite keycloak_db"
+      RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      OFFSITE_CMD: ${BACKUP_OFFSITE_CMD:-}
+    volumes:
+      - ../scripts:/scripts:ro
+      - ./backups/postgres:/backups
+    networks:
+      - duneinsolite-network
+    entrypoint:
+      - bash
+      - -c
+      - |
+        set -e
+        echo "db-backup sidecar: interval ${BACKUP_INTERVAL_SECONDS}s, retention ${RETENTION_DAYS}d"
+        while true; do
+          bash /scripts/db-backup.sh || echo "db-backup: run failed (will retry next interval)"
+          bash /scripts/db-restore-verify.sh /backups || echo "db-backup: RESTORE VERIFY FAILED"
+          sleep "${BACKUP_INTERVAL_SECONDS}"
+        done
+
+networks:
+  duneinsolite-network:
+    external: true
+    name: backend_duneinsolite-network

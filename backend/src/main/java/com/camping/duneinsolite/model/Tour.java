@@ -40,16 +40,16 @@ public class Tour {
     private String duration;
 
     @Column(name = "passenger_adult_price", nullable = false)
-    private Double passengerAdultPrice;
+    private java.math.BigDecimal passengerAdultPrice;
 
     @Column(name = "passenger_child_price", nullable = false)
-    private Double passengerChildPrice;
+    private java.math.BigDecimal passengerChildPrice;
 
     @Column(name = "partner_adult_price", nullable = false)
-    private Double partnerAdultPrice;
+    private java.math.BigDecimal partnerAdultPrice;
 
     @Column(name = "partner_child_price", nullable = false)
-    private Double partnerChildPrice;
+    private java.math.BigDecimal partnerChildPrice;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
@@ -57,7 +57,7 @@ public class Tour {
 
     @Column(name = "tva", nullable = false)
     @Builder.Default
-    private Double tva = 0.0;
+    private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
 
     @Column(name = "about_text", columnDefinition = "TEXT")
     private String aboutText;

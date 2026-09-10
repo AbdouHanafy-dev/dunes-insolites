@@ -6,8 +6,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GalleryItem } from "@/lib/types";
 
 // Tag values are stable English identifiers used for filtering (matched
-// against GalleryItem.tag in lib/data/gallery.ts) — only the on-screen
-// label is translated, via galleryGrid.tags in messages/*.json.
+// against GalleryItem.tag) — only the on-screen label is translated, via
+// galleryGrid.tags in messages/*.json. A tag an editor added that has no
+// translation key falls back to its raw value (see tagLabel below).
 const TAG_I18N_KEYS: Record<string, string> = {
   All: "all",
   "Camel Trek": "camelTrek",
@@ -25,7 +26,8 @@ export default function GalleryGrid({
 }) {
   const t = useTranslations("galleryGrid");
   const [tag, setTag] = useState("All");
-  const tagLabel = (raw: string) => t(`tags.${TAG_I18N_KEYS[raw] ?? "all"}`);
+  const tagLabel = (raw: string) =>
+    TAG_I18N_KEYS[raw] ? t(`tags.${TAG_I18N_KEYS[raw]}`) : raw;
   // alt is keyed by the original English string in messages/*.json; falls
   // back to the raw string for any image not yet in the translation map.
   const altText = (raw: string) => (t.has(`alt.${raw}`) ? t(`alt.${raw}`) : raw);

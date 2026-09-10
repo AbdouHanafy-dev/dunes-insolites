@@ -158,6 +158,7 @@ export type AdminResource =
   | "MEDIA"
   | "NAVIGATION"
   | "REDIRECTS"
+  | "GALLERY"
   | "MAINTENANCE_WINDOWS";
 
 export type PermissionLevel = "NONE" | "READ" | "EDIT" | "FULL";
@@ -177,6 +178,7 @@ export const ALL_ADMIN_RESOURCES: AdminResource[] = [
   "MEDIA",
   "NAVIGATION",
   "REDIRECTS",
+  "GALLERY",
   "MAINTENANCE_WINDOWS",
 ];
 
@@ -368,6 +370,29 @@ export function getAllRedirects(accessToken: string): Promise<AdminRedirect[]> {
 
 export function getRedirectById(accessToken: string, id: string): Promise<AdminRedirect | null> {
   return authedGet<AdminRedirect | null>(`/redirects/${id}`, accessToken, null);
+}
+
+export type AdminGalleryImage = {
+  galleryItemId: string;
+  imageUrl: string;
+  alt: string;
+  tag: string;
+  tall: boolean;
+  position: number;
+  companyType: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function getAllGalleryImages(accessToken: string): Promise<AdminGalleryImage[]> {
+  return authedGet<AdminGalleryImage[]>("/gallery", accessToken, []);
+}
+
+export function getGalleryImageById(
+  accessToken: string,
+  id: string,
+): Promise<AdminGalleryImage | null> {
+  return authedGet<AdminGalleryImage | null>(`/gallery/${id}`, accessToken, null);
 }
 
 export type AdminMaintenanceWindow = {

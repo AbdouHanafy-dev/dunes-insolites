@@ -2,16 +2,24 @@ package com.camping.duneinsolite.service;
 
 import com.camping.duneinsolite.dto.statistics.*;
 import com.camping.duneinsolite.model.enums.ReservationStatus;
+import com.camping.duneinsolite.money.Money;
 import com.camping.duneinsolite.repository.StatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
 
+/**
+ * Admin dashboard aggregation. This is a <strong>display / reporting</strong> layer:
+ * revenue figures are authoritative monetary values ({@link BigDecimal}, via {@link Money}),
+ * but the percentage / growth ratios it derives are presentation-only and computed in
+ * {@code double} on purpose — they never feed an invoice, a price or a payment.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,93 +33,76 @@ public class StatisticsService {
     private final StatisticsRepository statisticsRepository;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 1. DASHBOARD — single endpoint, all KPI cards
+    // 1. DASHBOARD
     // ─────────────────────────────────────────────────────────────────────────
 
     public DashboardStatsDTO getDashboardStats(int period) {
 
-        LocalDateTime now        = LocalDateTime.now();
+        LocalDateTime now         = LocalDateTime.now();
         LocalDateTime periodStart = now.minusDays(period);
-        LocalDateTime prevStart  = periodStart.minusDays(period); // previous window for growth %
+        LocalDateTime prevStart   = periodStart.minusDays(period);
 
-        // ── Revenue ──────────────────────────────────────────────────────────
-        double currentRevenue  = statisticsRepository.getTotalRevenue(periodStart, now);
-        double previousRevenue = statisticsRepository.getTotalRevenue(prevStart, periodStart);
-        double revenueGrowth   = calculateGrowthPercentage(previousRevenue, currentRevenue);
+        BigDecimal currentRevenue  = Money.nz(statisticsRepository.getTotalRevenue(periodStart, now));
+        BigDecimal previousRevenue = Money.nz(statisticsRepository.getTotalRevenue(prevStart, periodStart));
+        double revenueGrowth       = calculateGrowthPercentage(previousRevenue.doubleValue(), currentRevenue.doubleValue());
 
-        // ── Reservations by status ────────────────────────────────────────────
-        List<Object[]> statusRows = statisticsRepository
-                .getReservationCountByStatus(periodStart, now);
+        List<Object[]> statusRows = statisticsRepository.getReservationCountByStatus(periodStart, now);
 
-        long totalReservations    = 0L;
-        long confirmed            = 0L;
-        long pending              = 0L;
-        long cancelled            = 0L;
-
+        long totalReservations = 0L, confirmed = 0L, pending = 0L, cancelled = 0L;
         for (Object[] row : statusRows) {
             ReservationStatus status = (ReservationStatus) row[0];
             long count = (Long) row[1];
             totalReservations += count;
-
             switch (status) {
                 case CONFIRMED, CHECKED_IN, COMPLETED -> confirmed += count;
                 case PENDING                          -> pending   += count;
                 case CANCELLED, REJECTED              -> cancelled += count;
+                default -> { }
             }
         }
 
-        // Reservation growth vs previous period
-        long prevTotalReservations = statisticsRepository
-                .getTotalReservations(prevStart, periodStart);
-        double reservationGrowth = calculateGrowthPercentage(
-                (double) prevTotalReservations, (double) totalReservations);
+        long prevTotalReservations = statisticsRepository.getTotalReservations(prevStart, periodStart);
+        double reservationGrowth = calculateGrowthPercentage(prevTotalReservations, totalReservations);
 
-        // ── Direct passengers ─────────────────────────────────────────────────
-        double directRevenue = statisticsRepository
-                .getDirectPassengerRevenue(periodStart, now);
-        long directCount = statisticsRepository
-                .getDirectPassengerReservationCount(periodStart, now);
+        BigDecimal directRevenue = Money.nz(statisticsRepository.getDirectPassengerRevenue(periodStart, now));
+        long directCount = statisticsRepository.getDirectPassengerReservationCount(periodStart, now);
 
-        double directPercentage = currentRevenue > 0
-                ? round2((directRevenue / currentRevenue) * 100)
+        double directPercentage = Money.isPositive(currentRevenue)
+                ? round2(directRevenue.doubleValue() / currentRevenue.doubleValue() * 100)
                 : 0.0;
 
         return DashboardStatsDTO.builder()
-                .totalRevenue(round2(currentRevenue))
-                .revenueGrowth(round2(revenueGrowth))
+                .totalRevenue(Money.round(currentRevenue))
+                .revenueGrowth(BigDecimal.valueOf(round2(revenueGrowth)))
                 .totalReservations(totalReservations)
                 .confirmedReservations(confirmed)
                 .pendingReservations(pending)
                 .cancelledReservations(cancelled)
                 .reservationGrowth(round2(reservationGrowth))
-                .passengerDirectRevenue(round2(directRevenue))
+                .passengerDirectRevenue(Money.round(directRevenue))
                 .passengerDirectCount(directCount)
-                .passengerRevenuePercentage(directPercentage)
+                .passengerRevenuePercentage(BigDecimal.valueOf(directPercentage))
                 .period(period)
                 .build();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 2. MONTHLY TREND — bar chart (always current calendar year)
+    // 2. MONTHLY TREND
     // ─────────────────────────────────────────────────────────────────────────
 
     public MonthlyTrendDTO getMonthlyTrend() {
 
         int currentYear = Year.now().getValue();
 
-        // Revenue — keyed by month number (1–12)
-        Map<Integer, Double> revenueByMonth = toDoubleMap(
+        Map<Integer, BigDecimal> revenueByMonth = toMoneyMap(
                 statisticsRepository.getMonthlyRevenueTrend(currentYear));
-
-        // Reservation count — keyed by month number (1–12)
         Map<Integer, Long> reservationsByMonth = toLongMap(
                 statisticsRepository.getMonthlyReservationCount(currentYear));
 
         List<Double> revenueList      = new ArrayList<>();
         List<Long>   reservationsList = new ArrayList<>();
-
         for (int m = 1; m <= 12; m++) {
-            revenueList.add(round2(revenueByMonth.getOrDefault(m, 0.0)));
+            revenueList.add(Money.round(revenueByMonth.getOrDefault(m, BigDecimal.ZERO)).doubleValue());
             reservationsList.add(reservationsByMonth.getOrDefault(m, 0L));
         }
 
@@ -124,7 +115,7 @@ public class StatisticsService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 3. PARTNER REVENUE — horizontal bar chart + partner list
+    // 3. PARTNER REVENUE
     // ─────────────────────────────────────────────────────────────────────────
 
     public PartnerRevenueDTO getPartnerRevenue(int period) {
@@ -132,45 +123,39 @@ public class StatisticsService {
         LocalDateTime now         = LocalDateTime.now();
         LocalDateTime periodStart = now.minusDays(period);
 
-        List<Object[]> rows = statisticsRepository
-                .getRevenueByPartner(periodStart, now);
+        List<Object[]> rows = statisticsRepository.getRevenueByPartner(periodStart, now);
 
-        double totalPartnerRevenue = rows.stream()
-                .mapToDouble(r -> ((Number) r[1]).doubleValue())
-                .sum();
-
-        // Grand total (partner + direct) for the overall percentage
-        double grandTotal = statisticsRepository.getTotalRevenue(periodStart, now);
+        BigDecimal totalPartnerRevenue = Money.sum(
+                rows.stream().map(r -> toMoney(r[1])).toList());
+        BigDecimal grandTotal = Money.nz(statisticsRepository.getTotalRevenue(periodStart, now));
 
         List<PartnerRevenueDTO.PartnerEntryDTO> partners = new ArrayList<>();
-
         for (Object[] row : rows) {
             String partnerName = (String) row[0];
-            double revenue     = ((Number) row[1]).doubleValue();
-            double pct         = totalPartnerRevenue > 0
-                    ? round2((revenue / totalPartnerRevenue) * 100)
+            BigDecimal revenue = toMoney(row[1]);
+            double pct = Money.isPositive(totalPartnerRevenue)
+                    ? round2(revenue.doubleValue() / totalPartnerRevenue.doubleValue() * 100)
                     : 0.0;
-
             partners.add(PartnerRevenueDTO.PartnerEntryDTO.builder()
                     .name(partnerName)
-                    .revenue(round2(revenue))
+                    .revenue(Money.round(revenue))
                     .percentage(pct)
                     .build());
         }
 
-        double partnerGlobalPct = grandTotal > 0
-                ? round2((totalPartnerRevenue / grandTotal) * 100)
+        double partnerGlobalPct = Money.isPositive(grandTotal)
+                ? round2(totalPartnerRevenue.doubleValue() / grandTotal.doubleValue() * 100)
                 : 0.0;
 
         return PartnerRevenueDTO.builder()
                 .partners(partners)
-                .totalPartnerRevenue(round2(totalPartnerRevenue))
-                .partnerRevenuePercentage(partnerGlobalPct)
+                .totalPartnerRevenue(Money.round(totalPartnerRevenue))
+                .partnerRevenuePercentage(BigDecimal.valueOf(partnerGlobalPct))
                 .build();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 4. SOURCE DISTRIBUTION — doughnut chart + detailed table
+    // 4. SOURCE DISTRIBUTION
     // ─────────────────────────────────────────────────────────────────────────
 
     public SourceStatsDTO getSourceStats(int period) {
@@ -178,22 +163,19 @@ public class StatisticsService {
         LocalDateTime now         = LocalDateTime.now();
         LocalDateTime periodStart = now.minusDays(period);
 
-        List<Object[]> rows = statisticsRepository
-                .getReservationsBySource(periodStart, now);
+        List<Object[]> rows = statisticsRepository.getReservationsBySource(periodStart, now);
 
         long totalReservations = rows.stream()
                 .mapToLong(r -> ((Number) r[1]).longValue())
                 .sum();
 
         List<SourceStatsDTO.SourceEntryDTO> sources = new ArrayList<>();
-
         for (Object[] row : rows) {
             String sourceName = (String) row[0];
             long   count      = ((Number) row[1]).longValue();
-            double pct        = totalReservations > 0
-                    ? round2(((double) count / totalReservations) * 100)
+            double pct = totalReservations > 0
+                    ? round2((double) count / totalReservations * 100)
                     : 0.0;
-
             sources.add(SourceStatsDTO.SourceEntryDTO.builder()
                     .source(sourceName)
                     .count(count)
@@ -208,7 +190,7 @@ public class StatisticsService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 5. REVENUE DISTRIBUTION — pie chart (Partner vs Direct)
+    // 5. REVENUE DISTRIBUTION
     // ─────────────────────────────────────────────────────────────────────────
 
     public RevenueDistributionDTO getRevenueDistribution(int period) {
@@ -216,54 +198,55 @@ public class StatisticsService {
         LocalDateTime now         = LocalDateTime.now();
         LocalDateTime periodStart = now.minusDays(period);
 
-        double directRevenue  = statisticsRepository
-                .getDirectPassengerRevenue(periodStart, now);
-        double grandTotal     = statisticsRepository
-                .getTotalRevenue(periodStart, now);
-        double partnerRevenue = grandTotal - directRevenue;
+        BigDecimal directRevenue  = Money.nz(statisticsRepository.getDirectPassengerRevenue(periodStart, now));
+        BigDecimal grandTotal     = Money.nz(statisticsRepository.getTotalRevenue(periodStart, now));
+        BigDecimal partnerRevenue = Money.subtract(grandTotal, directRevenue);
 
-        double partnerPct = grandTotal > 0 ? round2((partnerRevenue / grandTotal) * 100) : 0.0;
-        double directPct  = grandTotal > 0 ? round2((directRevenue  / grandTotal) * 100) : 0.0;
+        double partnerPct = Money.isPositive(grandTotal)
+                ? round2(partnerRevenue.doubleValue() / grandTotal.doubleValue() * 100) : 0.0;
+        double directPct = Money.isPositive(grandTotal)
+                ? round2(directRevenue.doubleValue() / grandTotal.doubleValue() * 100) : 0.0;
 
         return RevenueDistributionDTO.builder()
-                .partnerRevenue(round2(partnerRevenue))
-                .directRevenue(round2(directRevenue))
+                .partnerRevenue(Money.round(partnerRevenue))
+                .directRevenue(Money.round(directRevenue))
                 .partnerPercentage(partnerPct)
                 .directPercentage(directPct)
-                .totalRevenue(round2(grandTotal))
+                .totalRevenue(Money.round(grandTotal))
                 .build();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 6. PASSENGER TREND — mini sparkline for direct passengers
+    // 6. PASSENGER TREND
     // ─────────────────────────────────────────────────────────────────────────
 
     public PassengerTrendDTO getPassengerTrend() {
 
         int currentYear = Year.now().getValue();
 
-        Map<Integer, Double> revenueByMonth = toDoubleMap(
+        Map<Integer, BigDecimal> revenueByMonth = toMoneyMap(
                 statisticsRepository.getMonthlyPassengerRevenueTrend(currentYear));
-
         Map<Integer, Long> reservationsByMonth = toLongMap(
                 statisticsRepository.getMonthlyPassengerReservationCount(currentYear));
 
         List<Double> revenueList      = new ArrayList<>();
         List<Long>   reservationsList = new ArrayList<>();
-
+        BigDecimal totalRevenue = BigDecimal.ZERO;
+        long totalCount = 0L;
         for (int m = 1; m <= 12; m++) {
-            revenueList.add(round2(revenueByMonth.getOrDefault(m, 0.0)));
-            reservationsList.add(reservationsByMonth.getOrDefault(m, 0L));
+            BigDecimal monthRevenue = Money.round(revenueByMonth.getOrDefault(m, BigDecimal.ZERO));
+            long monthCount = reservationsByMonth.getOrDefault(m, 0L);
+            revenueList.add(monthRevenue.doubleValue());
+            reservationsList.add(monthCount);
+            totalRevenue = Money.add(totalRevenue, monthRevenue);
+            totalCount += monthCount;
         }
-
-        double totalRevenue = revenueList.stream().mapToDouble(Double::doubleValue).sum();
-        long   totalCount   = reservationsList.stream().mapToLong(Long::longValue).sum();
 
         return PassengerTrendDTO.builder()
                 .labels(MONTH_LABELS)
                 .revenue(revenueList)
                 .reservations(reservationsList)
-                .totalRevenue(round2(totalRevenue))
+                .totalRevenue(Money.round(totalRevenue))
                 .totalCount(totalCount)
                 .build();
     }
@@ -272,42 +255,35 @@ public class StatisticsService {
     // PRIVATE HELPERS
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Calculate percentage growth: ((current - previous) / previous) * 100.
-     * Returns 0 when the previous value is 0 (avoids division by zero).
-     */
+    /** Presentation-only growth ratio. Not a monetary value. */
     private double calculateGrowthPercentage(double previous, double current) {
         if (previous == 0) return current > 0 ? 100.0 : 0.0;
-        return ((current - previous) / previous) * 100;
+        return (current - previous) / previous * 100;
     }
 
-    /**
-     * Convert Object[]{monthInt, Double} rows into a Map<month, value>.
-     */
-    private Map<Integer, Double> toDoubleMap(List<Object[]> rows) {
-        Map<Integer, Double> map = new HashMap<>();
+    private BigDecimal toMoney(Object value) {
+        if (value == null) return BigDecimal.ZERO;
+        if (value instanceof BigDecimal bd) return bd;
+        return new BigDecimal(value.toString());
+    }
+
+    private Map<Integer, BigDecimal> toMoneyMap(List<Object[]> rows) {
+        Map<Integer, BigDecimal> map = new HashMap<>();
         for (Object[] row : rows) {
-            int    month = ((Number) row[0]).intValue();
-            double value = ((Number) row[1]).doubleValue();
-            map.put(month, value);
+            map.put(((Number) row[0]).intValue(), toMoney(row[1]));
         }
         return map;
     }
 
-    /**
-     * Convert Object[]{monthInt, Long} rows into a Map<month, count>.
-     */
     private Map<Integer, Long> toLongMap(List<Object[]> rows) {
         Map<Integer, Long> map = new HashMap<>();
         for (Object[] row : rows) {
-            int  month = ((Number) row[0]).intValue();
-            long count = ((Number) row[1]).longValue();
-            map.put(month, count);
+            map.put(((Number) row[0]).intValue(), ((Number) row[1]).longValue());
         }
         return map;
     }
 
-    /** Round a double to 2 decimal places. */
+    /** Presentation-only rounding for percentage / ratio display. */
     private double round2(double value) {
         return Math.round(value * 100.0) / 100.0;
     }

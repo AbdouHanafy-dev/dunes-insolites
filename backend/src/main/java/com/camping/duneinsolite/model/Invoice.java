@@ -47,11 +47,11 @@ public class Invoice {
     private LocalDate dueDate;
 
     @Column(name = "total_amount", nullable = false)
-    private Double totalAmount;
+    private java.math.BigDecimal totalAmount;
 
     @Column(name = "paid_amount", nullable = false)
     @Builder.Default
-    private Double paidAmount = 0.0;
+    private java.math.BigDecimal paidAmount = java.math.BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -69,20 +69,20 @@ public class Invoice {
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @Column(name = "total_ht")
-    private Double totalHt;
+    private java.math.BigDecimal totalHt;
 
     @Column(name = "tva_rate")
     @Builder.Default
-    private Double tvaRate = 7.0;
+    private java.math.BigDecimal tvaRate = new java.math.BigDecimal("7.000");
 
     @Column(name = "tva_amount")
-    private Double tvaAmount;
+    private java.math.BigDecimal tvaAmount;
 
     @Column(name = "timbre_fiscal")
-    private Double timbreFiscal;
+    private java.math.BigDecimal timbreFiscal;
 
     @Column(name = "total_ttc")
-    private Double totalTtc;
+    private java.math.BigDecimal totalTtc;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "company_type")
@@ -93,9 +93,8 @@ public class Invoice {
 
     // remainingAmount is computed, not stored
     @Transient
-    public Double getRemainingAmount() {
-        if (totalAmount == null) return 0.0;
-        return totalAmount - (paidAmount != null ? paidAmount : 0.0);
+    public java.math.BigDecimal getRemainingAmount() {
+        return com.camping.duneinsolite.money.Money.subtract(totalAmount, paidAmount);
     }
 
     // ──────────────────────────────────────────────

@@ -42,14 +42,18 @@ authoritative. The endpoint documentation is still current.
 
 ### Two things that used to bite
 
-**Seed fallback is silent — mostly fixed (DI-031).** `get()` still catches
-a *transient* fetch failure and returns seed data — correct, a blank page
-is worse. What changed: a real production deploy (`DEPLOY_ENV=production`,
-set only on the actual host, never in dev — see `lib/api.ts`'s own comment
-for why this isn't `NODE_ENV`) with `NEXT_PUBLIC_API_URL` unset now fails
-the build hard instead of silently shipping 100% seed/placeholder content
-forever with no signal. A transient failure in production also logs loudly
-now instead of vanishing silently.
+**Seed fallback now fails closed (production-hardening item 3).** Seed data
+(`lib/data/*`) is served ONLY when `ALLOW_SEED_FALLBACK=true` (or
+`NEXT_PUBLIC_ALLOW_SEED_FALLBACK=true`) is explicitly set — a local-dev
+opt-in, never on a deployment. Without it:
+- `NEXT_PUBLIC_API_URL` unset → `MisconfiguredBackendError` at first call;
+  `next build` fails, `next start` errors on first request.
+- a configured backend that errors/500s → `console.error` + the caller's
+  neutral empty value (`[]` / `null`), **never** seed data.
+This no longer depends on remembering a `DEPLOY_ENV` flag — the unsafe path
+requires the opt-in, the safe path is the default. The `app/api/*` seed
+route handlers are likewise 503 unless the opt-in is set (`lib/seedGuard.ts`).
+Covered by `lib/api.test.ts` (vitest — `npm test`).
 
 **In-memory stores.** `lib/bookings.ts` keeps bookings in a `Map` that dies on
 restart and is per-instance on serverless. Availability is computed from a *hash

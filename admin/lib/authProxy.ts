@@ -50,7 +50,11 @@ export async function backendLogin(email: string, password: string): Promise<Bac
   store.set(SESSION_COOKIE, accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    // strict, not lax: the backoffice has no cross-site entry point, and the
+    // proxy accepts mutating requests — strict means the session cookie is
+    // never attached to a cross-site request at all (defence in depth on top
+    // of the proxy's own same-origin check).
+    sameSite: "strict",
     path: "/",
     maxAge: typeof data.expiresIn === "number" ? data.expiresIn : 300,
   });

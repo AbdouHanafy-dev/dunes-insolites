@@ -10,14 +10,14 @@ import java.util.List;
 public class PartnerRevenueDTO {
 
     private List<PartnerEntryDTO> partners;
-    private Double                totalPartnerRevenue;
-    private Double                partnerRevenuePercentage; // % of grand total
+    private java.math.BigDecimal                totalPartnerRevenue;
+    private java.math.BigDecimal                partnerRevenuePercentage; // % of grand total
 
     @Data
     @Builder
     public static class PartnerEntryDTO {
         private String name;
-        private Double revenue;
+        private java.math.BigDecimal revenue;
         private Double percentage; // % of total partner revenue
     }
 }

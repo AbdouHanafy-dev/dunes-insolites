@@ -40,10 +40,10 @@ public class ReservationExtra {
 
     // Snapshot of the price at booking time
     @Column(name = "unit_price", nullable = false)
-    private Double unitPrice;
+    private java.math.BigDecimal unitPrice;
 
     @Column(name = "total_price")
-    private Double totalPrice;
+    private java.math.BigDecimal totalPrice;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
@@ -54,6 +54,6 @@ public class ReservationExtra {
 
     @Column(name = "tva", nullable = false)
     @Builder.Default
-    private Double tva = 0.0;
+    private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
 
 }

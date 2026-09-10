@@ -35,10 +35,10 @@ public class ReservationTour {
 
     // Price snapshotted by role at booking time
     @Column(name = "adult_price", nullable = false)
-    private Double adultPrice;
+    private java.math.BigDecimal adultPrice;
 
     @Column(name = "child_price", nullable = false)
-    private Double childPrice;
+    private java.math.BigDecimal childPrice;
 
     @Column(name = "number_of_adults", nullable = false)
     private Integer numberOfAdults;
@@ -54,11 +54,11 @@ public class ReservationTour {
 
     @Column(name = "tva", nullable = false)
     @Builder.Default
-    private Double tva = 0.0;
+    private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
 
     // Computed and stored — TTC price (HT + TVA), no nights multiplier
     @Column(name = "total_price", nullable = false)
-    private Double totalPrice;
+    private java.math.BigDecimal totalPrice;
 
     @OneToMany(mappedBy = "reservationTour", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

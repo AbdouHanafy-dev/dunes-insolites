@@ -41,26 +41,46 @@ import type { SlotAvailability } from "@/lib/bookings";
 
 const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
-// DI-031 — a production deploy with no backend configured (or one that's
-// unreachable) would otherwise silently serve 100% seed/placeholder data —
-// stale marketing prices as though they were live — to every real visitor,
-// with no error and no signal anywhere. Tolerable in dev, where running
-// without a backend is the normal, deliberate case; never acceptable once
-// this app is actually deployed.
+// ── Fail closed (production-hardening item 3) ──────────────────────────────
 //
-// Deliberately NOT process.env.NODE_ENV: `next build` always sets
-// NODE_ENV=production, including a developer running a plain local build
-// to verify something before a backend is even up — the exact workflow
-// this session used repeatedly. Gating on NODE_ENV made `npm run build`
-// fail every time, confirmed by actually running it, not assumed. DEPLOY_ENV
-// is a new, separate variable this codebase doesn't set anywhere yet —
-// the real production host must set DEPLOY_ENV=production explicitly
-// (part of DI-030, not yet done) for this guard to ever fire. Its absence
-// means "not deployed as production" by default, same as today.
-const IS_REAL_PRODUCTION = process.env.DEPLOY_ENV === "production";
+// Serving seed/placeholder content as though it were live business data — stale
+// marketing prices, a fabricated catalogue — is only ever acceptable as a
+// deliberate LOCAL convenience. So it is OFF by default and must be opted into
+// explicitly:
+//
+//     ALLOW_SEED_FALLBACK=true              # server-side (dev only)
+//     NEXT_PUBLIC_ALLOW_SEED_FALLBACK=true  # if a client component needs it too
+//
+// With the opt-in OFF (every real deployment, and any build/CI that forgot to
+// set it):
+//   • NEXT_PUBLIC_API_URL missing  → hard error at first call. `next build`
+//     fails, `next start` fails on first request. No silent seed site ships.
+//   • a configured backend errors  → `console.error`, then the caller's neutral
+//     "unavailable" value (empty list / null). NEVER seed data.
+//
+// This does not depend on anyone remembering to set a production flag: the
+// unsafe path requires an explicit opt-in, the safe path is the default.
+const SEED_FALLBACK_ENABLED =
+  process.env.ALLOW_SEED_FALLBACK === "true" ||
+  process.env.NEXT_PUBLIC_ALLOW_SEED_FALLBACK === "true";
+
+/** Thrown when no backend is configured and seed fallback was not opted into. */
+export class MisconfiguredBackendError extends Error {
+  constructor(path: string) {
+    super(
+      `NEXT_PUBLIC_API_URL is not set and ALLOW_SEED_FALLBACK is not "true" — ` +
+        `refusing to serve seed data for "${path}". Set NEXT_PUBLIC_API_URL to a real ` +
+        `backend, or set ALLOW_SEED_FALLBACK=true for local development.`,
+    );
+    this.name = "MisconfiguredBackendError";
+  }
+}
 
 /** True once a real backend is configured. */
 export const usingRemoteApi = BASE !== "";
+
+/** Test seam only — lets a test assert on the resolved config without reimporting. */
+export const __config = { get seedFallbackEnabled() { return SEED_FALLBACK_ENABLED; }, get base() { return BASE; } };
 
 /** Absolute URL for the backend, or a relative Next.js route when local. */
 function url(path: string): string {
@@ -74,21 +94,19 @@ function localeQuery(locale?: string): string {
 
 type FetchOpts = { revalidate?: number; signal?: AbortSignal };
 
-async function get<T>(path: string, fallback: T, opts: FetchOpts = {}): Promise<T> {
+/**
+ * @param seed  value to serve ONLY when seed fallback is explicitly enabled
+ * @param empty neutral "backend unavailable" value — served on a runtime failure
+ *              when seed fallback is disabled (never the seed)
+ */
+async function get<T>(
+  path: string,
+  { seed, empty }: { seed: T; empty: T },
+  opts: FetchOpts = {},
+): Promise<T> {
   if (!BASE) {
-    if (IS_REAL_PRODUCTION) {
-      // A misconfigured production deploy - fail loudly and immediately
-      // rather than quietly shipping a site that looks live but is 100%
-      // placeholder content. This is the one case DI-031 treats as a hard
-      // error, not a degrade: there is no real backend to have hiccuped.
-      throw new Error(
-        `NEXT_PUBLIC_API_URL is not set in production — refusing to silently serve seed data for "${path}".`,
-      );
-    }
-    // Server components with no backend configured read the seed directly —
-    // fetching our own route handler during a build would deadlock. Dev/
-    // preview only; production never reaches this line (see above).
-    if (typeof window === "undefined") return fallback;
+    if (SEED_FALLBACK_ENABLED) return seed;
+    throw new MisconfiguredBackendError(path);
   }
 
   try {
@@ -97,23 +115,22 @@ async function get<T>(path: string, fallback: T, opts: FetchOpts = {}): Promise<
       next: opts.revalidate !== undefined ? { revalidate: opts.revalidate } : undefined,
     });
     if (!res.ok) {
-      if (IS_REAL_PRODUCTION) {
-        console.error(`[lib/api] ${path} returned ${res.status} — falling back to seed data`);
-      }
-      return fallback;
+      if (SEED_FALLBACK_ENABLED) return seed;
+      console.error(`[lib/api] ${path} returned ${res.status} — serving unavailable state`);
+      return empty;
     }
     return (await res.json()) as T;
   } catch (err) {
-    // A transient backend hiccup still degrades to seed content rather than
-    // blanking the page - the difference DI-031 adds is that production no
-    // longer does this in total silence (see the console.error above/below);
-    // an unset NEXT_PUBLIC_API_URL is the one case treated as a hard error
-    // instead, since a permanently-missing backend isn't a hiccup.
-    if (IS_REAL_PRODUCTION) {
-      console.error(`[lib/api] ${path} fetch failed — falling back to seed data`, err);
-    }
-    return fallback;
+    if (SEED_FALLBACK_ENABLED) return seed;
+    console.error(`[lib/api] ${path} fetch failed — serving unavailable state`, err);
+    return empty;
   }
+}
+
+/** For the `if (!BASE)` early returns: seed when opted in, else a hard config error. */
+function seedOrThrow<T>(path: string, seed: T): T {
+  if (SEED_FALLBACK_ENABLED) return seed;
+  throw new MisconfiguredBackendError(path);
 }
 
 /* -------------------------------------------------------------------- CMS */
@@ -143,11 +160,11 @@ export type CmsPage = {
  * blanks a live route — see frontend/CLAUDE.md and the pages that call this.
  */
 export async function getCmsPage(slug: string, locale?: string): Promise<CmsPage | null> {
-  if (!BASE) return null;
+  if (!BASE) return seedOrThrow("getCmsPage", null);
   const loc = (locale ?? "fr").toUpperCase();
   return get<CmsPage | null>(
     `/public/pages/${encodeURIComponent(slug)}?locale=${loc}&companyType=DUNES_INSOLITES`,
-    null,
+    { seed: null, empty: null },
     { revalidate: 300 },
   );
 }
@@ -159,11 +176,11 @@ export async function getCmsPage(slug: string, locale?: string): Promise<CmsPage
  * (lib/guides.ts) are what the index falls back to showing on their own.
  */
 export async function getGuidePages(locale?: string): Promise<CmsPage[]> {
-  if (!BASE) return [];
+  if (!BASE) return seedOrThrow("getGuidePages", []);
   const loc = (locale ?? "fr").toUpperCase();
   return get<CmsPage[]>(
     `/public/pages?category=GUIDE&locale=${loc}&companyType=DUNES_INSOLITES`,
-    [],
+    { seed: [], empty: [] },
     { revalidate: 300 },
   );
 }
@@ -193,16 +210,16 @@ export type CmsRedirect = { fromPath: string; toPath: string; statusCode: number
  * redirects — failing open, same as every other CMS fallback in this file.
  */
 export async function getRedirects(): Promise<CmsRedirect[]> {
-  if (!BASE) return [];
-  return get<CmsRedirect[]>("/public/redirects", [], { revalidate: 300 });
+  if (!BASE) return seedOrThrow("getRedirects", []);
+  return get<CmsRedirect[]>("/public/redirects", { seed: [], empty: [] }, { revalidate: 300 });
 }
 
 export async function getNavigation(locale?: string): Promise<CmsNavItem[]> {
-  if (!BASE) return [];
+  if (!BASE) return seedOrThrow("getNavigation", []);
   const loc = (locale ?? "fr").toUpperCase();
   return get<CmsNavItem[]>(
     `/public/navigation?locale=${loc}&companyType=DUNES_INSOLITES`,
-    [],
+    { seed: [], empty: [] },
     { revalidate: 300 },
   );
 }
@@ -219,71 +236,114 @@ export async function getNavigation(locale?: string): Promise<CmsNavItem[]> {
 export async function getActivities(locale?: string): Promise<Activity[]> {
   const data = await get<{ activities: Activity[] }>(
     `/public/activities${localeQuery(locale)}`,
-    { activities: seedActivities(locale) },
+    { seed: { activities: seedActivities(locale) }, empty: { activities: [] } },
     { revalidate: 300 },
   );
-  return data.activities ?? seedActivities(locale);
+  return data.activities ?? [];
 }
 
 export async function getActivity(slug: string, locale?: string): Promise<Activity | undefined> {
-  if (!BASE) return seedActivity(slug, locale);
-  // A dedicated endpoint per DI-012 - no need to fetch the whole collection
-  // and filter client-side for a single lookup. Falls back to seed on a
-  // backend hiccup rather than 404ing, matching every other read here.
+  if (!BASE) return seedOrThrow("getActivity", seedActivity(slug, locale));
   return get<Activity | undefined>(
     `/public/activities/${encodeURIComponent(slug)}${localeQuery(locale)}`,
-    seedActivity(slug, locale),
+    { seed: seedActivity(slug, locale), empty: undefined },
   );
 }
 
 export async function getRelatedActivities(slug: string, locale?: string): Promise<Activity[]> {
-  if (!BASE) return seedRelated(slug, locale);
+  if (!BASE) return seedOrThrow("getRelatedActivities", seedRelated(slug, locale));
   const all = await getActivities(locale);
   return all.filter((a) => a.slug !== slug);
 }
 
 export async function getStats(): Promise<Stats> {
-  return get<Stats>("/stats", seedStats, { revalidate: 3600 });
+  // Found live (UI/UX audit, 30 Aug 2026): same bug class as getReviews()
+  // had - this called a bare "/stats", which is ReviewController's sibling
+  // AUTHENTICATED endpoint on the real backend (401 for a visitor), so it
+  // silently fell back to lib/data/stats.ts's hardcoded "4.9★" forever.
+  // avgRating is now derived from real review data (honest: undefined when
+  // there are none yet, never a fabricated number). guestsGuided and
+  // yearsRunning stay on the seed values on purpose, not as a bug - they
+  // are real business facts (total historical guests, actual years
+  // trading) no database here can compute, and are explicitly still
+  // pending confirmation from the business owner (see chat history 30 Aug
+  // 2026) - not something to invent a "real" source for.
+  if (!usingRemoteApi) return seedOrThrow("getStats", seedStats);
+
+  const reviews = await getReviews();
+  const avgRating = reviews.length
+    ? `${(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)}★`
+    : undefined;
+
+  return { ...seedStats, avgRating };
 }
 
 export async function getStays(locale?: string): Promise<Stay[]> {
   const data = await get<{ stays: Stay[] }>(
     `/public/stays${localeQuery(locale)}`,
-    { stays: seedStays(locale) },
+    { seed: { stays: seedStays(locale) }, empty: { stays: [] } },
     { revalidate: 300 },
   );
-  return data.stays ?? seedStays(locale);
+  return data.stays ?? [];
 }
 
 export async function getStay(slug: string, locale?: string): Promise<Stay | undefined> {
-  if (!BASE) return seedStay(slug, locale);
-  // A dedicated endpoint per DI-012 - no need to fetch the whole collection
-  // and filter client-side for a single lookup. Falls back to seed on a
-  // backend hiccup rather than 404ing, matching every other read here.
+  if (!BASE) return seedOrThrow("getStay", seedStay(slug, locale));
   return get<Stay | undefined>(
     `/public/stays/${encodeURIComponent(slug)}${localeQuery(locale)}`,
-    seedStay(slug, locale),
+    { seed: seedStay(slug, locale), empty: undefined },
   );
 }
 
 export async function getRelatedStays(slug: string, locale?: string): Promise<Stay[]> {
-  if (!BASE) return seedRelatedStays(slug, locale);
+  if (!BASE) return seedOrThrow("getRelatedStays", seedRelatedStays(slug, locale));
   const all = await getStays(locale);
   return all.filter((s) => s.slug !== slug);
 }
 
+/* --------------------------------------------------- accommodation availability */
+
+export type TierAvailability = {
+  slug: string;
+  name: string;
+  status: "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN";
+  unitsAvailable: number | null;
+};
+export type StayAvailability = {
+  staySlug: string;
+  date: string;
+  accommodations: TierAvailability[];
+};
+
+/**
+ * Truthful accommodation availability for one night (Phase 2). Advisory — the
+ * booking call re-checks under a lock. Returns `null` when there's no backend
+ * (local dev): the form then treats every tier as bookable, same as before.
+ */
+export async function getStayAvailability(
+  slug: string,
+  date: string,
+  signal?: AbortSignal,
+): Promise<StayAvailability | null> {
+  if (!BASE) return null;
+  return get<StayAvailability | null>(
+    `/public/stays/${encodeURIComponent(slug)}/availability?date=${encodeURIComponent(date)}`,
+    { seed: null, empty: null },
+    { signal },
+  );
+}
+
 export async function getGallery(): Promise<GalleryItem[]> {
-  const data = await get<{ items: GalleryItem[] }>(
-    "/gallery",
-    { items: seedGallery },
+  return get<GalleryItem[]>(
+    "/public/gallery",
+    { seed: seedGallery, empty: [] },
     { revalidate: 600 },
   );
-  return data.items ?? seedGallery;
 }
 
 /** The five-tile strip on the landing page, not the full gallery. */
 export async function getGalleryStrip(): Promise<GalleryItem[]> {
-  if (!BASE) return seedStrip;
+  if (!BASE) return seedOrThrow("getGalleryStrip", seedStrip);
   const all = await getGallery();
   return all.slice(0, 5);
 }
@@ -296,19 +356,32 @@ export async function getReviews(filter?: {
   if (filter?.activitySlug) params.set("activity", filter.activitySlug);
   if (filter?.staySlug) params.set("stay", filter.staySlug);
   const qs = params.toString();
-  const path = qs ? `/reviews?${qs}` : "/reviews";
+  // usingRemoteApi, not a bare "/reviews" - found live (UI/UX audit, 30 Aug
+  // 2026): this used to hit the same path in both modes, which against the
+  // real backend is ReviewController's own AUTHENTICATED endpoint (401 for
+  // an anonymous visitor). get()'s catch-a-transient-failure fallback then
+  // silently served lib/data/reviews.ts's explicitly-fake placeholder
+  // content - permanently, not transiently, since the real public endpoint
+  // never existed. The vitrine was serving fabricated reviews to every real
+  // visitor. PublicReviewController now exists at the real path below.
+  const base = usingRemoteApi ? "/public/reviews" : "/reviews";
+  const path = qs ? `${base}?${qs}` : base;
 
-  // A stay page also carries general (untagged) reviews — they're about the
-  // camp overall, which is what a stay page represents. Activity pages stay
-  // narrowly filtered to that one ride.
-  const fallback = filter?.activitySlug
+  // Seed reviews are served ONLY when seed fallback is explicitly enabled
+  // (local dev). A stay page also carries general (untagged) reviews; activity
+  // pages stay narrowly filtered to that one ride.
+  const seed = filter?.activitySlug
     ? seedReviews.filter((r) => r.activitySlug === filter.activitySlug)
     : filter?.staySlug
       ? seedReviews.filter((r) => r.staySlug === filter.staySlug || (!r.staySlug && !r.activitySlug))
       : seedReviews;
 
-  const data = await get<{ reviews: Review[] }>(path, { reviews: fallback }, { revalidate: 600 });
-  return data.reviews ?? fallback;
+  const data = await get<{ reviews: Review[] }>(
+    path,
+    { seed: { reviews: seed }, empty: { reviews: [] } },
+    { revalidate: 600 },
+  );
+  return data.reviews ?? [];
 }
 
 export async function getAvailability(
@@ -317,7 +390,11 @@ export async function getAvailability(
   signal?: AbortSignal,
 ): Promise<SlotAvailability[]> {
   const path = `/availability?activity=${encodeURIComponent(activity)}&date=${encodeURIComponent(date)}`;
-  const data = await get<{ slots: SlotAvailability[] }>(path, { slots: [] }, { signal });
+  const data = await get<{ slots: SlotAvailability[] }>(
+    path,
+    { seed: { slots: [] }, empty: { slots: [] } },
+    { signal },
+  );
   return data.slots ?? [];
 }
 
@@ -503,6 +580,12 @@ export type MyReservation = {
   checkInDate: string | null;
   checkOutDate: string | null;
   serviceDate: string | null;
+  // The real backend (ReservationResponse) already returns these on this
+  // exact endpoint - this type just never declared them. Not new data,
+  // just finally typed: needed for a real "N guests" line on the trip
+  // overview instead of omitting it.
+  numberOfAdults: number | null;
+  numberOfChildren: number | null;
   totalAmount: number;
   currency: string;
   createdAt: string;

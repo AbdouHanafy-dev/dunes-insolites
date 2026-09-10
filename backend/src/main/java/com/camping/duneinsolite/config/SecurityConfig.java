@@ -1,8 +1,11 @@
 package com.camping.duneinsolite.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -39,6 +42,35 @@ public class SecurityConfig {
     // instantiated here rather than autowired.
     private final RateLimitFilter rateLimitFilter = new RateLimitFilter();
 
+    /**
+     * Actuator chain. It ONLY has an effect when {@code MANAGEMENT_SERVER_PORT}
+     * is set to a port different from {@code server.port}: in that case Spring
+     * Boot serves the actuator endpoints exclusively on that private port (the
+     * main port returns 404 for {@code /actuator/**}), and this chain lets the
+     * Prometheus scraper reach {@code /actuator/prometheus} without a JWT —
+     * which is safe only because that port is bound to the internal network /
+     * localhost and never published to the internet. See
+     * {@code application.yml}'s {@code management.server} block and
+     * {@code docs/runbooks/production-monitoring.md}.
+     *
+     * <p>When {@code MANAGEMENT_SERVER_PORT} is unset (the default) actuator is
+     * served on the main port, this matcher still matches those paths, and the
+     * effect would be to make {@code /actuator/**} public — so the main chain
+     * below keeps its explicit {@code hasRole("ADMIN")} rule and this bean is
+     * disabled unless a distinct management port is configured.
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression(
+            "'${management.server.port:}' != '' and '${management.server.port:}' != '${server.port}'")
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(EndpointRequest.toAnyEndpoint())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .csrf(csrf -> csrf.disable());
+        return http.build();
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -63,7 +95,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/currency/rates").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+
+                        // Health + probes are public (container / load-balancer
+                        // checks). show-details is `when-authorized`, so the
+                        // public body is only {"status":"UP"} - no component
+                        // detail, no leak. Everything else under /actuator
+                        // (metrics, prometheus, info) is ADMIN-only, below.
+                        .requestMatchers(HttpMethod.GET,
+                                "/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                         // /active must stay authenticated - declared BEFORE the {id} wildcard
                         // permitAll rules below, otherwise "active" would match as a path

@@ -38,6 +38,7 @@ Not idempotent — Redirect.fromPath is unique, so a second run 409s on
 every row it already created and just logs it, same pattern as
 seed-cms-pages.py.
 """
+import os
 import json
 import urllib.request
 import urllib.error
@@ -99,7 +100,7 @@ def req(method, path, token=None, body=None):
 
 def login():
     status, data = req("POST", "/auth/login", body={
-        "email": "testadmin@dunes.local", "password": "AdminPass1!",
+        "email": os.environ.get("SEED_ADMIN_EMAIL", "testadmin@dunes.local"), "password": os.environ.get("SEED_ADMIN_PASSWORD", "AdminPass1!"),
     })
     assert status == 200, f"login failed: {status} {data}"
     return data["accessToken"]

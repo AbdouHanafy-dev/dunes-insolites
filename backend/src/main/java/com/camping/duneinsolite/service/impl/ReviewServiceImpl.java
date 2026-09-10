@@ -3,11 +3,14 @@ package com.camping.duneinsolite.service.impl;
 import com.camping.duneinsolite.dto.request.ReviewRequest;
 import com.camping.duneinsolite.dto.request.ReviewUpdateRequest;
 import com.camping.duneinsolite.dto.response.ReviewResponse;
+import com.camping.duneinsolite.dto.response.publicapi.PublicReviewResponse;
 import com.camping.duneinsolite.exception.ConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.mapper.ReviewMapper;
+import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.Review;
+import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.ReviewRepository;
@@ -22,6 +25,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -95,6 +101,71 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = findById(reviewId);
         reviewRepository.delete(review);
         recomputeAggregate(review.getProductId(), review.getProductType());
+    }
+
+    // Found live (UI/UX audit, 30 Aug 2026): the vitrine had no public
+    // reviews endpoint at all - only this class's authenticated methods
+    // above, which 401 for an anonymous visitor. lib/api.ts's getReviews()
+    // treated that 401 as a "transient failure" and silently fell back to
+    // lib/data/reviews.ts's explicitly-marked-fake placeholder content -
+    // permanently, not transiently, since the real endpoint never existed.
+    // The vitrine was serving fabricated reviews, and feeding them into
+    // AggregateRating JSON-LD, on every real page load. This is the real
+    // fix: with zero real reviews today, this correctly returns an empty
+    // list instead of anything invented.
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublicReviewResponse> getPublicReviews(String activitySlug, String staySlug) {
+        List<Review> reviews;
+        ProductType filterType = null;
+
+        if (activitySlug != null && !activitySlug.isBlank()) {
+            Optional<Extra> extra = extraRepository.findBySlugAndIsActiveTrue(activitySlug);
+            if (extra.isEmpty()) return List.of();
+            reviews = reviewRepository.findByProductIdAndProductTypeOrderByCreatedAtDesc(
+                    extra.get().getExtraId(), ProductType.EXTRA);
+            filterType = ProductType.EXTRA;
+        } else if (staySlug != null && !staySlug.isBlank()) {
+            Optional<TourType> tourType = tourTypeRepository.findBySlugAndIsActiveTrue(staySlug);
+            if (tourType.isEmpty()) return List.of();
+            reviews = reviewRepository.findByProductIdAndProductTypeOrderByCreatedAtDesc(
+                    tourType.get().getTourTypeId(), ProductType.TOURTYPE);
+            filterType = ProductType.TOURTYPE;
+        } else {
+            reviews = reviewRepository.findAllByOrderByCreatedAtDesc();
+        }
+
+        DateTimeFormatter iso = DateTimeFormatter.ISO_LOCAL_DATE;
+        ProductType effectiveFilterType = filterType;
+        return reviews.stream().map(r -> toPublicResponse(r, effectiveFilterType, iso)).toList();
+    }
+
+    private PublicReviewResponse toPublicResponse(Review r, ProductType knownFilterType, DateTimeFormatter iso) {
+        // Resolve the product's public slug for whichever type this review
+        // is actually on - not just the type we filtered by (the site-wide,
+        // unfiltered feed has no known type per row).
+        ProductType type = knownFilterType != null ? knownFilterType : r.getProductType();
+        String activitySlug = type == ProductType.EXTRA
+                ? extraRepository.findById(r.getProductId()).map(Extra::getSlug).orElse(null)
+                : null;
+        String staySlug = type == ProductType.TOURTYPE
+                ? tourTypeRepository.findById(r.getProductId()).map(TourType::getSlug).orElse(null)
+                : null;
+        // A review on a Route Insolite Tour has neither - correct, not a
+        // bug: the Dunes vitrine never renders Tour-scoped content (root
+        // CLAUDE.md), so this review simply won't appear on any activity/
+        // stay page, only the unfiltered site-wide feed if one exists.
+
+        return PublicReviewResponse.builder()
+                .id(r.getReviewId().toString())
+                .name(r.getUser().getName())
+                .rating(r.getRating())
+                .date(r.getCreatedAt().format(iso))
+                .body(r.getComment())
+                .activitySlug(activitySlug)
+                .staySlug(staySlug)
+                .source("direct")
+                .build();
     }
 
     private Review findById(UUID reviewId) {

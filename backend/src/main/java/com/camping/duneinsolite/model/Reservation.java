@@ -76,7 +76,7 @@ public class Reservation {
 
     // Null for EXTRAS type — stores TourType or Tour total only
     @Column(name = "total_amount")
-    private Double totalAmount;
+    private java.math.BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", length = 3)
@@ -88,13 +88,13 @@ public class Reservation {
 
     @Column(name = "total_extras_amount")
     @Builder.Default
-    private Double totalExtrasAmount = 0.0;
+    private java.math.BigDecimal totalExtrasAmount = java.math.BigDecimal.ZERO;
 
     // Exchange rate (TND per unit of `currency`) locked in at the first non-TND payment.
     // Reused for every conversion afterwards so a reservation never drifts against a
     // later config change.
     @Column(name = "exchange_rate_applied")
-    private Double exchangeRateApplied;
+    private java.math.BigDecimal exchangeRateApplied;
 
     @Column(name = "demande_special", columnDefinition = "TEXT")
     private String demandeSpecial;
@@ -103,6 +103,14 @@ public class Reservation {
     // confirmation time. Sent to the client in the payment-reminder email.
     @Column(name = "payment_link")
     private String paymentLink;
+
+    // ── Public guest hold (Phase 2) ──────────────────────────────
+    // When set, this PENDING reservation is a temporary hold: it consumes
+    // accommodation inventory only until this instant, then HoldExpiryJob
+    // moves it to EXPIRED. NULL = no expiry (staff-created or legacy PENDING,
+    // and every CONFIRMED/CHECKED_IN reservation).
+    @Column(name = "hold_expires_at")
+    private LocalDateTime holdExpiresAt;
 
     // ── HEBERGEMENT — TourTypes ───────────────────────────────────
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -160,6 +168,14 @@ public class Reservation {
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Chauffeur> chauffeurs = new ArrayList<>();
+
+    // Client-supplied idempotency key for public booking creation (V7). One
+    // UUID per booking attempt from the vitrine; re-used on a network retry so
+    // the retry returns the SAME reservation instead of creating a duplicate
+    // (and a duplicate hold). Null for staff-created and legacy reservations.
+    // Partial unique index ux_reservations_idempotency_key.
+    @Column(name = "idempotency_key", length = 64, updatable = false)
+    private String idempotencyKey;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -239,22 +255,19 @@ public class Reservation {
         transaction.setReservation(this);
     }
 
-    public Double calculateTotalExtrasAmount() {
-        return extras.stream()
-                .mapToDouble(ReservationExtra::getTotalPrice)
-                .sum();
+    public java.math.BigDecimal calculateTotalExtrasAmount() {
+        return com.camping.duneinsolite.money.Money.sum(
+                extras.stream().map(ReservationExtra::getTotalPrice).toList());
     }
 
-    public Double calculateTotalTourTypesAmount() {
-        return tourTypes.stream()
-                .mapToDouble(ReservationTourType::getTotalPrice)
-                .sum();
+    public java.math.BigDecimal calculateTotalTourTypesAmount() {
+        return com.camping.duneinsolite.money.Money.sum(
+                tourTypes.stream().map(ReservationTourType::getTotalPrice).toList());
     }
 
-    public Double calculateTotalToursAmount() {
-        return tours.stream()
-                .mapToDouble(ReservationTour::getTotalPrice)
-                .sum();
+    public java.math.BigDecimal calculateTotalToursAmount() {
+        return com.camping.duneinsolite.money.Money.sum(
+                tours.stream().map(ReservationTour::getTotalPrice).toList());
     }
     public void addGuide(Guide guide) {
         guides.add(guide);

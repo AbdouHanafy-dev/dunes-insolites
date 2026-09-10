@@ -19,12 +19,12 @@ public class InvoiceItemRequest {
 
     @NotNull(message = "Unit price is required")
     @Positive(message = "Unit price must be positive")
-    private Double unitPrice;
+    private java.math.BigDecimal unitPrice;
 
     @NotNull(message = "Line number is required")
     private Integer lineNumber;
 
-    private Double tva;
+    private java.math.BigDecimal tva;
 
     private LocalDate activityDate;
 

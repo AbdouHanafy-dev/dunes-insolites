@@ -1,0 +1,51 @@
+# Prometheus scrape config for the Dunes Insolites stack.
+# Used by backend/docker-compose.observability.yml. In production, replace the
+# static targets with your real service discovery / hostnames and point
+# alerting.alertmanagers at the real Alertmanager.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    env: local            # set to "production" on the real host
+
+rule_files:
+  - /etc/prometheus/alert-rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  # The Spring Boot app — Micrometer /actuator/prometheus on the PRIVATE
+  # management port (MANAGEMENT_SERVER_PORT=9099). host.docker.internal reaches
+  # the backend running on the host during local dev; in prod this is the
+  # backend service name on the internal network.
+  - job_name: dunes-backend
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:9099"]
+        labels: { service: backend }
+
+  # Black-box HTTP probe of readiness (DB + RabbitMQ + app), so an alert fires
+  # when a dependency is down even though the JVM is still up.
+  - job_name: dunes-readiness
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      # actuator is on the private management port (MANAGEMENT_SERVER_PORT)
+      - targets:
+          - http://host.docker.internal:9099/actuator/health/readiness
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
