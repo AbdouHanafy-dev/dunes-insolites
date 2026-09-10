@@ -56,16 +56,26 @@ type TokenSet = {
   refresh_expires_in?: number;
 };
 
+// Keycloak sits behind the same nginx as this app; every request through
+// middleware can trigger a refresh, so a hung IdP must not hang page loads.
+const IDP_TIMEOUT_MS = 5000;
+
 async function tokenRequest(body: Record<string, string>): Promise<TokenSet | null> {
-  const res = await fetch(`${ISSUER}/protocol/openid-connect/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      ...body,
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${ISSUER}/protocol/openid-connect/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        ...body,
+      }),
+      signal: AbortSignal.timeout(IDP_TIMEOUT_MS),
+    });
+  } catch {
+    return null;
+  }
   if (!res.ok) return null;
   return (await res.json()) as TokenSet;
 }
@@ -93,6 +103,7 @@ export async function endKeycloakSession(refreshToken: string | undefined): Prom
         client_secret: CLIENT_SECRET,
         refresh_token: refreshToken,
       }),
+      signal: AbortSignal.timeout(IDP_TIMEOUT_MS),
     });
   } catch {
     /* logout is idempotent enough — clearing our cookies is what matters */

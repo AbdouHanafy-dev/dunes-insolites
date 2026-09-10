@@ -54,6 +54,7 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HTTP_PORT: "8180"
       KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
     volumes:
       - ./docker/keycloak-realm-duneinsolite.json:/opt/keycloak/data/import/duneinsolite-realm.json:ro
     ports:
@@ -61,6 +62,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # The image has no curl; probe the management health port over bash /dev/tcp.
+    # Gives the backend a real readiness signal so its first boot doesn't race
+    # Keycloak coming up (previously it failed the KC connect and self-healed on
+    # restart).
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
+      retries: 20
     networks: [dunes-v2]
 
   rabbitmq:
@@ -134,7 +145,7 @@ services:
       rabbitmq:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
     networks: [dunes-v2]
 
   # ── New Next.js backoffice — replaces the Angular admin/camping/partner apps ──
