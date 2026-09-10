@@ -1,0 +1,30 @@
+# VPS override for the monitoring stack — all ports bound to 127.0.0.1 (reach
+# them via SSH tunnel or an authenticated nginx vhost), production label.
+#
+#   docker compose -p dunes-mon \
+#     -f docker-compose.observability.yml -f docker-compose.observability.vps.yml up -d
+
+services:
+  prometheus:
+    ports: !override ["127.0.0.1:9090:9090"]
+    volumes:
+      - ./observability/prometheus.vps.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus_data:/prometheus
+
+  alertmanager:
+    ports: !override ["127.0.0.1:9093:9093"]
+
+  blackbox:
+    ports: !override ["127.0.0.1:9115:9115"]
+
+  grafana:
+    ports: !override ["127.0.0.1:3300:3000"]
+    environment:
+      GF_SERVER_ROOT_URL: https://mon.dunesinsolites.com
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+
+  alert-sink:
+    ports: !override ["127.0.0.1:5001:5001"]
