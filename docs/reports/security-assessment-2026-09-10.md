@@ -21,17 +21,31 @@ this cycle), moved money to `BigDecimal`, and put Flyway + fail-closed config in
 place. JWT signature validation correctly rejects forged and `alg:none` tokens.
 No secrets are in git history.
 
-The **deployment** had the usual first-cut gaps — Keycloak admin console and the
-RabbitMQ UI were internet-exposed, no fail2ban, no rate limiting, no brute-force
-protection in Keycloak. **All of those were fixed live during this assessment.**
+The **deployment** had the usual first-cut gaps — a CRITICAL dependency RCE
+(Next.js image optimization), a HIGH payment-fraud hole (customers could mark
+their own booking paid), Keycloak admin console + RabbitMQ UI internet-exposed,
+no fail2ban / rate limiting / Keycloak brute-force protection, plaintext
+backups. **All of those were fixed and deployed during this assessment.**
 
-**One CRITICAL remains open at report time:** the Next.js version on the VPS
-(16.3.1) has a known unauthenticated RCE in the image-optimization path
-(`GHSA-2xp9-vwfh-vxw4`). Fix (bump to 16.3.4 + `sharp`) is in progress.
+**Nothing CRITICAL or HIGH is open at report time.**
 
-Two MEDIUM items need a planned maintenance window: JWT issuer/audience
-validation (M-1) and Keycloak production mode (M-6). One MEDIUM is a governance
-issue outside the repo: a third party controls the primary domain's DNS (M-7).
+Three items remain, none an open door:
+- **M-6** (Keycloak `start-dev` → prod mode) + **M-1** (JWT `iss`/`aud` validation)
+  — one planned ~20-min maintenance window, paired.
+- **M-7** — a third party (the site developer) controls the primary domain's DNS.
+  Governance, outside the repo; also blocks the SEO cutover.
+
+## Score
+
+**Security posture: ~8 / 10** (from ~5/10 at the start of the assessment).
+Every CRITICAL/HIGH closed and deployed; defence in depth at edge (nginx
+rate-limit + headers + fail2ban), IdP (Keycloak brute-force + policy), app
+(authz matrix, IDOR, staff-only payment ledger, hardened rate-limit key),
+data (encrypted backups), supply chain (`npm audit` gate, 0 vulns). Held below
+9 by operational maturity, not holes: no MFA for staff, no secret manager, no
+centralized/SIEM security logging + real alert routing, backups' key still on
+the DB host, Keycloak not yet in prod mode, code not through remote CI, and no
+external pentest. See "Priority queue".
 
 ---
 
@@ -60,8 +74,8 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 | **M-1** | **JWT decoder does not validate `iss` or `aud`.** `NimbusJwtDecoder.withJwkSetUri(...).build()` validates signature + expiry only. Any token signed by the realm's keys is accepted regardless of issuing client or audience. Low impact today (single realm), but a token minted for the `account` client — or a future public client — would be honoured with its roles. | `SecurityConfig.java:202-205` | **OPEN** — build the decoder with `JwtValidators.createDefaultWithIssuer(ISSUER_URL)` + an audience validator. Needs `KEYCLOAK_ISSUER_URL` (`https://auth.dunesinsolites.com/realms/duneinsolite`) as a config value distinct from the internal JWK URL — do it together with M-6. |
 | **M-2** | Keycloak realm **brute-force protection was OFF** — the token endpoint (`/realms/duneinsolite/.../token`) could be hammered with password guesses, bypassing the API-layer control entirely. | admin API `bruteForceProtected: false` | **FIXED** — enabled: `failureFactor 5`, wait 60s→900s, `maxDeltaTimeSeconds 43200`. |
 | **M-3** | Keycloak realm **had no password policy.** | admin API `passwordPolicy: None` | **FIXED** — `length(12) and notUsername() and passwordHistory(3)`. |
-| **M-4** | **App-layer rate limiting not effective on login.** 8 rapid `POST /api/auth/login` all returned 401, none 429 — the code `RateLimitFilter` is not throttling this path. | live test | **MITIGATED** — nginx `limit_req` added: `10 r/m` on `/api/auth/login` + the Keycloak token endpoint, `30 r/m` on public POST (`bookings`, `stay-bookings`, `contact`, `subscribe`). Verified → 429. **Still OPEN in code:** fix `RateLimitFilter` for defence in depth. |
-| **M-5** | **Database backups are not encrypted at rest.** `db-backup.sh` writes plaintext `pg_dump` archives; the DB holds customer PII (name/email/phone) and invoice data (address, matricule fiscal). A plaintext dump landing on off-host storage is a disclosure risk. | `grep -i encrypt scripts/db-backup.sh` → none | **OPEN** — add `openssl enc -aes-256-cbc -pbkdf2` (passphrase from a file, never committed) to `db-backup.sh`, and the matching decrypt to `db-restore-verify.sh`. Do before the off-host destination is wired. |
+| **M-4** | **`RateLimitFilter` trusted a client-controlled header for the per-IP key.** `clientIp()` read the leftmost `X-Forwarded-For` value — an attacker could rotate the header to reset the window and bypass the limit. (The app *does* limit `/api/auth/login` at 10/min; the earlier "no 429" observation was an 8-request test, under threshold.) | code review | **FIXED** — `clientIp()` now uses the proxy-set `X-Real-IP` (nginx overwrites any client value), falling back to `getRemoteAddr()`. nginx `limit_req` (5-burst, IP by `$binary_remote_addr`) is the primary, stricter control. Both verified. |
+| **M-5** | Database backups were plaintext `pg_dump` archives (customer PII + invoice data). | — | **FIXED** — `db-backup.sh` encrypts with `openssl enc -aes-256-cbc -pbkdf2` when `BACKUP_ENC_KEY_FILE` is set (loud warning when unset); `db-restore-verify.sh` decrypts transparently. Round-trip proven on the VPS (`file` → *openssl salted*, restore → PASS). Key `/root/.dunes-backup.key` (root-only, not in git). **Follow-up:** keep a copy of the key off the DB host. |
 | **M-6** | **Keycloak runs `start-dev`.** Logs "DO NOT use this configuration in production." Dev-mode caching, permissive hostname/HTTPS checks, and the token `iss` currently renders as `http://…:8180` (should be `https://auth.dunesinsolites.com`). Not a direct vuln (admin console is now blocked at nginx — L-2), but the wrong posture. | `docker logs dunes-v2-keycloak` | **OPEN** — switch to `start` with `KC_HOSTNAME=https://auth.dunesinsolites.com`, `KC_HTTP_ENABLED=true`, `KC_PROXY_HEADERS=xforwarded`. A misconfig breaks all backoffice auth → needs a tested ~20-min maintenance window. Pair with M-1. |
 | **M-7** | **Third-party control of the primary domain's DNS.** `dunes-insolites.com` (registrar OVH, owner-controlled) has its nameservers delegated to a **Cloudflare account the owner cannot access** — set up by the site's developer. That party can repoint the domain, issue certs for it, read traffic metadata, and change email routing. | `dig NS`, empty owner Cloudflare account | **OPEN — governance.** Get the developer to add the owner as a Member (or move the zone). Until then, treat the domain as not fully under the owner's control. |
 
@@ -77,12 +91,12 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 | **L-6** | No HSTS / `X-Content-Type-Options` / `Referrer-Policy` at the edge | **FIXED** — `snippets/dunes-security-headers.conf` on every app vhost |
 | **L-7** | **Single SSH key** authorises root — losing `~/.ssh/dunes_vps_ed25519` = locked out (Contabo console recovery only) | **OPEN** — owner should add a second personal key to `/root/.ssh/authorized_keys` |
 | **L-8** | Grafana `admin/admin` | **ACCEPTED** short-term — bound to `127.0.0.1`, reachable only via tunnel / the (not-yet-TLS) `mon.` vhost. Change on first login. |
-| **L-9** | `default_server` serves `/var/www/html` for any unmatched Host | **ACCEPTED** — nginx default page only; consider `return 444` |
+| **L-9** | `default_server` served `/var/www/html` for any unmatched Host | **FIXED** — `return 444` (connection dropped) |
 | **L-10** | Old vulnerable stack containers + volumes (`duneinsolite_postgres_data`, test data) still on disk, stopped | **ACCEPTED** — kept for rollback; remove after Part B + a few weeks stable |
-| **L-11** | Duplicate `X-Frame-Options` (app `DENY` + nginx `SAMEORIGIN`) | **OPEN** — pick one source |
+| **L-11** | Duplicate `X-Frame-Options` / `X-Content-Type-Options` (app + nginx) | **FIXED** — the nginx snippet now sends **only** HSTS (`includeSubDomains`); the apps own the rest. Verified single `X-Frame-Options: DENY`. |
 | **L-12** | `dunes-insolites.com` has **no DMARC record** (email spoofing) | **OPEN** — but DNS not owner-controlled (M-7); fix when it is. SPF is `~all`. |
 | **L-13** | `client_max_body_size` was 1m — media uploads (8 MB) 413'd at nginx before reaching the backend | **FIXED** — 10m on `api` + `admin` (also a functional bug) |
-| **L-14** | `POST /api/auth/login` with a wrong/absent `Content-Type` (form body) → **500** instead of 400/415. Body is generic ("An unexpected error occurred") — **no leak** — but 5xx on bad client input is noise. | **OPEN** — map `HttpMediaTypeNotSupportedException` / `HttpMessageNotReadableException` to 4xx in `GlobalExceptionHandler`. |
+| **L-14** | Malformed body / bad `Content-Type` / wrong method → **500** instead of 4xx (no leak, just noise). | **FIXED** — `GlobalExceptionHandler` maps `HttpMessageNotReadableException`, `HttpMediaTypeNotSupportedException`, `MissingServletRequestParameterException`, `MethodArgumentTypeMismatchException` → 400 and `HttpRequestMethodNotSupportedException` → 405. |
 
 ### Verified GOOD
 
