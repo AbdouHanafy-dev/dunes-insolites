@@ -37,15 +37,17 @@ Three items remain, none an open door:
 
 ## Score
 
-**Security posture: ~8.3 / 10** (from ~5/10 at the start of the assessment).
-Every CRITICAL/HIGH closed and deployed; defence in depth at edge (nginx
-rate-limit + headers + fail2ban), IdP (Keycloak brute-force + policy), app
-(authz matrix, IDOR, staff-only payment ledger, hardened rate-limit key),
-data (encrypted backups), supply chain (`npm audit` gate, 0 vulns). Held below
-9 by operational maturity, not holes: no MFA for staff, no secret manager, no
-centralized/SIEM security logging + real alert routing, backups' key still on
-the DB host, Keycloak not yet in prod mode, code not through remote CI, and no
-external pentest. See "Priority queue".
+**Security posture: ~8.6 / 10** (from ~5/10 at the start of the assessment).
+Every CRITICAL/HIGH closed and deployed; staff MFA (TOTP) now enforced via a
+Keycloak-hosted OIDC login. Defence in depth at edge (nginx rate-limit +
+headers + fail2ban), IdP (Keycloak prod mode + brute-force + policy + MFA), app
+(authz matrix, IDOR, staff-only payment ledger, hardened rate-limit key, JWT
+iss/azp validation), data (encrypted backups), supply chain (`npm audit` gate,
+0 vulns). Held below 9 by operational maturity, not holes: no secret manager,
+no centralized/SIEM security logging + real alert routing, backups' key still
+on the DB host, code not through remote CI, and no external pentest. The one
+open finding with real exposure is M-7 (third-party DNS control), which is
+governance outside the repo. See "Priority queue".
 
 ---
 
@@ -77,7 +79,7 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 | **M-4** | **`RateLimitFilter` trusted a client-controlled header for the per-IP key.** `clientIp()` read the leftmost `X-Forwarded-For` value — an attacker could rotate the header to reset the window and bypass the limit. (The app *does* limit `/api/auth/login` at 10/min; the earlier "no 429" observation was an 8-request test, under threshold.) | code review | **FIXED** — `clientIp()` now uses the proxy-set `X-Real-IP` (nginx overwrites any client value), falling back to `getRemoteAddr()`. nginx `limit_req` (5-burst, IP by `$binary_remote_addr`) is the primary, stricter control. Both verified. |
 | **M-5** | Database backups were plaintext `pg_dump` archives (customer PII + invoice data). | — | **FIXED** — `db-backup.sh` encrypts with `openssl enc -aes-256-cbc -pbkdf2` when `BACKUP_ENC_KEY_FILE` is set (loud warning when unset); `db-restore-verify.sh` decrypts transparently. Round-trip proven on the VPS (`file` → *openssl salted*, restore → PASS). Key `/root/.dunes-backup.key` (root-only, not in git). **Follow-up:** keep a copy of the key off the DB host. |
 | **M-6** | Keycloak ran `start-dev` ("DO NOT use in production"); token `iss` was `http://…:8180`. | `docker logs` | **FIXED + deployed** — `command: start`, `KC_HOSTNAME=https://auth.dunesinsolites.com`, `KC_PROXY_HEADERS=xforwarded`. Verified: `Profile prod activated`, `iss` = `https://auth.dunesinsolites.com/realms/duneinsolite`, login end-to-end 200. |
-| **M-8** | **No MFA for staff.** Enforcing TOTP via a Keycloak *required action* breaks the admin app: its login is a custom form → BFF → password grant, and the password grant returns `invalid_grant: Account is not fully set up` when TOTP enrolment is pending (confirmed live, then reverted). Proper MFA needs the admin app switched to the **OIDC Authorization-Code redirect flow** (Keycloak-hosted login page) — which also gets password-reset, lockout messages and account-console for free. | live test | **OPEN** — auth-flow change in `admin/`, ~half a day + testing. OTP policy is already TOTP/6-digit/30s (authenticator-app compatible). |
+| **M-8** | **No MFA for staff.** Enforcing TOTP via a Keycloak *required action* broke the old admin app: its login was a custom form → BFF → password grant, which returns `invalid_grant: Account is not fully set up` when TOTP enrolment is pending. | live test | **FIXED + deployed** — admin app switched to the **OIDC Authorization-Code + PKCE** redirect flow (`admin/lib/oidc.ts`, `admin/middleware.ts`, `admin/app/api/auth/{login,callback,logout}`; custom `LoginForm` deleted). Keycloak now hosts the login page (→ password-reset, lockout messages, account console for free). Client `duneinsolite-api` given `standardFlowEnabled` + `redirectUris`. Full round-trip verified on the VPS with real credentials: `/` → Keycloak → callback → httpOnly `admin_session` + `admin_refresh`, `/api/auth/me` returns the ADMIN session; access token never reaches the browser. **`CONFIGURE_TOTP` required action now set** on `admin@` and `camping@dunesinsolites.com` — next login forces authenticator enrolment. OTP policy TOTP/6-digit/30s. |
 | **M-7** | **Third-party control of the primary domain's DNS.** `dunes-insolites.com` (registrar OVH, owner-controlled) has its nameservers delegated to a **Cloudflare account the owner cannot access** — set up by the site's developer. That party can repoint the domain, issue certs for it, read traffic metadata, and change email routing. | `dig NS`, empty owner Cloudflare account | **OPEN — governance.** Get the developer to add the owner as a Member (or move the zone). Until then, treat the domain as not fully under the owner's control. |
 
 ### LOW  *(all FIXED live unless noted)*
@@ -114,13 +116,14 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 
 ## Priority queue
 
-1. **C-1 / H-1** — ship `next@16.3.4` + `sharp` to the VPS. *(in progress)*
-2. **M-5** — encrypt DB backups **before** wiring the off-host destination.
-3. **M-7** — get DNS control of `dunes-insolites.com` (also blocks the SEO cutover).
-4. **M-1 + M-6** — one maintenance window: Keycloak `start` mode + JWT issuer/audience validation.
-5. **M-4 (code)** — fix `RateLimitFilter`.
-6. **L-7** — add the owner's own SSH key as a second root key.
-7. Housekeeping: L-8, L-11, and the old-stack teardown once Part B is done.
+1. **M-7** — get DNS control of `dunes-insolites.com` (also blocks the SEO cutover). *The only open finding with real exposure.*
+2. **L-7** — add the owner's own SSH key as a second root key.
+3. Off-host copy of the backup encryption key (`/root/.dunes-backup.key`).
+4. External pentest before the public launch.
+5. Housekeeping: L-8, L-11, and the old-stack teardown once Part B is done.
+
+Closed and deployed this session: C-1/H-1 (`next@16.3.4`), M-1, M-2, M-3,
+M-4, M-5, M-6, **M-8 + staff MFA**, P-1, and L-1..L-14 bar the two noted.
 
 ## Live changes made during this assessment
 
