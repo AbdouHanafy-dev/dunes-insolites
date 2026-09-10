@@ -203,17 +203,27 @@ class ReservationOwnershipIdorIT {
     // ── PAYMENT ─────────────────────────────────────────────────────────
 
     @Test
-    void payment_strangerCannotPayOrProbeAnotherCustomersReservation() {
+    void payment_recordPayment_isStaffOnly_noCustomerCanTouchTheLedger() {
         PaymentRequest pay = new PaymentRequest();
         pay.setAmount(new BigDecimal("10.000"));
         pay.setPaymentMethod(PaymentMethod.CASH);
         pay.setCurrency(Currency.TND);
 
+        // A stranger — denied (IDOR).
         as(strangerBId, "ROLE_CLIENT");
         assertThatThrownBy(() -> paymentService.recordPayment(reservationId, pay))
                 .isInstanceOf(AccessDeniedException.class);
 
+        // The OWNER — also denied. recordPayment writes a COMPLETED ledger row;
+        // a customer marking their own reservation PAID for free is the P-1
+        // finding (security assessment 2026-09-10). Staff record manual
+        // payments; online payment lands via a verified provider webhook.
         as(ownerAId, "ROLE_CLIENT");
+        assertThatThrownBy(() -> paymentService.recordPayment(reservationId, pay))
+                .isInstanceOf(AccessDeniedException.class);
+
+        // Staff can.
+        asAdmin();
         assertThat(paymentService.recordPayment(reservationId, pay).getPaymentSummary()).isNotNull();
     }
 

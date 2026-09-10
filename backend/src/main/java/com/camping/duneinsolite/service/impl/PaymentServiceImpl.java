@@ -43,10 +43,15 @@ public class PaymentServiceImpl implements PaymentService {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
 
-        // IDOR fix (Phase 4): PaymentController's comment claimed this check
-        // lived here — it did not. A non-staff caller may only pay for, and
-        // read the PaymentSummary of, their OWN reservation.
-        caller.requireStaffOrOwner(reservation.getUser() != null ? reservation.getUser().getUserId() : null);
+        // STAFF ONLY (security assessment 2026-09-10, P-1). This writes a
+        // COMPLETED transaction straight into the ledger. A customer must never
+        // reach it — they could otherwise mark their own reservation PAID for
+        // free. Defence in depth on top of the controller's @PreAuthorize.
+        // Online payment (Q3) records via a verified provider webhook, not here.
+        if (!caller.isStaff()) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Only staff may record a payment.");
+        }
 
         Currency requestedCurrency = request.getCurrency();
 

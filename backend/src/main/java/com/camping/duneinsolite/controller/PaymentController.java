@@ -20,15 +20,17 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     // ── POST /api/reservations/{reservationId}/payments ───────────
-    // All roles can record a payment:
-    //   ADMIN, CAMPING  → can pay on behalf of anyone at any status
-    //   CLIENT, PARTENAIRE → can pay for their own reservation
+    // STAFF ONLY. This records a payment straight into the ledger as a
+    // COMPLETED transaction (see PaymentServiceImpl.buildTransaction) — i.e.
+    // "an admin logged a bank transfer / cash". A customer must NEVER be able
+    // to call it: before this fix, CLIENT/PARTENAIRE could POST a payment
+    // against their own reservation and mark it PAID with no money moving
+    // (financial-integrity hole — security assessment 2026-09-10, finding P-1).
     //
-    // Note: ownership check is done in PaymentServiceImpl
-    // Note: this endpoint is separate from updateReservation intentionally
-    //       → single responsibility, clean notifications, Stripe-ready
+    // Online payment (Q3, not built) will land here via a provider WEBHOOK
+    // verified server-side — the customer's browser never records a payment.
     @PostMapping("/{reservationId}/payments")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING', 'CLIENT', 'PARTENAIRE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
     public ResponseEntity<PaymentResponse> recordPayment(
             @PathVariable UUID reservationId,
             @Valid @RequestBody PaymentRequest request) {
