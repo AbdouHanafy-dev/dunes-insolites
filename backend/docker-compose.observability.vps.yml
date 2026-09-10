@@ -20,11 +20,6 @@ services:
     ports: !override ["127.0.0.1:9115:9115"]
     networks: [default, dunes-v2]
 
-networks:
-  dunes-v2:
-    external: true
-    name: dunes-v2_dunes-v2
-
   grafana:
     ports: !override ["127.0.0.1:3300:3000"]
     environment:
@@ -35,3 +30,8 @@ networks:
 
   alert-sink:
     ports: !override ["127.0.0.1:5001:5001"]
+
+networks:
+  dunes-v2:
+    external: true
+    name: dunes-v2_dunes-v2
