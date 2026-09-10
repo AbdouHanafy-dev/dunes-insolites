@@ -1,16 +1,20 @@
 /**
- * Server-only session helpers — same BFF pattern as frontend/lib/session.ts:
- * the real backend answers /api/auth/login with a JWT in the JSON body, not
- * a cookie. Route handlers under app/api/auth/* call the backend
- * server-to-server, then set their own httpOnly cookie so the token never
- * reaches client-side JS. Only claims are read here, not verified — that's
- * fine because this cookie is only ever written by our own server right
- * after a real Keycloak/Spring Boot login; real authorization still happens
- * on the backend via @PreAuthorize on every actual data call.
+ * Server-only session helpers. The backoffice logs in via the OIDC
+ * Authorization-Code flow (see lib/oidc.ts + app/api/auth/*): Keycloak hosts
+ * the login page (password, MFA, reset), and the callback stores the access
+ * token in an httpOnly cookie. Only claims are read here — the token is
+ * minted by Keycloak and every real data call is still authorized on the
+ * backend via @PreAuthorize.
  */
 import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "admin_session";
+export const REFRESH_COOKIE = "admin_refresh";
+export const OIDC_TX_COOKIE = "admin_oidc_tx";
+// path "/" so the middleware (which runs on app routes, not /api/auth) can
+// read the refresh token to renew a near-expiry session. httpOnly + Secure +
+// SameSite=Strict keep it locked down.
+export const REFRESH_COOKIE_PATH = "/";
 
 export type StaffRole = "ADMIN" | "CAMPING" | "PARTENAIRE";
 const STAFF_ROLES: StaffRole[] = ["ADMIN", "CAMPING", "PARTENAIRE"];
@@ -25,29 +29,26 @@ export type Session = {
 
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
-    const payload = token.split(".")[1];
-    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const json = Buffer.from(base64, "base64").toString("utf-8");
-    return JSON.parse(json) as Record<string, unknown>;
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as Record<string, unknown>;
   } catch {
     return null;
   }
 }
 
-/** Extracts the primary realm role from a Keycloak JWT's `realm_access.roles`. Null if not staff. */
+/** Primary realm role from a Keycloak JWT's `realm_access.roles`. Null if not staff. */
 export function primaryStaffRole(claims: Record<string, unknown>): StaffRole | null {
   const realmAccess = claims.realm_access as { roles?: string[] } | undefined;
   const roles = realmAccess?.roles ?? [];
   return STAFF_ROLES.find((r) => roles.includes(r)) ?? null;
 }
 
-export async function getSession(): Promise<Session | null> {
-  const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-
+export function sessionFromToken(token: string): Session | null {
   const claims = decodeJwtPayload(token);
   if (!claims) return null;
+
+  const exp = claims.exp;
+  if (typeof exp === "number" && exp * 1000 <= Date.now()) return null; // expired
 
   const role = primaryStaffRole(claims);
   if (!role) return null; // e.g. a CLIENT token — not a staff account
@@ -58,4 +59,9 @@ export async function getSession(): Promise<Session | null> {
   if (!id || !email) return null;
 
   return { id, name, email, role, accessToken: token };
+}
+
+export async function getSession(): Promise<Session | null> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  return token ? sessionFromToken(token) : null;
 }

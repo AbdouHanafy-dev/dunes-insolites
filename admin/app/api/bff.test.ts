@@ -20,7 +20,8 @@ const cookies = vi.fn(async () => ({
   },
   set: (name: string, value: string, opts: CookieOpts = {}) =>
     cookieStore.set(name, { value, opts }),
-  delete: (name: string) => cookieStore.delete(name),
+  delete: (arg: string | { name: string }) =>
+    cookieStore.delete(typeof arg === "string" ? arg : arg.name),
 }));
 vi.mock("next/headers", () => ({ cookies }));
 
@@ -56,53 +57,78 @@ function stubFetch(impl: (url: string, init?: RequestInit) => Promise<Response> 
   return fn;
 }
 
-// ── login ────────────────────────────────────────────────────────────────
-describe("POST /api/auth/login", () => {
-  it("sets an httpOnly SameSite=Strict cookie and returns NO token to the client", async () => {
+// ── OIDC login (Authorization-Code + PKCE) ───────────────────────────────
+const OIDC_ENV = {
+  KEYCLOAK_ISSUER_URL: "https://auth.dunes.test/realms/duneinsolite",
+  KEYCLOAK_CLIENT_ID: "duneinsolite-api",
+  KEYCLOAK_CLIENT_SECRET: "s3cr3t",
+  ADMIN_BASE_URL: "https://admin.dunes.test",
+};
+
+describe("GET /api/auth/login", () => {
+  beforeEach(() => Object.assign(process.env, OIDC_ENV));
+
+  it("redirects to Keycloak with PKCE + state and stashes a tx cookie", async () => {
+    const { GET } = await import("./auth/login/route");
+    const res = await GET(new Request("http://localhost:3100/api/auth/login?returnTo=/reservations"));
+    expect(res.status).toBe(302);
+    const loc = new URL(res.headers.get("location")!);
+    expect(loc.origin + loc.pathname).toBe("https://auth.dunes.test/realms/duneinsolite/protocol/openid-connect/auth");
+    expect(loc.searchParams.get("response_type")).toBe("code");
+    expect(loc.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(loc.searchParams.get("redirect_uri")).toBe("https://admin.dunes.test/api/auth/callback");
+    const state = loc.searchParams.get("state")!;
+    const tx = JSON.parse(cookieStore.get("admin_oidc_tx")!.value);
+    expect(tx.state).toBe(state);
+    expect(tx.returnTo).toBe("/reservations");
+    expect(cookieStore.get("admin_oidc_tx")!.opts.httpOnly).toBe(true);
+  });
+});
+
+describe("GET /api/auth/callback", () => {
+  beforeEach(() => Object.assign(process.env, OIDC_ENV));
+
+  async function beginLogin() {
+    const { GET } = await import("./auth/login/route");
+    const res = await GET(new Request("http://localhost:3100/api/auth/login"));
+    return new URL(res.headers.get("location")!).searchParams.get("state")!;
+  }
+
+  it("exchanges the code, stores an httpOnly session + refresh cookie, no token to the client", async () => {
+    const state = await beginLogin();
     stubFetch(async () =>
-      new Response(
-        JSON.stringify({ accessToken: ADMIN_JWT, userId: "admin-uuid", name: "Ada Admin", email: "admin@dunes.test", expiresIn: 300 }),
-        { status: 200 },
-      ),
+      new Response(JSON.stringify({ access_token: ADMIN_JWT, refresh_token: "rt", expires_in: 300, refresh_expires_in: 1800 }), { status: 200 }),
     );
-    const { POST } = await import("./auth/login/route");
-    const res = await POST(new Request("http://localhost:3100/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email: "admin@dunes.test", password: "pw" }),
-    }));
-    const body = await res.json();
+    const { GET } = await import("./auth/callback/route");
+    const res = await GET(new Request(`http://localhost:3100/api/auth/callback?code=abc&state=${state}`));
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("https://admin.dunes.test/");
 
-    expect(res.status).toBe(200);
-    expect(body).toEqual({ id: "admin-uuid", name: "Ada Admin", email: "admin@dunes.test", role: "ADMIN" });
-    expect(JSON.stringify(body)).not.toContain(ADMIN_JWT);
-    expect(JSON.stringify(body).toLowerCase()).not.toContain("token");
-
-    const cookie = cookieStore.get("admin_session");
-    expect(cookie?.value).toBe(ADMIN_JWT);
-    expect(cookie?.opts.httpOnly).toBe(true);
-    expect(cookie?.opts.sameSite).toBe("strict");
-    expect(cookie?.opts.path).toBe("/");
+    const s = cookieStore.get("admin_session")!;
+    expect(s.value).toBe(ADMIN_JWT);
+    expect(s.opts.httpOnly).toBe(true);
+    const r = cookieStore.get("admin_refresh")!;
+    expect(r.value).toBe("rt");
+    expect(r.opts.sameSite).toBe("strict");
+    expect(cookieStore.has("admin_oidc_tx")).toBe(false); // consumed
   });
 
-  it("rejects a non-staff (CLIENT) account with 403 and sets no cookie", async () => {
-    stubFetch(async () =>
-      new Response(JSON.stringify({ accessToken: CLIENT_JWT, userId: "x", email: "c@dunes.test" }), { status: 200 }),
-    );
-    const { POST } = await import("./auth/login/route");
-    const res = await POST(new Request("http://localhost:3100/api/auth/login", {
-      method: "POST", body: JSON.stringify({ email: "c@dunes.test", password: "pw" }),
-    }));
-    expect(res.status).toBe(403);
+  it("rejects a state mismatch (CSRF) without calling the token endpoint", async () => {
+    await beginLogin();
+    const f = stubFetch(async () => new Response("{}"));
+    const { GET } = await import("./auth/callback/route");
+    const res = await GET(new Request("http://localhost:3100/api/auth/callback?code=abc&state=forged"));
+    expect(res.headers.get("location")).toContain("/login?error=state_mismatch");
+    expect(f).not.toHaveBeenCalled();
     expect(cookieStore.has("admin_session")).toBe(false);
   });
 
-  it("propagates a backend credential rejection (401)", async () => {
-    stubFetch(async () => new Response(JSON.stringify({ message: "bad creds" }), { status: 401 }));
-    const { POST } = await import("./auth/login/route");
-    const res = await POST(new Request("http://localhost:3100/api/auth/login", {
-      method: "POST", body: JSON.stringify({ email: "a@b.c", password: "wrong" }),
-    }));
-    expect(res.status).toBe(401);
+  it("rejects a non-staff (CLIENT) token and sets no session", async () => {
+    const state = await beginLogin();
+    stubFetch(async () => new Response(JSON.stringify({ access_token: CLIENT_JWT, expires_in: 300 }), { status: 200 }));
+    const { GET } = await import("./auth/callback/route");
+    const res = await GET(new Request(`http://localhost:3100/api/auth/callback?code=abc&state=${state}`));
+    expect(res.headers.get("location")).toContain("/login?error=no_backoffice_access");
     expect(cookieStore.has("admin_session")).toBe(false);
   });
 });
@@ -136,11 +162,15 @@ describe("session", () => {
     expect(JSON.stringify(body)).not.toContain(ADMIN_JWT);
   });
 
-  it("POST /api/auth/logout clears the session cookie", async () => {
+  it("POST /api/auth/logout clears the session + refresh cookies", async () => {
+    Object.assign(process.env, OIDC_ENV);
     cookieStore.set("admin_session", { value: ADMIN_JWT, opts: {} });
+    cookieStore.set("admin_refresh", { value: "rt", opts: {} });
+    stubFetch(async () => new Response("{}", { status: 204 })); // keycloak back-channel logout
     const { POST } = await import("./auth/logout/route");
     await POST();
     expect(cookieStore.has("admin_session")).toBe(false);
+    expect(cookieStore.has("admin_refresh")).toBe(false);
   });
 });
 

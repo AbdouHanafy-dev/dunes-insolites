@@ -148,6 +148,13 @@ services:
     image: dunes-v2-admin
     container_name: dunes-v2-admin
     restart: unless-stopped
+    environment:
+      # OIDC Authorization-Code login (Keycloak hosts the login page → MFA,
+      # password reset, lockout messages). Server-side only.
+      KEYCLOAK_ISSUER_URL: https://auth.dunesinsolites.com/realms/duneinsolite
+      KEYCLOAK_CLIENT_ID: duneinsolite-api
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      ADMIN_BASE_URL: https://admin.dunesinsolites.com
     ports:
       - "127.0.0.1:3110:3100"
     networks: [dunes-v2]
