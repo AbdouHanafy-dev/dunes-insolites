@@ -1,0 +1,15 @@
+[sshd]
+enabled = true
+mode = aggressive
+maxretry = 4
+bantime = 1h
+findtime = 10m
+
+[nginx-http-auth]
+enabled = true
+logpath = /var/log/nginx/error.log
+
+[nginx-botsearch]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/access.log
