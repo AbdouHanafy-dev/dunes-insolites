@@ -37,7 +37,12 @@ services:
     image: quay.io/keycloak/keycloak:26.0
     container_name: dunes-v2-keycloak
     restart: unless-stopped
-    command: start-dev --import-realm
+    # Production mode (was start-dev). nginx terminates TLS and forwards
+    # X-Forwarded-* ; KC serves plain HTTP on 8180 on the internal network only.
+    # KC_HOSTNAME is the full public base URL — it drives the token `iss`,
+    # OIDC discovery and every redirect. `start` runs an optimized build on
+    # first boot.
+    command: start --import-realm
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -45,11 +50,9 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
-      KC_HOSTNAME: ${KC_HOSTNAME}
-      KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTP_ENABLED: true
-      KC_HTTP_PORT: 8180
+      KC_HOSTNAME: https://auth.dunesinsolites.com
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "8180"
       KC_PROXY_HEADERS: xforwarded
     volumes:
       - ./docker/keycloak-realm-duneinsolite.json:/opt/keycloak/data/import/duneinsolite-realm.json:ro
