@@ -29,8 +29,8 @@ if [ -n "${OFFSITE_FETCH_CMD:-}" ]; then
   sh -c "$OFFSITE_FETCH_CMD" _ "$BACKUP_DIR" || { echo "verify: OFF-HOST FETCH FAILED" >&2; exit 1; }
 fi
 
-LATEST="$(ls -1t "$BACKUP_DIR"/duneinsolite_*.dump 2>/dev/null | head -1 || true)"
-[ -n "$LATEST" ] || { echo "verify: no duneinsolite_*.dump in $BACKUP_DIR" >&2; exit 1; }
+LATEST="$(ls -1t "$BACKUP_DIR"/duneinsolite_*.dump "$BACKUP_DIR"/duneinsolite_*.dump.enc 2>/dev/null | head -1 || true)"
+[ -n "$LATEST" ] || { echo "verify: no duneinsolite_*.dump[.enc] in $BACKUP_DIR" >&2; exit 1; }
 
 # If a checksum sidecar exists, verify integrity before attempting a restore.
 if [ -f "$LATEST.sha256" ]; then
@@ -40,9 +40,24 @@ if [ -f "$LATEST.sha256" ]; then
     || { echo "verify: CHECKSUM MISMATCH for $LATEST" >&2; exit 1; }
 fi
 
+# Decrypt an encrypted archive to a temp plaintext dump for the restore test.
+DECRYPTED=""
+case "$LATEST" in
+  *.enc)
+    [ -n "${BACKUP_ENC_KEY_FILE:-}" ] && [ -r "$BACKUP_ENC_KEY_FILE" ] \
+      || { echo "verify: $LATEST is encrypted but BACKUP_ENC_KEY_FILE is not set/readable" >&2; exit 1; }
+    DECRYPTED="$(mktemp "${TMPDIR:-/tmp}/dunes-verify-XXXXXX.dump")"
+    echo "verify: decrypting $LATEST"
+    openssl enc -d -aes-256-cbc -pbkdf2 -pass "file:$BACKUP_ENC_KEY_FILE" \
+      -in "$LATEST" -out "$DECRYPTED" \
+      || { echo "verify: DECRYPT FAILED for $LATEST (wrong key?)" >&2; rm -f "$DECRYPTED"; exit 1; }
+    LATEST="$DECRYPTED"
+    ;;
+esac
+
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 SCRATCH="duneinsolite_verify_${STAMP}"
-cleanup() { psql --dbname=postgres -c "DROP DATABASE IF EXISTS \"$SCRATCH\";" >/dev/null 2>&1 || true; }
+cleanup() { psql --dbname=postgres -c "DROP DATABASE IF EXISTS \"$SCRATCH\";" >/dev/null 2>&1 || true; [ -n "$DECRYPTED" ] && rm -f "$DECRYPTED"; }
 trap cleanup EXIT
 
 echo "verify: restoring $LATEST -> $SCRATCH"

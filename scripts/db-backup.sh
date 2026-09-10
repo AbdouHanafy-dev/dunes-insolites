@@ -43,7 +43,24 @@ for db in $BACKUP_DATABASES; do
   echo "db-backup: dumping $db -> $out"
   if pg_dump --format=custom --no-owner --no-privileges --compress=9 \
              --dbname="$db" --file="$out.partial"; then
-    mv "$out.partial" "$out"
+    # Encryption at rest. The dump carries customer PII + invoice data and must
+    # not sit in plaintext — on-host or off-host. Set BACKUP_ENC_KEY_FILE to a
+    # file holding the AES passphrase (mode 400, NEVER committed, kept off the
+    # DB host too). Restore: db-restore-verify.sh reads the same file, or
+    #   openssl enc -d -aes-256-cbc -pbkdf2 -pass file:KEY -in X.dump.enc -out X.dump
+    if [ -n "${BACKUP_ENC_KEY_FILE:-}" ]; then
+      [ -r "$BACKUP_ENC_KEY_FILE" ] || { echo "db-backup: BACKUP_ENC_KEY_FILE unreadable" >&2; rm -f "$out.partial"; FAILED=1; continue; }
+      if openssl enc -aes-256-cbc -pbkdf2 -salt -pass "file:$BACKUP_ENC_KEY_FILE" \
+           -in "$out.partial" -out "$out.enc"; then
+        rm -f "$out.partial"
+        out="$out.enc"
+      else
+        echo "db-backup: ENCRYPT FAILED for $db" >&2; rm -f "$out.partial" "$out.enc"; FAILED=1; continue
+      fi
+    else
+      echo "db-backup: WARNING — BACKUP_ENC_KEY_FILE not set, writing a PLAINTEXT dump" >&2
+      mv "$out.partial" "$out"
+    fi
     # Record the checksum against the BASENAME only, not "$out"'s absolute
     # path — otherwise `sha256sum -c` fails after the archive is pulled to a
     # different host/directory for an off-host restore (the exact DR scenario).

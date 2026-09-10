@@ -160,6 +160,25 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Resource not found", null);
     }
 
+    // ── Malformed request from the client → 4xx, not 5xx ──────────────
+    // A bad/absent Content-Type or an unparseable body is the caller's fault.
+    // Returning 500 here was noise (and a weak info signal); security
+    // assessment 2026-09-10 (L-14).
+    @ExceptionHandler({
+            org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.HttpMediaTypeNotSupportedException.class,
+            org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class
+    })
+    public ResponseEntity<Map<String, Object>> handleBadRequest(Exception ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Malformed or unsupported request.", null);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> handleMethodNotAllowed(Exception ex) {
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, "Method not allowed.", null);
+    }
+
     // ── Handle any other unexpected error ─────────────────────────────
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {

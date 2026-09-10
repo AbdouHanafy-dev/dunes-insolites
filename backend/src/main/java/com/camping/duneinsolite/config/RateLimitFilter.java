@@ -92,10 +92,18 @@ public class RateLimitFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
+    /**
+     * The real client IP as set BY the reverse proxy — never a client-supplied
+     * header. nginx sets {@code X-Real-IP} to {@code $remote_addr} (the TCP peer
+     * it saw) and overwrites any client value, so it is trustworthy here.
+     * {@code X-Forwarded-For}'s leftmost element IS client-controlled — trusting
+     * it let an attacker rotate the header to reset the per-IP window and
+     * bypass this limit (security assessment 2026-09-10).
+     */
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.trim();
         }
         return request.getRemoteAddr();
     }
