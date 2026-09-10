@@ -81,6 +81,7 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 | **L-11** | Duplicate `X-Frame-Options` (app `DENY` + nginx `SAMEORIGIN`) | **OPEN** — pick one source |
 | **L-12** | `dunes-insolites.com` has **no DMARC record** (email spoofing) | **OPEN** — but DNS not owner-controlled (M-7); fix when it is. SPF is `~all`. |
 | **L-13** | `client_max_body_size` was 1m — media uploads (8 MB) 413'd at nginx before reaching the backend | **FIXED** — 10m on `api` + `admin` (also a functional bug) |
+| **L-14** | `POST /api/auth/login` with a wrong/absent `Content-Type` (form body) → **500** instead of 400/415. Body is generic ("An unexpected error occurred") — **no leak** — but 5xx on bad client input is noise. | **OPEN** — map `HttpMediaTypeNotSupportedException` / `HttpMessageNotReadableException` to 4xx in `GlobalExceptionHandler`. |
 
 ### Verified GOOD
 
