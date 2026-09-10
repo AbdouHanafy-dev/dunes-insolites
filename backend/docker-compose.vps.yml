@@ -133,6 +133,36 @@ services:
         condition: service_started
     networks: [dunes-v2]
 
+  # ── New Next.js backoffice — replaces the Angular admin/camping/partner apps ──
+  admin:
+    build:
+      context: ..
+      dockerfile: admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.dunesinsolites.com/api
+        NEXT_PUBLIC_FRONTEND_URL: https://www.dunes-insolites.com
+    image: dunes-v2-admin
+    container_name: dunes-v2-admin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3110:3100"
+    networks: [dunes-v2]
+
+  # ── New Next.js public vitrine — deployed now, cut over from WordPress in Part B ──
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.dunesinsolites.com/api
+        NEXT_PUBLIC_ADMIN_APP_URL: https://admin.dunesinsolites.com
+    image: dunes-v2-frontend
+    container_name: dunes-v2-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3010:3000"
+    networks: [dunes-v2]
+
 volumes:
   dunes_v2_pgdata:
   dunes_v2_rabbitdata:

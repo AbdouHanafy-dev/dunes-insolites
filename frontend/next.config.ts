@@ -7,7 +7,10 @@ import { routing } from "./i18n/routing";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Lean container image for the VPS deploy — traced runtime files only,
+  // rooted at the monorepo so hoisted deps + @dunes/api-types come along.
+  output: "standalone",
+  outputFileTracingRoot: path.join(__dirname, ".."),
   turbopack: {
     // Must be the monorepo root, not this package: `npm install` (root
     // command per ARCHITECTURE.md) hoists `next` into the root
