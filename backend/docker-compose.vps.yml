@@ -98,6 +98,7 @@ services:
       SPRING_RABBITMQ_USERNAME: duneinsolite
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       KEYCLOAK_SERVER_URL: http://keycloak:8180
+      KEYCLOAK_ISSUER_URL: https://auth.dunesinsolites.com/realms/duneinsolite
       KEYCLOAK_REALM: duneinsolite
       KEYCLOAK_CLIENT_ID: duneinsolite-api
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}

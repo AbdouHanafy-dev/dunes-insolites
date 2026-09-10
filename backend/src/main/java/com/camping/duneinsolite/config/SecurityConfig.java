@@ -198,9 +198,33 @@ public class SecurityConfig {
         return converter;
     }
 
+    // PRODUCTION: set KEYCLOAK_ISSUER_URL to the public token issuer (what a
+    // Keycloak-minted token carries in `iss`, e.g.
+    // https://auth.dunesinsolites.com/realms/duneinsolite) — distinct from
+    // keycloak.admin.server-url, the INTERNAL address the backend fetches the
+    // JWK set from. When set, the decoder additionally validates `iss` and the
+    // authorized party `azp` (security assessment M-1). Unset (local dev, tests)
+    // keeps the lenient signature-+-expiry decoder.
+    @Value("${keycloak.issuer-url:}")
+    private String issuerUrl;
+
+    @Value("${keycloak.client-id:duneinsolite-api}")
+    private String expectedAzp;
+
     @Bean
     public JwtDecoder jwtDecoder() {
         String jwkSetUri = keycloakServerUrl + "/realms/" + realm + "/protocol/openid-connect/certs";
-        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+
+        if (issuerUrl != null && !issuerUrl.isBlank()) {
+            decoder.setJwtValidator(new org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator<>(
+                    org.springframework.security.oauth2.jwt.JwtValidators.createDefaultWithIssuer(issuerUrl),
+                    jwt -> expectedAzp.equals(jwt.getClaimAsString("azp"))
+                            ? org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
+                            : org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.failure(
+                                new org.springframework.security.oauth2.core.OAuth2Error(
+                                    "invalid_token", "Unexpected authorized party (azp)", null))));
+        }
+        return decoder;
     }
 }

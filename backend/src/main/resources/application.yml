@@ -98,6 +98,10 @@ keycloak:
     client-id: ${KEYCLOAK_CLIENT_ID:duneinsolite-api}
     client-secret: ${KEYCLOAK_CLIENT_SECRET}
   realm: ${KEYCLOAK_REALM:duneinsolite}
+  client-id: ${KEYCLOAK_CLIENT_ID:duneinsolite-api}
+  # Public token issuer for strict `iss` + `azp` validation. Set in production
+  # to the browser-facing realm URL; unset for local dev / tests. See SecurityConfig.
+  issuer-url: ${KEYCLOAK_ISSUER_URL:}
 
 server:
   port: 8080
