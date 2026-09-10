@@ -1,0 +1,134 @@
+# Part A — hardened backend stack, deployed ALONGSIDE the old one on the VPS.
+#
+#   docker compose -p dunes-v2 -f docker-compose.vps.yml --env-file .env.vps up -d --build
+#
+# Distinct container names + ports + volumes + network from the running
+# `duneinsolite-*` stack, so nothing collides and the old stack stays up as an
+# instant rollback until nginx is flipped. Fresh Postgres → Flyway V1–V8 runs
+# clean. Fresh Keycloak → imports the scrubbed realm and generates a new
+# client secret (that IS the rotation).
+#
+# nginx flip after verification:
+#   api.dunesinsolites.com   -> 127.0.0.1:8090
+#   auth.dunesinsolites.com  -> 127.0.0.1:8280
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: dunes-v2-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: duneinsolite
+    volumes:
+      - dunes_v2_pgdata:/var/lib/postgresql/data
+      - ./docker/init-keycloak-db.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql:ro
+    ports:
+      - "127.0.0.1:5444:5432"
+    networks: [dunes-v2]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: dunes-v2-keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HTTP_PORT: 8180
+      KC_PROXY_HEADERS: xforwarded
+    volumes:
+      - ./docker/keycloak-realm-duneinsolite.json:/opt/keycloak/data/import/duneinsolite-realm.json:ro
+    ports:
+      - "127.0.0.1:8280:8180"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [dunes-v2]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: dunes-v2-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: duneinsolite
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - dunes_v2_rabbitdata:/var/lib/rabbitmq
+    ports:
+      - "127.0.0.1:5682:5672"
+      - "127.0.0.1:15682:15672"
+    networks: [dunes-v2]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+    image: dunes-v2-backend
+    container_name: dunes-v2-backend
+    restart: unless-stopped
+    environment:
+      DEPLOY_ENV: production
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duneinsolite
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: "5672"
+      SPRING_RABBITMQ_USERNAME: duneinsolite
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      KEYCLOAK_SERVER_URL: http://keycloak:8180
+      KEYCLOAK_REALM: duneinsolite
+      KEYCLOAK_CLIENT_ID: duneinsolite-api
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
+      APP_CORS_EXTRA_ORIGINS: ${APP_CORS_EXTRA_ORIGINS}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_CAMPING_EMAIL: ${SEED_CAMPING_EMAIL}
+      SEED_CAMPING_PASSWORD: ${SEED_CAMPING_PASSWORD}
+      MANAGEMENT_SERVER_PORT: "9099"
+      MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
+      # Gmail app password not rotated yet — disable the mail health check so
+      # readiness reflects db + rabbit only. Re-enable after the rotation.
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
+    ports:
+      - "127.0.0.1:8090:8080"
+      - "127.0.0.1:9099:9099"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks: [dunes-v2]
+
+volumes:
+  dunes_v2_pgdata:
+  dunes_v2_rabbitdata:
+
+networks:
+  dunes-v2:
+    driver: bridge
