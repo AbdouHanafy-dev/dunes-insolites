@@ -25,7 +25,7 @@ scrape_configs:
   - job_name: dunes-backend
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["host.docker.internal:9099"]
+      - targets: ["dunes-v2-backend:9099"]
         labels: { service: backend }
 
   # Black-box HTTP probe of readiness (DB + RabbitMQ + app), so an alert fires
@@ -37,7 +37,7 @@ scrape_configs:
     static_configs:
       # actuator is on the private management port (MANAGEMENT_SERVER_PORT)
       - targets:
-          - http://host.docker.internal:9099/actuator/health/readiness
+          - http://dunes-v2-backend:9099/actuator/health/readiness
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
