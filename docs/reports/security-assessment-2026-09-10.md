@@ -50,7 +50,8 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 
 | ID | Finding | Evidence | Status |
 |---|---|---|---|
-| **H-1** | **`sharp` < 0.35.4** — libheif HEIF/AVIF parsing vulns (`GHSA-rgj7-g3m4-5g8c`). Same image pipeline as C-1. | `npm audit` | **IN PROGRESS** — bundled with C-1. |
+| **P-1** | **Payment recording was open to customers.** `POST /api/reservations/{id}/payments` had `@PreAuthorize("hasAnyRole('ADMIN','CAMPING','CLIENT','PARTENAIRE')")` and `PaymentServiceImpl.buildTransaction` writes the row as `status=COMPLETED`, which `sumCompletedAmountByReservationId` counts. A CLIENT could `POST {"amount": <total>, "paymentMethod":"CASH"}` against **their own** reservation → it flips to `PAID` with **no money moving**. Falsified payment records / free bookings. | code review `PaymentController.java:31`, `PaymentServiceImpl.buildTransaction` | **FIXED** — endpoint now `hasAnyRole('ADMIN','CAMPING')`; `recordPayment` throws `AccessDeniedException` unless `caller.isStaff()`. Regression test `ReservationOwnershipIdorIT.payment_recordPayment_isStaffOnly…` (stranger + owner denied, staff allowed). Backend rebuilding + redeploying. |
+| **H-1** | **`sharp` < 0.35.4** — libheif HEIF/AVIF parsing vulns (`GHSA-rgj7-g3m4-5g8c`). Same image pipeline as C-1. | `npm audit` | **FIXED** — bundled with C-1 (`next@16.3.4`), deployed, `npm audit` → 0. |
 
 ### MEDIUM
 
