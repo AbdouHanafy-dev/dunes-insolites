@@ -133,14 +133,21 @@ jobs:
           host: 79.143.185.33
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
+          # actuator/health lives on the backend's private management port
+          # (9099), which is never published to the host — only reachable
+          # from inside the container itself, or via Docker's own compose
+          # healthcheck (which already checks it, correctly, on that port).
+          # Reading that healthcheck's own verdict is more reliable than
+          # guessing at a port from the outside — found live, the smoke
+          # check's first version curled the wrong (app, not mgmt) port.
           script: |
             set -e
-            for i in $(seq 1 12); do
-              code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8090/actuator/health || echo 000)
-              [ "$code" = "200" ] && break
+            for i in $(seq 1 18); do
+              status=$(docker inspect -f '{{.State.Health.Status}}' dunes-v2-backend 2>/dev/null || echo starting)
+              [ "$status" = "healthy" ] && break
               sleep 5
             done
-            [ "$code" = "200" ] || { echo "backend health check failed after deploy"; exit 1; }
+            [ "$status" = "healthy" ] || { echo "backend did not become healthy after deploy (status: $status)"; exit 1; }
             curl -sf -o /dev/null https://www.dunes-insolites.com/
             curl -sf -o /dev/null https://admin.dunesinsolites.com/
             echo "deploy verified: backend healthy, frontend + admin responding"
