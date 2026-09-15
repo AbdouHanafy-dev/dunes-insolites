@@ -8,15 +8,15 @@ type NavGroup = { label: string; items: NavLink[] };
 
 // Full target IA (this session's brief, Section 12). Stale as of 15 Sep
 // 2026 (backoffice audit): most of the IA is now wired to real pages — only
-// the three explicitly `soon: true` items below ("Nouvelle réservation",
-// "Statistiques", "Revenus") are still disabled, labeled placeholders
-// rather than dead links or invented content. Everything else in GROUPS
-// routes to a real, working page.
+// the two remaining explicitly `soon: true` items below ("Statistiques",
+// "Revenus") are still disabled, labeled placeholders rather than dead
+// links or invented content. Everything else in GROUPS routes to a real,
+// working page.
 const GROUPS: NavGroup[] = [
   {
     label: "Opérations",
     items: [
-      { label: "Nouvelle réservation", href: "#", icon: "✦", soon: true },
+      { label: "Nouvelle réservation", href: "/reservations/new", icon: "✦" },
       { label: "Réservations", href: "/reservations", icon: "📅" },
       { label: "Clients", href: "/clients", icon: "👥" },
       { label: "Paiements", href: "/operations/paiements", icon: "💳" },

@@ -263,6 +263,36 @@ export function getExtraById(accessToken: string, id: string): Promise<AdminExtr
   return authedGet<AdminExtra | null>(`/extras/${id}`, accessToken, null);
 }
 
+export type AdminAccommodationType = {
+  id: string;
+  tourTypeId: string;
+  tourTypeName: string;
+  slug: string;
+  name: string;
+  capacity: number;
+  maxUnits: number | null;
+  unitPriceTtc: number;
+  currency: string;
+  active: boolean;
+  bookable: boolean;
+};
+
+// tourTypeId filters to one nuitée's tiers (Desert Tent / Room / Dune
+// Suite) - omit to list every tier across every nuitée.
+export function getAccommodationTypes(
+  accessToken: string,
+  tourTypeId?: string,
+): Promise<AdminAccommodationType[]> {
+  const suffix = tourTypeId ? `?tourTypeId=${tourTypeId}` : "";
+  return authedGet<AdminAccommodationType[]>(`/accommodation-types${suffix}`, accessToken, []);
+}
+
+export type AdminSource = { sourceId: string; name: string };
+
+export function getAllSources(accessToken: string): Promise<AdminSource[]> {
+  return authedGet<AdminSource[]>("/sources", accessToken, []);
+}
+
 export type AdminTour = {
   tourId: string;
   name: string;

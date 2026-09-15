@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getActiveReservations } from "@/lib/api";
 
@@ -17,9 +18,14 @@ export default async function ReservationsPage() {
           <h1 className="text-xl font-bold text-navy-800">Réservations</h1>
           <p className="mt-1 text-sm text-navy-700/55">Réservations actives, toutes marques confondues.</p>
         </div>
-        <span className="rounded-full bg-navy-700/8 px-3 py-1.5 text-sm font-semibold text-navy-800">
-          {reservations.totalElements} résultat{reservations.totalElements === 1 ? "" : "s"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-navy-700/8 px-3 py-1.5 text-sm font-semibold text-navy-800">
+            {reservations.totalElements} résultat{reservations.totalElements === 1 ? "" : "s"}
+          </span>
+          <Link href="/reservations/new" className="btn btn-primary">
+            + Nouvelle réservation
+          </Link>
+        </div>
       </div>
 
       <div className="card rounded-2xl">
