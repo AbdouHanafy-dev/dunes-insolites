@@ -25,6 +25,9 @@ public class UserRequest {
     @NotNull(message = "Role is required")
     private UserRole role;
 
+    // Only relevant when role = STAFF — must name an existing CustomRole.
+    private String customRoleName;
+
     // Only relevant when role = PARTENAIRE
     private String matriculeFiscal;
     private String agencyAddress;

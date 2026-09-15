@@ -16,6 +16,9 @@ public class UserResponse {
     private String phone;
     private UserRole role;
 
+    // STAFF-only — the CustomRole this account's real permissions come from.
+    private String customRoleName;
+
     // Null for staff/partner/seeded/guest-checkout accounts - see
     // User.termsAcceptedAt's own doc comment.
     private LocalDateTime termsAcceptedAt;

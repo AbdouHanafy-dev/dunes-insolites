@@ -16,6 +16,7 @@ import com.camping.duneinsolite.model.enums.LoyaltyTier;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.model.enums.UserRole;
 import com.camping.duneinsolite.repository.AccountActionTokenRepository;
+import com.camping.duneinsolite.repository.CustomRoleRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.NotificationRepository;
 import com.camping.duneinsolite.repository.TourRepository;
@@ -57,6 +58,7 @@ public class KeycloakUserSyncService {
     private final EntityManager entityManager;
     private final AccountActionTokenRepository accountActionTokenRepository;
     private final NotificationRepository notificationRepository;
+    private final CustomRoleRepository customRoleRepository;
 
     @Value("${keycloak.realm}")
     private String realm;
@@ -220,6 +222,7 @@ public class KeycloakUserSyncService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyInUseException(request.getEmail());
         }
+        requireValidCustomRoleIfStaff(request.getRole(), request.getCustomRoleName());
 
         boolean hasRemise = Boolean.TRUE.equals(request.getHasSpecialRemise());
         if (hasRemise && request.getRemises() != null) {
@@ -246,6 +249,9 @@ public class KeycloakUserSyncService {
         );
 
         assignRole(keycloakUserId, request.getRole().name());
+        if (request.getRole() == UserRole.STAFF) {
+            assignRole(keycloakUserId, request.getCustomRoleName());
+        }
 
         User user = User.builder()
                 .userId(UUID.fromString(keycloakUserId))
@@ -253,6 +259,7 @@ public class KeycloakUserSyncService {
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .role(request.getRole())
+                .customRoleName(request.getRole() == UserRole.STAFF ? request.getCustomRoleName() : null)
                 .loyaltyPoints(0)
                 .loyaltyTier(LoyaltyTier.BRONZE)
                 .matriculeFiscal(request.getRole() == UserRole.PARTENAIRE ? request.getMatriculeFiscal() : null)
@@ -541,6 +548,7 @@ public class KeycloakUserSyncService {
                 throw new EmailAlreadyInUseException(request.getEmail());
             }
         }
+        requireValidCustomRoleIfStaff(request.getRole(), request.getCustomRoleName());
 
         // ── 3. Keycloak update ──────────────────────────────────────────────
         List<UserRepresentation> keycloakUsers = keycloak.realm(realm)
@@ -633,6 +641,29 @@ public class KeycloakUserSyncService {
                 }
             }
 
+            // 3d. Custom role (STAFF only) - update only if it actually changed,
+            // same "remove old, assign new" shape as 3c above but for the
+            // extra realm role a custom-role account carries alongside STAFF.
+            String oldCustomRole = user.getCustomRoleName();
+            String newCustomRole = request.getRole() == UserRole.STAFF ? request.getCustomRoleName() : null;
+            if (!java.util.Objects.equals(oldCustomRole, newCustomRole)) {
+                if (oldCustomRole != null) {
+                    try {
+                        RoleRepresentation oldRole = realmResource.roles().get(oldCustomRole).toRepresentation();
+                        realmResource.users().get(keycloakUserId).roles().realmLevel().remove(List.of(oldRole));
+                        log.info("Old custom role {} removed from user {} in Keycloak", oldCustomRole, userId);
+                    } catch (jakarta.ws.rs.NotFoundException e) {
+                        log.warn("Old custom role {} not found in Keycloak realm — skipping removal", oldCustomRole);
+                    } catch (Exception e) {
+                        log.warn("Could not remove old custom role {} from user {}: {}",
+                                oldCustomRole, userId, e.getMessage());
+                    }
+                }
+                if (newCustomRole != null) {
+                    assignRole(keycloakUserId, newCustomRole);
+                }
+            }
+
         } else {
             // User exists in DB but not in Keycloak — log and continue
             log.warn("User {} (ID: {}) not found in Keycloak — skipping Keycloak update",
@@ -644,6 +675,7 @@ public class KeycloakUserSyncService {
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setRole(request.getRole());
+        user.setCustomRoleName(request.getRole() == UserRole.STAFF ? request.getCustomRoleName() : null);
 
         if (request.getRole() == UserRole.PARTENAIRE) {
             user.setMatriculeFiscal(request.getMatriculeFiscal());
@@ -699,6 +731,20 @@ public class KeycloakUserSyncService {
         entityManager.flush();
         entityManager.detach(user);
         return userRepository.findByIdWithRemises(user.getUserId()).orElseThrow();
+    }
+
+    // Same "fail before touching Keycloak" discipline as
+    // validateRemisePrices below - a STAFF account must name a real,
+    // existing CustomRole (CustomRoleController's own screen creates
+    // those), never an invented string that would silently grant nothing.
+    private void requireValidCustomRoleIfStaff(UserRole role, String customRoleName) {
+        if (role != UserRole.STAFF) return;
+        if (customRoleName == null || customRoleName.isBlank()) {
+            throw new IllegalArgumentException("A STAFF account requires a custom role.");
+        }
+        if (!customRoleRepository.existsById(customRoleName)) {
+            throw new ResourceNotFoundException("Custom role not found: " + customRoleName);
+        }
     }
 
     // Validation-only pass, no persistence - lets callers fail fast before

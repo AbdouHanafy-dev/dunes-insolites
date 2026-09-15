@@ -39,6 +39,12 @@ public class User {
     @Column(name = "role", nullable = false)
     private UserRole role;
 
+    // Only relevant when role = STAFF — the name of the CustomRole this
+    // account's real permissions come from (see UserRole.STAFF's own
+    // comment). Null for every other role.
+    @Column(name = "custom_role_name")
+    private String customRoleName;
+
     // Only relevant when role = CLIENT
     @Column(name = "loyalty_points")
     @Builder.Default

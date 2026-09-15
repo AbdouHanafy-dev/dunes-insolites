@@ -31,6 +31,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllByRole(UserRole role);
     List<User> findByRoleIn(List<UserRole> roles);
 
+    // Deletion guard for CustomRoleServiceImpl - a role still attached to a
+    // real account must not disappear out from under them.
+    boolean existsByCustomRoleName(String customRoleName);
+    long countByCustomRoleName(String customRoleName);
+
     // Loads user + remises in one query — used after create/update to return fresh data
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.remises WHERE u.userId = :userId")
     Optional<User> findByIdWithRemises(@Param("userId") UUID userId);

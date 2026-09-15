@@ -3,6 +3,7 @@ package com.camping.duneinsolite.service;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.UserRole;
 import com.camping.duneinsolite.repository.AccountActionTokenRepository;
+import com.camping.duneinsolite.repository.CustomRoleRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.NotificationRepository;
 import com.camping.duneinsolite.repository.TourRepository;
@@ -80,7 +81,8 @@ class KeycloakUserSyncServiceGuestCheckoutTest {
                 mock(ExtraRepository.class),
                 mock(EntityManager.class),
                 mock(AccountActionTokenRepository.class),
-                mock(NotificationRepository.class));
+                mock(NotificationRepository.class),
+                mock(CustomRoleRepository.class));
         ReflectionTestUtils.setField(service, "realm", "duneinsolite");
 
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));

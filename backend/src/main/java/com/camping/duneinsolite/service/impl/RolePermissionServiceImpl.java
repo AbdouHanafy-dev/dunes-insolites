@@ -22,6 +22,15 @@ public class RolePermissionServiceImpl implements RolePermissionService {
 
     private final RolePermissionRepository rolePermissionRepository;
 
+    // The original 4 - see getMatrix()'s own comment on why STAFF (added
+    // for custom roles) is deliberately excluded from this screen.
+    private static final List<UserRole> ROLES_IN_MATRIX =
+            List.of(UserRole.CLIENT, UserRole.PARTENAIRE, UserRole.CAMPING, UserRole.ADMIN);
+
+    // Of those 4, only these two have an editable row - ADMIN/CLIENT stay
+    // hardcoded (see can()/getMatrix()).
+    private static final List<UserRole> EDITABLE_ROLES = List.of(UserRole.CAMPING, UserRole.PARTENAIRE);
+
     @Override
     @Transactional(readOnly = true)
     public boolean can(UserRole role, AdminResource resource, PermissionLevel required) {
@@ -40,7 +49,12 @@ public class RolePermissionServiceImpl implements RolePermissionService {
     @Transactional(readOnly = true)
     public Map<UserRole, Map<AdminResource, PermissionLevel>> getMatrix() {
         Map<UserRole, Map<AdminResource, PermissionLevel>> matrix = new EnumMap<>(UserRole.class);
-        for (UserRole role : UserRole.values()) {
+        // Deliberately the original 4 roles, not UserRole.values() (which
+        // now also includes STAFF) - STAFF's real permissions come from
+        // its attached CustomRole (CustomRoleController/Service), a
+        // separate screen entirely. Showing it here too would suggest
+        // there are two places to configure the same thing.
+        for (UserRole role : ROLES_IN_MATRIX) {
             Map<AdminResource, PermissionLevel> row = new EnumMap<>(AdminResource.class);
             for (AdminResource resource : AdminResource.values()) {
                 PermissionLevel level = switch (role) {
@@ -65,8 +79,10 @@ public class RolePermissionServiceImpl implements RolePermissionService {
             // ADMIN is always FULL and CLIENT is always NONE, hardcoded in
             // can()/getMatrix() above - accepting an edit to either here
             // would silently do nothing, which is worse than rejecting it
-            // outright and telling the caller why.
-            if (role == UserRole.ADMIN || role == UserRole.CLIENT) {
+            // outright and telling the caller why. STAFF is rejected too -
+            // it has no row here at all, see getMatrix()'s own comment;
+            // its permissions live in CustomRolePermission instead.
+            if (!EDITABLE_ROLES.contains(role)) {
                 throw new IllegalArgumentException(
                         "The " + role + " role's permissions are fixed and cannot be edited.");
             }

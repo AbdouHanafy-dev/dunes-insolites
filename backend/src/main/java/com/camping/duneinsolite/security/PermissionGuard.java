@@ -3,6 +3,7 @@ package com.camping.duneinsolite.security;
 import com.camping.duneinsolite.model.enums.AdminResource;
 import com.camping.duneinsolite.model.enums.PermissionLevel;
 import com.camping.duneinsolite.model.enums.UserRole;
+import com.camping.duneinsolite.service.CustomRoleService;
 import com.camping.duneinsolite.service.RolePermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -26,19 +27,30 @@ import org.springframework.stereotype.Component;
 public class PermissionGuard {
 
     private final RolePermissionService rolePermissionService;
+    private final CustomRoleService customRoleService;
 
     public boolean can(String resource, String level) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) return false;
 
-        UserRole role = currentRole(auth);
-        if (role == null) return false;
+        AdminResource res = AdminResource.valueOf(resource);
+        PermissionLevel lvl = PermissionLevel.valueOf(level);
 
-        return rolePermissionService.can(
-                role,
-                AdminResource.valueOf(resource),
-                PermissionLevel.valueOf(level)
-        );
+        UserRole role = currentRole(auth);
+        if (role != null && rolePermissionService.can(role, res, lvl)) return true;
+
+        // Additive, not a replacement: a STAFF account (or any account) can
+        // additionally carry a custom-role realm role (see UserRole.STAFF's
+        // own comment) - checked against every JWT authority since a name
+        // that isn't a real custom role just resolves to NONE below and
+        // costs one cheap indexed lookup, same cost as checking any other
+        // unrecognized realm role today already tolerates.
+        for (GrantedAuthority authority : auth.getAuthorities()) {
+            String name = authority.getAuthority();
+            if (name == null || !name.startsWith("ROLE_")) continue;
+            if (customRoleService.can(name.substring("ROLE_".length()), res, lvl)) return true;
+        }
+        return false;
     }
 
     // Mirrors JwtAuthenticationConverter's ROLE_XXX convention (see
