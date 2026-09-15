@@ -70,8 +70,12 @@ spring:
       max-request-size: 8MB
 
   mail:
-    host: smtp.gmail.com
-    port: 587
+    # Defaults keep local dev on Gmail unchanged; a real deployment can
+    # point this at any SMTP provider (e.g. OVH's ssl0.ovh.net:587, using
+    # the mailbox's own password, no Gmail-style app-password concept)
+    # via SPRING_MAIL_HOST/SPRING_MAIL_PORT without a code change.
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
     username: ${SPRING_MAIL_USERNAME}
     password: ${SPRING_MAIL_PASSWORD}
     properties:

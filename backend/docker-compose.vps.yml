@@ -117,6 +117,12 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       APP_FRONTEND_URL: ${APP_FRONTEND_URL}
       APP_CORS_EXTRA_ORIGINS: ${APP_CORS_EXTRA_ORIGINS}
+      # SPRING_MAIL_HOST/PORT: unset in .env.vps falls back to Gmail (see
+      # application.yml's own default) - set both here to switch provider
+      # (e.g. OVH's ssl0.ovh.net:587) without a code change or redeploy of
+      # anything but this env file.
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
@@ -125,8 +131,11 @@ services:
       SEED_CAMPING_PASSWORD: ${SEED_CAMPING_PASSWORD}
       MANAGEMENT_SERVER_PORT: "9099"
       MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
-      # Gmail app password not rotated yet — disable the mail health check so
-      # readiness reflects db + rabbit only. Re-enable after the rotation.
+      # Was disabled while the Gmail credential was known-broken (mail
+      # health would otherwise fail readiness on db+rabbit alone) — put
+      # back to "true" once SPRING_MAIL_* actually points at a working
+      # provider, so a future credential break shows up in health again
+      # instead of going unnoticed.
       MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
     ports:
       - "127.0.0.1:8090:8080"
