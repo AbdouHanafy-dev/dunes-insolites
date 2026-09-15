@@ -10,13 +10,23 @@ import { BACKEND_BASE } from "@/lib/authProxy";
  */
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-/** Reject a cross-site mutating request even if a cookie somehow rode along. */
+/**
+ * Reject a cross-site mutating request even if a cookie somehow rode along.
+ *
+ * Compares against the `Host` header, not `request.url` — behind nginx
+ * (which does forward `Host` correctly, confirmed live), `next start`
+ * still builds `request.url` from the Node server's own bind address
+ * (found live: "https://0.0.0.0:3100/...", not the real domain), so every
+ * mutating request was being rejected as cross-site in prod.
+ */
 function crossSiteMutation(request: Request): boolean {
   if (SAFE_METHODS.has(request.method)) return false;
   const origin = request.headers.get("origin");
   if (!origin) return false; // same-origin fetch / server call — no Origin header
+  const host = request.headers.get("host");
+  if (!host) return true;
   try {
-    return new URL(origin).host !== new URL(request.url).host;
+    return new URL(origin).host !== host;
   } catch {
     return true;
   }
@@ -24,19 +34,7 @@ function crossSiteMutation(request: Request): boolean {
 
 async function handler(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
   if (crossSiteMutation(request)) {
-    // TEMPORARY diagnostic (15 Sep 2026) - a real "Cross-site request
-    // rejected" is firing in prod for what should be a same-origin form
-    // submit; nginx's admin vhost already sets `Host: $host` correctly
-    // (confirmed live), so something else is making request.url's host
-    // differ from the browser's Origin. Surfacing both values instead of
-    // guessing blind - revert once diagnosed.
-    return Response.json(
-      {
-        error: "Cross-site request rejected",
-        debug: { origin: request.headers.get("origin"), requestUrl: request.url },
-      },
-      { status: 403 },
-    );
+    return Response.json({ error: "Cross-site request rejected" }, { status: 403 });
   }
 
   const session = await getSession();
