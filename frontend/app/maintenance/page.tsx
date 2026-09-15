@@ -1,6 +1,7 @@
 import Image from "next/image";
 import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 import MaintenanceNotifyForm from "@/components/MaintenanceNotifyForm";
+import MaintenanceContact from "@/components/MaintenanceContact";
 
 // A tiny, self-contained dictionary rather than routing this through
 // next-intl's messages/*.json catalogue — this page sits outside the
@@ -24,6 +25,7 @@ const COPY: Record<
     notifyEyebrow: string; notifyLabel: string; notifyPlaceholder: string; notifyConsent: string;
     notifyButton: string; notifyDoneHeading: string; notifyDoneBody: string; notifyDonePosition: string;
     notifyError: string;
+    contactHeading: string; contactBody: string; contactButton: string; followLabel: string;
   }
 > = {
   fr: {
@@ -42,6 +44,10 @@ const COPY: Record<
     notifyDoneBody: "Vous serez parmi les premiers informés dès l'ouverture du site.",
     notifyDonePosition: "Vous êtes le/la #{n} sur la liste.",
     notifyError: "Une erreur est survenue, réessayez.",
+    contactHeading: "Envie de réserver dès maintenant ?",
+    contactBody: "Écrivez-nous sur WhatsApp, nous répondons directement.",
+    contactButton: "Contacter sur WhatsApp",
+    followLabel: "Suivez-nous",
   },
   en: {
     title: "Coming soon",
@@ -59,6 +65,10 @@ const COPY: Record<
     notifyDoneBody: "You'll be among the first to know when the site goes live.",
     notifyDonePosition: "You're #{n} on the list.",
     notifyError: "Something went wrong, please try again.",
+    contactHeading: "Want to book right now?",
+    contactBody: "Message us on WhatsApp — we reply directly.",
+    contactButton: "Message us on WhatsApp",
+    followLabel: "Follow us",
   },
   de: {
     title: "Bald verfügbar",
@@ -76,6 +86,10 @@ const COPY: Record<
     notifyDoneBody: "Wir informieren Sie als Erste, sobald die Seite live geht.",
     notifyDonePosition: "Sie sind #{n} auf der Liste.",
     notifyError: "Etwas ist schiefgelaufen, bitte versuchen Sie es erneut.",
+    contactHeading: "Möchten Sie jetzt buchen?",
+    contactBody: "Schreiben Sie uns auf WhatsApp — wir antworten direkt.",
+    contactButton: "Auf WhatsApp kontaktieren",
+    followLabel: "Folgen Sie uns",
   },
   it: {
     title: "Prossimamente",
@@ -93,6 +107,10 @@ const COPY: Record<
     notifyDoneBody: "Sarai tra i primi a sapere quando il sito sarà online.",
     notifyDonePosition: "Sei il/la #{n} in lista.",
     notifyError: "Si è verificato un errore, riprova.",
+    contactHeading: "Vuoi prenotare subito?",
+    contactBody: "Scrivici su WhatsApp, rispondiamo direttamente.",
+    contactButton: "Contattaci su WhatsApp",
+    followLabel: "Seguici",
   },
   da: {
     title: "Kommer snart",
@@ -110,6 +128,10 @@ const COPY: Record<
     notifyDoneBody: "Du er blandt de første, der får besked, når siden går live.",
     notifyDonePosition: "Du er #{n} på listen.",
     notifyError: "Der gik noget galt, prøv igen.",
+    contactHeading: "Vil du booke lige nu?",
+    contactBody: "Skriv til os på WhatsApp — vi svarer direkte.",
+    contactButton: "Kontakt os på WhatsApp",
+    followLabel: "Følg os",
   },
   ar: {
     title: "قريبًا",
@@ -127,6 +149,10 @@ const COPY: Record<
     notifyDoneBody: "ستكون من أول من يعلم فور تفعيل الموقع.",
     notifyDonePosition: "أنت رقم #{n} في القائمة.",
     notifyError: "حدث خطأ، يرجى المحاولة مرة أخرى.",
+    contactHeading: "تريد الحجز الآن؟",
+    contactBody: "تواصل معنا على واتساب، نرد مباشرة.",
+    contactButton: "تواصل عبر واتساب",
+    followLabel: "تابعنا",
   },
 };
 
@@ -172,6 +198,14 @@ export default async function MaintenancePage({
                 doneBody: copy.notifyDoneBody,
                 donePosition: copy.notifyDonePosition,
                 genericError: copy.notifyError,
+              }}
+            />
+            <MaintenanceContact
+              labels={{
+                heading: copy.contactHeading,
+                body: copy.contactBody,
+                whatsappButton: copy.contactButton,
+                followLabel: copy.followLabel,
               }}
             />
           </>

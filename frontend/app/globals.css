@@ -3348,6 +3348,68 @@ footer.site-footer .bar-social a:hover {
   }
 }
 
+/* ---------- launch-page contact / follow ----------
+   On request: a way to reach the business directly while the site is
+   gated (WhatsApp — the default way people book in Tunisia, same
+   wa.me pattern as WhatsAppButton.tsx) plus a row of social icons, styled
+   like the reference "coming soon" page's own footer but in this page's
+   palette. Only platforms with a real URL in lib/site.ts's `site.social`
+   get an icon. */
+.maint-contact {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(244, 233, 216, 0.16);
+}
+.maint-contact-body {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: rgba(244, 233, 216, 0.78);
+}
+.maint-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--paper);
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.maint-whatsapp:hover {
+  background: var(--accent-hot);
+}
+.maint-follow-label {
+  margin-top: 28px;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(244, 233, 216, 0.6);
+}
+.maint-social {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.maint-social-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 233, 216, 0.28);
+  color: var(--paper);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.maint-social-icon:hover {
+  border-color: rgba(244, 233, 216, 0.55);
+  background: rgba(244, 233, 216, 0.08);
+}
+
 .toast-viewport {
   position: fixed;
   top: 20px;
