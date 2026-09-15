@@ -96,3 +96,53 @@ jobs:
         env:
           BASE_URL: ${{ vars.SEO_BASE_URL }}
           SEO_PROFILE: ${{ vars.SEO_PROFILE || 'wordpress' }}
+
+  # Continuous deployment — only after both gates above are green, and only
+  # for a real push to main (never a PR, never a fork). /opt/dunes on the VPS
+  # is a real git clone tracking origin/main (set up 15 Sep 2026, via a
+  # read-only GitHub Deploy Key — see docs/reports/seo-cutover-readiness-
+  # 2026-09-15.md §6); this job's SSH key (VPS_SSH_KEY) is a *separate*,
+  # dedicated credential, authorized only for this one root login, distinct
+  # from both the deploy key and the owner's personal SSH key.
+  #
+  # dunes-insolites.com is the LIVE site as of the 15 Sep cutover — this
+  # deploys straight to it, not to the old no-hyphen staging domain.
+  deploy:
+    needs: [unit, integration]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to the VPS
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: 79.143.185.33
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            cd /opt/dunes
+            git fetch origin main
+            git reset --hard origin/main
+            cd backend
+            docker compose -p dunes-v2 -f docker-compose.vps.yml --env-file .env.vps build frontend admin backend
+            docker compose -p dunes-v2 -f docker-compose.vps.yml --env-file .env.vps up -d frontend admin backend
+
+      - name: Post-deploy smoke check
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: 79.143.185.33
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            for i in $(seq 1 12); do
+              code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8090/actuator/health || echo 000)
+              [ "$code" = "200" ] && break
+              sleep 5
+            done
+            [ "$code" = "200" ] || { echo "backend health check failed after deploy"; exit 1; }
+            curl -sf -o /dev/null https://www.dunes-insolites.com/
+            curl -sf -o /dev/null https://admin.dunesinsolites.com/
+            echo "deploy verified: backend healthy, frontend + admin responding"
