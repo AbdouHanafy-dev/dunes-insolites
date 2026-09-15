@@ -22,7 +22,8 @@ const COPY: Record<
     title: string; heading: string; defaultBody: string; endsIn: string; soon: string;
     days: string; hours: string; minutes: string; seconds: string;
     notifyEyebrow: string; notifyLabel: string; notifyPlaceholder: string; notifyConsent: string;
-    notifyButton: string; notifyDone: string; notifyError: string;
+    notifyButton: string; notifyDoneHeading: string; notifyDoneBody: string; notifyDonePosition: string;
+    notifyError: string;
   }
 > = {
   fr: {
@@ -37,7 +38,9 @@ const COPY: Record<
     notifyPlaceholder: "vous@email.com",
     notifyConsent: "J'accepte d'être contacté(e) par e-mail uniquement pour l'ouverture du site. Aucun autre usage, aucun partage.",
     notifyButton: "M'avertir à l'ouverture",
-    notifyDone: "C'est noté — vous serez averti(e) dès l'ouverture.",
+    notifyDoneHeading: "Merci. C'est noté.",
+    notifyDoneBody: "Vous serez parmi les premiers informés dès l'ouverture du site.",
+    notifyDonePosition: "Vous êtes le/la #{n} sur la liste.",
     notifyError: "Une erreur est survenue, réessayez.",
   },
   en: {
@@ -52,7 +55,9 @@ const COPY: Record<
     notifyPlaceholder: "you@email.com",
     notifyConsent: "I agree to be contacted by email only about the site launch. No other use, no sharing.",
     notifyButton: "Notify me at launch",
-    notifyDone: "Got it — we'll email you the moment it's live.",
+    notifyDoneHeading: "Thank you. You're in.",
+    notifyDoneBody: "You'll be among the first to know when the site goes live.",
+    notifyDonePosition: "You're #{n} on the list.",
     notifyError: "Something went wrong, please try again.",
   },
   de: {
@@ -67,7 +72,9 @@ const COPY: Record<
     notifyPlaceholder: "sie@email.com",
     notifyConsent: "Ich bin damit einverstanden, ausschließlich zur Eröffnung der Website per E-Mail kontaktiert zu werden. Keine andere Nutzung, keine Weitergabe.",
     notifyButton: "Bei Eröffnung benachrichtigen",
-    notifyDone: "Alles klar — wir schreiben Ihnen, sobald es live ist.",
+    notifyDoneHeading: "Danke. Sie sind dabei.",
+    notifyDoneBody: "Wir informieren Sie als Erste, sobald die Seite live geht.",
+    notifyDonePosition: "Sie sind #{n} auf der Liste.",
     notifyError: "Etwas ist schiefgelaufen, bitte versuchen Sie es erneut.",
   },
   it: {
@@ -82,7 +89,9 @@ const COPY: Record<
     notifyPlaceholder: "tu@email.com",
     notifyConsent: "Accetto di essere contattato via e-mail solo per l'apertura del sito. Nessun altro uso, nessuna condivisione.",
     notifyButton: "Avvisami all'apertura",
-    notifyDone: "Fatto — ti scriveremo non appena sarà online.",
+    notifyDoneHeading: "Grazie. Ci sei.",
+    notifyDoneBody: "Sarai tra i primi a sapere quando il sito sarà online.",
+    notifyDonePosition: "Sei il/la #{n} in lista.",
     notifyError: "Si è verificato un errore, riprova.",
   },
   da: {
@@ -97,7 +106,9 @@ const COPY: Record<
     notifyPlaceholder: "dig@email.com",
     notifyConsent: "Jeg accepterer kun at blive kontaktet via e-mail om sidens åbning. Ingen anden brug, ingen deling.",
     notifyButton: "Giv mig besked ved åbning",
-    notifyDone: "Modtaget — vi skriver til dig, så snart siden er live.",
+    notifyDoneHeading: "Tak. Du er med.",
+    notifyDoneBody: "Du er blandt de første, der får besked, når siden går live.",
+    notifyDonePosition: "Du er #{n} på listen.",
     notifyError: "Der gik noget galt, prøv igen.",
   },
   ar: {
@@ -112,7 +123,9 @@ const COPY: Record<
     notifyPlaceholder: "you@email.com",
     notifyConsent: "أوافق على أن يتم التواصل معي عبر البريد الإلكتروني فقط بخصوص افتتاح الموقع. لا استخدام آخر ولا مشاركة.",
     notifyButton: "أعلمني عند الافتتاح",
-    notifyDone: "تم — سنراسلك فور تفعيل الموقع.",
+    notifyDoneHeading: "شكرًا. أنت من أوائل المسجلين.",
+    notifyDoneBody: "ستكون من أول من يعلم فور تفعيل الموقع.",
+    notifyDonePosition: "أنت رقم #{n} في القائمة.",
     notifyError: "حدث خطأ، يرجى المحاولة مرة أخرى.",
   },
 };
@@ -155,7 +168,9 @@ export default async function MaintenancePage({
                 consent: copy.notifyConsent,
                 button: copy.notifyButton,
                 sending: "…",
-                done: copy.notifyDone,
+                doneHeading: copy.notifyDoneHeading,
+                doneBody: copy.notifyDoneBody,
+                donePosition: copy.notifyDonePosition,
                 genericError: copy.notifyError,
               }}
             />

@@ -9,6 +9,12 @@ import { subscribe } from "@/lib/api";
  * takes its labels as props rather than calling useTranslations. Posts
  * through the same `subscribe()` used by the footer's Newsletter.tsx — one
  * real subscriber list, not a second one just for this form.
+ *
+ * The success state's "you're #N on the list" line (on request, matching a
+ * reference "coming soon" page) uses the real count the backend returns —
+ * NewsletterSubscribeResponse.position — never a number made up here. The
+ * local no-backend dev stand-in (app/api/subscribe/route.ts) has nowhere
+ * to count from and omits it; this simply doesn't render that line then.
  */
 export default function MaintenanceNotifyForm({
   labels,
@@ -20,7 +26,10 @@ export default function MaintenanceNotifyForm({
     consent: string;
     button: string;
     sending: string;
-    done: string;
+    doneHeading: string;
+    doneBody: string;
+    /** "You're #{n} on the list." — {n} is replaced with the real count. */
+    donePosition: string;
     genericError: string;
   };
 }) {
@@ -28,6 +37,7 @@ export default function MaintenanceNotifyForm({
   const [consented, setConsented] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
+  const [position, setPosition] = useState<number | undefined>(undefined);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,6 +46,7 @@ export default function MaintenanceNotifyForm({
     setError("");
     const result = await subscribe(email);
     if (result.ok) {
+      setPosition(result.data.position);
       setState("done");
       setEmail("");
       return;
@@ -46,8 +57,17 @@ export default function MaintenanceNotifyForm({
 
   if (state === "done") {
     return (
-      <div className="maint-notify">
-        <p className="maint-notify-done">{labels.done}</p>
+      <div className="maint-notify maint-notify-done">
+        <span className="maint-notify-check" aria-hidden="true">
+          ✓
+        </span>
+        <h2 className="display maint-notify-done-heading">{labels.doneHeading}</h2>
+        <p className="maint-notify-done-body">{labels.doneBody}</p>
+        {typeof position === "number" && (
+          <p className="idx-label maint-notify-position">
+            {labels.donePosition.replace("{n}", String(position))}
+          </p>
+        )}
       </div>
     );
   }

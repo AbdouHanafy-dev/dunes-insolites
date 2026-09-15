@@ -21,6 +21,9 @@ export async function POST(req: Request) {
     return Response.json({ errors: { email: "That email looks off." } }, { status: 422 });
   }
 
-  // No backend configured in this environment - nothing to store this in.
+  // No backend configured in this environment - nothing to store this in,
+  // and so no real `position` (subscriber count) to report either - the
+  // caller (MaintenanceNotifyForm) treats it as optional and simply omits
+  // the "you're #N on the list" line rather than showing an invented number.
   return Response.json({ ok: true, email }, { status: 201 });
 }

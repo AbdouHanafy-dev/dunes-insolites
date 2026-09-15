@@ -462,8 +462,12 @@ export function sendContact(input: {
   return post<{ ok: true }>(usingRemoteApi ? "/public/contact" : "/contact", input);
 }
 
-export function subscribe(email: string): Promise<WriteResult<{ ok: true }>> {
-  return post<{ ok: true }>(usingRemoteApi ? "/public/subscribe" : "/subscribe", { email });
+// `position` is the real, current subscriber count returned by the backend
+// (NewsletterSubscribeResponse) — used for a "you're #N on the list" touch
+// on request. Optional so callers that don't need it (the footer's
+// Newsletter.tsx) aren't forced to handle it.
+export function subscribe(email: string): Promise<WriteResult<{ position?: number }>> {
+  return post<{ position?: number }>(usingRemoteApi ? "/public/subscribe" : "/subscribe", { email });
 }
 
 /* ------------------------------------------------------------------- auth */

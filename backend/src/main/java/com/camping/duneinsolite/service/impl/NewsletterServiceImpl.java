@@ -18,14 +18,15 @@ public class NewsletterServiceImpl implements NewsletterService {
 
     @Override
     @Transactional
-    public void subscribe(String email) {
+    public long subscribe(String email) {
         String normalized = email.trim().toLowerCase();
         if (newsletterSubscriberRepository.existsByEmail(normalized)) {
             log.info("Newsletter: {} already subscribed - no-op", maskEmail(normalized));
-            return;
+            return newsletterSubscriberRepository.count();
         }
         newsletterSubscriberRepository.save(
                 NewsletterSubscriber.builder().email(normalized).build());
         log.info("Newsletter: new subscriber {}", maskEmail(normalized));
+        return newsletterSubscriberRepository.count();
     }
 }
