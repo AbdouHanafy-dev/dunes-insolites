@@ -71,9 +71,11 @@ spring:
 
   mail:
     # Defaults keep local dev on Gmail unchanged; a real deployment can
-    # point this at any SMTP provider (e.g. OVH's ssl0.ovh.net:587, using
-    # the mailbox's own password, no Gmail-style app-password concept)
-    # via SPRING_MAIL_HOST/SPRING_MAIL_PORT without a code change.
+    # point this at any SMTP provider via env vars without a code change.
+    # Found live: a cPanel mailbox's "recommended" outgoing server is
+    # implicit SSL on port 465 (mail.<domain>), not STARTTLS on 587 like
+    # Gmail - the two are mutually exclusive on the wire, so both knobs
+    # are exposed rather than hardcoding one provider's shape.
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
     username: ${SPRING_MAIL_USERNAME}
@@ -82,9 +84,11 @@ spring:
       mail:
         smtp:
           auth: true
+          ssl:
+            enable: ${SPRING_MAIL_SMTP_SSL_ENABLE:false}
           starttls:
-            enable: true
-            required: true
+            enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:true}
+            required: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:true}
         debug: false                      # set to true temporarily if emails aren't sending
 
 seed:

@@ -123,6 +123,12 @@ services:
       # anything but this env file.
       SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
       SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      # A cPanel mailbox's recommended outgoing server is implicit SSL on
+      # port 465, not STARTTLS on 587 like Gmail - set both when pointing
+      # at one (SPRING_MAIL_PORT=465, SPRING_MAIL_SMTP_SSL_ENABLE=true,
+      # SPRING_MAIL_SMTP_STARTTLS_ENABLE=false).
+      SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
+      SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-true}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
