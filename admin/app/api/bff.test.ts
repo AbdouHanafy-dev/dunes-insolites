@@ -1,5 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("jose", () => ({
+  createRemoteJWKSet: vi.fn(() => Symbol("test-jwks")),
+  jwtVerify: vi.fn(async (token: string, _jwks: unknown, options: { issuer?: string }) => {
+    const [header, payload, signature] = token.split(".");
+    if (!header || !payload || signature !== "valid-test-signature") throw new Error("bad signature");
+    const claims = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (claims.iss !== options.issuer) throw new Error("bad issuer");
+    if (typeof claims.exp !== "number" || claims.exp <= Date.now() / 1000) throw new Error("expired");
+    return { payload: claims };
+  }),
+}));
+
 /**
  * Production-hardening item 7 — the admin BFF.
  *
@@ -29,16 +41,22 @@ vi.mock("next/headers", () => ({ cookies }));
 function jwt(claims: Record<string, unknown>): string {
   const b64 = (o: unknown) =>
     Buffer.from(JSON.stringify(o)).toString("base64url");
-  return `${b64({ alg: "none" })}.${b64(claims)}.sig`;
+  return `${b64({ alg: "RS256", kid: "test-key" })}.${b64(claims)}.valid-test-signature`;
 }
 const ADMIN_JWT = jwt({
   sub: "admin-uuid",
+  iss: "https://auth.dunes.test/realms/duneinsolite",
+  azp: "duneinsolite-api",
+  exp: Math.floor(Date.now() / 1000) + 3600,
   email: "admin@dunes.test",
   name: "Ada Admin",
   realm_access: { roles: ["ADMIN", "offline_access"] },
 });
 const CLIENT_JWT = jwt({
   sub: "client-uuid",
+  iss: "https://auth.dunes.test/realms/duneinsolite",
+  azp: "duneinsolite-api",
+  exp: Math.floor(Date.now() / 1000) + 3600,
   email: "c@dunes.test",
   name: "Cli",
   realm_access: { roles: ["CLIENT"] },
@@ -142,6 +160,12 @@ describe("session", () => {
 
   it("getSession returns null for a CLIENT token (not staff)", async () => {
     cookieStore.set("admin_session", { value: CLIENT_JWT, opts: {} });
+    const { getSession } = await import("@/lib/session");
+    expect(await getSession()).toBeNull();
+  });
+
+  it("getSession rejects a token whose signature is invalid", async () => {
+    cookieStore.set("admin_session", { value: ADMIN_JWT.replace("valid-test-signature", "forged"), opts: {} });
     const { getSession } = await import("@/lib/session");
     expect(await getSession()).toBeNull();
   });

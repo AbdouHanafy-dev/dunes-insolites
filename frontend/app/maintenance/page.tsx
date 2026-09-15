@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { headers } from "next/headers";
 import { site } from "@/lib/site";
 import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 import MaintenanceNotifyForm from "@/components/MaintenanceNotifyForm";
@@ -171,12 +172,14 @@ const COPY: Record<
   },
 };
 
-export default async function MaintenancePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ locale?: string; endsAt?: string; msg?: string }>;
-}) {
-  const { locale: rawLocale, endsAt, msg } = await searchParams;
+export default async function MaintenancePage() {
+  // Middleware injects values only after resolving an active record. Public
+  // query parameters are ignored so they cannot put arbitrary trusted-domain
+  // copy or a fake countdown on this page.
+  const requestHeaders = await headers();
+  const rawLocale = requestHeaders.get("x-dunes-maintenance-locale") ?? undefined;
+  const endsAt = requestHeaders.get("x-dunes-maintenance-ends-at") ?? undefined;
+  const msg = requestHeaders.get("x-dunes-maintenance-message") ?? undefined;
   const locale = rawLocale && COPY[rawLocale] ? rawLocale : "fr";
   const copy = COPY[locale];
   const isRtl = locale === "ar";

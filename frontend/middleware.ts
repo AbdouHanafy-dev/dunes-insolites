@@ -9,6 +9,11 @@ const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 type CmsRedirect = { fromPath: string; toPath: string; statusCode: number };
 type MaintenanceWindow = { path: string; message: string | null; endsAt: string | null };
 
+const MAINTENANCE_MESSAGE_HEADER = "x-dunes-maintenance-message";
+const MAINTENANCE_ENDS_AT_HEADER = "x-dunes-maintenance-ends-at";
+const MAINTENANCE_LOCALE_HEADER = "x-dunes-maintenance-locale";
+const MAINTENANCE_FAIL_CLOSED = process.env.MAINTENANCE_FAIL_CLOSED === "true";
+
 // Best-effort, in-memory only — middleware runs in the Edge runtime, whose
 // instances can be recycled between requests, so this cache is a latency
 // optimization, not a guarantee. `next: { revalidate }` on the fetch itself
@@ -37,26 +42,40 @@ async function getRedirects(): Promise<CmsRedirect[]> {
   }
 }
 
-// Same cache shape and same fail-open reasoning as getRedirects() above — if
-// the backend is unreachable we let the page through rather than risk
-// blocking the whole site because a status check failed.
+// Production can fail closed here: a broken maintenance lookup must not
+// silently reopen pages that were taken offline during a security incident.
+// Local development keeps fail-open behavior unless explicitly enabled.
 let cachedMaintenance: MaintenanceWindow[] | null = null;
 let maintenanceCachedAt = 0;
 
 async function getMaintenanceWindows(): Promise<MaintenanceWindow[]> {
-  if (!BASE) return [];
+  if (!BASE) return MAINTENANCE_FAIL_CLOSED ? [{ path: "/*", message: null, endsAt: null }] : [];
   const now = Date.now();
   if (cachedMaintenance && now - maintenanceCachedAt < CACHE_TTL_MS) return cachedMaintenance;
   try {
     const res = await fetch(`${BASE}/public/maintenance-windows`, { next: { revalidate: 60 } });
-    if (!res.ok) return cachedMaintenance ?? [];
+    if (!res.ok) {
+      return MAINTENANCE_FAIL_CLOSED
+        ? [{ path: "/*", message: null, endsAt: null }]
+        : cachedMaintenance ?? [];
+    }
     const data = (await res.json()) as MaintenanceWindow[];
     cachedMaintenance = data;
     maintenanceCachedAt = now;
     return data;
   } catch {
-    return cachedMaintenance ?? [];
+    return MAINTENANCE_FAIL_CLOSED
+      ? [{ path: "/*", message: null, endsAt: null }]
+      : cachedMaintenance ?? [];
   }
+}
+
+function withoutInternalMaintenanceHeaders(request: NextRequest): Headers {
+  const headers = new Headers(request.headers);
+  headers.delete(MAINTENANCE_MESSAGE_HEADER);
+  headers.delete(MAINTENANCE_ENDS_AT_HEADER);
+  headers.delete(MAINTENANCE_LOCALE_HEADER);
+  return headers;
 }
 
 export default async function middleware(request: NextRequest) {
@@ -69,7 +88,15 @@ export default async function middleware(request: NextRequest) {
   // via the rewrite below; directly, if a visitor bookmarks or a crawler
   // requests /maintenance/ while it's showing.
   if (pathname === "/maintenance" || pathname === "/maintenance/") {
-    return NextResponse.next();
+    // Remove legacy/query-controlled copy from the visible URL as well as
+    // ignoring it. This keeps it out of Next's serialized router state.
+    if (request.nextUrl.search) {
+      const cleanUrl = request.nextUrl.clone();
+      cleanUrl.search = "";
+      return NextResponse.redirect(cleanUrl, 307);
+    }
+    // Direct visitors must not be able to forge internal values either.
+    return NextResponse.next({ request: { headers: withoutInternalMaintenanceHeaders(request) } });
   }
 
   const maintenanceWindows = await getMaintenanceWindows();
@@ -98,15 +125,20 @@ export default async function middleware(request: NextRequest) {
     const locale = (routing.locales as readonly string[]).includes(localeSegment)
       ? localeSegment
       : routing.defaultLocale;
-    url.searchParams.set("locale", locale);
-    if (maintenanceMatch.endsAt) url.searchParams.set("endsAt", maintenanceMatch.endsAt);
-    if (maintenanceMatch.message) url.searchParams.set("msg", maintenanceMatch.message);
+    const requestHeaders = withoutInternalMaintenanceHeaders(request);
+    requestHeaders.set(MAINTENANCE_LOCALE_HEADER, locale);
+    if (maintenanceMatch.endsAt) requestHeaders.set(MAINTENANCE_ENDS_AT_HEADER, maintenanceMatch.endsAt);
+    if (maintenanceMatch.message) requestHeaders.set(MAINTENANCE_MESSAGE_HEADER, maintenanceMatch.message);
     const headers: Record<string, string> = {};
     if (maintenanceMatch.endsAt) {
       const seconds = Math.max(0, Math.round((Date.parse(maintenanceMatch.endsAt) - Date.now()) / 1000));
       headers["Retry-After"] = String(seconds);
     }
-    return NextResponse.rewrite(url, { status: 503, headers });
+    return NextResponse.rewrite(url, {
+      status: 503,
+      headers,
+      request: { headers: requestHeaders },
+    });
   }
 
   const redirects = await getRedirects();

@@ -6,6 +6,30 @@ import { routing } from "./i18n/routing";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
+const apiOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080").origin;
+  } catch {
+    return "'self'";
+  }
+})();
+const isDev = process.env.NODE_ENV !== "production";
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src 'self' ${apiOrigin} https://www.google-analytics.com https://*.google-analytics.com`,
+  "media-src 'self' blob:",
+  "frame-src https://www.openstreetmap.org https://www.google.com",
+  "frame-ancestors 'self' https://admin.dunesinsolites.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 const nextConfig: NextConfig = {
   // Lean container image for the VPS deploy — traced runtime files only,
   // rooted at the monorepo so hoisted deps + @dunes/api-types come along.
@@ -82,25 +106,21 @@ const nextConfig: NextConfig = {
     ]);
   },
 
-  // SEO/security audit, step 8. Four headers with no downside for this
-  // site's actual behavior: nothing here embeds this site in an iframe
-  // (DENY is safe), nothing needs the browser to guess a MIME type, no page
-  // relies on sending a full referrer to a third party, and camera/mic/
-  // geolocation are never used anywhere in this app.
-  //
-  // Deliberately NOT shipping a Content-Security-Policy here: the JSON-LD
-  // blocks in app/[locale]/layout.tsx (LodgingBusiness/Organization/WebSite)
-  // and the FAQPage block on /safety are inline `<script>` tags via
-  // dangerouslySetInnerHTML - a real CSP needs a nonce-per-request wired
-  // through middleware to allow those without `unsafe-inline` (which would
-  // defeat the point of adding one). That's a real, separate piece of work,
-  // not a header to bolt on alongside these four.
+  // SEO/security audit. The CSP permits the site's intentional JSON-LD and
+  // Next.js inline bootstrap, while denying plugins/objects, unknown frames,
+  // unexpected connections and framing by origins other than our backoffice.
+  // A nonce-based script policy would force every public page into dynamic
+  // rendering, so this enforced policy preserves static/ISR performance.
+  // Four additional headers have no downside for this
+  // site's actual behavior: only the admin origin may embed the live CMS
+  // preview; nothing needs MIME sniffing, a full cross-site referrer, camera,
+  // microphone, or geolocation.
   async headers() {
     return [
       {
         source: "/:path*",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: contentSecurityPolicy },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },

@@ -2,11 +2,12 @@
  * Server-only session helpers. The backoffice logs in via the OIDC
  * Authorization-Code flow (see lib/oidc.ts + app/api/auth/*): Keycloak hosts
  * the login page (password, MFA, reset), and the callback stores the access
- * token in an httpOnly cookie. Only claims are read here — the token is
- * minted by Keycloak and every real data call is still authorized on the
- * backend via @PreAuthorize.
+ * token in an httpOnly cookie. Its signature, issuer, expiry and authorized
+ * party are verified against Keycloak before claims are trusted. Every real
+ * data call is still independently authorized by the backend.
  */
 import { cookies } from "next/headers";
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 
 export const SESSION_COOKIE = "admin_session";
 export const REFRESH_COOKIE = "admin_refresh";
@@ -27,28 +28,45 @@ export type Session = {
   accessToken: string;
 };
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  try {
-    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as Record<string, unknown>;
-  } catch {
-    return null;
+let cachedIssuer = "";
+let cachedJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function keycloakVerifier() {
+  const issuer = (process.env.KEYCLOAK_ISSUER_URL ?? "").replace(/\/+$/, "");
+  const clientId = process.env.KEYCLOAK_CLIENT_ID ?? "";
+  if (!issuer || !clientId) return null;
+  if (!cachedJwks || cachedIssuer !== issuer) {
+    cachedIssuer = issuer;
+    cachedJwks = createRemoteJWKSet(new URL(`${issuer}/protocol/openid-connect/certs`));
   }
+  return { issuer, clientId, jwks: cachedJwks };
 }
 
 /** Primary realm role from a Keycloak JWT's `realm_access.roles`. Null if not staff. */
-export function primaryStaffRole(claims: Record<string, unknown>): StaffRole | null {
+export function primaryStaffRole(claims: Record<string, unknown> | JWTPayload): StaffRole | null {
   const realmAccess = claims.realm_access as { roles?: string[] } | undefined;
   const roles = realmAccess?.roles ?? [];
   return STAFF_ROLES.find((r) => roles.includes(r)) ?? null;
 }
 
-export function sessionFromToken(token: string): Session | null {
-  const claims = decodeJwtPayload(token);
-  if (!claims) return null;
+export async function sessionFromToken(token: string): Promise<Session | null> {
+  const verifier = keycloakVerifier();
+  if (!verifier) return null;
 
-  const exp = claims.exp;
-  if (typeof exp === "number" && exp * 1000 <= Date.now()) return null; // expired
+  let claims: JWTPayload;
+  try {
+    ({ payload: claims } = await jwtVerify(token, verifier.jwks, {
+      issuer: verifier.issuer,
+      algorithms: ["RS256"],
+      requiredClaims: ["exp", "sub"],
+    }));
+  } catch {
+    return null;
+  }
+
+  // Keycloak access tokens often target the built-in `account` audience;
+  // `azp` binds this token to the client that requested it.
+  if (claims.azp !== verifier.clientId) return null;
 
   const role = primaryStaffRole(claims);
   if (!role) return null; // e.g. a CLIENT token — not a staff account
@@ -63,5 +81,5 @@ export function sessionFromToken(token: string): Session | null {
 
 export async function getSession(): Promise<Session | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  return token ? sessionFromToken(token) : null;
+  return token ? await sessionFromToken(token) : null;
 }

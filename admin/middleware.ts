@@ -20,14 +20,14 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const refresh = req.cookies.get(REFRESH_COOKIE)?.value;
 
-  const valid = token ? sessionFromToken(token) : null;
+  const valid = token ? await sessionFromToken(token) : null;
   const fresh = valid && secondsUntilExpiry(token!) > REFRESH_SKEW_SECONDS;
   if (fresh) return NextResponse.next();
 
   // Try a silent refresh.
   if (refresh) {
     const t = await refreshTokens(refresh);
-    if (t?.access_token && sessionFromToken(t.access_token)) {
+    if (t?.access_token && await sessionFromToken(t.access_token)) {
       const res = NextResponse.next();
       const secure = process.env.NODE_ENV === "production";
       res.cookies.set(SESSION_COOKIE, t.access_token, {

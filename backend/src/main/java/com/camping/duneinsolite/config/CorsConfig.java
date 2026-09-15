@@ -25,14 +25,8 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         List<String> origins = new ArrayList<>(List.of(
-                "http://79.143.185.33:4200",  // partner-app (IP, pre-domain testing)
-                "http://79.143.185.33:4201",  // admin-app (IP, pre-domain testing)
-                "http://79.143.185.33:4202",  // camping-app (IP, pre-domain testing)
-                "http://admin.dunesinsolites.com",
                 "https://admin.dunesinsolites.com",
-                "http://partner.dunesinsolites.com",
                 "https://partner.dunesinsolites.com",
-                "http://camping.dunesinsolites.com",
                 "https://camping.dunesinsolites.com",
                 "https://www.dunesinsolites.com",
                 "https://dunesinsolites.com",

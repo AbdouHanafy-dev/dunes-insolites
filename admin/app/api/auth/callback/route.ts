@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   if (!tokens?.access_token) return fail("token_exchange_failed");
 
   // Backoffice only — reject a token with no staff role.
-  const session = sessionFromToken(tokens.access_token);
+  const session = await sessionFromToken(tokens.access_token);
   if (!session) return fail("no_backoffice_access");
 
   const secure = process.env.NODE_ENV === "production";
