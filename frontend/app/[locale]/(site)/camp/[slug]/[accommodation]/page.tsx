@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { getStay } from "@/lib/api";
 import { getStays } from "@/lib/data/stays";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; slug: string; accommodation: string }> };
@@ -37,18 +38,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AccommodationDetail({ params }: Props) {
   const { locale } = await params;
-  const [{ stay, accommodation }, t] = await Promise.all([
+  const [{ stay, accommodation }, t, tNav] = await Promise.all([
     getAccommodation(params),
     getTranslations("accommodationPage"),
+    getTranslations("nav"),
   ]);
   if (!stay || !accommodation) notFound();
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
-    { name: "Stay", path: localeHref(locale, "/camp") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
+    { name: tNav("stay"), path: localeHref(locale, "/camp") },
     { name: stay.title, path: localeHref(locale, `/camp/${stay.slug}`) },
     { name: accommodation.title, path: localeHref(locale, `/camp/${stay.slug}/${accommodation.slug}`) },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   return (
     <>
@@ -56,6 +59,7 @@ export default async function AccommodationDetail({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <section className="accommodation-hero">
         <Image src={accommodation.image} alt={accommodation.title} fill sizes="100vw" preload style={{ objectFit: "cover" }} />
         <div className="wrap">

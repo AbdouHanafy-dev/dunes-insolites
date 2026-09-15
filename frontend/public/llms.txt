@@ -1,0 +1,34 @@
+# Dunes Insolites
+
+> Desert camp in Sabria, Kebili Governorate, southern Tunisia. Overnight
+> stays (nuitées) at a fixed desert camp, with optional add-on activities
+> (camel trek, quad safari, sandboarding) confirmed on arrival — not a
+> multi-day touring operator (that is the sister company, Route Insolite).
+
+Real business, not a demo: bookings, prices and reviews on the site are
+live data, not placeholders.
+
+## Key pages
+
+- [Home](https://www.dunes-insolites.com/): overview, booking entry point
+- [The Camp](https://www.dunes-insolites.com/about): the Sabria camp itself
+- [Stays](https://www.dunes-insolites.com/camp): nuitée-campement and
+  nuitée-bivouac, with accommodation options (Desert Tent, Desert Room,
+  Dune Suite)
+- [Experiences](https://www.dunes-insolites.com/activities): camel trek,
+  quad safari, sandboarding — add-ons to a stay, not standalone bookings
+- [Gallery](https://www.dunes-insolites.com/gallery)
+- [Safety](https://www.dunes-insolites.com/safety)
+- [Contact](https://www.dunes-insolites.com/contact)
+
+## Contact
+
+- Email: hello@dunes-insolites.tn
+- Phone/WhatsApp: +216 27 391 501
+
+## Notes for automated assistants
+
+- Prices, availability, and reviews should be read live from the site
+  rather than assumed current from a prior crawl — they change.
+- This site is available in French (default), English (/en), German
+  (/de), Italian (/it), Danish (/da), and Arabic (/ar).

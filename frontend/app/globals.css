@@ -2579,6 +2579,42 @@ footer.site-footer .bar-social a:hover {
   }
 }
 
+/* ---------- breadcrumbs ---------- */
+.breadcrumbs {
+  padding: 14px 24px;
+  font-size: 0.82rem;
+}
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.breadcrumbs a {
+  color: var(--muted-ink, #6b6459);
+  text-decoration: none;
+}
+.breadcrumbs a:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+.breadcrumbs [aria-current="page"] {
+  color: var(--ink, #241b17);
+  font-weight: 500;
+}
+.breadcrumbs .sep {
+  color: var(--muted-ink, #6b6459);
+  opacity: 0.5;
+}
+
 /* ---------- activity detail ---------- */
 .detail-hero {
   position: relative;

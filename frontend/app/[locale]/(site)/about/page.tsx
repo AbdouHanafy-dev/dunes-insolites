@@ -10,6 +10,7 @@ import LivePreview from "@/components/LivePreview";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const CMS_SLUG = "about";
 
@@ -43,12 +44,17 @@ export default async function AboutPage({
   }
 
   const locale = await getLocale();
-  const [t, cms] = await Promise.all([getTranslations("about"), getCmsPage(CMS_SLUG, locale)]);
-
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
-    { name: t("eyebrow"), path: localeHref(locale, "/about") },
+  const [t, cms, tNav] = await Promise.all([
+    getTranslations("about"),
+    getCmsPage(CMS_SLUG, locale),
+    getTranslations("nav"),
   ]);
+
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
+    { name: t("eyebrow"), path: localeHref(locale, "/about") },
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   // A published "about" page in the admin CMS (a "team" block covers the
   // guide profiles below via a repeatable group field) takes over the
@@ -61,6 +67,7 @@ export default async function AboutPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
+        <Breadcrumbs items={breadcrumbItems} />
         <PageHead eyebrow={t("eyebrow")} title={cms.title} lead="" image="/images/gate.jpg" />
         <CmsBlocks blocks={cms.blocks} />
         <Experience />
@@ -81,6 +88,7 @@ export default async function AboutPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead
         eyebrow={t("eyebrow")}
         title={

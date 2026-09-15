@@ -6,6 +6,7 @@ import CTA from "@/components/CTA";
 import { getGallery } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -22,21 +23,23 @@ export async function generateMetadata({
 }
 
 export default async function GalleryPage() {
-  const [items, t, tCta, locale] = await Promise.all([
+  const [items, t, tCta, locale, tNav] = await Promise.all([
     getGallery(),
     getTranslations("galleryPage"),
     getTranslations("ctaGallery"),
     getLocale(),
+    getTranslations("nav"),
   ]);
 
   // Filter facets come from the content itself now — "All" plus every
   // distinct tag an editor has used, in first-seen order.
   const tags = ["All", ...new Set(items.map((i) => i.tag).filter((tag) => tag && tag !== "All"))];
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
     { name: t("eyebrow"), path: localeHref(locale, "/gallery") },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   return (
     <>
@@ -44,6 +47,7 @@ export default async function GalleryPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/camel.jpg" />
 
       <section className="section-sand">

@@ -3,6 +3,7 @@
     "description": "Randonnées à dos de chameau, safaris en quad et surf des dunes dans le Sahara au coucher du soleil. Réservez votre aventure désertique à Sabria."
   },
   "nav": {
+    "home": "Accueil",
     "theCamp": "Le campement",
     "experiences": "Expériences",
     "stay": "Séjour",

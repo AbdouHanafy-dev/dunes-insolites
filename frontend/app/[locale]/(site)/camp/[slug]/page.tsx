@@ -3,11 +3,13 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { getActivities, getStay, getRelatedStays } from "@/lib/api";
+import { getActivities, getStay, getRelatedStays, getReviews } from "@/lib/api";
+import { averageRating } from "@/lib/data/reviews";
 import { getStays as seedStays } from "@/lib/data/stays";
 import { canonicalStayPath } from "@/lib/legacySlugs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import StayCard from "@/components/StayCard";
 import AccommodationCard from "@/components/AccommodationCard";
 import StayReservationForm from "@/components/StayReservationForm";
@@ -48,11 +50,13 @@ export default async function StayDetail({ params, searchParams }: Props) {
   const stay = await getStay(slug, locale);
   if (!stay) notFound();
 
-  const [related, activities, t, tLinks] = await Promise.all([
+  const [related, activities, stayReviews, t, tLinks, tNav] = await Promise.all([
     getRelatedStays(slug, locale).then((r) => r.slice(0, 2)),
     getActivities(locale),
+    getReviews({ staySlug: slug }),
     getTranslations("stayDetail"),
     getTranslations("contentLinks"),
+    getTranslations("nav"),
   ]);
 
   const jsonLd = {
@@ -67,13 +71,27 @@ export default async function StayDetail({ params, searchParams }: Props) {
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
     },
+    // Same guard as activities/[slug] — only emitted when reviews exist
+    // behind it, so this page's own Reviews section (below) and its
+    // structured data never disagree, and no manual-action risk from an
+    // unsupported rating claim.
+    ...(stayReviews.length
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: averageRating(stayReviews),
+            reviewCount: stayReviews.length,
+          },
+        }
+      : {}),
   };
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
-    { name: "Stay", path: localeHref(locale, "/camp") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
+    { name: tNav("stay"), path: localeHref(locale, "/camp") },
     { name: stay.title, path: canonicalStayPath(stay.slug, locale) },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   return (
     <>
@@ -85,6 +103,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
 
       <section className="detail-hero">
         <div className="bg">

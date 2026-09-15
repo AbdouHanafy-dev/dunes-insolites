@@ -8,6 +8,7 @@ import CmsBlocks from "@/components/CmsBlocks";
 import { Link } from "@/i18n/navigation";
 import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { getCmsPage } from "@/lib/api";
 import { GUIDE_SLUGS } from "@/lib/guides";
 
@@ -59,20 +60,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GuideDetailPage({ params }: Props) {
   const { locale, slug } = await params;
-  const cms = await getCmsPage(slug, locale);
+  const [cms, tNav, tGuides] = await Promise.all([
+    getCmsPage(slug, locale),
+    getTranslations("nav"),
+    getTranslations("guidesPage"),
+  ]);
 
   if (cms && cms.blocks.length > 0) {
-    const breadcrumbLd = breadcrumbJsonLd([
-      { name: "Home", path: localeHref(locale, "/") },
-      { name: "Guides", path: localeHref(locale, "/guides") },
+    const breadcrumbItems = [
+      { name: tNav("home"), path: localeHref(locale, "/") },
+      { name: tGuides("eyebrow"), path: localeHref(locale, "/guides") },
       { name: cms.title, path: localeHref(locale, `/guides/${slug}`) },
-    ]);
+    ];
+    const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
     return (
       <>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
+        <Breadcrumbs items={breadcrumbItems} />
         <PageHead eyebrow="Guide" title={cms.title} lead="" image="/images/gate.jpg" />
         <section className="section-sand">
           <div className="wrap">
@@ -89,11 +96,12 @@ export default async function GuideDetailPage({ params }: Props) {
 
   const t = await getTranslations(guide.namespace);
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
-    { name: "Guides", path: localeHref(locale, "/guides") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
+    { name: tGuides("eyebrow"), path: localeHref(locale, "/guides") },
     { name: t("title"), path: localeHref(locale, `/guides/${slug}`) },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   const isSahara = slug === "desert-sabria-tunisie";
 
@@ -103,6 +111,7 @@ export default async function GuideDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead
         eyebrow={t("eyebrow")}
         title={t("title")}

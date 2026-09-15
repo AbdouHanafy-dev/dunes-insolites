@@ -7,6 +7,7 @@ import { site } from "@/lib/site";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const CMS_SLUG = "contact";
 
@@ -46,7 +47,11 @@ export default async function ContactPage({
   }
 
   const locale = await getLocale();
-  const [t, cms] = await Promise.all([getTranslations("contact"), getCmsPage(CMS_SLUG, locale)]);
+  const [t, cms, tNav] = await Promise.all([
+    getTranslations("contact"),
+    getCmsPage(CMS_SLUG, locale),
+    getTranslations("nav"),
+  ]);
 
   // Only the header reads from the CMS here — the form, info cards and map
   // are real functionality, not editorial content, and were never going to
@@ -60,10 +65,11 @@ export default async function ContactPage({
   const title = (typeof heroData.title === "string" && heroData.title) || t("title");
   const lead = (typeof heroData.subtitle === "string" && heroData.subtitle) || t("lead");
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
     { name: t("eyebrow"), path: localeHref(locale, "/contact") },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   return (
     <>
@@ -71,6 +77,7 @@ export default async function ContactPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={title} lead={lead} image="/images/sandboard.jpg" />
 
       <section className="section-sand">

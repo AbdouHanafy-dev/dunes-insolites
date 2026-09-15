@@ -9,6 +9,7 @@ import LivePreview from "@/components/LivePreview";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const CMS_SLUG = "safety";
 
@@ -61,16 +62,18 @@ export default async function SafetyPage({
   }
 
   const locale = await getLocale();
-  const [t, cms, tLinks] = await Promise.all([
+  const [t, cms, tLinks, tNav] = await Promise.all([
     getTranslations("safety"),
     getCmsPage(CMS_SLUG, locale),
     getTranslations("contentLinks"),
+    getTranslations("nav"),
   ]);
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
     { name: t("eyebrow"), path: localeHref(locale, "/safety") },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   // A published "safety" page in the admin CMS takes over this route
   // entirely, FAQPage JSON-LD included (sourced from its own "faq" blocks,
@@ -83,6 +86,7 @@ export default async function SafetyPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
+        <Breadcrumbs items={breadcrumbItems} />
         <PageHead eyebrow={t("eyebrow")} title={cms.title} lead="" image="/images/quad.jpg" />
         <CmsBlocks blocks={cms.blocks} />
       </>
@@ -105,6 +109,7 @@ export default async function SafetyPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
 
       <section className="section-sand">

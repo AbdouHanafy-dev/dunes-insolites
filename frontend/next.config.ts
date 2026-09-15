@@ -31,6 +31,13 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // AVIF first, WebP fallback — Next only serves WebP by default. AVIF is
+  // ~20-30% smaller than WebP at equal visual quality on photographic
+  // content (this site's product: desert/camp photography), which is a
+  // direct LCP win on the hero/product images already marked `priority`.
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   // Lean container image for the VPS deploy — traced runtime files only,
   // rooted at the monorepo so hoisted deps + @dunes/api-types come along.
   output: "standalone",

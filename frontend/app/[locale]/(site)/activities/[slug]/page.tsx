@@ -10,6 +10,7 @@ import { canonicalActivityPath } from "@/lib/legacySlugs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import ActivityCard from "@/components/ActivityCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import Reveal from "@/components/Reveal";
 import Reviews from "@/components/Reviews";
 import CTA from "@/components/CTA";
@@ -43,12 +44,13 @@ export default async function ActivityDetail({ params }: Props) {
   const activity = await getActivity(slug, locale);
   if (!activity) notFound();
 
-  const [related, activityReviews, t, tDifficulty, tLinks] = await Promise.all([
+  const [related, activityReviews, t, tDifficulty, tLinks, tNav] = await Promise.all([
     getRelatedActivities(slug, locale),
     getReviews({ activitySlug: slug }),
     getTranslations("activityDetail"),
     getTranslations("activitiesPage"),
     getTranslations("contentLinks"),
+    getTranslations("nav"),
   ]);
   const difficultyLabel = {
     Easy: tDifficulty("difficultyEasy"),
@@ -81,11 +83,12 @@ export default async function ActivityDetail({ params }: Props) {
       : {}),
   };
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
-    { name: "Experiences", path: localeHref(locale, "/activities") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
+    { name: tNav("experiences"), path: localeHref(locale, "/activities") },
     { name: activity.title, path: canonicalActivityPath(activity.slug, locale) },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   return (
     <>
@@ -97,6 +100,7 @@ export default async function ActivityDetail({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
 
       <section className="detail-hero">
         <div className="bg">

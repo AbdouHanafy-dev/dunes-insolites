@@ -5,6 +5,7 @@ import Reveal from "@/components/Reveal";
 import { Link } from "@/i18n/navigation";
 import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { getGuidePages } from "@/lib/api";
 import { GUIDE_SLUGS } from "@/lib/guides";
 
@@ -30,16 +31,18 @@ export async function generateMetadata({
 export default async function GuidesIndexPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
-  const [t, cmsPages, ...guideTs] = await Promise.all([
+  const [t, cmsPages, tNav, ...guideTs] = await Promise.all([
     getTranslations("guidesPage"),
     getGuidePages(locale),
+    getTranslations("nav"),
     ...GUIDE_SLUGS.map((g) => getTranslations(g.namespace)),
   ]);
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
     { name: t("eyebrow"), path: localeHref(locale, "/guides") },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   // Admin-authored articles (any slug, including a brand-new one no
   // frontend code knows about) plus the two seed articles - a CMS page
@@ -61,6 +64,7 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ lo
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/sandboard.jpg" />
 
       <section className="section-sand">

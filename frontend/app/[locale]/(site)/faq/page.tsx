@@ -6,6 +6,7 @@ import CTA from "@/components/CTA";
 import { Link } from "@/i18n/navigation";
 import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 // Now translated into all 6 locales (fr/en/de/it/da/ar) - was FR/EN-only
 // when this page first shipped.
@@ -32,7 +33,7 @@ const QUESTION_KEYS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9"] as 
 export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
-  const t = await getTranslations("faqPage");
+  const [t, tNav] = await Promise.all([getTranslations("faqPage"), getTranslations("nav")]);
 
   const faqs = QUESTION_KEYS.map((key) => ({
     q: t(key),
@@ -49,10 +50,11 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
     })),
   };
 
-  const breadcrumbLd = breadcrumbJsonLd([
-    { name: "Home", path: localeHref(locale, "/") },
+  const breadcrumbItems = [
+    { name: tNav("home"), path: localeHref(locale, "/") },
     { name: t("eyebrow"), path: localeHref(locale, "/faq") },
-  ]);
+  ];
+  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   const groups = [
     { heading: t("catBooking"), items: faqs.slice(0, 3) },
@@ -67,6 +69,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
 
       <section className="section-sand">
