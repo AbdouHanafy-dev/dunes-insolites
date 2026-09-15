@@ -24,7 +24,19 @@ function crossSiteMutation(request: Request): boolean {
 
 async function handler(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
   if (crossSiteMutation(request)) {
-    return Response.json({ error: "Cross-site request rejected" }, { status: 403 });
+    // TEMPORARY diagnostic (15 Sep 2026) - a real "Cross-site request
+    // rejected" is firing in prod for what should be a same-origin form
+    // submit; nginx's admin vhost already sets `Host: $host` correctly
+    // (confirmed live), so something else is making request.url's host
+    // differ from the browser's Origin. Surfacing both values instead of
+    // guessing blind - revert once diagnosed.
+    return Response.json(
+      {
+        error: "Cross-site request rejected",
+        debug: { origin: request.headers.get("origin"), requestUrl: request.url },
+      },
+      { status: 403 },
+    );
   }
 
   const session = await getSession();
