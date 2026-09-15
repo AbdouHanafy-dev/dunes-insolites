@@ -3,6 +3,7 @@ package com.camping.duneinsolite.service.impl;
 import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.dto.response.NewsletterSubscriberResponse;
 import com.camping.duneinsolite.dto.response.SendLaunchEmailResponse;
+import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.NewsletterSubscriber;
 import com.camping.duneinsolite.repository.NewsletterSubscriberRepository;
 import com.camping.duneinsolite.service.NewsletterService;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -41,6 +43,24 @@ public class NewsletterServiceImpl implements NewsletterService {
         return newsletterSubscriberRepository.findAllByOrderBySubscribedAtDesc().stream()
                 .map(NewsletterServiceImpl::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteSubscriber(UUID subscriberId) {
+        NewsletterSubscriber subscriber = newsletterSubscriberRepository.findById(subscriberId)
+                .orElseThrow(() -> new ResourceNotFoundException("Newsletter subscriber not found: " + subscriberId));
+        newsletterSubscriberRepository.delete(subscriber);
+        log.info("Newsletter: subscriber {} deleted", maskEmail(subscriber.getEmail()));
+    }
+
+    @Override
+    @Transactional
+    public long deleteAllSubscribers() {
+        long deleted = newsletterSubscriberRepository.count();
+        newsletterSubscriberRepository.deleteAllInBatch();
+        log.info("Newsletter: all {} subscriber(s) deleted", deleted);
+        return deleted;
     }
 
     @Override

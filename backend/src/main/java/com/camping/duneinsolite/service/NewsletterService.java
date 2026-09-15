@@ -4,6 +4,7 @@ import com.camping.duneinsolite.dto.response.NewsletterSubscriberResponse;
 import com.camping.duneinsolite.dto.response.SendLaunchEmailResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface NewsletterService {
     /**
@@ -16,6 +17,12 @@ public interface NewsletterService {
 
     /** Newest first — the admin list view. */
     List<NewsletterSubscriberResponse> listAll();
+
+    /** Removes one subscriber from the mailing list. */
+    void deleteSubscriber(UUID subscriberId);
+
+    /** Removes the entire mailing list and returns the number deleted. */
+    long deleteAllSubscribers();
 
     /**
      * Sends the "site is ready" launch announcement to every subscriber who

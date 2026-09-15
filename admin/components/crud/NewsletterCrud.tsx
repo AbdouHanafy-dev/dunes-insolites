@@ -7,7 +7,7 @@ import { useToast } from "@/components/Toast";
 import type { AdminNewsletterSubscriber } from "@/lib/api";
 
 /**
- * List-only (no create/edit — subscribers sign up from the launch
+ * Read/delete (no create/edit — subscribers sign up from the launch
  * countdown page, see frontend/components/MaintenanceNotifyForm.tsx, not
  * from the admin) plus the one-click launch announcement. Bespoke rather
  * than CollectionList/CollectionEditor: this isn't CRUD, it's a list and
@@ -18,6 +18,8 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
   const toast = useToast();
   const [query, setQuery] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminNewsletterSubscriber | null>(null);
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,23 +58,71 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     router.refresh();
   }
 
+  async function onDelete() {
+    if (!deleteTarget) return;
+    setBusy(true);
+    setError("");
+    const res = await fetch(`/api/proxy/newsletter-subscribers/${deleteTarget.id}`, { method: "DELETE" });
+    setBusy(false);
+    if (!res.ok) {
+      const message = "Suppression impossible — réessayez.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
+    toast.success("Adresse supprimée de la newsletter.");
+    setDeleteTarget(null);
+    router.refresh();
+  }
+
+  async function onDeleteAll() {
+    setBusy(true);
+    setError("");
+    const res = await fetch("/api/proxy/newsletter-subscribers", { method: "DELETE" });
+    setBusy(false);
+    if (!res.ok) {
+      const message = "Suppression de la liste impossible — réessayez.";
+      setError(message);
+      toast.error(message);
+      return;
+    }
+    toast.success("Toutes les adresses ont été supprimées.");
+    setDeleteAllOpen(false);
+    router.refresh();
+  }
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-navy-800">Newsletter</h1>
           <p className="mt-1 text-sm text-navy-700/55">
             {initialItems.length} abonné(s) · {pendingCount} en attente de l&apos;email de lancement
           </p>
         </div>
-        <button
-          onClick={() => setConfirmOpen(true)}
-          disabled={pendingCount === 0}
-          className="btn btn-primary"
-          title={pendingCount === 0 ? "Tout le monde a déjà reçu l'email" : undefined}
-        >
-          📨 Envoyer l&apos;email de lancement
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              setError("");
+              setDeleteAllOpen(true);
+            }}
+            disabled={initialItems.length === 0}
+            className="btn btn-danger-outline"
+          >
+            Supprimer tout
+          </button>
+          <button
+            onClick={() => {
+              setError("");
+              setConfirmOpen(true);
+            }}
+            disabled={pendingCount === 0}
+            className="btn btn-primary"
+            title={pendingCount === 0 ? "Tout le monde a déjà reçu l'email" : undefined}
+          >
+            📨 Envoyer l&apos;email de lancement
+          </button>
+        </div>
       </div>
 
       <input
@@ -94,6 +144,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
                   <th className="px-6 py-3 font-medium">Email</th>
                   <th className="px-6 py-3 font-medium">Inscrit le</th>
                   <th className="px-6 py-3 font-medium">Email de lancement</th>
+                  <th className="px-6 py-3 text-right font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -115,6 +166,17 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
                           En attente
                         </span>
                       )}
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <button
+                        onClick={() => {
+                          setError("");
+                          setDeleteTarget(item);
+                        }}
+                        className="btn btn-danger-outline btn-sm"
+                      >
+                        Supprimer
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -142,6 +204,49 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
             </button>
             <button onClick={onSend} disabled={busy} className="btn btn-primary">
               {busy ? "Envoi…" : `Envoyer à ${pendingCount} abonné(s)`}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {deleteTarget && (
+        <Modal title="Supprimer une adresse" onClose={() => setDeleteTarget(null)}>
+          <p className="text-sm text-navy-700/80">
+            Supprimer <strong>{deleteTarget.email}</strong> de la newsletter ? Cette action est irréversible.
+          </p>
+          {error && (
+            <div className="mt-3 rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+              {error}
+            </div>
+          )}
+          <div className="mt-5 flex justify-end gap-2">
+            <button onClick={() => setDeleteTarget(null)} className="btn btn-secondary">
+              Annuler
+            </button>
+            <button onClick={onDelete} disabled={busy} className="btn btn-danger">
+              {busy ? "Suppression…" : "Supprimer"}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {deleteAllOpen && (
+        <Modal title="Supprimer toute la liste" onClose={() => setDeleteAllOpen(false)}>
+          <p className="text-sm text-navy-700/80">
+            Supprimer définitivement les <strong>{initialItems.length}</strong> adresse(s) de la newsletter ?
+            L&apos;historique d&apos;envoi sera également supprimé.
+          </p>
+          {error && (
+            <div className="mt-3 rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+              {error}
+            </div>
+          )}
+          <div className="mt-5 flex justify-end gap-2">
+            <button onClick={() => setDeleteAllOpen(false)} className="btn btn-secondary">
+              Annuler
+            </button>
+            <button onClick={onDeleteAll} disabled={busy} className="btn btn-danger">
+              {busy ? "Suppression…" : `Supprimer les ${initialItems.length} adresses`}
             </button>
           </div>
         </Modal>
