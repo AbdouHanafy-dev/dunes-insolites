@@ -118,7 +118,6 @@ jobs:
           host: 79.143.185.33
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true
           script: |
             set -e
             cd /opt/dunes
@@ -134,7 +133,6 @@ jobs:
           host: 79.143.185.33
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true
           script: |
             set -e
             for i in $(seq 1 12); do
