@@ -3417,6 +3417,39 @@ footer.site-footer .bar-social a:hover {
   background: rgba(244, 233, 216, 0.08);
 }
 
+/* ---------- launch-page ambient music toggle ----------
+   On request: soft background music. Same floating-glass corner
+   language as .wa-float on the real site, but this page never renders
+   that button (no header/footer here — see maintenance/layout.tsx's own
+   comment), so the corner is free. */
+.maint-music-toggle {
+  position: fixed;
+  right: calc(24px + env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(20, 14, 10, 0.55);
+  border: 1px solid rgba(245, 240, 232, 0.16);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  color: var(--paper);
+  cursor: pointer;
+  box-shadow: 0 18px 40px rgba(6, 10, 8, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.maint-music-toggle:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 240, 232, 0.32);
+}
+.maint-music-toggle:focus-visible {
+  outline: 2px solid rgba(245, 240, 232, 0.8);
+  outline-offset: 3px;
+}
+
 .toast-viewport {
   position: fixed;
   top: 20px;

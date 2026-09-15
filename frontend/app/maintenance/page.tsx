@@ -1,6 +1,7 @@
 import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 import MaintenanceNotifyForm from "@/components/MaintenanceNotifyForm";
 import MaintenanceContact from "@/components/MaintenanceContact";
+import MaintenanceMusic from "@/components/MaintenanceMusic";
 
 // A tiny, self-contained dictionary rather than routing this through
 // next-intl's messages/*.json catalogue — this page sits outside the
@@ -25,6 +26,7 @@ const COPY: Record<
     notifyButton: string; notifyDoneHeading: string; notifyDoneBody: string; notifyDonePosition: string;
     notifyError: string;
     contactHeading: string; contactBody: string; contactButton: string; followLabel: string;
+    musicOn: string; musicOff: string;
   }
 > = {
   fr: {
@@ -47,6 +49,8 @@ const COPY: Record<
     contactBody: "Écrivez-nous sur WhatsApp, nous répondons directement.",
     contactButton: "Contacter sur WhatsApp",
     followLabel: "Suivez-nous",
+    musicOn: "Couper la musique",
+    musicOff: "Activer la musique",
   },
   en: {
     title: "Coming soon",
@@ -68,6 +72,8 @@ const COPY: Record<
     contactBody: "Message us on WhatsApp — we reply directly.",
     contactButton: "Message us on WhatsApp",
     followLabel: "Follow us",
+    musicOn: "Mute the music",
+    musicOff: "Turn on the music",
   },
   de: {
     title: "Bald verfügbar",
@@ -89,6 +95,8 @@ const COPY: Record<
     contactBody: "Schreiben Sie uns auf WhatsApp — wir antworten direkt.",
     contactButton: "Auf WhatsApp kontaktieren",
     followLabel: "Folgen Sie uns",
+    musicOn: "Musik stummschalten",
+    musicOff: "Musik einschalten",
   },
   it: {
     title: "Prossimamente",
@@ -110,6 +118,8 @@ const COPY: Record<
     contactBody: "Scrivici su WhatsApp, rispondiamo direttamente.",
     contactButton: "Contattaci su WhatsApp",
     followLabel: "Seguici",
+    musicOn: "Disattiva la musica",
+    musicOff: "Attiva la musica",
   },
   da: {
     title: "Kommer snart",
@@ -131,6 +141,8 @@ const COPY: Record<
     contactBody: "Skriv til os på WhatsApp — vi svarer direkte.",
     contactButton: "Kontakt os på WhatsApp",
     followLabel: "Følg os",
+    musicOn: "Slå musikken fra",
+    musicOff: "Slå musikken til",
   },
   ar: {
     title: "قريبًا",
@@ -152,6 +164,8 @@ const COPY: Record<
     contactBody: "تواصل معنا على واتساب، نرد مباشرة.",
     contactButton: "تواصل عبر واتساب",
     followLabel: "تابعنا",
+    musicOn: "إيقاف الموسيقى",
+    musicOff: "تشغيل الموسيقى",
   },
 };
 
@@ -178,6 +192,7 @@ export default async function MaintenancePage({
           <source src="/video/camp-hero.mp4" type="video/mp4" />
         </video>
       </div>
+      <MaintenanceMusic labels={{ on: copy.musicOn, off: copy.musicOff }} />
       <div className="maint-content">
         <p className="idx-label maint-eyebrow">{copy.title}</p>
         <h1 className="display maint-heading">{copy.heading}</h1>
