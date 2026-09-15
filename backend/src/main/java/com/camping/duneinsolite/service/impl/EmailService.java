@@ -244,29 +244,28 @@ public class EmailService {
      * subscriber only ever gets this once — see
      * NewsletterServiceImpl.sendLaunchAnnouncementToAll and
      * NewsletterSubscriber.launchEmailSentAt.
+     *
+     * <p><b>Deliberately synchronous, unlike every other method here, and
+     * throws rather than swallows.</b> Found live: the caller used to mark
+     * a subscriber as sent the moment this was merely triggered, not once
+     * it actually succeeded — a bad SMTP credential silently "sent" the
+     * announcement to nobody and permanently skipped them (the whole point
+     * of launchEmailSentAt is to never re-send, so a false-positive mark
+     * can't self-heal). The caller now marks sent only after this returns
+     * without throwing.
      */
-    @Async
-    public void sendLaunchAnnouncementEmail(String to) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    public void sendLaunchAnnouncementEmail(String to) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromAddress);
-            helper.setTo(to);
-            helper.setSubject("C'est ouvert — l'aventure Dune Insolite vous attend");
-            helper.setText(buildLaunchPlainText(), false);
-            helper.setText(buildLaunchHtml(), true);
+        helper.setFrom(fromAddress);
+        helper.setTo(to);
+        helper.setSubject("C'est ouvert — l'aventure Dune Insolite vous attend");
+        helper.setText(buildLaunchPlainText(), false);
+        helper.setText(buildLaunchHtml(), true);
 
-            mailSender.send(message);
-            log.info("✅ Launch announcement sent to: {}", maskEmail(to));
-
-        } catch (Exception e) {
-            // See sendVerificationEmail's comment on why this is Exception,
-            // not MessagingException - and why it's swallowed rather than
-            // thrown: one subscriber's bad/bouncing address must never stop
-            // the rest of the list from getting the announcement.
-            log.error("❌ Failed to send launch announcement to: {} — {}", maskEmail(to), e.getMessage());
-        }
+        mailSender.send(message);
+        log.info("✅ Launch announcement sent to: {}", maskEmail(to));
     }
 
     private String buildLaunchPlainText() {

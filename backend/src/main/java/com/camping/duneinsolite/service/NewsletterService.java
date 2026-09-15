@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.service;
 
 import com.camping.duneinsolite.dto.response.NewsletterSubscriberResponse;
+import com.camping.duneinsolite.dto.response.SendLaunchEmailResponse;
 
 import java.util.List;
 
@@ -18,9 +19,11 @@ public interface NewsletterService {
 
     /**
      * Sends the "site is ready" launch announcement to every subscriber who
-     * hasn't already gotten it, marks each as sent, and returns how many
-     * that was. Safe to press more than once (see
+     * hasn't already gotten it, marking a subscriber as sent only once
+     * delivery actually succeeds — a failed attempt (bad SMTP credential,
+     * bouncing address) stays pending for the next press rather than being
+     * silently marked done. Safe to press more than once (see
      * NewsletterSubscriber.launchEmailSentAt's own comment).
      */
-    int sendLaunchAnnouncementToAll();
+    SendLaunchEmailResponse sendLaunchAnnouncementToAll();
 }

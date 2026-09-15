@@ -36,7 +36,6 @@ public class NewsletterSubscriberController {
     @PostMapping("/send-launch-email")
     @PreAuthorize("@perm.can('NEWSLETTER_SUBSCRIBERS', 'FULL')")
     public ResponseEntity<SendLaunchEmailResponse> sendLaunchEmail() {
-        int sent = newsletterService.sendLaunchAnnouncementToAll();
-        return ResponseEntity.ok(new SendLaunchEmailResponse(sent));
+        return ResponseEntity.ok(newsletterService.sendLaunchAnnouncementToAll());
     }
 }

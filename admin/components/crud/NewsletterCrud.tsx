@@ -40,13 +40,19 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
       toast.error(message);
       return;
     }
-    const body = (await res.json()) as { sent: number };
+    const body = (await res.json()) as { sent: number; failed: number };
     setConfirmOpen(false);
-    toast.success(
-      body.sent > 0
-        ? `Email de lancement envoyé à ${body.sent} abonné(s).`
-        : "Tout le monde a déjà reçu l'email de lancement.",
-    );
+    if (body.failed > 0) {
+      toast.error(
+        `${body.sent} envoyé(s), ${body.failed} échec(s) — vérifiez la configuration SMTP. Les échecs restent en attente pour le prochain envoi.`,
+      );
+    } else {
+      toast.success(
+        body.sent > 0
+          ? `Email de lancement envoyé à ${body.sent} abonné(s).`
+          : "Tout le monde a déjà reçu l'email de lancement.",
+      );
+    }
     router.refresh();
   }
 
