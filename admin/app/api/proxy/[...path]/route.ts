@@ -13,19 +13,20 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 /**
  * Reject a cross-site mutating request even if a cookie somehow rode along.
  *
- * Compares against the `Host` header, not `request.url` — behind nginx
- * (which does forward `Host` correctly, confirmed live), `next start`
- * still builds `request.url` from the Node server's own bind address
- * (found live: "https://0.0.0.0:3100/...", not the real domain), so every
- * mutating request was being rejected as cross-site in prod.
+ * Prefers the real `Host` header over `request.url` — behind nginx (which
+ * does forward `Host` correctly, confirmed live), `next start` still
+ * builds `request.url` from the Node server's own bind address (found
+ * live: "https://0.0.0.0:3100/...", not the real domain), which was
+ * rejecting every mutating request as cross-site in prod. Falls back to
+ * `request.url`'s host when `Host` is absent — a real HTTP request always
+ * carries one, but a synthetic `Request` built in a test doesn't.
  */
 function crossSiteMutation(request: Request): boolean {
   if (SAFE_METHODS.has(request.method)) return false;
   const origin = request.headers.get("origin");
   if (!origin) return false; // same-origin fetch / server call — no Origin header
-  const host = request.headers.get("host");
-  if (!host) return true;
   try {
+    const host = request.headers.get("host") ?? new URL(request.url).host;
     return new URL(origin).host !== host;
   } catch {
     return true;
