@@ -116,10 +116,9 @@ export default async function LocaleLayout({ children, params }: Props) {
   // stays qualifies for this type and it unlocks richer results than the
   // bare TouristAttraction this replaced, which only ever rendered on the
   // homepage. priceRange is computed from real prices, not guessed.
-  // `sameAs` is deliberately omitted: site.social currently points at each
-  // platform's generic homepage, not this business's actual profile, and
-  // emitting that as sameAs would be wrong structured data, not just
-  // incomplete — add it once the real profile URLs are known.
+  // `sameAs`: site.social now holds the real Instagram/Facebook/TikTok
+  // profile URLs (added 15 Sep 2026) rather than each platform's generic
+  // homepage — safe to emit as structured data now.
   const prices = [...activities.map((a) => a.priceFrom), ...stays.map((s) => s.priceFrom)];
   const businessJsonLd = {
     "@context": "https://schema.org",
@@ -141,6 +140,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       longitude: site.coords.lng,
     },
     image: `${site.url}/images/under-hero.jpg`,
+    sameAs: site.social.map((s) => s.href),
     inLanguage: locale,
   };
 
@@ -148,15 +148,12 @@ export default async function LocaleLayout({ children, params }: Props) {
   // identity separate from LodgingBusiness above (that one describes the
   // camp as a place to stay; this describes Dunes Insolites as a
   // publisher/organization, which is what Google's sitelinks searchbox and
-  // knowledge-panel logic key off). Same `sameAs` omission as
-  // LodgingBusiness and for the same reason — site.social isn't real
-  // profile URLs yet. No SearchAction: the site has no internal search to
-  // describe one truthfully.
-  // No `logo` field: there is no dedicated logo image file in
-  // public/images today (checked - only photography), and Organization's
-  // logo is meant to be an actual brand mark, not a photo. Add it here
-  // once one exists rather than pointing this at something that isn't
-  // really a logo, or worse, a path that 404s.
+  // knowledge-panel logic key off). `sameAs` now uses the real profile
+  // URLs in site.social (added 15 Sep 2026). No SearchAction: the site
+  // has no internal search to describe one truthfully.
+  // `logo`: the real brand mark, public/logo-mark.png (also used by
+  // Header/Footer) — Organization's logo must be an actual mark, not a
+  // photo, which is why this stayed unset while only photography existed.
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -165,6 +162,8 @@ export default async function LocaleLayout({ children, params }: Props) {
     url: site.url,
     email: site.email,
     telephone: site.phone,
+    logo: `${site.url}/logo-mark.png`,
+    sameAs: site.social.map((s) => s.href),
     address: {
       "@type": "PostalAddress",
       addressLocality: "Sabria",

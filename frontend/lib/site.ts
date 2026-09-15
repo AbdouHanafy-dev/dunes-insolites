@@ -86,9 +86,9 @@ const DUNES_INSOLITES: BrandConfig = {
   address: "Sabria, Kebili Governorate, Tunisia",
   coords: { lat: 33.2286, lng: 9.0056 },
   social: [
-    { label: "Instagram", href: "https://instagram.com" },
-    { label: "Facebook", href: "https://facebook.com" },
-    { label: "TikTok", href: "https://tiktok.com" },
+    { label: "Instagram", href: "https://www.instagram.com/dunes_insolites/" },
+    { label: "Facebook", href: "https://www.facebook.com/campementdunes" },
+    { label: "TikTok", href: "https://www.tiktok.com/@dunes_insolites" },
   ],
   nav: [
     { labelKey: "theCamp", href: "/about" },
