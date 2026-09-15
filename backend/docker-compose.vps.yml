@@ -142,12 +142,9 @@ services:
       SEED_CAMPING_PASSWORD: ${SEED_CAMPING_PASSWORD}
       MANAGEMENT_SERVER_PORT: "9099"
       MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
-      # Was disabled while the Gmail credential was known-broken (mail
-      # health would otherwise fail readiness on db+rabbit alone) — put
-      # back to "true" once SPRING_MAIL_* actually points at a working
-      # provider, so a future credential break shows up in health again
-      # instead of going unnoticed.
-      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
+      # Keep SMTP in the readiness signal so a future credential or provider
+      # failure is visible in /actuator/health instead of going unnoticed.
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "true"
     ports:
       - "127.0.0.1:8090:8080"
       - "127.0.0.1:9099:9099"
