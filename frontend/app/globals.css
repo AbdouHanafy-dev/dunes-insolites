@@ -3195,9 +3195,24 @@ footer.site-footer .bar-social a:hover {
 }
 .maint-logo {
   display: block;
-  margin: 0 auto 20px;
+  margin: 0 auto 16px;
   border-radius: 50%;
   box-shadow: 0 8px 24px rgba(6, 10, 8, 0.35);
+}
+.maint-brand {
+  margin: 0 0 22px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--paper);
+  text-shadow: 0 4px 16px rgba(10, 7, 5, 0.4);
+}
+.maint-brand-line {
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: rgba(244, 233, 216, 0.65);
 }
 .maint-eyebrow {
   color: var(--color-amber);
