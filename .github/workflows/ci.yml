@@ -79,24 +79,6 @@ jobs:
           NEXT_PUBLIC_API_URL: ""
           ALLOW_SEED_FALLBACK: ""
 
-  # Optional, opt-in: hits a REAL public host read-only. Runs only when the
-  # repo/environment sets the SEO_BASE_URL variable (never a secret — it is a
-  # public URL). Does not gate merges; it is a live-state canary for the
-  # WordPress baseline before Phase 7, and for the Next.js contract after.
-  seo-live-canary:
-    runs-on: ubuntu-latest
-    if: vars.SEO_BASE_URL != ''
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - name: SEO URL contract against ${{ vars.SEO_BASE_URL }}
-        run: node scripts/verify-production-urls.mjs
-        env:
-          BASE_URL: ${{ vars.SEO_BASE_URL }}
-          SEO_PROFILE: ${{ vars.SEO_PROFILE || 'wordpress' }}
-
   # Continuous deployment — only after both gates above are green, and only
   # for a real push to main (never a PR, never a fork). /opt/dunes on the VPS
   # is a real git clone tracking origin/main (set up 15 Sep 2026, via a
@@ -151,3 +133,26 @@ jobs:
             curl -sf -o /dev/null https://www.dunes-insolites.com/
             curl -sf -o /dev/null https://admin.dunesinsolites.com/
             echo "deploy verified: backend healthy, frontend + admin responding"
+
+  # Real post-deploy verification against the live site — not an independent
+  # canary anymore (it used to run disconnected from everything else, gated
+  # only on an opt-in variable, which is why it never actually ran). Wired to
+  # the thing it's meant to catch: a deploy that ships but breaks SEO. Runs
+  # only after `deploy` succeeds; `needs` on a skipped job skips this one too,
+  # so it stays inert on PRs/branches exactly like before. continue-on-error:
+  # a false positive here must never block or roll back a deploy that already
+  # shipped — it's a loud warning in the Actions UI, not a gate.
+  post-deploy-seo-check:
+    needs: [deploy]
+    if: vars.SEO_BASE_URL != ''
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: SEO URL contract against ${{ vars.SEO_BASE_URL }}
+        run: node scripts/verify-production-urls.mjs
+        env:
+          BASE_URL: ${{ vars.SEO_BASE_URL }}
+          SEO_PROFILE: ${{ vars.SEO_PROFILE || 'nextjs' }}
