@@ -180,6 +180,14 @@ logging:
 # ── App-level properties (used in EmailService) ─────────────────
 app:
   upload-dir: ${APP_UPLOAD_DIR:uploads}   # local disk, see MediaServiceImpl/WebConfig
+  mail:
+    # Was never actually configurable - EmailService's @Value default
+    # ("noreply@duneinsolite.com") was the only value ever used. Found
+    # live: a cPanel mail server rejects sending "From" any address that
+    # isn't a real mailbox it hosts ("550 Sender verify failed") - this
+    # must match SPRING_MAIL_USERNAME's real mailbox once that's a cPanel
+    # account rather than Gmail (which never checked this).
+    from: ${APP_MAIL_FROM:noreply@duneinsolite.com}
   email:
     retry:
       # Transactional-email listener (ReservationEmailConsumer). After

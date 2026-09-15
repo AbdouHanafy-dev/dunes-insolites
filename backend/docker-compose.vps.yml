@@ -127,6 +127,11 @@ services:
       # port 465, not STARTTLS on 587 like Gmail - set both when pointing
       # at one (SPRING_MAIL_PORT=465, SPRING_MAIL_SMTP_SSL_ENABLE=true,
       # SPRING_MAIL_SMTP_STARTTLS_ENABLE=false).
+      # Must be a real mailbox on the SPRING_MAIL_HOST server, not an
+      # invented address - cPanel rejects any "From" it doesn't host
+      # ("550 Sender verify failed", found live). Gmail never checked
+      # this. Leave unset only while SPRING_MAIL_HOST is still Gmail.
+      APP_MAIL_FROM: ${APP_MAIL_FROM:-noreply@duneinsolite.com}
       SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
       SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-true}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
