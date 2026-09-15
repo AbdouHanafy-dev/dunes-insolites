@@ -138,17 +138,30 @@ export default function NewReservationForm({
     setExtraLines((lines) => lines.filter((_, i) => i !== index));
   }
 
-  async function resolveClientId(): Promise<string | null> {
-    if (clientMode === "search") return selectedClient?.userId ?? null;
-    if (!newClient.name.trim() || !newClient.email.trim()) return null;
+  // Returns the resolved userId, or a user-facing error string — distinct
+  // from "null" so a permission denial (CAMPING can search clients but
+  // not create one, see RolePermissionSeeder's own comment on USERS)
+  // reads as what it is, not as an empty-fields validation message.
+  async function resolveClientId(): Promise<{ userId: string } | { error: string }> {
+    if (clientMode === "search") {
+      return selectedClient ? { userId: selectedClient.userId } : { error: "Sélectionnez un client existant." };
+    }
+    if (!newClient.name.trim() || !newClient.email.trim()) {
+      return { error: "Nom et email requis pour créer le client." };
+    }
     const res = await fetch("/api/proxy/users/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...newClient, role: "CLIENT" }),
     });
-    if (!res.ok) return null;
+    if (res.status === 403) {
+      return { error: "Vous n'avez pas la permission de créer un nouveau client — utilisez un client existant, ou demandez à un admin." };
+    }
+    if (!res.ok) {
+      return { error: "Création du client impossible — vérifiez que cet email n'est pas déjà utilisé." };
+    }
     const created = (await res.json()) as AdminUser;
-    return created.userId;
+    return { userId: created.userId };
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -161,16 +174,13 @@ export default function NewReservationForm({
     }
 
     setBusy(true);
-    const userId = await resolveClientId();
-    if (!userId) {
+    const clientResult = await resolveClientId();
+    if ("error" in clientResult) {
       setBusy(false);
-      setError(
-        clientMode === "search"
-          ? "Sélectionnez un client existant."
-          : "Nom et email requis pour créer le client — ou vérifiez que cet email n'est pas déjà utilisé.",
-      );
+      setError(clientResult.error);
       return;
     }
+    const { userId } = clientResult;
 
     const body = {
       userId,

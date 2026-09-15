@@ -50,7 +50,16 @@ public class RolePermissionSeeder implements CommandLineRunner {
     private final RolePermissionRepository rolePermissionRepository;
 
     private static final Map<AdminResource, PermissionLevel> CAMPING_DEFAULTS = Map.ofEntries(
-            Map.entry(AdminResource.USERS, PermissionLevel.NONE),
+            // READ, not NONE (disclosed change, 15 Sep 2026) - the admin's own
+            // "Nouvelle réservation" form needs to search existing clients
+            // (GET /users/search) before it can book a stay on their behalf,
+            // and CAMPING can already create a reservation directly
+            // (ReservationController's hardcoded role check). READ only lets
+            // them look up/view accounts, never create, edit, or change a
+            // role - creating a brand-new client still requires FULL, left
+            // at NONE deliberately (that's a broader capability than this
+            // form needs).
+            Map.entry(AdminResource.USERS, PermissionLevel.READ),
             Map.entry(AdminResource.RESERVATIONS, PermissionLevel.READ),
             Map.entry(AdminResource.INVOICES, PermissionLevel.FULL),
             Map.entry(AdminResource.TRANSACTIONS, PermissionLevel.FULL),
