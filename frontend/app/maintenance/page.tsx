@@ -1,4 +1,3 @@
-import Image from "next/image";
 import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 import MaintenanceNotifyForm from "@/components/MaintenanceNotifyForm";
 import MaintenanceContact from "@/components/MaintenanceContact";
@@ -169,7 +168,15 @@ export default async function MaintenancePage({
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="maint-page">
       <div className="maint-bg">
-        <Image src="/images/gate.jpg" alt="" fill sizes="100vw" priority style={{ objectFit: "cover" }} />
+        {/* Same drone footage as the homepage hero (components/Hero.tsx) —
+            a still gate photo doesn't sell the place the way the real
+            video does. poster="gate.jpg" is what shows before the video
+            can play and if autoplay is refused, so there's still a real
+            image underneath, never a blank frame. */}
+        <video className="maint-bg-video" poster="/images/gate.jpg" autoPlay loop muted playsInline aria-hidden="true">
+          <source src="/video/camp-hero.webm" type="video/webm" />
+          <source src="/video/camp-hero.mp4" type="video/mp4" />
+        </video>
       </div>
       <div className="maint-content">
         <p className="idx-label maint-eyebrow">{copy.title}</p>
