@@ -3152,34 +3152,104 @@ footer.site-footer .bar-social a:hover {
   color: #8a4318;
 }
 
+/* ---------- maintenance / launch countdown ----------
+   Redesigned (15 Sep 2026, on request) from a plain text-on-flat-color
+   notice into something that can stand in front of the whole live site for
+   several days without looking like a placeholder — full-bleed photo, the
+   same grade/vignette language as the real hero, boxed countdown units
+   instead of bare numbers. */
+.maint-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  overflow: hidden;
+  color: var(--paper);
+  text-align: center;
+}
+.maint-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.maint-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(90% 70% at 50% 40%, rgba(26, 36, 41, 0.5) 0%, rgba(26, 36, 41, 0.2) 55%, rgba(26, 36, 41, 0) 75%),
+    linear-gradient(180deg, rgba(26, 36, 41, 0.55) 0%, rgba(26, 36, 41, 0.25) 30%, rgba(26, 36, 41, 0.85) 100%);
+}
+.maint-content {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+}
+.maint-eyebrow {
+  color: var(--color-amber);
+  font-size: 0.8rem;
+}
+.maint-heading {
+  margin: 14px 0 0;
+  font-size: clamp(32px, 5.5vw, 56px);
+  line-height: 1.02;
+  font-weight: 500;
+  text-shadow: 0 8px 30px rgba(10, 7, 5, 0.4);
+}
+.maint-body {
+  margin: 18px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: rgba(244, 233, 216, 0.86);
+}
+.maint-countdown-wrap {
+  margin-top: 44px;
+}
+.maint-ends-label {
+  margin-bottom: 16px;
+  color: rgba(244, 233, 216, 0.6);
+}
 .maint-countdown {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 .maint-countdown-unit {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 56px;
+  min-width: 72px;
+  padding: 16px 10px;
+  border: 1px solid rgba(244, 233, 216, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(244, 233, 216, 0.06);
 }
 .maint-countdown-value {
   font-family: var(--font-display), sans-serif;
-  font-size: clamp(26px, 5vw, 38px);
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  color: var(--paper);
 }
 .maint-countdown-label {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 11px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: rgba(244, 233, 216, 0.6);
 }
 .maint-soon {
-  font-size: 15px;
-  opacity: 0.75;
+  font-size: 1.05rem;
+  color: var(--paper);
+}
+@media (max-width: 480px) {
+  .maint-countdown-unit {
+    min-width: 60px;
+    padding: 12px 6px;
+  }
 }
 
 .toast-viewport {

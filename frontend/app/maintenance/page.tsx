@@ -1,3 +1,4 @@
+import Image from "next/image";
 import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 
 // A tiny, self-contained dictionary rather than routing this through
@@ -6,71 +7,78 @@ import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 // only a `locale` query param, not real next-intl context. Six short
 // strings don't justify wiring NextIntlClientProvider back in for this one
 // route.
+//
+// Redesigned (15 Sep 2026, on request) — this same page now also serves as
+// a full-site launch/relaunch countdown (see middleware.ts's "/*" wildcard
+// window and MaintenanceCrud.tsx's "🌐 Tout le site" option), not only a
+// single broken page's apology. Copy leans anticipatory rather than
+// apologetic so it reads right in both cases; a window's own `message`
+// field (admin-editable) overrides the body text either way.
 const COPY: Record<
   string,
   { title: string; heading: string; defaultBody: string; endsIn: string; soon: string; days: string; hours: string; minutes: string; seconds: string }
 > = {
   fr: {
-    title: "Maintenance en cours",
-    heading: "Cette page est en maintenance",
-    defaultBody: "Nous travaillons dessus. Le reste du site reste accessible normalement.",
-    endsIn: "De retour dans",
-    soon: "De retour dans un instant.",
+    title: "Bientôt disponible",
+    heading: "Quelque chose de nouveau arrive.",
+    defaultBody: "Nous préparons la suite. Le site rouvre dès la fin du compte à rebours.",
+    endsIn: "Ouverture dans",
+    soon: "C'est pour très bientôt.",
     days: "jours",
     hours: "heures",
     minutes: "min",
     seconds: "sec",
   },
   en: {
-    title: "Under maintenance",
-    heading: "This page is under maintenance",
-    defaultBody: "We're working on it. The rest of the site is available as usual.",
-    endsIn: "Back in",
-    soon: "Back in just a moment.",
+    title: "Coming soon",
+    heading: "Something new is on its way.",
+    defaultBody: "We're putting the finishing touches on it. The site reopens the moment the countdown ends.",
+    endsIn: "Opens in",
+    soon: "Any moment now.",
     days: "days",
     hours: "hours",
     minutes: "min",
     seconds: "sec",
   },
   de: {
-    title: "Wartungsarbeiten",
-    heading: "Diese Seite wird gerade gewartet",
-    defaultBody: "Wir arbeiten daran. Der Rest der Website ist wie gewohnt erreichbar.",
-    endsIn: "Zurück in",
-    soon: "Gleich wieder da.",
+    title: "Bald verfügbar",
+    heading: "Etwas Neues ist auf dem Weg.",
+    defaultBody: "Wir legen letzte Hand an. Die Seite öffnet, sobald der Countdown endet.",
+    endsIn: "Öffnet in",
+    soon: "Gleich geht's los.",
     days: "Tage",
     hours: "Std",
     minutes: "Min",
     seconds: "Sek",
   },
   it: {
-    title: "Manutenzione in corso",
-    heading: "Questa pagina è in manutenzione",
-    defaultBody: "Ci stiamo lavorando. Il resto del sito resta disponibile normalmente.",
-    endsIn: "Di ritorno tra",
-    soon: "Di ritorno tra un istante.",
+    title: "Prossimamente",
+    heading: "Qualcosa di nuovo sta arrivando.",
+    defaultBody: "Ci stiamo lavorando negli ultimi dettagli. Il sito riapre alla fine del conto alla rovescia.",
+    endsIn: "Apertura tra",
+    soon: "Ci siamo quasi.",
     days: "giorni",
     hours: "ore",
     minutes: "min",
     seconds: "sec",
   },
   da: {
-    title: "Under vedligeholdelse",
-    heading: "Denne side er under vedligeholdelse",
-    defaultBody: "Vi arbejder på det. Resten af siden er tilgængelig som normalt.",
-    endsIn: "Tilbage om",
-    soon: "Tilbage om et øjeblik.",
+    title: "Kommer snart",
+    heading: "Noget nyt er på vej.",
+    defaultBody: "Vi lægger sidste hånd på værket. Siden åbner, når nedtællingen slutter.",
+    endsIn: "Åbner om",
+    soon: "Meget snart.",
     days: "dage",
     hours: "timer",
     minutes: "min",
     seconds: "sek",
   },
   ar: {
-    title: "الصيانة جارية",
-    heading: "هذه الصفحة قيد الصيانة",
-    defaultBody: "نعمل على ذلك حاليًا. باقي الموقع متاح كالمعتاد.",
-    endsIn: "العودة خلال",
-    soon: "العودة خلال لحظات.",
+    title: "قريبًا",
+    heading: "شيء جديد في الطريق.",
+    defaultBody: "نعمل على اللمسات الأخيرة. يفتح الموقع فور انتهاء العد التنازلي.",
+    endsIn: "الافتتاح خلال",
+    soon: "قريبًا جدًا.",
     days: "أيام",
     hours: "ساعات",
     minutes: "دقائق",
@@ -89,52 +97,24 @@ export default async function MaintenancePage({
   const isRtl = locale === "ar";
 
   return (
-    <div
-      dir={isRtl ? "rtl" : "ltr"}
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "32px",
-        background: "var(--maroon)",
-        color: "var(--paper)",
-        textAlign: "center",
-      }}
-    >
-      <div style={{ maxWidth: 480 }}>
-        <p
-          style={{
-            fontFamily: "var(--font-display)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            fontSize: 13,
-            color: "var(--ember, #f0a558)",
-            marginBottom: 12,
-          }}
-        >
-          {copy.title}
-        </p>
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(24px, 4vw, 34px)",
-            margin: "0 0 14px",
-          }}
-        >
-          {copy.heading}
-        </h1>
-        <p style={{ opacity: 0.8, lineHeight: 1.6, margin: "0 0 28px" }}>{msg || copy.defaultBody}</p>
+    <div dir={isRtl ? "rtl" : "ltr"} className="maint-page">
+      <div className="maint-bg">
+        <Image src="/images/gate.jpg" alt="" fill sizes="100vw" priority style={{ objectFit: "cover" }} />
+      </div>
+      <div className="maint-content">
+        <p className="idx-label maint-eyebrow">{copy.title}</p>
+        <h1 className="display maint-heading">{copy.heading}</h1>
+        <p className="maint-body">{msg || copy.defaultBody}</p>
 
         {endsAt && (
-          <>
-            <p style={{ fontSize: 13, opacity: 0.65, marginBottom: 10 }}>{copy.endsIn}</p>
+          <div className="maint-countdown-wrap">
+            <p className="idx-label maint-ends-label">{copy.endsIn}</p>
             <MaintenanceCountdown
               endsAt={endsAt}
               soonLabel={copy.soon}
               labels={{ days: copy.days, hours: copy.hours, minutes: copy.minutes, seconds: copy.seconds }}
             />
-          </>
+          </div>
         )}
       </div>
     </div>

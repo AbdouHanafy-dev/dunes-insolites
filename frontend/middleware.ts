@@ -73,7 +73,15 @@ export default async function middleware(request: NextRequest) {
   }
 
   const maintenanceWindows = await getMaintenanceWindows();
-  const maintenanceMatch = maintenanceWindows.find((w) => w.path === pathname);
+  // An exact-path window always wins over the site-wide one — a specific
+  // page's own maintenance notice shouldn't be swallowed by a launch
+  // countdown covering everything. "/*" is a synthetic sentinel (created
+  // via the admin's "🌐 Tout le site" option, MaintenanceCrud.tsx), not a
+  // real path — this is the one and only place it's interpreted as a
+  // wildcard rather than matched literally.
+  const maintenanceMatch =
+    maintenanceWindows.find((w) => w.path === pathname) ??
+    maintenanceWindows.find((w) => w.path === "/*");
   if (maintenanceMatch) {
     // A real rewrite, not a redirect: the URL bar keeps showing the page
     // the visitor asked for (it still exists, it's just down right now),
