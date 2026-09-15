@@ -237,6 +237,129 @@ public class EmailService {
         }
     }
 
+    /**
+     * The admin's one-click "the site is ready" send, triggered from the
+     * newsletter subscribers list once the launch countdown (see
+     * MaintenanceWindow's "/*" site-wide window) is actually lifted. Every
+     * subscriber only ever gets this once — see
+     * NewsletterServiceImpl.sendLaunchAnnouncementToAll and
+     * NewsletterSubscriber.launchEmailSentAt.
+     */
+    @Async
+    public void sendLaunchAnnouncementEmail(String to) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("C'est ouvert — l'aventure Dune Insolite vous attend");
+            helper.setText(buildLaunchPlainText(), false);
+            helper.setText(buildLaunchHtml(), true);
+
+            mailSender.send(message);
+            log.info("✅ Launch announcement sent to: {}", maskEmail(to));
+
+        } catch (Exception e) {
+            // See sendVerificationEmail's comment on why this is Exception,
+            // not MessagingException - and why it's swallowed rather than
+            // thrown: one subscriber's bad/bouncing address must never stop
+            // the rest of the list from getting the announcement.
+            log.error("❌ Failed to send launch announcement to: {} — {}", maskEmail(to), e.getMessage());
+        }
+    }
+
+    private String buildLaunchPlainText() {
+        return """
+            Bonjour,
+
+            C'est officiel : le site Dune Insolite est ouvert.
+
+            Réservez dès maintenant votre séjour dans le désert de Sabria :
+
+              %s
+
+            À très vite dans les dunes,
+            L'équipe Dune Insolite
+            """.formatted(frontendUrl);
+    }
+
+    private String buildLaunchHtml() {
+        return """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0"
+                           style="background:#ffffff;border-radius:12px;overflow:hidden;
+                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+                      <!-- Header -->
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
+                                   padding:44px 40px;text-align:center;">
+                          <h1 style="margin:0;color:#ffffff;font-size:30px;font-weight:700;
+                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
+                          <p style="margin:10px 0 0;color:rgba(255,255,255,0.9);font-size:15px;">
+                            C'est ouvert.
+                          </p>
+                        </td>
+                      </tr>
+
+                      <!-- Body -->
+                      <tr>
+                        <td style="padding:40px 40px 28px;text-align:center;">
+                          <p style="margin:0 0 8px;font-size:20px;color:#111827;font-weight:600;">
+                            L'aventure vous attend.
+                          </p>
+                          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Merci de votre patience — le site est maintenant en ligne.
+                            Réservez dès aujourd'hui votre séjour dans le désert de Sabria :
+                            nuitées, camel trek, sandboard et bien plus.
+                          </p>
+                          <table width="100%%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td align="center">
+                                <a href="%s"
+                                   style="display:inline-block;background:linear-gradient(135deg,#c8963e,#a07030);
+                                          color:#ffffff;font-size:15px;font-weight:600;
+                                          text-decoration:none;padding:16px 42px;
+                                          border-radius:8px;letter-spacing:0.3px;">
+                                  Découvrir Dune Insolite →
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
+                                   text-align:center;">
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                            Vous recevez cet email car vous vous êtes inscrit(e) pour être
+                            averti(e) de l'ouverture du site.<br>
+                            © 2026 Dune Insolite. Tous droits réservés.
+                          </p>
+                        </td>
+                      </tr>
+
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(frontendUrl);
+    }
+
     private String buildVerifyPlainText(String name, String link) {
         return """
             Bonjour %s,

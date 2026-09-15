@@ -66,6 +66,7 @@ const GROUPS: NavGroup[] = [
       { label: "Utilisateurs", href: "/administration/utilisateurs", icon: "🧑‍💼" },
       { label: "Rôles & permissions", href: "/administration/roles", icon: "🔐" },
       { label: "Maintenance", href: "/administration/maintenance", icon: "🚧" },
+      { label: "Newsletter", href: "/administration/newsletter", icon: "📧" },
       { label: "Paramètres", href: "/administration/parametres", icon: "⚙️" },
     ],
   },

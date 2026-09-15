@@ -28,6 +28,7 @@ const RESOURCE_LABELS: Record<AdminResource, string> = {
   REDIRECTS: "Redirections",
   GALLERY: "Galerie photos",
   MAINTENANCE_WINDOWS: "Maintenance",
+  NEWSLETTER_SUBSCRIBERS: "Newsletter",
 };
 
 const LEVEL_LABELS: Record<PermissionLevel, string> = {

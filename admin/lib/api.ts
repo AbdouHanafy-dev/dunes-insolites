@@ -159,7 +159,8 @@ export type AdminResource =
   | "NAVIGATION"
   | "REDIRECTS"
   | "GALLERY"
-  | "MAINTENANCE_WINDOWS";
+  | "MAINTENANCE_WINDOWS"
+  | "NEWSLETTER_SUBSCRIBERS";
 
 export type PermissionLevel = "NONE" | "READ" | "EDIT" | "FULL";
 
@@ -180,6 +181,7 @@ export const ALL_ADMIN_RESOURCES: AdminResource[] = [
   "REDIRECTS",
   "GALLERY",
   "MAINTENANCE_WINDOWS",
+  "NEWSLETTER_SUBSCRIBERS",
 ];
 
 export type PermissionMatrix = Record<UserRole, Record<AdminResource, PermissionLevel>>;
@@ -414,6 +416,17 @@ export function getMaintenanceWindowById(
   id: string,
 ): Promise<AdminMaintenanceWindow | null> {
   return authedGet<AdminMaintenanceWindow | null>(`/maintenance-windows/${id}`, accessToken, null);
+}
+
+export type AdminNewsletterSubscriber = {
+  id: string;
+  email: string;
+  subscribedAt: string;
+  launchEmailSentAt: string | null;
+};
+
+export function getAllNewsletterSubscribers(accessToken: string): Promise<AdminNewsletterSubscriber[]> {
+  return authedGet<AdminNewsletterSubscriber[]>("/newsletter-subscribers", accessToken, []);
 }
 
 /* --------------------------------------------------------------- content blocks */

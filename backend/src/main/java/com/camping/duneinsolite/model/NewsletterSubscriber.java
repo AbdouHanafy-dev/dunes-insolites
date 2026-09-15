@@ -35,4 +35,12 @@ public class NewsletterSubscriber {
     @Column(name = "subscribed_at", nullable = false)
     @Builder.Default
     private LocalDateTime subscribedAt = LocalDateTime.now();
+
+    // Set once the "site is ready" launch announcement has actually been
+    // triggered for this subscriber - makes the admin's send button
+    // idempotent (see V9__newsletter_launch_email.sql): pressing it again
+    // only reaches subscribers who joined since the last send, never
+    // double-emails someone.
+    @Column(name = "launch_email_sent_at")
+    private LocalDateTime launchEmailSentAt;
 }
