@@ -3193,6 +3193,12 @@ footer.site-footer .bar-social a:hover {
   z-index: 1;
   max-width: 560px;
 }
+.maint-logo {
+  display: block;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(6, 10, 8, 0.35);
+}
 .maint-eyebrow {
   color: var(--color-amber);
   font-size: 0.8rem;

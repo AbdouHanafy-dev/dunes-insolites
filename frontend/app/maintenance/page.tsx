@@ -1,3 +1,4 @@
+import Image from "next/image";
 import MaintenanceCountdown from "@/components/MaintenanceCountdown";
 import MaintenanceNotifyForm from "@/components/MaintenanceNotifyForm";
 import MaintenanceContact from "@/components/MaintenanceContact";
@@ -194,6 +195,7 @@ export default async function MaintenancePage({
       </div>
       <MaintenanceMusic labels={{ on: copy.musicOn, off: copy.musicOff }} />
       <div className="maint-content">
+        <Image src="/logo-mark.png" alt="" width={56} height={56} className="maint-logo" priority />
         <p className="idx-label maint-eyebrow">{copy.title}</p>
         <h1 className="display maint-heading">{copy.heading}</h1>
         <p className="maint-body">{msg || copy.defaultBody}</p>

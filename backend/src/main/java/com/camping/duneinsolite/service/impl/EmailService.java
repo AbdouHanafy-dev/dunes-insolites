@@ -284,6 +284,13 @@ public class EmailService {
     }
 
     private String buildLaunchHtml() {
+        // Real brand mark (frontend/public/logo-mark.png, the same file
+        // the site's own header/footer use) instead of an emoji stand-in,
+        // plus the real hero photo as a banner - on request, a "pro,
+        // modern" look rather than the flat gradient-header template
+        // shared with the transactional emails. Both are absolute URLs
+        // off frontendUrl since an email client fetches them cold, with
+        // no app origin to resolve a relative path against.
         return """
             <!DOCTYPE html>
             <html lang="fr">
@@ -291,33 +298,41 @@ public class EmailService {
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
             </head>
-            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
-              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+            <body style="margin:0;padding:0;background:#eeece7;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#eeece7;padding:32px 16px;">
                 <tr>
                   <td align="center">
-                    <table width="600" cellpadding="0" cellspacing="0"
-                           style="background:#ffffff;border-radius:12px;overflow:hidden;
-                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                    <table width="560" cellpadding="0" cellspacing="0"
+                           style="width:560px;max-width:100%%;background:#ffffff;border-radius:18px;overflow:hidden;
+                                  box-shadow:0 10px 40px rgba(20,14,10,0.12);">
 
-                      <!-- Header -->
+                      <!-- Hero photo -->
                       <tr>
-                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
-                                   padding:44px 40px;text-align:center;">
-                          <h1 style="margin:0;color:#ffffff;font-size:30px;font-weight:700;
-                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
-                          <p style="margin:10px 0 0;color:rgba(255,255,255,0.9);font-size:15px;">
-                            C'est ouvert.
+                        <td>
+                          <img src="%s/images/camp-hero-poster.jpg" width="560" alt=""
+                               style="display:block;width:100%%;height:200px;object-fit:cover;border:0;">
+                        </td>
+                      </tr>
+
+                      <!-- Brand mark -->
+                      <tr>
+                        <td style="padding:36px 40px 0;text-align:center;">
+                          <img src="%s/logo-mark.png" width="52" height="52" alt="Dune Insolite"
+                               style="display:inline-block;border-radius:50%%;border:0;">
+                          <p style="margin:14px 0 0;font-size:11px;font-weight:700;letter-spacing:0.16em;
+                                    text-transform:uppercase;color:#a07030;">
+                            Dune Insolite · Southern Tunisia
                           </p>
                         </td>
                       </tr>
 
                       <!-- Body -->
                       <tr>
-                        <td style="padding:40px 40px 28px;text-align:center;">
-                          <p style="margin:0 0 8px;font-size:20px;color:#111827;font-weight:600;">
-                            L'aventure vous attend.
-                          </p>
-                          <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+                        <td style="padding:18px 40px 8px;text-align:center;">
+                          <h1 style="margin:0 0 12px;font-size:26px;font-weight:700;color:#1a1410;letter-spacing:-0.01em;">
+                            C'est ouvert.
+                          </h1>
+                          <p style="margin:0 0 30px;font-size:15px;color:#5b544c;line-height:1.65;">
                             Merci de votre patience — le site est maintenant en ligne.
                             Réservez dès aujourd'hui votre séjour dans le désert de Sabria :
                             nuitées, camel trek, sandboard et bien plus.
@@ -326,10 +341,11 @@ public class EmailService {
                             <tr>
                               <td align="center">
                                 <a href="%s"
-                                   style="display:inline-block;background:linear-gradient(135deg,#c8963e,#a07030);
+                                   style="display:inline-block;background:#a04a2f;
                                           color:#ffffff;font-size:15px;font-weight:600;
-                                          text-decoration:none;padding:16px 42px;
-                                          border-radius:8px;letter-spacing:0.3px;">
+                                          text-decoration:none;padding:15px 40px;
+                                          border-radius:999px;letter-spacing:0.2px;
+                                          box-shadow:0 8px 20px rgba(160,74,47,0.35);">
                                   Découvrir Dune Insolite →
                                 </a>
                               </td>
@@ -340,9 +356,11 @@ public class EmailService {
 
                       <!-- Footer -->
                       <tr>
-                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
-                                   text-align:center;">
-                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                        <td style="padding:32px 40px 32px;">
+                          <table width="100%%" cellpadding="0" cellspacing="0">
+                            <tr><td style="border-top:1px solid #ece8e2;font-size:0;line-height:0;">&nbsp;</td></tr>
+                          </table>
+                          <p style="margin:20px 0 0;font-size:12px;color:#a29d94;line-height:1.6;text-align:center;">
                             Vous recevez cet email car vous vous êtes inscrit(e) pour être
                             averti(e) de l'ouverture du site.<br>
                             © 2026 Dune Insolite. Tous droits réservés.
@@ -356,7 +374,7 @@ public class EmailService {
               </table>
             </body>
             </html>
-            """.formatted(frontendUrl);
+            """.formatted(frontendUrl, frontendUrl, frontendUrl);
     }
 
     private String buildVerifyPlainText(String name, String link) {
