@@ -1,9 +1,9 @@
-# SEO cutover (Part B) — readiness plan, not an execution
+# SEO cutover (Part B) — readiness plan, then execution
 
-**Date:** 15 September 2026. **Status: prepared, NOT executed.** Nothing in
-this document has been run. This exists so the actual cutover — when the
-owner explicitly says go — is a fast, well-understood 2-record change instead
-of a live decision made under pressure.
+**Date:** 15 September 2026. **Status: EXECUTED, same day.** The plan below
+was written first and then carried out, in the order it describes, with the
+owner explicitly confirming the cutover itself as a separate decision from
+confirming Cloudflare access. See §6 for what was actually done and verified.
 
 ---
 
@@ -115,3 +115,66 @@ It is not permission to execute. Nothing here should be run without a
 separate, explicit "do the cutover now" from the owner — confirming
 Cloudflare access (done, 15 Sep) is a different decision from cutting a
 ranked domain's traffic over.
+
+---
+
+## 6. What was actually executed, same day (15 Sep 2026)
+
+The owner gave the separate, explicit go-ahead described above (§5) after
+§3's blockers were closed. In order:
+
+1. **Content migration** — the 5 missing activities (`camel-trek`,
+   `sandboarding-desert`, `bedouin-diner-sahara-tunisien`,
+   `soirees-sous-les-etoiles`, `le-pain-de-sabel`) and 1 missing stay
+   (`nuitee-campement-desert`) were real content already entered by hand in
+   the local database — never invented. Copied to the VPS via
+   `scripts/migrate-content-to-vps.sh` (owner-executed; the write itself is
+   gated to a human, not this session, by the harness's own safety
+   classifier). `quad-desert`/`bivouac-desert-tunisie` (already on the VPS)
+   were excluded by slug — no duplicate-row risk.
+2. **`verify:seo` against staging** — found the 5 missing-content pages as
+   real `noindex`/wrong-canonical failures (not assumed), then 40/40 clean
+   after the migration and a container restart (stale in-process fetch
+   cache from before the migration — resolved by restarting
+   `dunes-v2-frontend`, not by any code change).
+3. **nginx prepared for the real domain FIRST** — `dunes-insolites.com` and
+   `www.dunes-insolites.com` added to the vhost's `server_name` *before*
+   the DNS change, so traffic wouldn't hit the `default` catch-all the
+   moment DNS took effect. (Owner-executed — nginx/domain config on the
+   real domain is also gated to a human.)
+4. **DNS cutover** — the `dunes-insolites.com` `@` A-record changed from
+   `185.7.33.81` to `79.143.185.33` in Cloudflare (owner-executed).
+   Confirmed live within ~15 seconds (Cloudflare-proxied records don't wait
+   out a TTL) — `dunes-insolites.com` started serving the new Next.js app
+   instead of WordPress.
+5. **TLS for the real domain** — `certbot --expand` initially failed
+   (correctly — Let's Encrypt's HTTP-01 challenge needs DNS already
+   pointing here, so this had to happen *after* step 4, not before, despite
+   §4's original ordering assuming otherwise). Re-run after the DNS
+   change succeeded: one certificate now covers all 4 hostnames
+   (`dunesinsolites.com`, `www.dunesinsolites.com`, `dunes-insolites.com`,
+   `www.dunes-insolites.com`), expires 14 Dec 2026, auto-renews.
+6. **Bare → www redirect** — found live (not in the original plan): the
+   bare `dunes-insolites.com` was serving the site directly instead of
+   301-redirecting to `www.dunes-insolites.com` the way the old WordPress
+   did — a duplicate-content gap. Fixed with a dedicated redirect-only
+   server block; required removing the bare hostnames from the main
+   vhost's `server_name` first (nginx keeps the first exact-match block it
+   loads and silently ignores the name on any later one — the initial fix
+   attempt warned `conflicting server name ... ignored` until this was
+   done).
+7. **Final verification, on the real HTTPS domain** — `verify:seo`
+   40/40 against `https://www.dunes-insolites.com`, real cert, no
+   `noindex`, all legacy slugs resolving to real content, bare-domain
+   redirect confirmed correct for both `dunesinsolites.com` and
+   `dunes-insolites.com` independently (each redirects to its own `www.`,
+   not cross-contaminated).
+
+**Not yet done, flagged honestly:**
+- D-1/D-2 (the two unmapped legacy URLs) — still an open owner decision,
+  non-blocking.
+- No Search Console monitoring set up yet to watch real ranking impact over
+  the following days/weeks — the technical contract is verified; real-world
+  ranking behavior is not something a URL checker can confirm.
+- The old WordPress stack is untouched and still reachable at its origin —
+  intentional, it's the rollback path (revert the one `@` A-record).
