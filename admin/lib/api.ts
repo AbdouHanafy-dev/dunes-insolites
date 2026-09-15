@@ -76,14 +76,26 @@ export function getActiveReservations(
 
 /* ------------------------------------------------------------------ users */
 
+// The 4 roles the permission matrix (PermissionMatrix below) actually
+// covers — kept separate from AccountRole so that type stays an exact
+// match of what GET /admin/role-permissions returns (4 keys, never 5).
 export type UserRole = "CLIENT" | "PARTENAIRE" | "CAMPING" | "ADMIN";
+
+// A real account's role — STAFF on request, 15 Sep 2026: a "blank slate"
+// account whose real permissions come entirely from its one attached
+// custom role (AdminUser.customRoleName), not from this value itself.
+// Deliberately not merged into UserRole (see that type's own comment).
+export type AccountRole = UserRole | "STAFF";
 
 export type AdminUser = {
   userId: string;
   name: string;
   email: string;
   phone: string | null;
-  role: UserRole;
+  role: AccountRole;
+  // Set only when role = "STAFF" — the CustomRole this account's real
+  // permissions come from (see CustomRoleResponse.name).
+  customRoleName: string | null;
   loyaltyPoints: number | null;
   loyaltyTier: string | null;
   matriculeFiscal: string | null;
@@ -98,7 +110,7 @@ export type AdminUser = {
 
 export function searchUsers(
   accessToken: string,
-  opts: { roles?: UserRole[]; term?: string; page?: number; size?: number } = {},
+  opts: { roles?: AccountRole[]; term?: string; page?: number; size?: number } = {},
 ): Promise<Page<AdminUser>> {
   const empty: Page<AdminUser> = { content: [], totalElements: 0, totalPages: 0, number: 0 };
   const params = new URLSearchParams();
@@ -191,6 +203,27 @@ export type PermissionMatrix = Record<UserRole, Record<AdminResource, Permission
 // uniform table instead of special-casing which columns exist.
 export function getRolePermissionMatrix(accessToken: string): Promise<PermissionMatrix | null> {
   return authedGet<PermissionMatrix | null>("/admin/role-permissions", accessToken, null);
+}
+
+/* ------------------------------------------------------------ custom roles */
+
+export type CustomRole = { name: string; label: string; createdAt: string; userCount: number };
+
+export function getCustomRoles(accessToken: string): Promise<CustomRole[]> {
+  return authedGet<CustomRole[]>("/admin/custom-roles", accessToken, []);
+}
+
+// One row per AdminResource, defaulting to "NONE" for anything never set —
+// same shape as one row of PermissionMatrix above.
+export function getCustomRolePermissions(
+  accessToken: string,
+  name: string,
+): Promise<Record<AdminResource, PermissionLevel> | null> {
+  return authedGet<Record<AdminResource, PermissionLevel> | null>(
+    `/admin/custom-roles/${name}/permissions`,
+    accessToken,
+    null,
+  );
 }
 
 /* --------------------------------------------------------------- catalogue */
@@ -506,7 +539,7 @@ export function searchStaff(
   accessToken: string,
   opts: { term?: string; page?: number; size?: number } = {},
 ): Promise<Page<AdminUser>> {
-  return searchUsers(accessToken, { ...opts, roles: ["ADMIN", "CAMPING"] });
+  return searchUsers(accessToken, { ...opts, roles: ["ADMIN", "CAMPING", "STAFF"] });
 }
 
 /* ------------------------------------------------------------------ reviews */

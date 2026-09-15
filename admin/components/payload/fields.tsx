@@ -3,7 +3,7 @@ export type FieldDef =
   | { type: "textarea"; key: string; label: string; hint?: string }
   | { type: "number"; key: string; label: string; required?: boolean; step?: number }
   | { type: "datetime"; key: string; label: string; hint?: string }
-  | { type: "select"; key: string; label: string; options: { value: string; label: string }[] }
+  | { type: "select"; key: string; label: string; options: { value: string; label: string }[]; hint?: string }
   | { type: "checkbox"; key: string; label: string }
   // A repeatable group — an array of objects, each shaped by `fields`.
   // Not handled by FieldInput below (that returns one control, this is a

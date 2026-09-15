@@ -11,7 +11,10 @@ import {
   type UserRole,
 } from "@/lib/api";
 
-const RESOURCE_LABELS: Record<AdminResource, string> = {
+// Exported for CustomRoleMatrix.tsx (Administration > Rôles personnalisés) —
+// one shared vocabulary for "what does READ/EDIT/FULL on GALLERY mean",
+// rather than a second copy that could drift.
+export const RESOURCE_LABELS: Record<AdminResource, string> = {
   USERS: "Utilisateurs",
   RESERVATIONS: "Réservations (listes/recherche)",
   INVOICES: "Factures & proformas",
@@ -31,18 +34,18 @@ const RESOURCE_LABELS: Record<AdminResource, string> = {
   NEWSLETTER_SUBSCRIBERS: "Newsletter",
 };
 
-const LEVEL_LABELS: Record<PermissionLevel, string> = {
+export const LEVEL_LABELS: Record<PermissionLevel, string> = {
   NONE: "Aucun accès",
   READ: "Lecture seule",
   EDIT: "Modifier",
   FULL: "Accès complet",
 };
 
-const LEVELS: PermissionLevel[] = ["NONE", "READ", "EDIT", "FULL"];
+export const LEVELS: PermissionLevel[] = ["NONE", "READ", "EDIT", "FULL"];
 
 const EDITABLE_ROLES: UserRole[] = ["CAMPING", "PARTENAIRE"];
 
-function levelClass(level: PermissionLevel): string {
+export function levelClass(level: PermissionLevel): string {
   switch (level) {
     case "NONE":
       return "text-navy-700/40";
