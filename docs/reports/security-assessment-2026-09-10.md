@@ -29,11 +29,14 @@ backups. **All of those were fixed and deployed during this assessment.**
 
 **Nothing CRITICAL or HIGH is open at report time.**
 
-Three items remain, none an open door:
+Three items remained, none an open door — all now closed:
 - **M-6** (Keycloak `start-dev` → prod mode) + **M-1** (JWT `iss`/`aud` validation)
-  — one planned ~20-min maintenance window, paired.
-- **M-7** — a third party (the site developer) controls the primary domain's DNS.
-  Governance, outside the repo; also blocks the SEO cutover.
+  — fixed and deployed.
+- ~~M-7 — a third party (the site developer) controls the primary domain's
+  DNS~~ **Resolved 15 Sep 2026** — the owner now has verified write access
+  to the `dunes-insolites.com` Cloudflare zone (confirmed live: a test edit
+  saved successfully). Governance issue closed; the SEO cutover (Part B) is
+  no longer blocked on this.
 
 ## Score
 
@@ -45,9 +48,10 @@ headers + fail2ban), IdP (Keycloak prod mode + brute-force + policy + MFA), app
 iss/azp validation), data (encrypted backups), supply chain (`npm audit` gate,
 0 vulns). Held below 9 by operational maturity, not holes: no secret manager,
 no centralized/SIEM security logging + real alert routing, backups' key still
-on the DB host, code not through remote CI, and no external pentest. The one
-open finding with real exposure is M-7 (third-party DNS control), which is
-governance outside the repo. See "Priority queue".
+on the DB host, code not through remote CI, and no external pentest.
+M-7 (third-party DNS control) — the one governance finding with real
+exposure — is now resolved: the owner has verified write access to the
+Cloudflare zone. See "Priority queue".
 
 ---
 
@@ -80,7 +84,7 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 | **M-5** | Database backups were plaintext `pg_dump` archives (customer PII + invoice data). | — | **FIXED** — `db-backup.sh` encrypts with `openssl enc -aes-256-cbc -pbkdf2` when `BACKUP_ENC_KEY_FILE` is set (loud warning when unset); `db-restore-verify.sh` decrypts transparently. Round-trip proven on the VPS (`file` → *openssl salted*, restore → PASS). Key `/root/.dunes-backup.key` (root-only, not in git). **Follow-up:** keep a copy of the key off the DB host. |
 | **M-6** | Keycloak ran `start-dev` ("DO NOT use in production"); token `iss` was `http://…:8180`. | `docker logs` | **FIXED + deployed** — `command: start`, `KC_HOSTNAME=https://auth.dunesinsolites.com`, `KC_PROXY_HEADERS=xforwarded`. Verified: `Profile prod activated`, `iss` = `https://auth.dunesinsolites.com/realms/duneinsolite`, login end-to-end 200. |
 | **M-8** | **No MFA for staff.** Enforcing TOTP via a Keycloak *required action* broke the old admin app: its login was a custom form → BFF → password grant, which returns `invalid_grant: Account is not fully set up` when TOTP enrolment is pending. | live test | **FIXED + deployed** — admin app switched to the **OIDC Authorization-Code + PKCE** redirect flow (`admin/lib/oidc.ts`, `admin/middleware.ts`, `admin/app/api/auth/{login,callback,logout}`; custom `LoginForm` deleted). Keycloak now hosts the login page (→ password-reset, lockout messages, account console for free). Client `duneinsolite-api` given `standardFlowEnabled` + `redirectUris`. Full round-trip verified on the VPS with real credentials: `/` → Keycloak → callback → httpOnly `admin_session` + `admin_refresh`, `/api/auth/me` returns the ADMIN session; access token never reaches the browser. **`CONFIGURE_TOTP` required action now set** on `admin@` and `camping@dunesinsolites.com` — next login forces authenticator enrolment. OTP policy TOTP/6-digit/30s. |
-| **M-7** | **Third-party control of the primary domain's DNS.** `dunes-insolites.com` (registrar OVH, owner-controlled) has its nameservers delegated to a **Cloudflare account the owner cannot access** — set up by the site's developer. That party can repoint the domain, issue certs for it, read traffic metadata, and change email routing. | `dig NS`, empty owner Cloudflare account | **OPEN — governance.** Get the developer to add the owner as a Member (or move the zone). Until then, treat the domain as not fully under the owner's control. |
+| **M-7** | **Third-party control of the primary domain's DNS.** `dunes-insolites.com` (registrar OVH, owner-controlled) had its nameservers delegated to a Cloudflare account the owner could not access — set up by the site's developer. That party could repoint the domain, issue certs for it, read traffic metadata, and change email routing. | `dig NS`, previously-empty owner Cloudflare account | **FIXED — resolved 15 Sep 2026.** Owner now has verified Cloudflare access to the zone (write access confirmed live: added, saved, and read back a test comment on a DNS record without error). `DNS Setup: Full` confirms Cloudflare is authoritative. The SEO cutover (Part B, still deliberately not executed — see project memory) is no longer blocked on this. |
 
 ### LOW  *(all FIXED live unless noted)*
 
@@ -97,7 +101,7 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 | **L-9** | `default_server` served `/var/www/html` for any unmatched Host | **FIXED** — `return 444` (connection dropped) |
 | **L-10** | Old vulnerable stack containers + volumes (`duneinsolite_postgres_data`, test data) still on disk, stopped | **ACCEPTED** — kept for rollback; remove after Part B + a few weeks stable |
 | **L-11** | Duplicate `X-Frame-Options` / `X-Content-Type-Options` (app + nginx) | **FIXED** — the nginx snippet now sends **only** HSTS (`includeSubDomains`); the apps own the rest. Verified single `X-Frame-Options: DENY`. |
-| **L-12** | `dunes-insolites.com` has **no DMARC record** (email spoofing) | **OPEN** — but DNS not owner-controlled (M-7); fix when it is. SPF is `~all`. |
+| **L-12** | `dunes-insolites.com` has **no DMARC record** (email spoofing) | **FIXED — 15 Sep 2026.** `_dmarc` TXT added: `v=DMARC1; p=none; rua=mailto:insoliteroute@gmail.com; fo=1`. Monitoring mode (`p=none`) on purpose — collects spoofing reports without risking a legitimate email being rejected before SPF/DKIM alignment is confirmed across every sender. Tighten to `quarantine` then `reject` once a few weeks of reports show no false positives. |
 | **L-13** | `client_max_body_size` was 1m — media uploads (8 MB) 413'd at nginx before reaching the backend | **FIXED** — 10m on `api` + `admin` (also a functional bug) |
 | **L-14** | Malformed body / bad `Content-Type` / wrong method → **500** instead of 4xx (no leak, just noise). | **FIXED** — `GlobalExceptionHandler` maps `HttpMessageNotReadableException`, `HttpMediaTypeNotSupportedException`, `MissingServletRequestParameterException`, `MethodArgumentTypeMismatchException` → 400 and `HttpRequestMethodNotSupportedException` → 405. |
 
@@ -116,11 +120,15 @@ Status: **FIXED** = done live this session · **IN PROGRESS** · **OPEN** ·
 
 ## Priority queue
 
-1. **M-7** — get DNS control of `dunes-insolites.com` (also blocks the SEO cutover). *The only open finding with real exposure.*
+1. ~~M-7 — get DNS control of `dunes-insolites.com`~~ **Resolved 15 Sep 2026.**
 2. **L-7** — add the owner's own SSH key as a second root key.
 3. Off-host copy of the backup encryption key (`/root/.dunes-backup.key`).
 4. External pentest before the public launch.
-5. Housekeeping: L-8, L-11, and the old-stack teardown once Part B is done.
+5. ~~L-12 — add a DMARC record now that DNS access exists~~ **Fixed 15 Sep 2026.**
+6. Housekeeping: L-8, L-11, and the old-stack teardown once Part B is done.
+7. Part B (SEO cutover) is technically unblocked but stays paused until the
+   owner explicitly asks to proceed — see project memory / prior instruction
+   "I don't need any risk."
 
 Closed and deployed this session: C-1/H-1 (`next@16.3.4`), M-1, M-2, M-3,
 M-4, M-5, M-6, **M-8 + staff MFA**, P-1, and L-1..L-14 bar the two noted.

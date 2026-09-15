@@ -128,11 +128,12 @@ export default async function StayDetail({ params, searchParams }: Props) {
                   <h2>{t("findYourStay")}</h2>
                   <p className="accommodation-lead">{t("accommodationLead")}</p>
                   <div className="accommodation-grid">
-                    {stay.accommodations.map((accommodation) => (
+                    {stay.accommodations.map((accommodation, i) => (
                       <AccommodationCard
                         key={accommodation.slug}
                         staySlug={stay.slug}
                         accommodation={accommodation}
+                        index={i + 1}
                       />
                     ))}
                   </div>

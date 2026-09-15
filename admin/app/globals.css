@@ -31,7 +31,7 @@
   --color-muted: #64748b;
 
   --font-body: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--font-montserrat), Montserrat, sans-serif;
+  --font-display: var(--font-alexandria), sans-serif;
 }
 
 :root {

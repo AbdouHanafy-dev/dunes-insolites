@@ -116,7 +116,8 @@
   "ctaDefault": {
     "title": "Book din nat i Sabria.",
     "body": "Golden-hour-tiderne bliver hurtigt fyldt op. Book direkte, bekræftelse inden for en dag — ingen platform, ingen kommission.",
-    "label": "Book din nat →"
+    "label": "Book din nat →",
+    "arrivalNote": "Ankomst omkring {time}"
   },
   "ctaGallery": {
     "title": "Dine egne billeder, sendt næste morgen.",
@@ -799,5 +800,26 @@
     "planTrip": "Læs vores komplette guide til Sabria-ørkenen →",
     "packing": "Hvad skal du pakke →",
     "faq": "Alle ofte stillede spørgsmål →"
+  },
+  "staysSection": {
+    "eyebrow": "Nætter i lejren",
+    "titleLine1": "To måder",
+    "titleLine2": "at sove i klitterne.",
+    "lead": "Den faste lejr, eller en bivuak længere ude i klitterne — begge ender på samme måde, ved et bål, under den samme himmel.",
+    "fromPrice": "Fra €{price}"
+  },
+  "activitiesSection": {
+    "eyebrow": "Feltguide",
+    "lead": "Fra en kamels langsomme gang i den gyldne time til larmen fra en quad over klitterne — hver tur i Sabria ender på samme måde, med udsigt til solen, der forsvinder bag Sahara.",
+    "fromPrice": "Fra €{price}"
+  },
+  "location": {
+    "eyebrow": "Hvor vi er",
+    "title": "Et rigtigt sted i Kébili-ørkenen.",
+    "camp": "Lejr",
+    "region": "Region",
+    "coordinates": "Koordinater",
+    "meetingPoint": "Mødested",
+    "mapTitle": "Kort der viser Sabria i det sydlige Tunesien"
   }
 }

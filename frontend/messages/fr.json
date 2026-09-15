@@ -116,7 +116,8 @@
   "ctaDefault": {
     "title": "Réservez votre nuit à Sabria.",
     "body": "Les créneaux de l'heure dorée partent vite. Réservez en direct, confirmation sous 24h — sans plateforme, sans commission.",
-    "label": "Réserver votre nuit →"
+    "label": "Réserver votre nuit →",
+    "arrivalNote": "Arrivée vers {time}"
   },
   "ctaGallery": {
     "title": "Vos propres photos, envoyées le lendemain matin.",
@@ -799,5 +800,26 @@
     "planTrip": "Consultez notre guide complet du désert de Sabria →",
     "packing": "Que faut-il emporter →",
     "faq": "Toutes les questions fréquentes →"
+  },
+  "staysSection": {
+    "eyebrow": "Nuits au campement",
+    "titleLine1": "Deux façons",
+    "titleLine2": "de dormir dans les dunes.",
+    "lead": "Le campement fixe, ou un bivouac plus loin dans les dunes — les deux se terminent de la même façon, autour d'un feu, sous le même ciel.",
+    "fromPrice": "À partir de {price} €"
+  },
+  "activitiesSection": {
+    "eyebrow": "Carnet de route",
+    "lead": "Du pas lent d'un chameau à l'heure dorée au rugissement d'un quad sur les dunes — chaque sortie à Sabria se termine de la même façon, à regarder le soleil disparaître derrière le Sahara.",
+    "fromPrice": "À partir de {price} €"
+  },
+  "location": {
+    "eyebrow": "Où nous sommes",
+    "title": "Un lieu bien réel, dans le désert de Kébili.",
+    "camp": "Campement",
+    "region": "Région",
+    "coordinates": "Coordonnées",
+    "meetingPoint": "Point de rendez-vous",
+    "mapTitle": "Carte montrant Sabria, dans le sud de la Tunisie"
   }
 }

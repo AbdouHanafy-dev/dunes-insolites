@@ -116,7 +116,8 @@
   "ctaDefault": {
     "title": "Reservieren Sie Ihre Nacht in Sabria.",
     "body": "Die Golden-Hour-Termine sind schnell ausgebucht. Direkt buchen, Bestätigung innerhalb eines Tages — keine Plattform, keine Provision.",
-    "label": "Nacht reservieren →"
+    "label": "Nacht reservieren →",
+    "arrivalNote": "Ankunft gegen {time}"
   },
   "ctaGallery": {
     "title": "Ihre eigenen Fotos, am nächsten Morgen verschickt.",
@@ -799,5 +800,26 @@
     "planTrip": "Lesen Sie unseren vollständigen Leitfaden zur Wüste von Sabria →",
     "packing": "Was mitnehmen →",
     "faq": "Alle häufig gestellten Fragen →"
+  },
+  "staysSection": {
+    "eyebrow": "Nächte im Camp",
+    "titleLine1": "Zwei Wege",
+    "titleLine2": "in den Dünen zu schlafen.",
+    "lead": "Das feste Camp oder ein Biwak weiter in den Dünen — beide enden auf dieselbe Weise, an einem Lagerfeuer, unter demselben Himmel.",
+    "fromPrice": "Ab €{price}"
+  },
+  "activitiesSection": {
+    "eyebrow": "Feldführer",
+    "lead": "Vom langsamen Schaukeln eines Kamels zur goldenen Stunde bis zum Dröhnen eines Quads über die Dünen — jeder Sabria-Ausflug endet auf dieselbe Weise: beim Blick auf die Sonne, die hinter der Sahara verschwindet.",
+    "fromPrice": "Ab €{price}"
+  },
+  "location": {
+    "eyebrow": "Wo wir sind",
+    "title": "Ein echter Ort in der Wüste von Kébili.",
+    "camp": "Camp",
+    "region": "Region",
+    "coordinates": "Koordinaten",
+    "meetingPoint": "Treffpunkt",
+    "mapTitle": "Karte mit Sabria, im Süden Tunesiens"
   }
 }

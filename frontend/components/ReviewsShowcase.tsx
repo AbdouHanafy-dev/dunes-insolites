@@ -38,7 +38,7 @@ export default async function ReviewsShowcase() {
     <section className="block reviews-showcase" id="reviews">
       <div className="wrap">
         <Reveal>
-          <p className="sect-eyebrow">{t("eyebrow")}</p>
+          <p className="idx-label">{t("eyebrow")}</p>
           <h2 className="sect-title" style={{ fontSize: "clamp(32px,4vw,60px)" }}>
             {t("title")}
           </h2>

@@ -116,7 +116,8 @@
   "ctaDefault": {
     "title": "Reserve your night at Sabria.",
     "body": "Golden-hour slots go first. Book directly and we confirm within a day — no platform, no commission.",
-    "label": "Reserve your night →"
+    "label": "Reserve your night →",
+    "arrivalNote": "Arrival around {time}"
   },
   "ctaGallery": {
     "title": "Your own photos, sent the next morning.",
@@ -799,5 +800,26 @@
     "planTrip": "Read our complete guide to the Sabria desert →",
     "packing": "What to pack →",
     "faq": "All frequently asked questions →"
+  },
+  "staysSection": {
+    "eyebrow": "Nights at the camp",
+    "titleLine1": "Two ways",
+    "titleLine2": "to sleep in the dunes.",
+    "lead": "The fixed camp, or a bivouac further into the dunes — both end the same way, at a fire circle, under the same sky.",
+    "fromPrice": "From €{price}"
+  },
+  "activitiesSection": {
+    "eyebrow": "Field guide",
+    "lead": "From the slow sway of a camel at golden hour to the roar of a quad over the dunes — every Sabria trip ends the same way, watching the sun drop behind the Sahara.",
+    "fromPrice": "From €{price}"
+  },
+  "location": {
+    "eyebrow": "Where we are",
+    "title": "A real place in the Kébili desert.",
+    "camp": "Camp",
+    "region": "Region",
+    "coordinates": "Coordinates",
+    "meetingPoint": "Meeting point",
+    "mapTitle": "Map showing Sabria, southern Tunisia"
   }
 }

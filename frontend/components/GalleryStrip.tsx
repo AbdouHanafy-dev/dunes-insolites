@@ -5,14 +5,13 @@ import Reveal from "@/components/Reveal";
 import { getGalleryStrip } from "@/lib/api";
 
 /**
- * Restructured (differentiation pass, 31 Aug 2026) off the eyebrow +
- * display-title skeleton every other homepage section used to share, and
- * off the boxed, shadowed, hover-zoom card grid — both flagged in
- * audit-differentiation.md as matching the competitor's gallery mechanic.
- * Direction A calls for typed captions beneath a photo rather than text on
- * top of it, so each frame now carries a real index number and its alt
- * text as a caption underneath, contact-sheet style, instead of only
- * living in the img `alt` attribute.
+ * Simplified (14 Sep 2026, on request) off the asymmetric "tall item"
+ * contact-sheet grid — with two tall items landing in different columns,
+ * CSS grid's dense auto-placement gave the row uneven, ragged bottoms
+ * (one column two rows deep, another three), which read as an accident
+ * rather than a deliberate layout. A clean, even grid instead: same
+ * aspect ratio throughout, tighter gaps, less dead air, a quieter
+ * single-line caption. Still numbered — that's not what didn't work here.
  */
 export default async function GalleryStrip() {
   const [galleryItems, t, tGrid] = await Promise.all([
@@ -29,11 +28,11 @@ export default async function GalleryStrip() {
       <div className="wrap">
         <Reveal>
           <p className="log-index-kicker">{t("eyebrow")}</p>
-          <h2 className="log-gallery-title serif">{t("title")}</h2>
+          <h2 className="log-gallery-title display">{t("title")}</h2>
         </Reveal>
         <Reveal className="log-gallery-strip">
           {galleryItems.map((item, i) => (
-            <figure key={`${item.src}-${i}`} className={`log-gallery-item${item.tall ? " tall" : ""}`}>
+            <figure key={`${item.src}-${i}`} className="log-gallery-item">
               <div className="log-gallery-frame">
                 <Image
                   src={item.src}
