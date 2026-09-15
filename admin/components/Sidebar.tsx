@@ -6,11 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 type NavLink = { label: string; href: string; icon: string; soon?: boolean };
 type NavGroup = { label: string; items: NavLink[] };
 
-// Full target IA (this session's brief, Section 12). Only Dashboard and
-// Reservations are wired to real pages right now — everything else renders
-// as a disabled, labeled placeholder rather than a dead link or invented
-// content, so the nav shows where this is headed without pretending it's
-// built. Each phase in the migration plan turns one more group live.
+// Full target IA (this session's brief, Section 12). Stale as of 15 Sep
+// 2026 (backoffice audit): most of the IA is now wired to real pages — only
+// the three explicitly `soon: true` items below ("Nouvelle réservation",
+// "Statistiques", "Revenus") are still disabled, labeled placeholders
+// rather than dead links or invented content. Everything else in GROUPS
+// routes to a real, working page.
 const GROUPS: NavGroup[] = [
   {
     label: "Opérations",
