@@ -3,6 +3,7 @@ package com.camping.duneinsolite.service.impl;
 import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.dto.response.NewsletterSubscriberResponse;
 import com.camping.duneinsolite.dto.response.SendLaunchEmailResponse;
+import com.camping.duneinsolite.exception.EmailDeliveryException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.NewsletterSubscriber;
 import com.camping.duneinsolite.repository.NewsletterSubscriberRepository;
@@ -86,6 +87,22 @@ public class NewsletterServiceImpl implements NewsletterService {
         }
         log.info("Newsletter: launch announcement sent to {} subscriber(s), {} failed", sent, failed);
         return new SendLaunchEmailResponse(sent, failed);
+    }
+
+    @Override
+    @Transactional
+    public void resendLaunchAnnouncement(UUID subscriberId) {
+        NewsletterSubscriber subscriber = newsletterSubscriberRepository.findById(subscriberId)
+                .orElseThrow(() -> new ResourceNotFoundException("Newsletter subscriber not found: " + subscriberId));
+        try {
+            emailService.sendLaunchAnnouncementEmail(subscriber.getEmail());
+        } catch (Exception e) {
+            log.error("Newsletter: resend failed for {} — {}", maskEmail(subscriber.getEmail()), e.getMessage());
+            throw new EmailDeliveryException("Failed to resend launch announcement to " + subscriber.getEmail(), e);
+        }
+        subscriber.setLaunchEmailSentAt(LocalDateTime.now());
+        newsletterSubscriberRepository.save(subscriber);
+        log.info("Newsletter: launch announcement resent to {}", maskEmail(subscriber.getEmail()));
     }
 
     private static NewsletterSubscriberResponse toResponse(NewsletterSubscriber subscriber) {

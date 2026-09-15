@@ -55,4 +55,11 @@ public class NewsletterSubscriberController {
     public ResponseEntity<SendLaunchEmailResponse> sendLaunchEmail() {
         return ResponseEntity.ok(newsletterService.sendLaunchAnnouncementToAll());
     }
+
+    @PostMapping("/{subscriberId}/resend-launch-email")
+    @PreAuthorize("@perm.can('NEWSLETTER_SUBSCRIBERS', 'FULL')")
+    public ResponseEntity<Void> resendLaunchEmail(@PathVariable UUID subscriberId) {
+        newsletterService.resendLaunchAnnouncement(subscriberId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -22,6 +22,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return initialItems;
@@ -72,6 +73,20 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     }
     toast.success("Adresse supprimée de la newsletter.");
     setDeleteTarget(null);
+    router.refresh();
+  }
+
+  async function onResend(item: AdminNewsletterSubscriber) {
+    setResendingId(item.id);
+    const res = await fetch(`/api/proxy/newsletter-subscribers/${item.id}/resend-launch-email`, {
+      method: "POST",
+    });
+    setResendingId(null);
+    if (!res.ok) {
+      toast.error(`Renvoi impossible pour ${item.email} — vérifiez la configuration SMTP.`);
+      return;
+    }
+    toast.success(`Email de lancement renvoyé à ${item.email}.`);
     router.refresh();
   }
 
@@ -168,15 +183,25 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
                       )}
                     </td>
                     <td className="px-6 py-3 text-right">
-                      <button
-                        onClick={() => {
-                          setError("");
-                          setDeleteTarget(item);
-                        }}
-                        className="btn btn-danger-outline btn-sm"
-                      >
-                        Supprimer
-                      </button>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => onResend(item)}
+                          disabled={resendingId === item.id}
+                          className="btn btn-secondary btn-sm"
+                          title={item.launchEmailSentAt ? "Renvoyer, même déjà envoyé" : "Envoyer à cette seule adresse"}
+                        >
+                          {resendingId === item.id ? "…" : "Renvoyer"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setError("");
+                            setDeleteTarget(item);
+                          }}
+                          className="btn btn-danger-outline btn-sm"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

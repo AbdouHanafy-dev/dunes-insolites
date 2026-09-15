@@ -33,4 +33,13 @@ public interface NewsletterService {
      * NewsletterSubscriber.launchEmailSentAt's own comment).
      */
     SendLaunchEmailResponse sendLaunchAnnouncementToAll();
+
+    /**
+     * Re-sends the launch announcement to one specific subscriber,
+     * regardless of whether they're already marked sent — the one
+     * deliberate escape hatch around launchEmailSentAt's idempotency, for
+     * "I didn't get it, can you resend?". Throws (mapped to 502) if the
+     * send itself fails, same as the bulk send's per-subscriber failure.
+     */
+    void resendLaunchAnnouncement(UUID subscriberId);
 }
