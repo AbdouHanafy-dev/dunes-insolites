@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/session";
-import { getCampingSettings } from "@/lib/api";
+import { getCampingSettings, getSiteSettings } from "@/lib/api";
 import SettingsForm from "@/components/settings/SettingsForm";
+import SiteSettingsForm from "@/components/settings/SiteSettingsForm";
 
 export const metadata: Metadata = { title: "Paramètres" };
 
@@ -9,7 +10,15 @@ export default async function SettingsPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const settings = await getCampingSettings(session.accessToken);
+  const [campingSettings, siteSettings] = await Promise.all([
+    getCampingSettings(session.accessToken),
+    getSiteSettings(session.accessToken),
+  ]);
 
-  return <SettingsForm initialData={settings} />;
+  return (
+    <div className="flex flex-col gap-8">
+      <SettingsForm initialData={campingSettings} />
+      <SiteSettingsForm initialData={siteSettings} />
+    </div>
+  );
 }

@@ -678,6 +678,28 @@ export function getCampingSettings(accessToken: string): Promise<AdminCampingSet
   return authedGet<AdminCampingSettings | null>("/camping-settings", accessToken, null);
 }
 
+// Business facts the vitrine used to hardcode in frontend/lib/site.ts and
+// lib/data/stats.ts (contact info, social links, headline stats) - on
+// request, 15 Sep 2026.
+export type AdminSiteSettings = {
+  email: string;
+  phone: string;
+  whatsapp: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
+  tiktokUrl: string | null;
+  guestsGuided: string;
+  yearsRunning: string;
+  updatedAt: string | null;
+};
+
+export function getSiteSettings(accessToken: string): Promise<AdminSiteSettings | null> {
+  return authedGet<AdminSiteSettings | null>("/site-settings", accessToken, null);
+}
+
 /* ------------------------------------------------------- seo / analytics */
 
 export type SeoIntegrationStatus = {
