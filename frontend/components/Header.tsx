@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
-import { logout } from "@/lib/api";
+import { logout, type SiteSettingsData } from "@/lib/api";
 import { site } from "@/lib/site";
 import type { Activity, Stay } from "@/lib/types";
 
@@ -24,10 +24,12 @@ export default function Header({
   activities,
   stays,
   navItems,
+  settings,
 }: {
   activities: Activity[];
   stays: Stay[];
   navItems: NavEntry[];
+  settings: SiteSettingsData;
 }) {
   const t = useTranslations("nav");
   const tAccount = useTranslations("account");
@@ -127,7 +129,7 @@ export default function Header({
   const isActive = (href: string) =>
     href.startsWith("/#") ? false : pathname === href || pathname.startsWith(`${href}/`);
 
-  const waHref = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}`;
+  const waHref = `https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`;
 
   const megaMenus: Record<
     "experiences" | "stays",
@@ -165,10 +167,10 @@ export default function Header({
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.13a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.36c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.69 8.23-8.24 8.23z" />
               </svg>
-              {site.whatsapp}
+              {settings.whatsapp}
             </a>
-            <a className="u-link u-hide-sm" href={`mailto:${site.email}`}>
-              {site.email}
+            <a className="u-link u-hide-sm" href={`mailto:${settings.email}`}>
+              {settings.email}
             </a>
           </div>
 
@@ -373,7 +375,7 @@ export default function Header({
               </svg>
             </span>
             <span>
-              {t("whatsapp")} <strong>{site.whatsapp}</strong>
+              {t("whatsapp")} <strong>{settings.whatsapp}</strong>
             </span>
           </a>
         </div>

@@ -3,8 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import ContactForm from "@/components/ContactForm";
 import PageHead from "@/components/PageHead";
 import LivePreview from "@/components/LivePreview";
-import { site } from "@/lib/site";
-import { getCmsPage } from "@/lib/api";
+import { getCmsPage, getSiteSettings } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -28,11 +27,11 @@ export async function generateMetadata({
   };
 }
 
-const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${
-  site.coords.lng - 0.08
-}%2C${site.coords.lat - 0.06}%2C${site.coords.lng + 0.08}%2C${
-  site.coords.lat + 0.06
-}&layer=mapnik&marker=${site.coords.lat}%2C${site.coords.lng}`;
+function buildMapSrc(lat: number, lng: number): string {
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.08}%2C${
+    lat - 0.06
+  }%2C${lng + 0.08}%2C${lat + 0.06}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
 
 export default async function ContactPage({
   searchParams,
@@ -47,11 +46,13 @@ export default async function ContactPage({
   }
 
   const locale = await getLocale();
-  const [t, cms, tNav] = await Promise.all([
+  const [t, cms, tNav, settings] = await Promise.all([
     getTranslations("contact"),
     getCmsPage(CMS_SLUG, locale),
     getTranslations("nav"),
+    getSiteSettings(),
   ]);
+  const mapSrc = buildMapSrc(settings.coords.lat, settings.coords.lng);
 
   // Only the header reads from the CMS here — the form, info cards and map
   // are real functionality, not editorial content, and were never going to
@@ -92,18 +93,18 @@ export default async function ContactPage({
                 <div>
                   <div className="k">{t("emailLabel")}</div>
                   <div className="v">
-                    <a href={`mailto:${site.email}`}>{site.email}</a>
+                    <a href={`mailto:${settings.email}`}>{settings.email}</a>
                   </div>
                 </div>
                 <div>
                   <div className="k">{t("phoneLabel")}</div>
                   <div className="v">
-                    <a href={`tel:${site.phone.replace(/\s/g, "")}`}>{site.phone}</a>
+                    <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a>
                   </div>
                 </div>
                 <div>
                   <div className="k">{t("gateLabel")}</div>
-                  <div className="v">{site.address}</div>
+                  <div className="v">{settings.address}</div>
                 </div>
                 <div>
                   <div className="k">{t("deskHoursLabel")}</div>

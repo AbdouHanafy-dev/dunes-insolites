@@ -1,14 +1,15 @@
 "use client";
 
-import { site } from "@/lib/site";
 import { trackWhatsAppClick } from "@/lib/analytics";
 
 /**
  * WhatsApp is the default way people reach a business in Tunisia, and a
- * direct-booking site loses enquiries without it.
+ * direct-booking site loses enquiries without it. `whatsapp` comes from
+ * the admin-editable SiteSettings (layout.tsx fetches it once and passes
+ * it down — this is a client component, so it can't fetch it itself).
  */
-export default function WhatsAppButton() {
-  const number = site.whatsapp.replace(/[^\d]/g, "");
+export default function WhatsAppButton({ whatsapp }: { whatsapp: string }) {
+  const number = whatsapp.replace(/[^\d]/g, "");
   const text = encodeURIComponent(
     "Hello Dunes Insolites! I'd like to ask about a desert trip.",
   );

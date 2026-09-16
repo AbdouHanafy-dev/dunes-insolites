@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { alexandria, inter } from "../fonts";
-import { getActivities, getStays, getNavigation } from "@/lib/api";
+import { getActivities, getStays, getNavigation, getSiteSettings } from "@/lib/api";
 import { site, nav as staticNav } from "@/lib/site";
 import { routing, isRtl } from "@/i18n/routing";
 import Header from "@/components/Header";
@@ -84,13 +84,14 @@ export default async function LocaleLayout({ children, params }: Props) {
   // rendering just to read the current locale.
   setRequestLocale(locale);
 
-  const [activities, stays, cmsNav, messages, t, tNav] = await Promise.all([
+  const [activities, stays, cmsNav, messages, t, tNav, settings] = await Promise.all([
     getActivities(locale),
     getStays(locale),
     getNavigation(locale),
     getMessages(),
     getTranslations({ locale, namespace: "site" }),
     getTranslations({ locale, namespace: "nav" }),
+    getSiteSettings(),
   ]);
 
   // An admin-managed nav (docs/cms.md) wins if anything has been authored
@@ -126,7 +127,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     name: site.legalName,
     description: t("description"),
     url: site.url,
-    telephone: site.phone,
+    telephone: settings.phone,
     priceRange: `€${Math.min(...prices)}–€${Math.max(...prices)}`,
     address: {
       "@type": "PostalAddress",
@@ -136,11 +137,11 @@ export default async function LocaleLayout({ children, params }: Props) {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: site.coords.lat,
-      longitude: site.coords.lng,
+      latitude: settings.coords.lat,
+      longitude: settings.coords.lng,
     },
     image: `${site.url}/images/under-hero.jpg`,
-    sameAs: site.social.map((s) => s.href),
+    sameAs: settings.social.map((s) => s.href),
     inLanguage: locale,
   };
 
@@ -160,10 +161,10 @@ export default async function LocaleLayout({ children, params }: Props) {
     name: site.name,
     legalName: site.legalName,
     url: site.url,
-    email: site.email,
-    telephone: site.phone,
+    email: settings.email,
+    telephone: settings.phone,
     logo: `${site.url}/logo-mark.png`,
-    sameAs: site.social.map((s) => s.href),
+    sameAs: settings.social.map((s) => s.href),
     address: {
       "@type": "PostalAddress",
       addressLocality: "Sabria",
@@ -200,10 +201,10 @@ export default async function LocaleLayout({ children, params }: Props) {
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
             />
-            <Header activities={activities} stays={stays} navItems={navItems} />
+            <Header activities={activities} stays={stays} navItems={navItems} settings={settings} />
             <main>{children}</main>
-            <Footer />
-            <WhatsAppButton />
+            <Footer settings={settings} />
+            <WhatsAppButton whatsapp={settings.whatsapp} />
             <CookieConsent />
             <Analytics />
           </ToastProvider>

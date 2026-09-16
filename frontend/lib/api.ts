@@ -21,6 +21,7 @@ import {
 import { fullGallery as seedGallery, galleryItems as seedStrip } from "@/lib/data/gallery";
 import { reviews as seedReviews } from "@/lib/data/reviews";
 import { stats as seedStats } from "@/lib/data/stats";
+import { site } from "@/lib/site";
 import {
   getStays as seedStays,
   getStay as seedStay,
@@ -261,21 +262,91 @@ export async function getStats(): Promise<Stats> {
   // had - this called a bare "/stats", which is ReviewController's sibling
   // AUTHENTICATED endpoint on the real backend (401 for a visitor), so it
   // silently fell back to lib/data/stats.ts's hardcoded "4.9★" forever.
-  // avgRating is now derived from real review data (honest: undefined when
-  // there are none yet, never a fabricated number). guestsGuided and
-  // yearsRunning stay on the seed values on purpose, not as a bug - they
-  // are real business facts (total historical guests, actual years
-  // trading) no database here can compute, and are explicitly still
-  // pending confirmation from the business owner (see chat history 30 Aug
-  // 2026) - not something to invent a "real" source for.
+  // avgRating is derived from real review data (honest: undefined when
+  // there are none yet, never a fabricated number). guestsGuided/
+  // yearsRunning now come from the admin-editable SiteSettings (15 Sep
+  // 2026: was "pending confirmation from the business owner" - now the
+  // owner sets them directly from the backoffice instead of a redeploy),
+  // still falling back to the same seed values on the same failure modes
+  // as every other call in this file.
   if (!usingRemoteApi) return seedOrThrow("getStats", seedStats);
 
-  const reviews = await getReviews();
+  const [reviews, settings] = await Promise.all([getReviews(), getSiteSettings()]);
   const avgRating = reviews.length
     ? `${(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)}★`
     : undefined;
 
-  return { ...seedStats, avgRating };
+  return { guestsGuided: settings.guestsGuided, yearsRunning: settings.yearsRunning, avgRating };
+}
+
+/**
+ * Business facts (contact info, social links, headline stats) the vitrine
+ * used to hardcode in lib/site.ts and lib/data/stats.ts — admin-editable
+ * since 15 Sep 2026 (SiteSettings). `site`'s own current values are both
+ * the seed AND the "backend unavailable" fallback here (unlike catalog
+ * data, they're real business facts already correct today, not
+ * placeholder demo content) — see this file's own `get()` helper doc
+ * above for the general seed/empty distinction.
+ */
+export type SiteSettingsData = {
+  email: string;
+  phone: string;
+  whatsapp: string;
+  address: string;
+  coords: { lat: number; lng: number };
+  social: { label: string; href: string }[];
+  guestsGuided: string;
+  yearsRunning: string;
+};
+
+export async function getSiteSettings(): Promise<SiteSettingsData> {
+  const fallback: SiteSettingsData = {
+    email: site.email,
+    phone: site.phone,
+    whatsapp: site.whatsapp,
+    address: site.address,
+    coords: site.coords,
+    social: site.social,
+    guestsGuided: seedStats.guestsGuided,
+    yearsRunning: seedStats.yearsRunning,
+  };
+  if (!BASE) return seedOrThrow("getSiteSettings", fallback);
+
+  type RawSiteSettings = {
+    email: string;
+    phone: string;
+    whatsapp: string;
+    address: string;
+    latitude: number | null;
+    longitude: number | null;
+    instagramUrl: string | null;
+    facebookUrl: string | null;
+    tiktokUrl: string | null;
+    guestsGuided: string;
+    yearsRunning: string;
+  };
+  const raw = await get<RawSiteSettings>(
+    "/public/site-settings",
+    { seed: null as unknown as RawSiteSettings, empty: null as unknown as RawSiteSettings },
+    { revalidate: 300 },
+  );
+  if (!raw) return fallback;
+
+  const social: { label: string; href: string }[] = [];
+  if (raw.instagramUrl) social.push({ label: "Instagram", href: raw.instagramUrl });
+  if (raw.facebookUrl) social.push({ label: "Facebook", href: raw.facebookUrl });
+  if (raw.tiktokUrl) social.push({ label: "TikTok", href: raw.tiktokUrl });
+
+  return {
+    email: raw.email,
+    phone: raw.phone,
+    whatsapp: raw.whatsapp,
+    address: raw.address,
+    coords: { lat: raw.latitude ?? site.coords.lat, lng: raw.longitude ?? site.coords.lng },
+    social: social.length > 0 ? social : site.social,
+    guestsGuided: raw.guestsGuided,
+    yearsRunning: raw.yearsRunning,
+  };
 }
 
 export async function getStays(locale?: string): Promise<Stay[]> {
