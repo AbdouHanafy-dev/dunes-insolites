@@ -53,6 +53,25 @@ public class SiteSettings {
     @Column(name = "years_running", nullable = false)
     private String yearsRunning;
 
+    // The REAL Google rating (Places API), not this app's own internal
+    // review average - on request, 15 Sep 2026: "the rate from Google,
+    // don't invent one, that's fake". Null until a real placeId is set
+    // and the first successful fetch happens; GooglePlacesService caches
+    // the result here (googleRatingFetchedAt) rather than calling Google
+    // on every single page view. See GooglePlacesProperties for the API
+    // key this requires.
+    @Column(name = "google_place_id")
+    private String googlePlaceId;
+
+    @Column(name = "google_rating")
+    private BigDecimal googleRating;
+
+    @Column(name = "google_rating_count")
+    private Integer googleRatingCount;
+
+    @Column(name = "google_rating_fetched_at")
+    private LocalDateTime googleRatingFetchedAt;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -693,6 +693,11 @@ export type AdminSiteSettings = {
   tiktokUrl: string | null;
   guestsGuided: string;
   yearsRunning: string;
+  googlePlaceId: string | null;
+  // Null until googlePlaceId is set and the first real fetch succeeds -
+  // never a fabricated value. See backend GooglePlacesService.
+  googleRating: number | null;
+  googleRatingCount: number | null;
   updatedAt: string | null;
 };
 

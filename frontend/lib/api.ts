@@ -262,19 +262,29 @@ export async function getStats(): Promise<Stats> {
   // had - this called a bare "/stats", which is ReviewController's sibling
   // AUTHENTICATED endpoint on the real backend (401 for a visitor), so it
   // silently fell back to lib/data/stats.ts's hardcoded "4.9★" forever.
-  // avgRating is derived from real review data (honest: undefined when
-  // there are none yet, never a fabricated number). guestsGuided/
-  // yearsRunning now come from the admin-editable SiteSettings (15 Sep
-  // 2026: was "pending confirmation from the business owner" - now the
-  // owner sets them directly from the backoffice instead of a redeploy),
-  // still falling back to the same seed values on the same failure modes
-  // as every other call in this file.
+  // guestsGuided/yearsRunning come from the admin-editable SiteSettings
+  // (15 Sep 2026: was "pending confirmation from the business owner" -
+  // now the owner sets them directly from the backoffice), still falling
+  // back to the same seed values on the same failure modes as every other
+  // call in this file.
+  //
+  // avgRating: on request, 15 Sep 2026 — "the rating from Google, don't
+  // invent one, that's fake". Prefers the REAL Google Business rating
+  // (settings.googleRating, from Places API, cached server-side) over
+  // this app's own internal review average, since a couple of in-app
+  // reviews isn't what a visitor comparing against Google search results
+  // expects to see. Falls back to the internal average only when no
+  // Google Place ID is configured yet; undefined (shows a "New" label)
+  // when neither exists - never a fabricated number either way.
   if (!usingRemoteApi) return seedOrThrow("getStats", seedStats);
 
   const [reviews, settings] = await Promise.all([getReviews(), getSiteSettings()]);
-  const avgRating = reviews.length
-    ? `${(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)}★`
-    : undefined;
+  const avgRating =
+    settings.googleRating != null
+      ? `${settings.googleRating.toFixed(1)}★`
+      : reviews.length
+        ? `${(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)}★`
+        : undefined;
 
   return { guestsGuided: settings.guestsGuided, yearsRunning: settings.yearsRunning, avgRating };
 }
@@ -297,6 +307,9 @@ export type SiteSettingsData = {
   social: { label: string; href: string }[];
   guestsGuided: string;
   yearsRunning: string;
+  /** The real Google Business rating (Places API) — null until configured/fetched, never invented. */
+  googleRating: number | null;
+  googleRatingCount: number | null;
 };
 
 export async function getSiteSettings(): Promise<SiteSettingsData> {
@@ -309,6 +322,8 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     social: site.social,
     guestsGuided: seedStats.guestsGuided,
     yearsRunning: seedStats.yearsRunning,
+    googleRating: null,
+    googleRatingCount: null,
   };
   if (!BASE) return seedOrThrow("getSiteSettings", fallback);
 
@@ -324,6 +339,8 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     tiktokUrl: string | null;
     guestsGuided: string;
     yearsRunning: string;
+    googleRating: number | null;
+    googleRatingCount: number | null;
   };
   const raw = await get<RawSiteSettings>(
     "/public/site-settings",
@@ -346,6 +363,8 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     social: social.length > 0 ? social : site.social,
     guestsGuided: raw.guestsGuided,
     yearsRunning: raw.yearsRunning,
+    googleRating: raw.googleRating,
+    googleRatingCount: raw.googleRatingCount,
   };
 }
 

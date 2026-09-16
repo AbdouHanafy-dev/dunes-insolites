@@ -34,4 +34,8 @@ public class SiteSettingsRequest {
 
     @NotBlank(message = "Le nombre d'années est requis")
     private String yearsRunning;
+
+    // Optional - clearing this clears the cached rating too (see
+    // SiteSettingsServiceImpl.updateSettings).
+    private String googlePlaceId;
 }

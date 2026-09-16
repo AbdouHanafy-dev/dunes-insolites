@@ -10,16 +10,10 @@ import type { AdminSiteSettings } from "@/lib/api";
  * On request, 15 Sep 2026 — the business facts the vitrine used to
  * hardcode in frontend/lib/site.ts and lib/data/stats.ts (phone, email,
  * WhatsApp, address, coordinates, social links, headline stats), now
- * editable here instead of needing a code deploy.
- *
- * Only the values that actually come from this table on the live site —
- * once frontend/lib/site.ts's read sites are migrated to fetch
- * GET /api/public/site-settings, which is a separate, larger frontend
- * change (many components import site.ts directly, some as client
- * components that would need it passed down as a prop rather than
- * fetching it themselves) — will editing here actually change what a
- * visitor sees. Until then this safely stores the real values without
- * anything reading them yet.
+ * editable here instead of needing a code deploy. The public site's
+ * Header/Footer/WhatsApp button/JSON-LD/contact page all actually read
+ * these values now (frontend/lib/api.ts's getSiteSettings) — this isn't
+ * just storage, editing here changes what a visitor sees.
  */
 export default function SiteSettingsForm({ initialData }: { initialData: AdminSiteSettings | null }) {
   const router = useRouter();
@@ -36,6 +30,7 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
     tiktokUrl: initialData?.tiktokUrl ?? "",
     guestsGuided: initialData?.guestsGuided ?? "",
     yearsRunning: initialData?.yearsRunning ?? "",
+    googlePlaceId: initialData?.googlePlaceId ?? "",
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -159,6 +154,39 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
               value={form.yearsRunning} onChange={(e) => set("yearsRunning", e.target.value)} />
           </div>
         </div>
+      </div>
+
+      <div className="border-t border-navy-700/8 pt-4">
+        <p className={labelClass}>Note Google (avis réels, jamais inventée)</p>
+        <p className="mt-1 text-[12px] text-navy-700/45">
+          La note affichée sur le site vient directement de votre fiche Google Business — pas d&apos;une
+          moyenne calculée en interne. Trouvez le Place ID via{" "}
+          <a
+            href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-gold-dark underline"
+          >
+            l&apos;outil officiel Google
+          </a>.
+        </p>
+        <div className="mt-2 flex flex-col gap-1.5">
+          <label htmlFor="googlePlaceId" className="text-[12px] text-navy-700/50">Place ID</label>
+          <input id="googlePlaceId" type="text" placeholder="ChIJ..." className={inputClass}
+            value={form.googlePlaceId} onChange={(e) => set("googlePlaceId", e.target.value)} />
+        </div>
+        <p className="mt-2 text-[13px] text-navy-700/60">
+          {initialData?.googleRating != null ? (
+            <>
+              Note actuellement affichée : <strong>{initialData.googleRating.toFixed(1)}★</strong>
+              {initialData.googleRatingCount != null && ` (${initialData.googleRatingCount} avis)`}
+            </>
+          ) : initialData?.googlePlaceId ? (
+            "Place ID enregistré, en attente de la première récupération réussie (vérifiez que GOOGLE_PLACES_API_KEY est configurée côté serveur)."
+          ) : (
+            "Aucun Place ID configuré — le site affiche la moyenne des avis internes en attendant."
+          )}
+        </p>
       </div>
 
       {initialData?.updatedAt && (

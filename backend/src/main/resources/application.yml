@@ -223,3 +223,10 @@ google:
   search-console:
     site-url: ${SEARCH_CONSOLE_SITE_URL:}
   service-account-key-path: ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:}
+  # The real Google Business rating (admin "Coordonnées" screen, on
+  # request 15 Sep 2026) — a plain API key (not a service account), only
+  # ever used to call Places API Details for the one placeId set in
+  # SiteSettings. Empty by default; GooglePlacesService just skips the
+  # fetch until this is set.
+  places:
+    api-key: ${GOOGLE_PLACES_API_KEY:}

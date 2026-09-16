@@ -18,5 +18,10 @@ public class SiteSettingsResponse {
     private String tiktokUrl;
     private String guestsGuided;
     private String yearsRunning;
+    private String googlePlaceId;
+    // Null until a real placeId is set and the first fetch succeeds -
+    // never a fabricated value. See GooglePlacesService.
+    private BigDecimal googleRating;
+    private Integer googleRatingCount;
     private LocalDateTime updatedAt;
 }
