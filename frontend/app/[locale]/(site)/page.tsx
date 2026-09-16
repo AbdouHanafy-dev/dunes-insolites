@@ -8,9 +8,11 @@ import GalleryStrip from "@/components/GalleryStrip";
 import ReviewsShowcase from "@/components/ReviewsShowcase";
 import BookDirect from "@/components/BookDirect";
 import CTA from "@/components/CTA";
-import { getActivities, getStats, getStays } from "@/lib/api";
+import { getActivities, getCmsPage, getStats, getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
 import { site } from "@/lib/site";
+
+const CMS_SLUG = "home";
 
 export default async function Home() {
   // The hero's bottom-left figures are the site's existing stats — the same
@@ -20,13 +22,22 @@ export default async function Home() {
   // real fact — a stay's arrival time — for the closing CTA; lib/api's own
   // caching means this isn't a second network round trip in practice.
   const locale = await getLocale();
-  const [stats, activities, stays, tCta] = await Promise.all([
+  const [stats, activities, stays, tCta, cms] = await Promise.all([
     getStats(),
     getActivities(locale),
     getStays(locale),
     getTranslations("ctaDefault"),
+    getCmsPage(CMS_SLUG, locale),
   ]);
   const arrival = stays[0]?.arrivalTime;
+
+  // A published "home" CMS page doesn't replace this whole route the way
+  // about/faq do (most sections below already read real data of their
+  // own) - it only supplies per-section overrides, by block type, for the
+  // sections that were pure hardcoded/translation copy. Steps and
+  // BookDirect fall back to translations when their block is absent.
+  const stepsOverride = cms?.blocks.find((b) => b.type === "steps")?.data;
+  const bookDirectOverride = cms?.blocks.find((b) => b.type === "bookDirect")?.data;
 
   return (
     <>
@@ -38,11 +49,11 @@ export default async function Home() {
           add-ons to it. Showing the rides first framed them as the offer. */}
       <Stays />
       <Activities />
-      <Steps />
+      <Steps override={stepsOverride} />
       <Experience />
       <Location meetingPoint={activities[0]?.meetingPoint} />
       <ReviewsShowcase />
-      <BookDirect />
+      <BookDirect override={bookDirectOverride} />
       <GalleryStrip />
       {/* site.address already reads "Sabria, Kebili Governorate, Tunisia" —
           prefixing it with "Sabria ·" duplicated the name (found live). */}

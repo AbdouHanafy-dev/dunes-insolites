@@ -18,28 +18,48 @@ import Reveal from "@/components/Reveal";
  */
 const DIRECT_DISCOUNT = "15%";
 
-export default async function BookDirect() {
+// `override` is the "bookDirect" CMS block from the homepage's Page row
+// (see app/[locale]/(site)/page.tsx) - deliberately never covers the
+// headline above (DIRECT_DISCOUNT + titleLine1/titleDiscountSuffix), only
+// the surrounding copy, so an editor can never publish a saving that
+// doesn't match the real catalogue prices. Falls back to translations
+// when no such block exists, same convention as about/faq. Only reads the
+// homepage's own block; activities/page.tsx renders this section too,
+// always with translations.
+export default async function BookDirect({ override }: { override?: Record<string, unknown> } = {}) {
   const t = await getTranslations("bookDirect");
-  const advantages = [t("here1"), t("here2"), t("here3"), t("here4"), t("here5"), t("here6")];
+
+  const cmsAdvantages = Array.isArray(override?.advantages)
+    ? (override.advantages as { text?: string }[]).map((a) => a.text ?? "").filter(Boolean)
+    : [];
+  const advantages =
+    cmsAdvantages.length > 0
+      ? cmsAdvantages
+      : [t("here1"), t("here2"), t("here3"), t("here4"), t("here5"), t("here6")];
+
+  const eyebrow = (typeof override?.eyebrow === "string" && override.eyebrow) || t("eyebrow");
+  const lead = (typeof override?.lead === "string" && override.lead) || t("lead");
+  const ctaLabel = (typeof override?.ctaLabel === "string" && override.ctaLabel) || t("cta");
+  const headingHere = (typeof override?.headingHere === "string" && override.headingHere) || t("headingHere");
 
   return (
     <section className="block direct" id="book-direct">
       <div className="wrap direct-grid">
         <Reveal className="direct-intro">
-          <p className="idx-label direct-eyebrow">{t("eyebrow")}</p>
+          <p className="idx-label direct-eyebrow">{eyebrow}</p>
           <h2 className="sect-title" style={{ fontSize: "clamp(32px,4.4vw,64px)" }}>
             {t("titleLine1")}
             <br />
             {DIRECT_DISCOUNT} {t("titleDiscountSuffix")}
           </h2>
-          <p className="lead">{t("lead")}</p>
+          <p className="lead">{lead}</p>
           <Link href="/book" className="btn-accent direct-cta">
-            {t("cta")}
+            {ctaLabel}
           </Link>
         </Reveal>
 
         <Reveal className="direct-list">
-          <span className="idx-label">{t("headingHere")}</span>
+          <span className="idx-label">{headingHere}</span>
           <ol>
             {advantages.map((text, i) => (
               <li key={text}>

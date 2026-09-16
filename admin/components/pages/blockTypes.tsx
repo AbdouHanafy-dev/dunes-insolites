@@ -78,6 +78,49 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
     fields: [], // rendered specially in BlockFieldsEditor.tsx with a picker over /api/content-blocks
   },
   {
+    type: "steps",
+    label: "Étapes (« Comment ça marche »)",
+    icon: "🔢",
+    titleKey: "eyebrow",
+    fields: [
+      { type: "text", key: "eyebrow", label: "Kicker" },
+      {
+        type: "repeater",
+        key: "items",
+        label: "Étapes",
+        itemLabel: "Étape",
+        fields: [
+          { type: "text", key: "title", label: "Titre", required: true },
+          { type: "textarea", key: "body", label: "Texte" },
+        ],
+      },
+    ],
+  },
+  {
+    type: "bookDirect",
+    label: "Réservez en direct",
+    icon: "💶",
+    titleKey: "eyebrow",
+    // Deliberately no field for the discount percentage or its headline -
+    // that figure is tied to the real prices in the catalogue (see
+    // frontend/components/BookDirect.tsx's own comment on
+    // DIRECT_DISCOUNT) and stays code-owned so an editor can never publish
+    // a saving that doesn't match what guests are actually charged.
+    fields: [
+      { type: "text", key: "eyebrow", label: "Kicker" },
+      { type: "textarea", key: "lead", label: "Texte d'intro" },
+      { type: "text", key: "ctaLabel", label: "Bouton — libellé" },
+      { type: "text", key: "headingHere", label: "Titre de la liste d'avantages" },
+      {
+        type: "repeater",
+        key: "advantages",
+        label: "Avantages",
+        itemLabel: "Avantage",
+        fields: [{ type: "text", key: "text", label: "Texte", required: true }],
+      },
+    ],
+  },
+  {
     type: "team",
     label: "Équipe",
     icon: "🧑‍🤝‍🧑",
