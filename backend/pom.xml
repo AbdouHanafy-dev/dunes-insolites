@@ -156,6 +156,16 @@
 			<version>26.0.0</version>
 		</dependency>
 
+		<!-- GA4 Data API + Search Console API (admin /seo/analytics) - just the
+		     service-account auth (RestTemplate does the actual REST calls,
+		     GoogleAnalyticsReportingService) rather than the full, gRPC-heavy
+		     google-cloud-analytics-data client for two read-only reports. -->
+		<dependency>
+			<groupId>com.google.auth</groupId>
+			<artifactId>google-auth-library-oauth2-http</artifactId>
+			<version>1.23.0</version>
+		</dependency>
+
 		<!-- OAuth2 Resource Server — validates Keycloak JWT tokens -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

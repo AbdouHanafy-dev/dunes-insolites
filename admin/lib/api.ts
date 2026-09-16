@@ -721,3 +721,41 @@ export function getSeoAnalyticsStatus(accessToken: string): Promise<SeoIntegrati
     searchConsoleConfigured: false,
   });
 }
+
+// Real GA4 traffic / Search Console queries (15 Sep 2026) — see
+// GoogleAnalyticsReportingService. `ok:false` (with `error` set) rather
+// than throwing when the call fails, so the page shows why instead of
+// blanking.
+export type AnalyticsTraffic = {
+  ok: boolean;
+  error: string | null;
+  totalSessions: number;
+  totalPageViews: number;
+  totalUsers: number;
+  daily: { date: string; sessions: number; pageViews: number; users: number }[];
+};
+
+export function getAnalyticsTraffic(accessToken: string): Promise<AnalyticsTraffic> {
+  return authedGet<AnalyticsTraffic>("/admin/seo/analytics/traffic", accessToken, {
+    ok: false,
+    error: "Impossible de contacter le serveur.",
+    totalSessions: 0,
+    totalPageViews: 0,
+    totalUsers: 0,
+    daily: [],
+  });
+}
+
+export type SearchConsoleQueries = {
+  ok: boolean;
+  error: string | null;
+  topQueries: { query: string; clicks: number; impressions: number; ctr: number; position: number }[];
+};
+
+export function getSearchConsoleQueries(accessToken: string): Promise<SearchConsoleQueries> {
+  return authedGet<SearchConsoleQueries>("/admin/seo/analytics/search-queries", accessToken, {
+    ok: false,
+    error: "Impossible de contacter le serveur.",
+    topQueries: [],
+  });
+}
