@@ -140,11 +140,28 @@ services:
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_CAMPING_EMAIL: ${SEED_CAMPING_EMAIL}
       SEED_CAMPING_PASSWORD: ${SEED_CAMPING_PASSWORD}
+      # SEO dashboard (admin /seo/analytics) - see docs/seo-analytics-
+      # setup.md. All empty by default (GoogleSeoProperties reports "not
+      # configured" rather than erroring). GOOGLE_SERVICE_ACCOUNT_KEY_PATH
+      # must match the *container-side* path below exactly - the volumes
+      # mount right below re-uses this same variable on both sides so the
+      # host path and container path are always the same string, with no
+      # second variable to keep in sync.
+      GA4_PROPERTY_ID: ${GA4_PROPERTY_ID:-}
+      SEARCH_CONSOLE_SITE_URL: ${SEARCH_CONSOLE_SITE_URL:-}
+      GOOGLE_SERVICE_ACCOUNT_KEY_PATH: ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:-}
       MANAGEMENT_SERVER_PORT: "9099"
       MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
       # Keep SMTP in the readiness signal so a future credential or provider
       # failure is visible in /actuator/health instead of going unnoticed.
       MANAGEMENT_HEALTH_MAIL_ENABLED: "true"
+    volumes:
+      # No-op (mounts /dev/null onto itself) until GOOGLE_SERVICE_ACCOUNT_
+      # KEY_PATH is actually set in .env.vps - same host path on both
+      # sides of the mount, read-only, so the JSON key file the seo-
+      # analytics-setup.md guide has you download becomes visible inside
+      # the container at the exact path the app was already told to read.
+      - ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:-/dev/null}:${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:-/dev/null}:ro
     ports:
       - "127.0.0.1:8090:8080"
       - "127.0.0.1:9099:9099"
