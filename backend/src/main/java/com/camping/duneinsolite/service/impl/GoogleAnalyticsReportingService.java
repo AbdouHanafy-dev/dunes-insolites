@@ -4,6 +4,7 @@ import com.camping.duneinsolite.config.GoogleSeoProperties;
 import com.camping.duneinsolite.dto.response.SearchConsoleQueriesResponse;
 import com.camping.duneinsolite.dto.response.AnalyticsTrafficResponse;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.web.util.UriUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -49,6 +51,7 @@ public class GoogleAnalyticsReportingService {
 
     private final GoogleSeoProperties properties;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // One GoogleCredentials instance per scope set, reused across calls -
     // refreshIfExpired() below handles the actual token refresh, so this
@@ -62,8 +65,8 @@ public class GoogleAnalyticsReportingService {
         }
         try {
             String token = accessToken(true);
-            String uri = "https://analyticsdata.googleapis.com/v1beta/properties/"
-                    + properties.getAnalyticsPropertyId() + ":runReport";
+            URI uri = URI.create("https://analyticsdata.googleapis.com/v1beta/properties/"
+                    + properties.getAnalyticsPropertyId() + ":runReport");
             Map<String, Object> body = Map.of(
                     "dateRanges", List.of(Map.of("startDate", WINDOW_DAYS + "daysAgo", "endDate", "today")),
                     "dimensions", List.of(Map.of("name", "date")),
@@ -100,7 +103,8 @@ public class GoogleAnalyticsReportingService {
         try {
             String token = accessToken(false);
             String encodedSite = UriUtils.encode(properties.getSearchConsoleSiteUrl(), StandardCharsets.UTF_8);
-            String uri = "https://www.googleapis.com/webmasters/v3/sites/" + encodedSite + "/searchAnalytics/query";
+            URI uri = URI.create(
+                    "https://www.googleapis.com/webmasters/v3/sites/" + encodedSite + "/searchAnalytics/query");
             LocalDate end = LocalDate.now();
             LocalDate start = end.minusDays(WINDOW_DAYS);
             Map<String, Object> body = Map.of(
@@ -126,11 +130,24 @@ public class GoogleAnalyticsReportingService {
         }
     }
 
-    private JsonNode post(String uri, String accessToken, Map<String, Object> body) {
+    // Reads the response as a plain String and parses it with our own
+    // ObjectMapper, rather than asking RestTemplate's message-converter
+    // chain to build a JsonNode directly - that path failed with a
+    // Jackson "Type definition error" against JsonNode's abstract type
+    // for both Google endpoints below. A URI (not a String) is required
+    // too: RestTemplate.exchange(String, ...) re-parses/re-encodes the
+    // URL via UriComponentsBuilder, which mangled the already-percent-
+    // encoded Search Console site URL.
+    private JsonNode post(URI uri, String accessToken, Map<String, Object> body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(uri, HttpMethod.POST, new HttpEntity<>(body, headers), JsonNode.class).getBody();
+        String raw = restTemplate.exchange(uri, HttpMethod.POST, new HttpEntity<>(body, headers), String.class).getBody();
+        try {
+            return objectMapper.readTree(raw);
+        } catch (IOException e) {
+            throw new IllegalStateException("Invalid JSON response from " + uri + ": " + raw, e);
+        }
     }
 
     private synchronized String accessToken(boolean analytics) throws IOException {
