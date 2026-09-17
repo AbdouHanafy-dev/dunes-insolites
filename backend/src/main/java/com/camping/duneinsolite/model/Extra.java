@@ -46,6 +46,16 @@ public class Extra {
     @Builder.Default
     private Boolean isActive = true;
 
+    /**
+     * Total units of this activity available per day (quads, camel-ride
+     * seats...) - the ceiling {@link com.camping.duneinsolite.service.ExtraAvailabilityService}
+     * enforces. NULL = inventory not configured, no ceiling enforced (same
+     * convention as {@link AccommodationType#getMaxUnits()}) - Sandboarding
+     * stays null since it has no commercial capacity limit.
+     */
+    @Column(name = "max_units_per_day")
+    private Integer maxUnitsPerDay;
+
     @Column(name = "tva", nullable = false)
     @Builder.Default
     private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;

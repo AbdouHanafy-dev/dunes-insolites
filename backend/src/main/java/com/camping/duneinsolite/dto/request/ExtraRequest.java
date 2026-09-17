@@ -30,6 +30,10 @@ public class ExtraRequest {
 
     private Boolean isActive = true;
 
+    /** Null = not configured, no ceiling enforced. */
+    @Min(value = 0, message = "Capacity cannot be negative")
+    private Integer maxUnitsPerDay;
+
     private String aboutText;
     private List<String> highlights;
     private List<String> includedItems;

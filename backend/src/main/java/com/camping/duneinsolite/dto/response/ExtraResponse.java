@@ -23,6 +23,7 @@ public class ExtraResponse {
     private java.math.BigDecimal unitPrice;
     private Boolean isActive;
     private java.math.BigDecimal tva;
+    private Integer maxUnitsPerDay;
 
     private String aboutText;
     private List<String> highlights;

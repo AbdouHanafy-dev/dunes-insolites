@@ -1,8 +1,11 @@
 package com.camping.duneinsolite.controller.publicapi;
 
+import com.camping.duneinsolite.dto.response.publicapi.PublicActivityAvailabilityResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicActivityResponse;
 import com.camping.duneinsolite.service.ExtraService;
+import com.camping.duneinsolite.service.PublicAvailabilityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 /**
@@ -24,6 +28,7 @@ import java.util.Map;
 public class PublicActivityController {
 
     private final ExtraService extraService;
+    private final PublicAvailabilityService publicAvailabilityService;
 
     // Wrapped in {"activities": [...]}, not a bare array - matches the
     // frontend's local app/api/activities/route.ts stand-in exactly, so
@@ -38,5 +43,17 @@ public class PublicActivityController {
     public ResponseEntity<PublicActivityResponse> getActivity(
             @PathVariable String slug, @RequestParam(required = false) String locale) {
         return ResponseEntity.ok(extraService.getPublicActivityBySlug(slug, locale));
+    }
+
+    /**
+     * Truthful activity availability for one day. Advisory — the booking
+     * endpoint re-checks under a lock. AVAILABLE / UNAVAILABLE / UNKNOWN
+     * (UNKNOWN = unit inventory not configured yet).
+     */
+    @GetMapping("/{slug}/availability")
+    public ResponseEntity<PublicActivityAvailabilityResponse> getAvailability(
+            @PathVariable String slug,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(publicAvailabilityService.forActivity(slug, date));
     }
 }

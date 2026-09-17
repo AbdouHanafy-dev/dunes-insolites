@@ -73,6 +73,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final EmailService                emailService;
     private final AccommodationPricingService accommodationPricingService;
     private final AccommodationAvailabilityService accommodationAvailabilityService;
+    private final com.camping.duneinsolite.service.ExtraAvailabilityService extraAvailabilityService;
     private final com.camping.duneinsolite.security.CallerContext caller;
     private final com.camping.duneinsolite.service.ReservationStateMachine stateMachine;
     private final com.camping.duneinsolite.service.ReservationInvoiceService reservationInvoiceService;
@@ -141,6 +142,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         enforceAccommodationAvailability(reservation, null);
+        enforceExtraAvailability(reservation, null);
         reservationCapacityValidator.validate(reservation, null);
 
         Reservation savedReservation = reservationRepository.save(reservation);
@@ -374,6 +376,23 @@ public class ReservationServiceImpl implements ReservationService {
                         reservation.getCheckInDate(), reservation.getCheckOutDate(),
                         excludeReservationId);
             }
+        }
+    }
+
+    /**
+     * Every activity line (quad, camel ride...) on the reservation, take the
+     * activity's {@code FOR UPDATE} lock and verify the requested quantity
+     * fits under {@code maxUnitsPerDay} for its date. Unlike accommodation,
+     * this runs regardless of {@code reservationType} — an activity line can
+     * be a standalone EXTRAS booking or a ride attached to a HEBERGEMENT
+     * stay, and both consume the same shared inventory. No-op when an
+     * activity has no {@code maxUnitsPerDay} configured.
+     */
+    private void enforceExtraAvailability(Reservation reservation, UUID excludeReservationId) {
+        for (ReservationExtra line : reservation.getExtras()) {
+            if (line.getCatalogExtraId() == null || line.getActivityDate() == null) continue;
+            extraAvailabilityService.allocate(
+                    line.getCatalogExtraId(), line.getQuantity(), line.getActivityDate(), excludeReservationId);
         }
     }
 
@@ -689,6 +708,7 @@ public class ReservationServiceImpl implements ReservationService {
             // Phase 2: re-check accommodation inventory at confirm time — a
             // hold may have expired and another booking taken its unit.
             enforceAccommodationAvailability(reservation, reservationId);
+            enforceExtraAvailability(reservation, reservationId);
             reservationCapacityValidator.validate(reservation, reservationId);
         }
         // Confirming clears the hold expiry — a CONFIRMED reservation never expires.
@@ -1065,6 +1085,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         enforceAccommodationAvailability(reservation, reservationId);
+        enforceExtraAvailability(reservation, reservationId);
         reservationCapacityValidator.validate(reservation, reservationId);
 
         Reservation savedReservation = reservationRepository.save(reservation);
