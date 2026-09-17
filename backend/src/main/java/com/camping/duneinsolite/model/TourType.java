@@ -56,6 +56,17 @@ public class TourType {
     @Builder.Default
     private Boolean isActive = true;
 
+    /**
+     * Whether a guest booking this stay must pick one of the GUIDE-category
+     * {@link ServiceOption}s (support-vehicle guide, or guide in the
+     * guest's own vehicle) before they can continue - some tours require
+     * an accompanying guide, some don't. False by default: existing tours
+     * behave exactly as before until an admin opts one in.
+     */
+    @Column(name = "guide_required", nullable = false)
+    @Builder.Default
+    private Boolean guideRequired = false;
+
     @Column(name = "tva", nullable = false)
     @Builder.Default
     private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;

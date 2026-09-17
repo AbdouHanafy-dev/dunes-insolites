@@ -172,7 +172,8 @@ export type AdminResource =
   | "REDIRECTS"
   | "GALLERY"
   | "MAINTENANCE_WINDOWS"
-  | "NEWSLETTER_SUBSCRIBERS";
+  | "NEWSLETTER_SUBSCRIBERS"
+  | "SERVICE_OPTIONS";
 
 export type PermissionLevel = "NONE" | "READ" | "EDIT" | "FULL";
 
@@ -194,6 +195,7 @@ export const ALL_ADMIN_RESOURCES: AdminResource[] = [
   "GALLERY",
   "MAINTENANCE_WINDOWS",
   "NEWSLETTER_SUBSCRIBERS",
+  "SERVICE_OPTIONS",
 ];
 
 export type PermissionMatrix = Record<UserRole, Record<AdminResource, PermissionLevel>>;

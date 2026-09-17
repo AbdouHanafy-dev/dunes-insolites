@@ -32,6 +32,7 @@ export const RESOURCE_LABELS: Record<AdminResource, string> = {
   GALLERY: "Galerie photos",
   MAINTENANCE_WINDOWS: "Maintenance",
   NEWSLETTER_SUBSCRIBERS: "Newsletter",
+  SERVICE_OPTIONS: "Guides & transport",
 };
 
 export const LEVEL_LABELS: Record<PermissionLevel, string> = {

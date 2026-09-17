@@ -74,6 +74,8 @@ public class ReservationServiceImpl implements ReservationService {
     private final AccommodationPricingService accommodationPricingService;
     private final AccommodationAvailabilityService accommodationAvailabilityService;
     private final com.camping.duneinsolite.service.ExtraAvailabilityService extraAvailabilityService;
+    private final com.camping.duneinsolite.service.ServiceOptionPricingService serviceOptionPricingService;
+    private final com.camping.duneinsolite.service.ServiceOptionAvailabilityService serviceOptionAvailabilityService;
     private final com.camping.duneinsolite.security.CallerContext caller;
     private final com.camping.duneinsolite.service.ReservationStateMachine stateMachine;
     private final com.camping.duneinsolite.service.ReservationInvoiceService reservationInvoiceService;
@@ -143,6 +145,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         enforceAccommodationAvailability(reservation, null);
         enforceExtraAvailability(reservation, null);
+        enforceServiceOptionAvailability(reservation, null);
         reservationCapacityValidator.validate(reservation, null);
 
         Reservation savedReservation = reservationRepository.save(reservation);
@@ -186,8 +189,14 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private void validateExtras(ReservationRequest request) {
-        if (request.getExtras() == null || request.getExtras().isEmpty()) {
-            throw new ReservationValidationException("At least one extra is required for EXTRAS reservations");
+        // A standalone booking needs at least one activity OR one guide/
+        // transport option - "just a hotel pickup with no activity" is a
+        // legitimate booking on its own, so this isn't "extras only" anymore.
+        boolean hasExtras = request.getExtras() != null && !request.getExtras().isEmpty();
+        boolean hasServiceOptions = request.getServiceOptions() != null && !request.getServiceOptions().isEmpty();
+        if (!hasExtras && !hasServiceOptions) {
+            throw new ReservationValidationException(
+                    "At least one extra or service option is required for EXTRAS reservations");
         }
         if (request.getServiceDate() == null) {
             throw new ReservationValidationException("Service date is required for EXTRAS reservations");
@@ -234,8 +243,93 @@ public class ReservationServiceImpl implements ReservationService {
 
         applyParticipants(request, reservation);
         applyExtras(request, reservation, user);
+        applyServiceOptions(request, reservation);
+        validateGuideRequired(request, reservation, type);
 
         reservation.setTotalExtrasAmount(reservation.calculateTotalExtrasAmount());
+    }
+
+    // ── Service options (guide, transport/pickup) ──────────────────────────────────
+
+    private void applyServiceOptions(ReservationRequest request, Reservation reservation) {
+        if (request.getServiceOptions() == null) return;
+
+        boolean hasTransportOption = false;
+        boolean hasCustomerVehicleGuide = false;
+
+        for (ReservationServiceOptionRequest req : request.getServiceOptions()) {
+            LocalDate date = req.getServiceDate() != null ? req.getServiceDate() : reservation.getCheckInDate();
+            var priced = serviceOptionPricingService.resolveById(
+                    req.getServiceOptionId(), req.getQuantity() != null ? req.getQuantity() : 1, date);
+
+            PickupDetails pickup = null;
+            if (priced.requiresPickupLocation()) {
+                pickup = PickupDetails.builder()
+                        .hotelName(req.getPickupHotelName())
+                        .airport(req.getPickupAirport())
+                        .flightNumber(req.getPickupFlightNumber())
+                        .address(req.getPickupAddress())
+                        .arrivalTime(req.getPickupArrivalTime())
+                        .instructions(req.getPickupInstructions())
+                        .build();
+                if (pickup.isBlank()) {
+                    throw new ReservationValidationException(
+                            "\"" + priced.name() + "\" requires pickup details (hotel, airport, or address).");
+                }
+                hasTransportOption = true;
+            }
+            if (priced.requiresCustomerVehicle()) {
+                hasCustomerVehicleGuide = true;
+            }
+
+            ReservationServiceOption option = ReservationServiceOption.builder()
+                    .catalogServiceOptionId(priced.serviceOptionId())
+                    .name(priced.name())
+                    .description(priced.description())
+                    .category(ServiceOptionCategory.valueOf(priced.category()))
+                    .type(priced.type())
+                    .pricingUnit(priced.pricingUnit())
+                    .unitPrice(priced.snapshotUnitPriceTtc())
+                    .quantity(priced.quantity())
+                    .totalPrice(priced.lineTotalTtc())
+                    .tva(priced.tvaRate())
+                    .serviceDate(date)
+                    .pickupDetails(pickup)
+                    .isActive(true)
+                    .build();
+            reservation.addServiceOption(option);
+        }
+
+        // A guest driving themselves has no pickup need - these two concepts
+        // must stay mutually exclusive even though the wizard presents them
+        // in the same "Getting There & Guide" step (never trust the
+        // frontend to have already enforced this).
+        if (hasTransportOption && hasCustomerVehicleGuide) {
+            throw new ReservationValidationException(
+                    "A guide in your own vehicle can't be combined with a transport/pickup option.");
+        }
+    }
+
+    /**
+     * Some stays require an accompanying guide (TourType.guideRequired) -
+     * if any selected tour type does, the guest must have picked at least
+     * one GUIDE-category service option. Configurable per tour, per the
+     * booking brief.
+     */
+    private void validateGuideRequired(ReservationRequest request, Reservation reservation, ReservationType type) {
+        if (type != ReservationType.HEBERGEMENT || request.getTourTypes() == null) return;
+
+        boolean anyRequires = request.getTourTypes().stream()
+                .map(TourTypeSelectionRequest::getTourTypeId)
+                .filter(java.util.Objects::nonNull)
+                .anyMatch(id -> tourTypeRepository.findById(id).map(TourType::getGuideRequired).orElse(false));
+        if (!anyRequires) return;
+
+        boolean hasGuide = reservation.getServiceOptions().stream()
+                .anyMatch(o -> o.getCategory() == ServiceOptionCategory.GUIDE);
+        if (!hasGuide) {
+            throw new ReservationValidationException("This stay requires an accompanying guide — please choose one.");
+        }
     }
 
     // ── HEBERGEMENT ───────────────────────────────────────────────────────────────
@@ -393,6 +487,15 @@ public class ReservationServiceImpl implements ReservationService {
             if (line.getCatalogExtraId() == null || line.getActivityDate() == null) continue;
             extraAvailabilityService.allocate(
                     line.getCatalogExtraId(), line.getQuantity(), line.getActivityDate(), excludeReservationId);
+        }
+    }
+
+    /** Twin of {@link #enforceExtraAvailability} for guide/transport options. */
+    private void enforceServiceOptionAvailability(Reservation reservation, UUID excludeReservationId) {
+        for (ReservationServiceOption line : reservation.getServiceOptions()) {
+            if (line.getCatalogServiceOptionId() == null || line.getServiceDate() == null) continue;
+            serviceOptionAvailabilityService.allocate(
+                    line.getCatalogServiceOptionId(), line.getQuantity(), line.getServiceDate(), excludeReservationId);
         }
     }
 
@@ -709,6 +812,7 @@ public class ReservationServiceImpl implements ReservationService {
             // hold may have expired and another booking taken its unit.
             enforceAccommodationAvailability(reservation, reservationId);
             enforceExtraAvailability(reservation, reservationId);
+            enforceServiceOptionAvailability(reservation, reservationId);
             reservationCapacityValidator.validate(reservation, reservationId);
         }
         // Confirming clears the hold expiry — a CONFIRMED reservation never expires.
@@ -1084,8 +1188,61 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.setTotalExtrasAmount(reservation.calculateTotalExtrasAmount());
         }
 
+        if (request.getServiceOptions() != null) {
+            java.math.BigDecimal optionRate = currencyConfig.effectiveRate(reservation);
+            reservation.getServiceOptions().clear();
+            boolean hasTransportOption = false;
+            boolean hasCustomerVehicleGuide = false;
+            for (ReservationServiceOptionRequest req : request.getServiceOptions()) {
+                LocalDate optionDate = req.getServiceDate() != null ? req.getServiceDate() : reservation.getCheckInDate();
+                var priced = serviceOptionPricingService.resolveById(
+                        req.getServiceOptionId(), req.getQuantity() != null ? req.getQuantity() : 1, optionDate);
+
+                PickupDetails pickup = null;
+                if (priced.requiresPickupLocation()) {
+                    pickup = PickupDetails.builder()
+                            .hotelName(req.getPickupHotelName())
+                            .airport(req.getPickupAirport())
+                            .flightNumber(req.getPickupFlightNumber())
+                            .address(req.getPickupAddress())
+                            .arrivalTime(req.getPickupArrivalTime())
+                            .instructions(req.getPickupInstructions())
+                            .build();
+                    if (pickup.isBlank()) {
+                        throw new ReservationValidationException(
+                                "\"" + priced.name() + "\" requires pickup details (hotel, airport, or address).");
+                    }
+                    hasTransportOption = true;
+                }
+                if (priced.requiresCustomerVehicle()) hasCustomerVehicleGuide = true;
+
+                java.math.BigDecimal unitPrice = Money.divide(priced.snapshotUnitPriceTtc(), optionRate);
+                reservation.addServiceOption(ReservationServiceOption.builder()
+                        .catalogServiceOptionId(priced.serviceOptionId())
+                        .name(priced.name())
+                        .description(priced.description())
+                        .category(ServiceOptionCategory.valueOf(priced.category()))
+                        .type(priced.type())
+                        .pricingUnit(priced.pricingUnit())
+                        .unitPrice(unitPrice)
+                        .quantity(priced.quantity())
+                        .totalPrice(Money.multiply(unitPrice, priced.quantity()))
+                        .tva(priced.tvaRate())
+                        .serviceDate(optionDate)
+                        .pickupDetails(pickup)
+                        .isActive(true)
+                        .build());
+            }
+            if (hasTransportOption && hasCustomerVehicleGuide) {
+                throw new ReservationValidationException(
+                        "A guide in your own vehicle can't be combined with a transport/pickup option.");
+            }
+            reservation.setTotalExtrasAmount(reservation.calculateTotalExtrasAmount());
+        }
+
         enforceAccommodationAvailability(reservation, reservationId);
         enforceExtraAvailability(reservation, reservationId);
+        enforceServiceOptionAvailability(reservation, reservationId);
         reservationCapacityValidator.validate(reservation, reservationId);
 
         Reservation savedReservation = reservationRepository.save(reservation);

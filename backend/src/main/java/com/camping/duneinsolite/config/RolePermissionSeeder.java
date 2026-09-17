@@ -75,7 +75,8 @@ public class RolePermissionSeeder implements CommandLineRunner {
             Map.entry(AdminResource.REDIRECTS, PermissionLevel.NONE),
             Map.entry(AdminResource.GALLERY, PermissionLevel.NONE),
             Map.entry(AdminResource.MAINTENANCE_WINDOWS, PermissionLevel.NONE),
-            Map.entry(AdminResource.NEWSLETTER_SUBSCRIBERS, PermissionLevel.NONE)
+            Map.entry(AdminResource.NEWSLETTER_SUBSCRIBERS, PermissionLevel.NONE),
+            Map.entry(AdminResource.SERVICE_OPTIONS, PermissionLevel.NONE)
     );
 
     private static final Map<AdminResource, PermissionLevel> PARTENAIRE_DEFAULTS = Map.ofEntries(
@@ -95,7 +96,8 @@ public class RolePermissionSeeder implements CommandLineRunner {
             Map.entry(AdminResource.REDIRECTS, PermissionLevel.NONE),
             Map.entry(AdminResource.GALLERY, PermissionLevel.NONE),
             Map.entry(AdminResource.MAINTENANCE_WINDOWS, PermissionLevel.NONE),
-            Map.entry(AdminResource.NEWSLETTER_SUBSCRIBERS, PermissionLevel.NONE)
+            Map.entry(AdminResource.NEWSLETTER_SUBSCRIBERS, PermissionLevel.NONE),
+            Map.entry(AdminResource.SERVICE_OPTIONS, PermissionLevel.NONE)
     );
 
     @Override

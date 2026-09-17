@@ -26,6 +26,7 @@ public class ReservationUpdateRequest {
     private List<TourSelectionRequest> tours;              // same DTO as create
     private List<ParticipantRequest> participants;         // same DTO as create
     private List<ReservationExtraRequest> extras;          // same DTO as create
+    private List<ReservationServiceOptionRequest> serviceOptions; // same DTO as create
     private List<RepartitionRequest> repartitions;
 
     private LocalDate serviceDate;
