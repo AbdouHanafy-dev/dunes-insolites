@@ -14,6 +14,15 @@ const MAINTENANCE_ENDS_AT_HEADER = "x-dunes-maintenance-ends-at";
 const MAINTENANCE_LOCALE_HEADER = "x-dunes-maintenance-locale";
 const MAINTENANCE_FAIL_CLOSED = process.env.MAINTENANCE_FAIL_CLOSED === "true";
 
+// Lets the owner keep browsing the real site while a maintenance window
+// hides it from everyone else - same plaintext-token-in-a-cookie pattern
+// Next.js's own Draft Mode and Vercel's deployment-protection bypass use,
+// not something novel. Visiting any page with ?bypass=<secret> once sets
+// a year-long cookie; unset/empty MAINTENANCE_BYPASS_SECRET disables the
+// feature entirely rather than accepting an empty token as a match.
+const MAINTENANCE_BYPASS_SECRET = process.env.MAINTENANCE_BYPASS_SECRET ?? "";
+const MAINTENANCE_BYPASS_COOKIE = "dunes_maintenance_bypass";
+
 // Best-effort, in-memory only — middleware runs in the Edge runtime, whose
 // instances can be recycled between requests, so this cache is a latency
 // optimization, not a guarantee. `next: { revalidate }` on the fetch itself
@@ -81,6 +90,24 @@ function withoutInternalMaintenanceHeaders(request: NextRequest): Headers {
 export default async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // Checked before anything else, including the /maintenance path itself,
+  // so the link works no matter which page it was shared for.
+  if (MAINTENANCE_BYPASS_SECRET && request.nextUrl.searchParams.get("bypass") === MAINTENANCE_BYPASS_SECRET) {
+    const cleanUrl = request.nextUrl.clone();
+    cleanUrl.searchParams.delete("bypass");
+    const response = NextResponse.redirect(cleanUrl, 307);
+    response.cookies.set(MAINTENANCE_BYPASS_COOKIE, MAINTENANCE_BYPASS_SECRET, {
+      maxAge: 60 * 60 * 24 * 365,
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+    });
+    return response;
+  }
+  const hasBypass =
+    !!MAINTENANCE_BYPASS_SECRET && request.cookies.get(MAINTENANCE_BYPASS_COOKIE)?.value === MAINTENANCE_BYPASS_SECRET;
+
   // The maintenance page itself lives at app/maintenance/ — outside the
   // [locale] segment entirely, so it must never be handed to intlMiddleware
   // (which would try to rewrite it into locale-space and 404, since no
@@ -106,9 +133,9 @@ export default async function middleware(request: NextRequest) {
   // via the admin's "🌐 Tout le site" option, MaintenanceCrud.tsx), not a
   // real path — this is the one and only place it's interpreted as a
   // wildcard rather than matched literally.
-  const maintenanceMatch =
-    maintenanceWindows.find((w) => w.path === pathname) ??
-    maintenanceWindows.find((w) => w.path === "/*");
+  const maintenanceMatch = hasBypass
+    ? undefined
+    : maintenanceWindows.find((w) => w.path === pathname) ?? maintenanceWindows.find((w) => w.path === "/*");
   if (maintenanceMatch) {
     // A real rewrite, not a redirect: the URL bar keeps showing the page
     // the visitor asked for (it still exists, it's just down right now),

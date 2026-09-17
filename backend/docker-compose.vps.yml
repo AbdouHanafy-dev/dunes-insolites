@@ -218,6 +218,7 @@ services:
     restart: unless-stopped
     environment:
       MAINTENANCE_FAIL_CLOSED: ${MAINTENANCE_FAIL_CLOSED:-true}
+      MAINTENANCE_BYPASS_SECRET: ${MAINTENANCE_BYPASS_SECRET:-}
     ports:
       - "127.0.0.1:3010:3000"
     networks: [dunes-v2]
