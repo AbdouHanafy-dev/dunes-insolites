@@ -2,8 +2,8 @@ package com.camping.duneinsolite.controller.publicapi;
 
 import com.camping.duneinsolite.dto.response.publicapi.PublicServiceOptionAvailabilityResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicServiceOptionResponse;
-import com.camping.duneinsolite.model.enums.ServiceOptionCategory;
-import com.camping.duneinsolite.repository.ServiceOptionRepository;
+import com.camping.duneinsolite.model.enums.ExtraCategory;
+import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.service.PublicAvailabilityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,16 +23,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PublicServiceOptionController {
 
-    private final ServiceOptionRepository serviceOptionRepository;
+    private final ExtraRepository extraRepository;
     private final PublicAvailabilityService publicAvailabilityService;
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> list(@RequestParam(required = false) ServiceOptionCategory category) {
-        List<PublicServiceOptionResponse> options = (category != null
-                ? serviceOptionRepository.findByCategoryOrderByDisplayOrderAsc(category)
-                : serviceOptionRepository.findByActiveTrueOrderByDisplayOrderAsc())
-                .stream()
-                .filter(o -> o.isActive() && o.isBookable())
+    public ResponseEntity<Map<String, Object>> list(@RequestParam(required = false) ExtraCategory category) {
+        List<PublicServiceOptionResponse> options = extraRepository.findByIsActiveTrue().stream()
+                .filter(o -> category == null || o.getCategory() == category)
+                .filter(o -> o.getCategory() == ExtraCategory.GUIDE || o.getCategory() == ExtraCategory.TRANSPORT)
+                .filter(o -> Boolean.TRUE.equals(o.getIsActive()))
+                .sorted(java.util.Comparator.comparingInt(com.camping.duneinsolite.model.Extra::getDisplayOrder))
                 .map(PublicServiceOptionResponse::from)
                 .toList();
         return ResponseEntity.ok(Map.of("serviceOptions", options));

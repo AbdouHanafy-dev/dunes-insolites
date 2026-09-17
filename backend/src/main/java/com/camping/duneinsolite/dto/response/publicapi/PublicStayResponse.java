@@ -33,6 +33,9 @@ public class PublicStayResponse {
     // priced — the vitrine never shows an option it can't quote. Empty for the
     // bivouac nuitée and for any nuitée whose tiers are still unpriced.
     private List<Accommodation> accommodations;
+    // Whether this stay requires the guest to pick a GUIDE-category
+    // service option before booking (TourType.guideRequired).
+    private boolean guideRequired;
 
     @Data
     public static class ItineraryStep {

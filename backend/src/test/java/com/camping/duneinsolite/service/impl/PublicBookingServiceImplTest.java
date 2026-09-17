@@ -69,7 +69,8 @@ class PublicBookingServiceImplTest {
         reservationService = mock(ReservationService.class);
 
         service = new PublicBookingServiceImpl(
-                tourTypeRepository, extraRepository, sourceRepository,
+                tourTypeRepository, extraRepository,
+                sourceRepository,
                 accommodationTypeRepository, accommodationPricingService,
                 accommodationAvailabilityService, availabilityMetrics,
                 keycloakUserSyncService, reservationService,
@@ -104,6 +105,7 @@ class PublicBookingServiceImplTest {
         request.setStaySlug("nuitee-campement-desert");
         request.setDate(LocalDate.of(2026, 9, 20));
         request.setPartySize(2);
+        request.setArrivalMode("OWN_VEHICLE");
         request.setName("Claude Test Guest");
         request.setEmail("guest@example.com");
         request.setPhone("+21650000000");
@@ -227,5 +229,78 @@ class PublicBookingServiceImplTest {
         verify(keycloakUserSyncService, org.mockito.Mockito.never())
                 .findOrCreateGuestUser(any(), any(), any());
         verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
+    void serviceOptionSelectionResolvesToAServiceOptionIdAndCarriesPickupDetails() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID optionId = UUID.randomUUID();
+        when(extraRepository.findBySlugAndIsActiveTrue("hotel-pickup"))
+                .thenReturn(Optional.of(Extra.builder()
+                        .extraId(optionId).slug("hotel-pickup").name("Hotel Pickup")
+                        .category(com.camping.duneinsolite.model.enums.ExtraCategory.TRANSPORT)
+                        .serviceType("HOTEL_PICKUP")
+                        .pricingUnit(com.camping.duneinsolite.model.enums.PricingUnit.PER_BOOKING)
+                        .isActive(true).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicStayBookingRequest request = baseRequest();
+        var selection = new com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest();
+        selection.setServiceOptionSlug("hotel-pickup");
+        selection.setPickupHotelName("Sabria Palace");
+        request.setServiceOptions(List.of(selection));
+        request.setArrivalMode("TRANSPORT");
+
+        service.createStayBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var built = captor.getValue().getExtras().get(0);
+        assertThat(built.getExtraId()).isEqualTo(optionId);
+        assertThat(built.getPickupHotelName()).isEqualTo("Sabria Palace");
+        assertThat(built.getQuantity()).isEqualTo(1);
+    }
+
+    @Test
+    void transportModeWithoutATransportOptionFailsBeforeCreatingAUser() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        PublicStayBookingRequest request = baseRequest();
+        request.setArrivalMode("TRANSPORT");
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("choose transportation");
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .findOrCreateGuestUser(any(), any(), any());
+    }
+
+    @Test
+    void perPersonServiceQuantityComesFromThePartySizeNotTheClient() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID optionId = UUID.randomUUID();
+        when(extraRepository.findBySlugAndIsActiveTrue("shared-transfer"))
+                .thenReturn(Optional.of(Extra.builder()
+                        .extraId(optionId).slug("shared-transfer").name("Shared Transfer")
+                        .category(com.camping.duneinsolite.model.enums.ExtraCategory.TRANSPORT)
+                        .serviceType("SHARED_TRANSFER")
+                        .pricingUnit(com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON)
+                        .isActive(true).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+        var selection = new com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest();
+        selection.setServiceOptionSlug("shared-transfer");
+        selection.setQuantity(1);
+        PublicStayBookingRequest request = baseRequest();
+        request.setPartySize(4);
+        request.setArrivalMode("TRANSPORT");
+        request.setServiceOptions(List.of(selection));
+
+        service.createStayBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        assertThat(captor.getValue().getExtras().get(0).getQuantity()).isEqualTo(4);
     }
 }

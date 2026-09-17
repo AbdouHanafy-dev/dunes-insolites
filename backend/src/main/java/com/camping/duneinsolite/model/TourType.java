@@ -58,7 +58,7 @@ public class TourType {
 
     /**
      * Whether a guest booking this stay must pick one of the GUIDE-category
-     * {@link ServiceOption}s (support-vehicle guide, or guide in the
+     * GUIDE-category {@link Extra}s (support-vehicle guide, or guide in the
      * guest's own vehicle) before they can continue - some tours require
      * an accompanying guide, some don't. False by default: existing tours
      * behave exactly as before until an admin opts one in.

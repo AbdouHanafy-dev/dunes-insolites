@@ -15,8 +15,10 @@ public interface ExtraMapper {
     // MapStruct can't wire up from a flat DTO - synced explicitly in
     // ExtraServiceImpl instead (see syncTranslations).
     @Mapping(target = "translations", ignore = true)
+    @Mapping(target = "resourceRequirements", ignore = true)
     Extra toEntity(ExtraRequest request);
 
     @Mapping(target = "translations", ignore = true)
+    @Mapping(target = "resourceRequirements", ignore = true)
     void updateEntity(ExtraRequest request, @MappingTarget Extra extra);
 }

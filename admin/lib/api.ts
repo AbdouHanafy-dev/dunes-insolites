@@ -290,41 +290,18 @@ export type AdminExtra = {
   location: string | null;
   coverPhotoUrl: string | null;
   maxUnitsPerDay: number | null;
+  category: "ACTIVITY" | "GUIDE" | "TRANSPORT" | "RESOURCE";
+  serviceType: string | null;
+  pricingUnit: "PER_UNIT" | "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE";
+  requiresCustomerVehicle: boolean;
+  displayOrder: number;
+  pickupFields: string[];
+  requiredPickupFields: string[];
+  resourceRequirements: Array<{ resourceExtraId: string; quantity: number; resourceName?: string }>;
 };
 
 export function getAllExtras(accessToken: string): Promise<AdminExtra[]> {
   return authedGet<AdminExtra[]>("/extras", accessToken, []);
-}
-
-/* ----------------------------------------------------- service options */
-
-export type ServiceOptionCategory = "GUIDE" | "TRANSPORT";
-export type PricingUnit = "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE";
-
-export type AdminServiceOption = {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  category: ServiceOptionCategory;
-  type: string;
-  pricingUnit: PricingUnit;
-  unitPriceTtc: number | null;
-  tvaRate: number;
-  maxUnitsPerDay: number | null;
-  requiresPickupLocation: boolean;
-  requiresCustomerVehicle: boolean;
-  displayOrder: number;
-  active: boolean;
-  bookable: boolean;
-};
-
-export function getAllServiceOptions(accessToken: string): Promise<AdminServiceOption[]> {
-  return authedGet<AdminServiceOption[]>("/service-options", accessToken, []);
-}
-
-export function getServiceOptionById(accessToken: string, id: string): Promise<AdminServiceOption | null> {
-  return authedGet<AdminServiceOption | null>(`/service-options/${id}`, accessToken, null);
 }
 
 export type AdminPricingRule = {
@@ -335,13 +312,6 @@ export type AdminPricingRule = {
   priceTtc: number;
   active: boolean;
 };
-
-export function getServiceOptionPricingRules(
-  accessToken: string,
-  serviceOptionId: string,
-): Promise<AdminPricingRule[]> {
-  return authedGet<AdminPricingRule[]>(`/service-options/${serviceOptionId}/pricing-rules`, accessToken, []);
-}
 
 export function getExtraById(accessToken: string, id: string): Promise<AdminExtra | null> {
   return authedGet<AdminExtra | null>(`/extras/${id}`, accessToken, null);

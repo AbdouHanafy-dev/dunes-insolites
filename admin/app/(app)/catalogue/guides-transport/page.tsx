@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/session";
-import { getAllServiceOptions } from "@/lib/api";
-import { ServiceOptionsList } from "@/components/crud/ServiceOptionsCrud";
+import { getAllExtras } from "@/lib/api";
+import { ServiceExtrasList } from "@/components/crud/ExtrasCrud";
 
 export const metadata: Metadata = { title: "Guides & transport" };
 
@@ -9,7 +9,8 @@ export default async function ServiceOptionsPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const items = await getAllServiceOptions(session.accessToken);
+  const items = (await getAllExtras(session.accessToken))
+    .filter((item) => item.category !== "ACTIVITY");
 
-  return <ServiceOptionsList initialItems={items} />;
+  return <ServiceExtrasList initialItems={items} />;
 }

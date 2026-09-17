@@ -33,6 +33,9 @@ public interface ReservationMapper {
 
     @AfterMapping
     default void mapRepartitions(Reservation source, @MappingTarget ReservationResponse target) {
+        if (target.getExtras() != null) {
+            target.getExtras().removeIf(com.camping.duneinsolite.dto.response.ReservationExtraResponse::isResourceAllocation);
+        }
         if (source.getRepartitions() == null) return;
         List<RepartitionResponse> mapped = source.getRepartitions().stream().map(r -> {
             RepartitionResponse resp = new RepartitionResponse();

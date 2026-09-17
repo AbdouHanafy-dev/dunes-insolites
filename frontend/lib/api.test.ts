@@ -135,6 +135,56 @@ describe("getStayAvailability (Phase 2)", () => {
   });
 });
 
+describe("guide and transportation catalogue", () => {
+  it("loads configured guide options without inventing prices", async () => {
+    setEnv({ NEXT_PUBLIC_API_URL: "https://api.example.test" });
+    const payload = {
+      serviceOptions: [{
+        slug: "support-guide",
+        name: "Guide with Support Vehicle",
+        description: "A guide follows in a support vehicle.",
+        category: "GUIDE",
+        type: "GUIDE_WITH_SUPPORT_VEHICLE",
+        pricingUnit: "PER_DAY",
+        priceTtc: 100,
+        requiresPickupLocation: false,
+        requiresCustomerVehicle: false,
+      }],
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }));
+    vi.stubGlobal("fetch", fetchMock);
+    const api = await loadApi();
+
+    expect(await api.getServiceOptions("GUIDE")).toEqual(payload.serviceOptions);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.test/public/service-options?category=GUIDE",
+      expect.any(Object),
+    );
+  });
+
+  it("loads advisory capacity for the selected date", async () => {
+    setEnv({ NEXT_PUBLIC_API_URL: "https://api.example.test" });
+    const payload = {
+      serviceOptionSlug: "hotel-pickup",
+      date: "2026-09-20",
+      status: "UNAVAILABLE",
+      unitsAvailable: 0,
+    };
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })));
+    const api = await loadApi();
+
+    expect(await api.getServiceOptionAvailability("hotel-pickup", "2026-09-20")).toEqual(payload);
+  });
+});
+
 describe("seed route guard", () => {
   it("returns a 503 Response when seed fallback is not enabled", async () => {
     setEnv({});

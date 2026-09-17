@@ -22,6 +22,7 @@ export type {
   GalleryItem,
   Review,
   ReviewSource,
+  ServiceOptionSelection,
   SlotAvailability,
   Stats,
   Stay,

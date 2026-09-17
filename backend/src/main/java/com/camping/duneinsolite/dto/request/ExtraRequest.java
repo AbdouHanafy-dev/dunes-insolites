@@ -1,12 +1,17 @@
 package com.camping.duneinsolite.dto.request;
 
 import com.camping.duneinsolite.dto.CatalogTranslationDto;
+import com.camping.duneinsolite.dto.ExtraResourceRequirementDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.ExtraDuration;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.enums.GroupSizeType;
 import com.camping.duneinsolite.model.enums.Language;
+import com.camping.duneinsolite.model.enums.ExtraCategory;
+import com.camping.duneinsolite.model.enums.PickupField;
+import com.camping.duneinsolite.model.enums.PricingUnit;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -25,7 +30,7 @@ public class ExtraRequest {
     private String duration;
 
     @NotNull(message = "Unit price is required")
-    @Positive(message = "Unit price must be positive")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Unit price cannot be negative")
     private java.math.BigDecimal unitPrice;
 
     private Boolean isActive = true;
@@ -33,6 +38,15 @@ public class ExtraRequest {
     /** Null = not configured, no ceiling enforced. */
     @Min(value = 0, message = "Capacity cannot be negative")
     private Integer maxUnitsPerDay;
+    private ExtraCategory category = ExtraCategory.ACTIVITY;
+    private String serviceType;
+    private PricingUnit pricingUnit = PricingUnit.PER_UNIT;
+    private Boolean requiresCustomerVehicle = false;
+    private Integer displayOrder = 0;
+    private Set<PickupField> pickupFields;
+    private Set<PickupField> requiredPickupFields;
+    @Valid
+    private List<ExtraResourceRequirementDto> resourceRequirements;
 
     private String aboutText;
     private List<String> highlights;

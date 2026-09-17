@@ -204,6 +204,12 @@ for each activity with the guest on arrival.
   "date": "2026-08-26",
   "partySize": 2,
   "rideSlugs": ["camel-trek", "quad-safari"],
+  "arrivalMode": "TRANSPORT",
+  "serviceOptions": [{
+    "serviceOptionSlug": "hotel-pickup",
+    "quantity": 1,
+    "pickupHotelName": "Sabria Palace"
+  }],
   "name": "Abdou Hanafi",
   "email": "abdou@example.com",
   "phone": "+216 20 000 000",
@@ -219,6 +225,8 @@ for each activity with the guest on arrival.
 | `accommodationSlug` | `String`, nullable | Only present when the stay offers `accommodations` and the guest picked one |
 | `accommodationQty` | `Integer`, nullable | How many of that tent/room/suite (1–6, UI-side). Only present alongside `accommodationSlug`. **Provisional** — see the note under `POST /stay-bookings` |
 | `rideSlugs` | `List<String>` | Zero or more `Activity.slug` values. Validate each exists — don't trust the client list |
+| `arrivalMode` | `String` | Required: `OWN_VEHICLE` or `TRANSPORT`. `TRANSPORT` requires a selected transport option; `OWN_VEHICLE` rejects one. |
+| `serviceOptions` | `List<ServiceOptionSelection>`, nullable | Guide and transport selections by public slug. Prices are never accepted from the client; pickup fields are required when the catalogue option says so. |
 | `total` | `int` | Euros. If an accommodation is picked: **`accommodation.priceFrom × accommodationQty`**. Otherwise: **`stay.priceFrom × partySize`**. Either way, activities in `rideSlugs` are *not* added to this total (see `POST /stay-bookings` below) |
 
 ---
@@ -237,6 +245,18 @@ for each activity with the guest on arrival.
 No `GET /stays/{slug}` route needed — same as activities, the frontend
 fetches this list once (cached 5 minutes) and resolves a single stay or
 accommodation from it client-side.
+
+### `GET /public/service-options?category=GUIDE|TRANSPORT`
+
+Returns `{ "serviceOptions": [...] }` for the public “Getting There & Guide”
+step. Only active, priced options are exposed. Each item includes its slug,
+description, pricing unit, backend price, and pickup/customer-vehicle flags.
+
+### `GET /public/service-options/{slug}/availability?date=yyyy-MM-dd`
+
+Returns advisory `status` (`AVAILABLE`, `UNAVAILABLE`, or `UNKNOWN`) and
+`unitsAvailable`. Booking performs the authoritative capacity check again
+inside the reservation transaction.
 
 ### `GET /stats`
 ```json

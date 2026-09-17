@@ -11,11 +11,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * A date- or period-specific override of an {@link AccommodationType}'s
- * standard {@code unitPriceTtc} — the "15/10/2026 → 300 TND" and
- * "01/10 → 31/10 → 230 TND" cases from the pricing brief. Resolved in
- * {@code AccommodationPricingService}: a DATE rule covering the requested
- * date wins over a PERIOD rule, which wins over the tier's standard price.
+ * A date- or period-specific override of an {@link AccommodationType}'s or
+ * an {@link Extra}'s standard price — the "15/10/2026 → 300 TND" and
+ * "01/10 → 31/10 → 230 TND" cases from the pricing brief. Exactly one of
+ * {@code accommodationType}/{@code extra} is set per row (never both,
+ * never neither) — resolved in {@code AccommodationPricingService} /
+ * {@code ExtraPricingService}: a DATE rule covering the requested date
+ * wins over a PERIOD rule, which wins over the resource's standard price.
  *
  * <p>{@code startDate}/{@code endDate} are both inclusive; a DATE rule sets
  * both to the same day rather than being a separate single-day shape, so
@@ -32,9 +34,13 @@ public class PricingRule {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "accommodation_type_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "accommodation_type_id")
     private AccommodationType accommodationType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "extra_id")
+    private Extra extra;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rule_type", nullable = false)

@@ -15,7 +15,7 @@ export default function PricingRulesPanel({
   resourceApiPath,
   resourceId,
 }: {
-  /** e.g. "service-options" or "accommodation-types" */
+  /** e.g. "extras" or "accommodation-types" */
   resourceApiPath: string;
   resourceId: string;
 }) {

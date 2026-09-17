@@ -64,6 +64,7 @@ public class PublicStayMapper {
         response.setDepartureTime("");
         response.setItinerary(List.of());
         response.setAccommodations(bookableAccommodations(tourType));
+        response.setGuideRequired(Boolean.TRUE.equals(tourType.getGuideRequired()));
         return response;
     }
 

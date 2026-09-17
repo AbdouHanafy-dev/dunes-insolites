@@ -138,10 +138,6 @@ public class Reservation {
     // extras already occupies, avoiding a new field rippling through
     // currency conversion / invoicing, which already only know about
     // totalAmount/totalExtrasAmount.
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ReservationServiceOption> serviceOptions = new ArrayList<>();
-
     // ── Invoices ──────────────────────────────────────────────────
     //
     // Was cascade = ALL, orphanRemoval = true - the same shape found and
@@ -255,16 +251,6 @@ public class Reservation {
         extra.setReservation(null);
     }
 
-    public void addServiceOption(ReservationServiceOption option) {
-        serviceOptions.add(option);
-        option.setReservation(this);
-    }
-
-    public void removeServiceOption(ReservationServiceOption option) {
-        serviceOptions.remove(option);
-        option.setReservation(null);
-    }
-
     public void addInvoice(Invoice invoice) {
         invoices.add(invoice);
         invoice.setReservation(this);
@@ -278,7 +264,6 @@ public class Reservation {
     public java.math.BigDecimal calculateTotalExtrasAmount() {
         java.util.List<java.math.BigDecimal> all = new ArrayList<>(
                 extras.stream().map(ReservationExtra::getTotalPrice).toList());
-        all.addAll(serviceOptions.stream().map(ReservationServiceOption::getTotalPrice).toList());
         return com.camping.duneinsolite.money.Money.sum(all);
     }
 

@@ -64,7 +64,6 @@ public class ReservationRequest {
 
     private List<ParticipantRequest> participants;
     private List<ReservationExtraRequest> extras;
-    private List<ReservationServiceOptionRequest> serviceOptions;
     private List<RepartitionRequest> repartitions;
 
     // ── NEW — Optional initial payment at reservation creation time ──

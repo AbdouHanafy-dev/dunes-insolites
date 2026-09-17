@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.request.publicapi;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -34,6 +35,17 @@ public class PublicStayBookingRequest {
     private Integer partySize;
 
     private List<String> rideSlugs;
+
+    @jakarta.validation.constraints.Pattern(
+            regexp = "OWN_VEHICLE|TRANSPORT",
+            message = "Arrival mode must be OWN_VEHICLE or TRANSPORT")
+    private String arrivalMode;
+
+    // "Getting There & Guide" step - guide (with support vehicle, or in the
+    // guest's own vehicle) and/or transport/pickup, when the tour needs one
+    // or the guest chose one.
+    @Valid
+    private List<PublicServiceOptionSelectionRequest> serviceOptions;
 
     @NotBlank(message = "Name is required")
     private String name;

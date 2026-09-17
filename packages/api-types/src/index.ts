@@ -110,6 +110,8 @@ export type Stay = {
     description: string;
   }>;
   accommodations?: Accommodation[];
+  /** Whether booking this stay requires picking a GUIDE-category service option. */
+  guideRequired?: boolean;
 };
 
 export type Accommodation = {
@@ -208,6 +210,26 @@ export type BookingInput = Omit<Booking, "id" | "status" | "total" | "createdAt"
  * No per-activity time slot: the camp confirms the hour with the guest on
  * arrival, because it depends on who else is on-site that day.
  */
+/**
+ * A guide (with support vehicle, or riding in the guest's own vehicle) or
+ * transport/pickup option chosen in the "Getting There & Guide" step, by
+ * `ServiceOption.slug` - same convention as `rideSlugs`. The pickup fields
+ * only matter for an option whose catalogue entry requires pickup
+ * details; the backend rejects the booking if they're missing on one
+ * that does.
+ */
+export type ServiceOptionSelection = {
+  serviceOptionSlug: string;
+  /** Days / persons / vehicles depending on the option's pricing unit. Defaults to 1. */
+  quantity?: number;
+  pickupHotelName?: string;
+  pickupAirport?: string;
+  pickupFlightNumber?: string;
+  pickupAddress?: string;
+  pickupArrivalTime?: string;
+  pickupInstructions?: string;
+};
+
 export type StayBooking = {
   id: string;
   staySlug: string;
@@ -218,6 +240,9 @@ export type StayBooking = {
   date: string;
   partySize: number;
   rideSlugs: string[];
+  /** How the guest reaches the experience; validated against selected transport options. */
+  arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
+  serviceOptions?: ServiceOptionSelection[];
   name: string;
   email: string;
   phone: string;

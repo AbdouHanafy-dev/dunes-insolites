@@ -49,6 +49,10 @@ export function validateStayBooking(input: Partial<StayBookingInput>): Validatio
     errors.rideSlugs = "One of those activities isn't one we offer.";
   }
 
+  if (input.arrivalMode !== "OWN_VEHICLE" && input.arrivalMode !== "TRANSPORT") {
+    errors.arrivalMode = "Tell us how you'll join the experience.";
+  }
+
   if (!input.name?.trim()) errors.name = "We need a name for the booking.";
   if (!input.email?.trim()) errors.email = "We need an email for the confirmation.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email)) errors.email = "That email looks off.";

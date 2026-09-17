@@ -6,9 +6,11 @@ import com.camping.duneinsolite.exception.ConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.model.PricingRule;
+import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.money.Money;
 import com.camping.duneinsolite.repository.AccommodationTypeRepository;
 import com.camping.duneinsolite.repository.PricingRuleRepository;
+import com.camping.duneinsolite.repository.ExtraRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class PricingRuleAdminService {
 
     private final PricingRuleRepository repository;
     private final AccommodationTypeRepository accommodationTypeRepository;
+    private final ExtraRepository extraRepository;
 
     private static final UUID NO_EXCLUSION = new UUID(0L, 0L);
 
@@ -72,6 +75,56 @@ public class PricingRuleAdminService {
         repository.delete(find(accommodationTypeId, ruleId));
     }
 
+    @Transactional(readOnly = true)
+    public List<PricingRuleResponse> listExtra(UUID extraId) {
+        return repository.findByExtra_ExtraIdOrderByStartDateAsc(extraId)
+                .stream().map(PricingRuleResponse::from).toList();
+    }
+
+    public PricingRuleResponse createExtra(UUID extraId, PricingRuleRequest req) {
+        Extra extra = extraRepository.findById(extraId)
+                .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + extraId));
+        validate(req);
+        rejectExtraOverlap(extraId, req, NO_EXCLUSION);
+        return PricingRuleResponse.from(repository.save(PricingRule.builder()
+                .extra(extra).ruleType(req.getRuleType()).startDate(req.getStartDate())
+                .endDate(req.getEndDate()).priceTtc(Money.round(req.getPriceTtc()))
+                .active(req.getActive() == null || req.getActive()).build()));
+    }
+
+    public PricingRuleResponse updateExtra(UUID extraId, UUID ruleId, PricingRuleRequest req) {
+        PricingRule rule = findExtra(extraId, ruleId);
+        validate(req);
+        rejectExtraOverlap(extraId, req, ruleId);
+        rule.setRuleType(req.getRuleType());
+        rule.setStartDate(req.getStartDate());
+        rule.setEndDate(req.getEndDate());
+        rule.setPriceTtc(Money.round(req.getPriceTtc()));
+        if (req.getActive() != null) rule.setActive(req.getActive());
+        return PricingRuleResponse.from(rule);
+    }
+
+    public void deleteExtra(UUID extraId, UUID ruleId) {
+        repository.delete(findExtra(extraId, ruleId));
+    }
+
+    private void rejectExtraOverlap(UUID extraId, PricingRuleRequest req, UUID excludeId) {
+        if (req.getActive() != null && !req.getActive()) return;
+        if (!repository.findOverlappingExtra(extraId, req.getRuleType(), req.getStartDate(),
+                req.getEndDate(), excludeId).isEmpty()) {
+            throw new ConflictException("This pricing rule overlaps another active rule for the same extra.");
+        }
+    }
+
+    private PricingRule findExtra(UUID extraId, UUID ruleId) {
+        PricingRule rule = repository.findById(ruleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pricing rule not found: " + ruleId));
+        if (rule.getExtra() == null || !rule.getExtra().getExtraId().equals(extraId)) {
+            throw new ResourceNotFoundException("Pricing rule not found: " + ruleId);
+        }
+        return rule;
+    }
+
     private void validate(PricingRuleRequest req) {
         if (req.getEndDate().isBefore(req.getStartDate())) {
             throw new IllegalArgumentException("End date cannot be before start date.");
@@ -92,7 +145,11 @@ public class PricingRuleAdminService {
     private PricingRule find(UUID accommodationTypeId, UUID ruleId) {
         PricingRule rule = repository.findById(ruleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Pricing rule not found: " + ruleId));
-        if (!rule.getAccommodationType().getId().equals(accommodationTypeId)) {
+        // An extra's rule has no accommodationType — null-check first so
+        // passing an extra rule's id to this accommodation-scoped lookup 404s
+        // cleanly instead of NPEing, same defensiveness findExtra() already
+        // has for the reverse case.
+        if (rule.getAccommodationType() == null || !rule.getAccommodationType().getId().equals(accommodationTypeId)) {
             throw new ResourceNotFoundException("Pricing rule not found: " + ruleId);
         }
         return rule;

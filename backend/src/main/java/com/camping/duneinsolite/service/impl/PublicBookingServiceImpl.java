@@ -9,12 +9,14 @@ import com.camping.duneinsolite.dto.response.ReservationResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicBookingResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicStayBookingResponse;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
+import com.camping.duneinsolite.exception.ReservationValidationException;
 import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.Source;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.ReservationType;
+import com.camping.duneinsolite.model.enums.ExtraCategory;
 import com.camping.duneinsolite.repository.AccommodationTypeRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.SourceRepository;
@@ -148,6 +150,32 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         TourType tourType = tourTypeRepository.findBySlugAndIsActiveTrue(request.getStaySlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Stay not found: " + request.getStaySlug()));
 
+        if (request.getArrivalMode() != null
+                && !"OWN_VEHICLE".equals(request.getArrivalMode())
+                && !"TRANSPORT".equals(request.getArrivalMode())) {
+            throw new ReservationValidationException(
+                    "Please tell us how you'll join the experience.");
+        }
+
+        // Resolve and validate public slugs before guest-account creation. The
+        // mode is explicit because an empty option list alone cannot tell the
+        // server whether the guest has a vehicle or forgot transportation.
+        List<ResolvedServiceOption> resolvedServiceOptions = request.getServiceOptions() == null
+                ? List.of()
+                : request.getServiceOptions().stream()
+                        .map(sel -> resolveServiceOption(sel, request.getDate(), request.getPartySize()))
+                        .toList();
+        boolean hasTransport = resolvedServiceOptions.stream()
+                .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
+        if ("TRANSPORT".equals(request.getArrivalMode()) && !hasTransport) {
+            throw new ReservationValidationException(
+                    "Please choose transportation to reach the experience.");
+        }
+        if ("OWN_VEHICLE".equals(request.getArrivalMode()) && hasTransport) {
+            throw new ReservationValidationException(
+                    "Transportation can't be selected when joining with your own vehicle.");
+        }
+
         // Resolve (and fail closed on) the accommodation BEFORE any side effect
         // — a bad slug, an inactive or unpriced tier, or a party that won't fit
         // must not reach guest-account creation or the reservation.
@@ -210,11 +238,19 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setTourTypes(List.of(selection));
 
         List<String> rideSlugs = request.getRideSlugs() == null ? List.of() : request.getRideSlugs();
+        List<ReservationExtraRequest> selectedExtras = new java.util.ArrayList<>();
         if (!rideSlugs.isEmpty()) {
-            reservationRequest.setExtras(rideSlugs.stream()
+            selectedExtras.addAll(rideSlugs.stream()
                     .map(slug -> resolveRide(slug, request.getDate()))
                     .toList());
         }
+
+        if (!resolvedServiceOptions.isEmpty()) {
+            selectedExtras.addAll(resolvedServiceOptions.stream()
+                    .map(ResolvedServiceOption::request)
+                    .toList());
+        }
+        if (!selectedExtras.isEmpty()) reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
         availabilityMetrics.holdCreated();
@@ -231,6 +267,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setDate(request.getDate().toString());
         response.setPartySize(request.getPartySize());
         response.setRideSlugs(rideSlugs);
+        response.setArrivalMode(request.getArrivalMode());
         response.setName(request.getName());
         response.setEmail(request.getEmail());
         response.setPhone(request.getPhone());
@@ -252,6 +289,36 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         extraRequest.setQuantity(1);
         extraRequest.setActivityDate(date);
         return extraRequest;
+    }
+
+    private record ResolvedServiceOption(Extra catalog, ReservationExtraRequest request) {}
+
+    private ResolvedServiceOption resolveServiceOption(
+            com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest sel,
+            java.time.LocalDate date,
+            int partySize) {
+        Extra option = extraRepository.findBySlugAndIsActiveTrue(sel.getServiceOptionSlug())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Service option not found: " + sel.getServiceOptionSlug()));
+        if (option.getCategory() != ExtraCategory.GUIDE && option.getCategory() != ExtraCategory.TRANSPORT) {
+            throw new ReservationValidationException("Not a guide or transportation option: " + option.getName());
+        }
+        ReservationExtraRequest req = new ReservationExtraRequest();
+        req.setExtraId(option.getExtraId());
+        int quantity = switch (option.getPricingUnit()) {
+            case PER_PERSON -> Math.max(partySize, 1);
+            case PER_DAY, PER_BOOKING -> 1; // Public stays are exactly one night/day.
+            case PER_VEHICLE, PER_UNIT -> sel.getQuantity() != null ? Math.max(sel.getQuantity(), 1) : 1;
+        };
+        req.setQuantity(quantity);
+        req.setActivityDate(date);
+        req.setPickupHotelName(sel.getPickupHotelName());
+        req.setPickupAirport(sel.getPickupAirport());
+        req.setPickupFlightNumber(sel.getPickupFlightNumber());
+        req.setPickupAddress(sel.getPickupAddress());
+        req.setPickupArrivalTime(sel.getPickupArrivalTime());
+        req.setPickupInstructions(sel.getPickupInstructions());
+        return new ResolvedServiceOption(option, req);
     }
 
     private User findOrCreateUser(String name, String email, String phone) {

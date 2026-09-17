@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { ServiceOptionEditor } from "@/components/crud/ServiceOptionsCrud";
+import { ServiceExtraEditor } from "@/components/crud/ExtrasCrud";
 
 export const metadata: Metadata = { title: "Nouvelle option guide/transport" };
 
 export default function NewServiceOptionPage() {
-  return <ServiceOptionEditor />;
+  return <ServiceExtraEditor />;
 }

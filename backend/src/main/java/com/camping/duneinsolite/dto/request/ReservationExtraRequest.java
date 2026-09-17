@@ -21,4 +21,11 @@ public class ReservationExtraRequest {
     private Integer quantity;
 
     private LocalDate activityDate;
+
+    private String pickupHotelName;
+    private String pickupAirport;
+    private String pickupFlightNumber;
+    private String pickupAddress;
+    private String pickupArrivalTime;
+    private String pickupInstructions;
 }

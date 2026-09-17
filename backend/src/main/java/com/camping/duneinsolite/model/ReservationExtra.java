@@ -1,5 +1,7 @@
 package com.camping.duneinsolite.model;
 
+import com.camping.duneinsolite.model.enums.ExtraCategory;
+import com.camping.duneinsolite.model.enums.PricingUnit;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -34,6 +36,29 @@ public class ReservationExtra {
 
     @Column(name = "catalog_extra_id")
     private UUID catalogExtraId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private ExtraCategory category = ExtraCategory.ACTIVITY;
+
+    @Column(name = "service_type")
+    private String serviceType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pricing_unit", nullable = false)
+    @Builder.Default
+    private PricingUnit pricingUnit = PricingUnit.PER_UNIT;
+
+    @Embedded
+    private PickupDetails pickupDetails;
+
+    @Column(name = "is_resource_allocation", nullable = false)
+    @Builder.Default
+    private boolean resourceAllocation = false;
+
+    @Column(name = "selected_extra_id")
+    private UUID selectedExtraId;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;

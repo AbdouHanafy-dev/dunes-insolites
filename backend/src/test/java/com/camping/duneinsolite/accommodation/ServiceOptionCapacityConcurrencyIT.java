@@ -1,15 +1,16 @@
 package com.camping.duneinsolite.accommodation;
 
 import com.camping.duneinsolite.dto.request.ReservationRequest;
-import com.camping.duneinsolite.dto.request.ReservationServiceOptionRequest;
+import com.camping.duneinsolite.dto.request.ReservationExtraRequest;
 import com.camping.duneinsolite.dto.request.TourTypeSelectionRequest;
 import com.camping.duneinsolite.exception.ReservationValidationException;
-import com.camping.duneinsolite.exception.ServiceOptionUnavailableException;
+import com.camping.duneinsolite.exception.ActivityUnavailableException;
 import com.camping.duneinsolite.model.*;
 import com.camping.duneinsolite.model.enums.*;
 import com.camping.duneinsolite.repository.*;
 import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import com.camping.duneinsolite.service.ReservationService;
+import com.camping.duneinsolite.service.PublicAvailabilityService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -69,14 +70,16 @@ class ServiceOptionCapacityConcurrencyIT {
     @MockitoBean KeycloakUserSyncService keycloakUserSyncService;
 
     @Autowired ReservationService reservationService;
-    @Autowired ServiceOptionRepository serviceOptionRepository;
+    @Autowired PublicAvailabilityService publicAvailabilityService;
     @Autowired TourTypeRepository tourTypeRepository;
     @Autowired ReservationRepository reservationRepository;
-    @Autowired ReservationServiceOptionRepository reservationServiceOptionRepository;
     @Autowired UserRepository userRepository;
     @Autowired SourceRepository sourceRepository;
     @Autowired InvoiceRepository invoiceRepository;
     @Autowired TransactionRepository transactionRepository;
+    @Autowired ExtraRepository extraRepository;
+    @Autowired ReservationExtraRepository reservationExtraRepository;
+    @Autowired ExtraResourceRequirementRepository extraResourceRequirementRepository;
 
     private UUID guideOptionId;
     private UUID hotelPickupId;
@@ -92,23 +95,25 @@ class ServiceOptionCapacityConcurrencyIT {
         user = userRepository.save(User.builder().userId(UUID.randomUUID())
                 .name("G").email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build());
 
-        guideOptionId = serviceOptionRepository.save(ServiceOption.builder()
+        guideOptionId = extraRepository.save(Extra.builder()
                 .slug("guide-support-" + UUID.randomUUID()).name("Guide with Support Vehicle")
-                .category(ServiceOptionCategory.GUIDE).type("GUIDE_WITH_SUPPORT_VEHICLE")
-                .pricingUnit(PricingUnit.PER_DAY).unitPriceTtc(new BigDecimal("100.000"))
-                .tvaRate(BigDecimal.ZERO).maxUnitsPerDay(4).active(true).build()).getId();
+                .category(ExtraCategory.GUIDE).serviceType("GUIDE_WITH_SUPPORT_VEHICLE")
+                .pricingUnit(PricingUnit.PER_UNIT).unitPrice(new BigDecimal("100.000"))
+                .tva(BigDecimal.ZERO).maxUnitsPerDay(4).isActive(true).build()).getExtraId();
 
-        hotelPickupId = serviceOptionRepository.save(ServiceOption.builder()
+        hotelPickupId = extraRepository.save(Extra.builder()
                 .slug("hotel-pickup-" + UUID.randomUUID()).name("Hotel Pickup")
-                .category(ServiceOptionCategory.TRANSPORT).type("HOTEL_PICKUP")
-                .pricingUnit(PricingUnit.PER_BOOKING).unitPriceTtc(new BigDecimal("80.000"))
-                .tvaRate(BigDecimal.ZERO).requiresPickupLocation(true).active(true).build()).getId();
+                .category(ExtraCategory.TRANSPORT).serviceType("HOTEL_PICKUP")
+                .pricingUnit(PricingUnit.PER_BOOKING).unitPrice(new BigDecimal("80.000"))
+                .tva(BigDecimal.ZERO).pickupFields(java.util.Set.of(PickupField.HOTEL_NAME))
+                .requiredPickupFields(java.util.Set.of(PickupField.HOTEL_NAME))
+                .isActive(true).build()).getExtraId();
 
-        guideInVehicleId = serviceOptionRepository.save(ServiceOption.builder()
+        guideInVehicleId = extraRepository.save(Extra.builder()
                 .slug("guide-in-vehicle-" + UUID.randomUUID()).name("Guide in Your Vehicle")
-                .category(ServiceOptionCategory.GUIDE).type("GUIDE_IN_CUSTOMER_VEHICLE")
-                .pricingUnit(PricingUnit.PER_DAY).unitPriceTtc(new BigDecimal("70.000"))
-                .tvaRate(BigDecimal.ZERO).requiresCustomerVehicle(true).active(true).build()).getId();
+                .category(ExtraCategory.GUIDE).serviceType("GUIDE_IN_CUSTOMER_VEHICLE")
+                .pricingUnit(PricingUnit.PER_DAY).unitPrice(new BigDecimal("70.000"))
+                .tva(BigDecimal.ZERO).requiresCustomerVehicle(true).isActive(true).build()).getExtraId();
     }
 
     @AfterEach
@@ -118,7 +123,8 @@ class ServiceOptionCapacityConcurrencyIT {
         invoiceRepository.deleteAll();
         reservationRepository.deleteAll();
         userRepository.deleteAll();
-        serviceOptionRepository.deleteAll();
+        extraResourceRequirementRepository.deleteAll();
+        extraRepository.deleteAll();
         tourTypeRepository.deleteAll();
     }
 
@@ -131,36 +137,37 @@ class ServiceOptionCapacityConcurrencyIT {
         req.setNumberOfAdults(2);
         req.setNumberOfChildren(0);
 
-        ReservationServiceOptionRequest opt = new ReservationServiceOptionRequest();
-        opt.setServiceOptionId(optionId);
+        ReservationExtraRequest opt = new ReservationExtraRequest();
+        opt.setExtraId(optionId);
         opt.setQuantity(quantity);
-        opt.setServiceDate(date);
-        req.setServiceOptions(List.of(opt));
+        opt.setActivityDate(date);
+        req.setExtras(List.of(opt));
         return req;
     }
 
     @Test
     void aNormalGuideBookingSucceeds() {
         var response = reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 1));
-        List<ReservationServiceOption> lines = reservationServiceOptionRepository
+        List<ReservationExtra> lines = reservationExtraRepository
                 .findByReservationReservationId(response.getReservationId());
-        assertThat(lines).hasSize(1);
-        assertThat(lines.get(0).getTotalPrice()).isEqualByComparingTo("100.000");
+        assertThat(lines).filteredOn(line -> !line.isResourceAllocation()).hasSize(1)
+                .first().extracting(ReservationExtra::getTotalPrice).isEqualTo(new BigDecimal("100.000"));
     }
 
     @Test
     void requestingMoreGuidesThanCapacityIsRejected() {
         assertThatThrownBy(() -> reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 5)))
-                .isInstanceOf(ServiceOptionUnavailableException.class);
+                .isInstanceOf(ActivityUnavailableException.class);
     }
 
     @Test
     void twoBookingsThatBothFitAreAccepted() {
         reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 2));
         reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 2)); // 2+2 == 4, fits
-        long total = reservationServiceOptionRepository.findByIsActiveTrue().stream()
-                .filter(o -> o.getCatalogServiceOptionId().equals(guideOptionId))
-                .mapToInt(ReservationServiceOption::getQuantity).sum();
+        long total = reservationExtraRepository.findByIsActiveTrue().stream()
+                .filter(ReservationExtra::isResourceAllocation)
+                .filter(o -> guideOptionId.equals(o.getCatalogExtraId()))
+                .mapToInt(ReservationExtra::getQuantity).sum();
         assertThat(total).isEqualTo(4);
     }
 
@@ -179,7 +186,7 @@ class ServiceOptionCapacityConcurrencyIT {
                     start.await(5, TimeUnit.SECONDS);
                     reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 3));
                     ok.incrementAndGet();
-                } catch (ServiceOptionUnavailableException e) {
+                } catch (ActivityUnavailableException e) {
                     rejected.incrementAndGet();
                 } catch (Exception e) {
                     other.incrementAndGet();
@@ -194,9 +201,10 @@ class ServiceOptionCapacityConcurrencyIT {
         assertThat(rejected.get()).as("the other is rejected on capacity").isEqualTo(1);
         assertThat(other.get()).as("no unexpected failures").isZero();
 
-        long consumed = reservationServiceOptionRepository.findByIsActiveTrue().stream()
-                .filter(o -> o.getCatalogServiceOptionId().equals(guideOptionId))
-                .mapToInt(ReservationServiceOption::getQuantity).sum();
+        long consumed = reservationExtraRepository.findByIsActiveTrue().stream()
+                .filter(ReservationExtra::isResourceAllocation)
+                .filter(o -> guideOptionId.equals(o.getCatalogExtraId()))
+                .mapToInt(ReservationExtra::getQuantity).sum();
         assertThat(consumed).as("4 can never become more than 4").isLessThanOrEqualTo(4);
     }
 
@@ -204,7 +212,7 @@ class ServiceOptionCapacityConcurrencyIT {
     void cancellingAReservationFreesItsCapacity() {
         var first = reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 4)); // takes all 4
         assertThatThrownBy(() -> reservationService.createReservation(extrasOnlyRequestWithGuide(guideOptionId, 1)))
-                .isInstanceOf(ServiceOptionUnavailableException.class);
+                .isInstanceOf(ActivityUnavailableException.class);
 
         Reservation reservation = reservationRepository.findById(first.getReservationId()).orElseThrow();
         reservation.setStatus(ReservationStatus.CANCELLED);
@@ -223,15 +231,15 @@ class ServiceOptionCapacityConcurrencyIT {
         req.setServiceDate(date);
         req.setNumberOfAdults(2);
         req.setNumberOfChildren(0);
-        ReservationServiceOptionRequest opt = new ReservationServiceOptionRequest();
-        opt.setServiceOptionId(hotelPickupId);
-        opt.setServiceDate(date);
+        ReservationExtraRequest opt = new ReservationExtraRequest();
+        opt.setExtraId(hotelPickupId);
+        opt.setActivityDate(date);
         // No hotel name / address / instructions supplied at all.
-        req.setServiceOptions(List.of(opt));
+        req.setExtras(List.of(opt));
 
         assertThatThrownBy(() -> reservationService.createReservation(req))
                 .isInstanceOf(ReservationValidationException.class)
-                .hasMessageContaining("pickup details");
+                .hasMessageContaining("HOTEL_NAME");
     }
 
     @Test
@@ -243,18 +251,18 @@ class ServiceOptionCapacityConcurrencyIT {
         req.setServiceDate(date);
         req.setNumberOfAdults(2);
         req.setNumberOfChildren(0);
-        ReservationServiceOptionRequest opt = new ReservationServiceOptionRequest();
-        opt.setServiceOptionId(hotelPickupId);
-        opt.setServiceDate(date);
+        ReservationExtraRequest opt = new ReservationExtraRequest();
+        opt.setExtraId(hotelPickupId);
+        opt.setActivityDate(date);
         opt.setPickupHotelName("Sabria Palace");
         opt.setPickupInstructions("Lobby at 7am");
-        req.setServiceOptions(List.of(opt));
+        req.setExtras(List.of(opt));
 
         var response = reservationService.createReservation(req);
-        List<ReservationServiceOption> lines = reservationServiceOptionRepository
+        List<ReservationExtra> lines = reservationExtraRepository
                 .findByReservationReservationId(response.getReservationId());
-        assertThat(lines).hasSize(1);
-        assertThat(lines.get(0).getPickupDetails().getHotelName()).isEqualTo("Sabria Palace");
+        assertThat(lines).filteredOn(line -> !line.isResourceAllocation()).hasSize(1)
+                .first().extracting(line -> line.getPickupDetails().getHotelName()).isEqualTo("Sabria Palace");
     }
 
     @Test
@@ -267,16 +275,16 @@ class ServiceOptionCapacityConcurrencyIT {
         req.setNumberOfAdults(2);
         req.setNumberOfChildren(0);
 
-        ReservationServiceOptionRequest guide = new ReservationServiceOptionRequest();
-        guide.setServiceOptionId(guideInVehicleId);
-        guide.setServiceDate(date);
+        ReservationExtraRequest guide = new ReservationExtraRequest();
+        guide.setExtraId(guideInVehicleId);
+        guide.setActivityDate(date);
 
-        ReservationServiceOptionRequest pickup = new ReservationServiceOptionRequest();
-        pickup.setServiceOptionId(hotelPickupId);
-        pickup.setServiceDate(date);
+        ReservationExtraRequest pickup = new ReservationExtraRequest();
+        pickup.setExtraId(hotelPickupId);
+        pickup.setActivityDate(date);
         pickup.setPickupHotelName("Sabria Palace");
 
-        req.setServiceOptions(List.of(guide, pickup));
+        req.setExtras(List.of(guide, pickup));
 
         assertThatThrownBy(() -> reservationService.createReservation(req))
                 .isInstanceOf(ReservationValidationException.class)
@@ -284,7 +292,7 @@ class ServiceOptionCapacityConcurrencyIT {
     }
 
     @Test
-    void severalServiceOptionsInOneReservationAreEachCheckedIndependently() {
+    void severalServiceExtrasInOneReservationAreEachCheckedIndependently() {
         ReservationRequest req = new ReservationRequest();
         req.setUserId(user.getUserId());
         req.setSourceId(source.getSourceId());
@@ -293,22 +301,22 @@ class ServiceOptionCapacityConcurrencyIT {
         req.setNumberOfAdults(2);
         req.setNumberOfChildren(0);
 
-        ReservationServiceOptionRequest guide = new ReservationServiceOptionRequest();
-        guide.setServiceOptionId(guideOptionId);
+        ReservationExtraRequest guide = new ReservationExtraRequest();
+        guide.setExtraId(guideOptionId);
         guide.setQuantity(1);
-        guide.setServiceDate(date);
+        guide.setActivityDate(date);
 
-        ReservationServiceOptionRequest pickup = new ReservationServiceOptionRequest();
-        pickup.setServiceOptionId(hotelPickupId);
-        pickup.setServiceDate(date);
+        ReservationExtraRequest pickup = new ReservationExtraRequest();
+        pickup.setExtraId(hotelPickupId);
+        pickup.setActivityDate(date);
         pickup.setPickupHotelName("Sabria Palace");
 
-        req.setServiceOptions(List.of(guide, pickup));
+        req.setExtras(List.of(guide, pickup));
 
         var response = reservationService.createReservation(req);
-        List<ReservationServiceOption> lines = reservationServiceOptionRepository
+        List<ReservationExtra> lines = reservationExtraRepository
                 .findByReservationReservationId(response.getReservationId());
-        assertThat(lines).hasSize(2);
+        assertThat(lines).filteredOn(line -> !line.isResourceAllocation()).hasSize(2);
     }
 
     @Test
@@ -335,7 +343,7 @@ class ServiceOptionCapacityConcurrencyIT {
         selection.setNumberOfChildren(0);
         selection.setActivityDate(date);
         req.setTourTypes(List.of(selection));
-        // No serviceOptions at all - guide is required, must be rejected.
+        // No GUIDE-category extra at all - guide is required, must be rejected.
 
         assertThatThrownBy(() -> reservationService.createReservation(req))
                 .isInstanceOf(ReservationValidationException.class)
@@ -367,13 +375,143 @@ class ServiceOptionCapacityConcurrencyIT {
         selection.setActivityDate(date);
         req.setTourTypes(List.of(selection));
 
-        ReservationServiceOptionRequest guide = new ReservationServiceOptionRequest();
-        guide.setServiceOptionId(guideOptionId);
+        ReservationExtraRequest guide = new ReservationExtraRequest();
+        guide.setExtraId(guideOptionId);
         guide.setQuantity(1);
-        guide.setServiceDate(date);
-        req.setServiceOptions(List.of(guide));
+        guide.setActivityDate(date);
+        req.setExtras(List.of(guide));
 
         var response = reservationService.createReservation(req);
         assertThat(response.getReservationId()).isNotNull();
+    }
+
+    private Extra compositeGuide(int guideCapacity, int vehicleCapacity) {
+        Extra guide = extraRepository.save(Extra.builder().name("Guide resource " + UUID.randomUUID())
+                .slug("guide-resource-" + UUID.randomUUID()).unitPrice(BigDecimal.ZERO)
+                .tva(BigDecimal.ZERO).category(ExtraCategory.RESOURCE).pricingUnit(PricingUnit.PER_UNIT)
+                .maxUnitsPerDay(guideCapacity).isActive(true).build());
+        Extra vehicle = extraRepository.save(Extra.builder().name("Vehicle resource " + UUID.randomUUID())
+                .slug("vehicle-resource-" + UUID.randomUUID()).unitPrice(BigDecimal.ZERO)
+                .tva(BigDecimal.ZERO).category(ExtraCategory.RESOURCE).pricingUnit(PricingUnit.PER_UNIT)
+                .maxUnitsPerDay(vehicleCapacity).isActive(true).build());
+        Extra option = Extra.builder().name("Guide + support vehicle")
+                .slug("composite-guide-" + UUID.randomUUID()).unitPrice(new BigDecimal("100"))
+                .tva(BigDecimal.ZERO).category(ExtraCategory.GUIDE).pricingUnit(PricingUnit.PER_DAY)
+                .isActive(true).build();
+        option.getResourceRequirements().add(ExtraResourceRequirement.builder()
+                .extra(option).resource(guide).quantity(1).build());
+        option.getResourceRequirements().add(ExtraResourceRequirement.builder()
+                .extra(option).resource(vehicle).quantity(1).build());
+        return extraRepository.save(option);
+    }
+
+    private ReservationRequest requestWithExtra(UUID extraId) {
+        ReservationRequest req = new ReservationRequest();
+        req.setUserId(user.getUserId());
+        req.setSourceId(source.getSourceId());
+        req.setReservationType(ReservationType.EXTRAS);
+        req.setServiceDate(date);
+        req.setNumberOfAdults(1);
+        req.setNumberOfChildren(0);
+        var line = new com.camping.duneinsolite.dto.request.ReservationExtraRequest();
+        line.setExtraId(extraId);
+        line.setQuantity(1);
+        line.setActivityDate(date);
+        req.setExtras(List.of(line));
+        return req;
+    }
+
+    @Test
+    void compositeGuideRollsBackWhenVehicleIsUnavailable() {
+        Extra option = compositeGuide(1, 0);
+        long before = reservationExtraRepository.count();
+
+        assertThat(publicAvailabilityService.forServiceOption(option.getSlug(), date).status())
+                .isEqualTo("UNAVAILABLE");
+
+        assertThatThrownBy(() -> reservationService.createReservation(requestWithExtra(option.getExtraId())))
+                .isInstanceOf(com.camping.duneinsolite.exception.ActivityUnavailableException.class);
+        assertThat(reservationExtraRepository.count()).isEqualTo(before);
+    }
+
+    @Test
+    void compositeGuideRollsBackWhenGuideIsUnavailable() {
+        Extra option = compositeGuide(0, 1);
+        long before = reservationExtraRepository.count();
+
+        assertThatThrownBy(() -> reservationService.createReservation(requestWithExtra(option.getExtraId())))
+                .isInstanceOf(ActivityUnavailableException.class);
+        assertThat(reservationExtraRepository.count()).isEqualTo(before);
+    }
+
+    @Test
+    void airportPickupStoresOnlyConfiguredPickupSnapshot() {
+        Extra airport = extraRepository.save(Extra.builder().name("Airport pickup")
+                .slug("airport-" + UUID.randomUUID()).unitPrice(new BigDecimal("80"))
+                .tva(BigDecimal.ZERO).category(ExtraCategory.TRANSPORT)
+                .serviceType("AIRPORT_PICKUP").pricingUnit(PricingUnit.PER_BOOKING)
+                .pickupFields(java.util.Set.of(PickupField.AIRPORT, PickupField.FLIGHT_NUMBER))
+                .requiredPickupFields(java.util.Set.of(PickupField.AIRPORT)).isActive(true).build());
+        ReservationRequest request = requestWithExtra(airport.getExtraId());
+        request.getExtras().get(0).setPickupAirport("Tunis-Carthage");
+        request.getExtras().get(0).setPickupFlightNumber("TU 723");
+
+        var response = reservationService.createReservation(request);
+        ReservationExtra snapshot = reservationExtraRepository
+                .findByReservationReservationId(response.getReservationId()).stream()
+                .filter(line -> !line.isResourceAllocation()).findFirst().orElseThrow();
+        assertThat(snapshot.getPickupDetails().getAirport()).isEqualTo("Tunis-Carthage");
+        assertThat(snapshot.getPickupDetails().getFlightNumber()).isEqualTo("TU 723");
+        assertThat(snapshot.getUnitPrice()).isEqualByComparingTo("80.000");
+    }
+
+    @Test
+    void meetingPointPickupRequiresConfiguredAddress() {
+        Extra meeting = extraRepository.save(Extra.builder().name("Meeting point")
+                .slug("meeting-" + UUID.randomUUID()).unitPrice(new BigDecimal("25"))
+                .tva(BigDecimal.ZERO).category(ExtraCategory.TRANSPORT)
+                .serviceType("MEETING_POINT").pricingUnit(PricingUnit.PER_BOOKING)
+                .pickupFields(java.util.Set.of(PickupField.ADDRESS, PickupField.INSTRUCTIONS))
+                .requiredPickupFields(java.util.Set.of(PickupField.ADDRESS)).isActive(true).build());
+
+        assertThatThrownBy(() -> reservationService.createReservation(requestWithExtra(meeting.getExtraId())))
+                .isInstanceOf(ReservationValidationException.class).hasMessageContaining("ADDRESS");
+    }
+
+    @Test
+    void transportCapacityUsesTheSharedExtraInventory() {
+        Extra transfer = extraRepository.save(Extra.builder().name("Private transfer")
+                .slug("transfer-" + UUID.randomUUID()).unitPrice(new BigDecimal("90"))
+                .tva(BigDecimal.ZERO).category(ExtraCategory.TRANSPORT)
+                .serviceType("PRIVATE_TRANSFER").pricingUnit(PricingUnit.PER_BOOKING)
+                .maxUnitsPerDay(1).isActive(true).build());
+
+        reservationService.createReservation(requestWithExtra(transfer.getExtraId()));
+        assertThatThrownBy(() -> reservationService.createReservation(requestWithExtra(transfer.getExtraId())))
+                .isInstanceOf(ActivityUnavailableException.class);
+    }
+
+    @Test
+    void concurrentCompositeGuideBookingsOnlyOneWins() throws Exception {
+        Extra option = compositeGuide(1, 1);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CyclicBarrier start = new CyclicBarrier(2);
+        AtomicInteger accepted = new AtomicInteger();
+        AtomicInteger rejected = new AtomicInteger();
+        for (int i = 0; i < 2; i++) pool.submit(() -> {
+            try {
+                start.await(5, TimeUnit.SECONDS);
+                reservationService.createReservation(requestWithExtra(option.getExtraId()));
+                accepted.incrementAndGet();
+            } catch (com.camping.duneinsolite.exception.ActivityUnavailableException ex) {
+                rejected.incrementAndGet();
+            } catch (Exception ignored) { }
+        });
+        pool.shutdown();
+        assertThat(pool.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
+        assertThat(accepted.get()).isEqualTo(1);
+        assertThat(rejected.get()).isEqualTo(1);
+        assertThat(publicAvailabilityService.forServiceOption(option.getSlug(), date).unitsAvailable())
+                .isZero();
     }
 }

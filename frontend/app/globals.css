@@ -2935,6 +2935,10 @@ footer.site-footer .bar-social a:hover {
   border-color: var(--accent);
   background: rgba(160, 74, 47, 0.07);
 }
+.ride-option[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
 .ride-option input {
   flex: none;
   width: 17px;
@@ -2945,9 +2949,25 @@ footer.site-footer .bar-social a:hover {
   flex: 1;
   font-size: 0.95rem;
 }
+.service-option-copy strong,
+.service-option-copy small,
+.ride-price small {
+  display: block;
+}
+.service-option-copy small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+.ride-price small {
+  margin-top: 3px;
+}
 .ride-price {
   font-size: 0.82rem;
   color: var(--muted);
+  text-align: right;
 }
 
 .detail-gallery {

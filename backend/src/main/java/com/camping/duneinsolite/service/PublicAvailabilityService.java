@@ -6,11 +6,9 @@ import com.camping.duneinsolite.dto.response.publicapi.PublicServiceOptionAvaila
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.model.Extra;
-import com.camping.duneinsolite.model.ServiceOption;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.repository.AccommodationTypeRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
-import com.camping.duneinsolite.repository.ServiceOptionRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +22,7 @@ import java.util.List;
  * night, an activity on a given day, or a guide/transport option on a given
  * day. Advisory — the authoritative allocation check happens under a row
  * lock during booking (see {@link AccommodationAvailabilityService#allocate} /
- * {@link ExtraAvailabilityService#allocate} / {@link ServiceOptionAvailabilityService#allocate}).
+ * {@link ExtraAvailabilityService#allocate}).
  */
 @Service
 @RequiredArgsConstructor
@@ -35,8 +33,6 @@ public class PublicAvailabilityService {
     private final AccommodationAvailabilityService availabilityService;
     private final ExtraRepository extraRepository;
     private final ExtraAvailabilityService extraAvailabilityService;
-    private final ServiceOptionRepository serviceOptionRepository;
-    private final ServiceOptionAvailabilityService serviceOptionAvailabilityService;
 
     @Transactional(readOnly = true)
     public PublicAvailabilityResponse forStay(String staySlug, LocalDate date) {
@@ -69,9 +65,27 @@ public class PublicAvailabilityService {
 
     @Transactional(readOnly = true)
     public PublicServiceOptionAvailabilityResponse forServiceOption(String serviceOptionSlug, LocalDate date) {
-        ServiceOption option = serviceOptionRepository.findBySlugAndActiveTrue(serviceOptionSlug)
+        Extra option = extraRepository.findBySlugAndIsActiveTrue(serviceOptionSlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Service option not found: " + serviceOptionSlug));
-        var a = serviceOptionAvailabilityService.status(option, date);
-        return new PublicServiceOptionAvailabilityResponse(serviceOptionSlug, date, a.status().name(), a.unitsAvailable());
+        var optionAvailability = extraAvailabilityService.status(option, date);
+        boolean unavailable = optionAvailability.status() == ExtraAvailabilityService.Status.UNAVAILABLE;
+        Integer availableSelections = optionAvailability.unitsAvailable();
+        for (var requirement : option.getResourceRequirements()) {
+            var resourceAvailability = extraAvailabilityService.status(requirement.getResource(), date);
+            if (resourceAvailability.status() == ExtraAvailabilityService.Status.UNAVAILABLE) {
+                unavailable = true;
+            }
+            if (resourceAvailability.unitsAvailable() != null) {
+                int selections = resourceAvailability.unitsAvailable() / requirement.getQuantity();
+                availableSelections = availableSelections == null
+                        ? selections : Math.min(availableSelections, selections);
+                if (selections == 0) unavailable = true;
+            }
+        }
+        String status = unavailable ? ExtraAvailabilityService.Status.UNAVAILABLE.name()
+                : availableSelections == null ? ExtraAvailabilityService.Status.UNKNOWN.name()
+                : ExtraAvailabilityService.Status.AVAILABLE.name();
+        return new PublicServiceOptionAvailabilityResponse(
+                serviceOptionSlug, date, status, unavailable ? 0 : availableSelections);
     }
 }

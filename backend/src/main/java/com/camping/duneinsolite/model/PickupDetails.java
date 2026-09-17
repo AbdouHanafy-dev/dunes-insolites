@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * The pickup information a TRANSPORT-category {@link ServiceOption}
+ * The pickup information a TRANSPORT-category {@link Extra}
  * requires - only the fields relevant to the chosen option's type are
  * expected to be filled in (hotel name for a hotel pickup, flight number
  * for an airport pickup); nothing here is itself required unless the

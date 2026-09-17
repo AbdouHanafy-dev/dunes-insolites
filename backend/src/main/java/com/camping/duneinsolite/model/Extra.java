@@ -2,6 +2,9 @@ package com.camping.duneinsolite.model;
 
 import com.camping.duneinsolite.model.enums.GroupSizeType;
 import com.camping.duneinsolite.model.enums.Language;
+import com.camping.duneinsolite.model.enums.ExtraCategory;
+import com.camping.duneinsolite.model.enums.PickupField;
+import com.camping.duneinsolite.model.enums.PricingUnit;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -55,6 +58,45 @@ public class Extra {
      */
     @Column(name = "max_units_per_day")
     private Integer maxUnitsPerDay;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private ExtraCategory category = ExtraCategory.ACTIVITY;
+
+    @Column(name = "service_type")
+    private String serviceType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pricing_unit", nullable = false)
+    @Builder.Default
+    private PricingUnit pricingUnit = PricingUnit.PER_UNIT;
+
+    @Column(name = "requires_customer_vehicle", nullable = false)
+    @Builder.Default
+    private boolean requiresCustomerVehicle = false;
+
+    @Column(name = "display_order", nullable = false)
+    @Builder.Default
+    private int displayOrder = 0;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "extra_pickup_fields", joinColumns = @JoinColumn(name = "extra_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "field_name")
+    @Builder.Default
+    private Set<PickupField> pickupFields = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "extra_required_pickup_fields", joinColumns = @JoinColumn(name = "extra_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "field_name")
+    @Builder.Default
+    private Set<PickupField> requiredPickupFields = new HashSet<>();
+
+    @OneToMany(mappedBy = "extra", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ExtraResourceRequirement> resourceRequirements = new ArrayList<>();
 
     @Column(name = "tva", nullable = false)
     @Builder.Default

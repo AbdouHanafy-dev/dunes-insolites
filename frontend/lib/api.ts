@@ -449,6 +449,60 @@ export async function getActivityAvailability(
   );
 }
 
+/* ------------------------------------------------- guide & transport options */
+
+export type ServiceOptionCategory = "GUIDE" | "TRANSPORT";
+export type PricingUnit = "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE";
+export type PickupField = "HOTEL_NAME" | "AIRPORT" | "FLIGHT_NUMBER" | "ADDRESS" | "ARRIVAL_TIME" | "INSTRUCTIONS";
+
+/** The catalogue shape for the "Getting There & Guide" step - real price, never invented client-side. */
+export type ServiceOptionCatalogItem = {
+  slug: string;
+  name: string;
+  description: string | null;
+  category: ServiceOptionCategory;
+  type: string;
+  pricingUnit: PricingUnit;
+  priceTtc: number | null;
+  requiresPickupLocation: boolean;
+  requiresCustomerVehicle: boolean;
+  pickupFields: PickupField[];
+  requiredPickupFields: PickupField[];
+};
+
+/** Empty array on any failure (no backend, network error...) - the step degrades to "no options available". */
+export async function getServiceOptions(category?: ServiceOptionCategory): Promise<ServiceOptionCatalogItem[]> {
+  if (!BASE) return [];
+  const qs = category ? `?category=${category}` : "";
+  const data = await get<{ serviceOptions: ServiceOptionCatalogItem[] }>(
+    `/public/service-options${qs}`,
+    { seed: { serviceOptions: [] }, empty: { serviceOptions: [] } },
+    { revalidate: 300 },
+  );
+  return data.serviceOptions ?? [];
+}
+
+export type ServiceOptionAvailability = {
+  serviceOptionSlug: string;
+  date: string;
+  status: "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN";
+  unitsAvailable: number | null;
+};
+
+/** Advisory — the booking call re-checks under a lock. Returns `null` when there's no backend. */
+export async function getServiceOptionAvailability(
+  slug: string,
+  date: string,
+  signal?: AbortSignal,
+): Promise<ServiceOptionAvailability | null> {
+  if (!BASE) return null;
+  return get<ServiceOptionAvailability | null>(
+    `/public/service-options/${encodeURIComponent(slug)}/availability?date=${encodeURIComponent(date)}`,
+    { seed: null, empty: null },
+    { signal },
+  );
+}
+
 export async function getGallery(): Promise<GalleryItem[]> {
   return get<GalleryItem[]>(
     "/public/gallery",

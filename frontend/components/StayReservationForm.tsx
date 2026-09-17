@@ -2,9 +2,21 @@
 
 import { useEffect, useState } from "react";
 import * as api from "@/lib/api";
-import type { StayAvailability, TierAvailability } from "@/lib/api";
+import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
 import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
+
+const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
+  PER_DAY: "day",
+  PER_BOOKING: "booking",
+  PER_PERSON: "person",
+  PER_VEHICLE: "vehicle",
+};
+
+type ServiceAvailabilityState = {
+  forDate: string;
+  bySlug: Record<string, api.ServiceOptionAvailability | null>;
+};
 
 function todayISO(): string {
   const d = new Date();
@@ -36,6 +48,65 @@ export default function StayReservationForm({
   const [accommodationSlug, setAccommodationSlug] = useState(initialAccommodationSlug ?? "");
   const [accommodationQty, setAccommodationQty] = useState(1);
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
+
+  // "Getting There & Guide" - hasOwnVehicle null = not chosen yet. Guide is
+  // always offered; transport only when the guest has no vehicle. Kept as
+  // two separate selections (never both a customer-vehicle guide AND a
+  // transport option), matching the backend's own mutual-exclusion rule.
+  const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
+  const [guideOptions, setGuideOptions] = useState<ServiceOptionCatalogItem[]>([]);
+  const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
+  const [guideSlug, setGuideSlug] = useState("");
+  const [transportSlug, setTransportSlug] = useState("");
+  const [pickupHotelName, setPickupHotelName] = useState("");
+  const [pickupAirport, setPickupAirport] = useState("");
+  const [pickupFlightNumber, setPickupFlightNumber] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupArrivalTime, setPickupArrivalTime] = useState("");
+  const [pickupInstructions, setPickupInstructions] = useState("");
+  const [serviceAvailability, setServiceAvailability] = useState<ServiceAvailabilityState>();
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getServiceOptions("GUIDE").then((items) => !cancelled && setGuideOptions(items));
+    api.getServiceOptions("TRANSPORT").then((items) => !cancelled && setTransportOptions(items));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
+  const selectedGuide = guideOptions.find((o) => o.slug === guideSlug);
+  const needsPickupDetails = !!selectedTransport?.requiresPickupLocation;
+  const pickupFields = new Set(selectedTransport?.pickupFields ?? []);
+  const requiredPickupFields = new Set(selectedTransport?.requiredPickupFields ?? []);
+  // Once the guest says they have no vehicle, a guide who'd ride in that
+  // (nonexistent) vehicle makes no sense - hide it rather than let the
+  // guest pick a contradiction the backend would reject anyway.
+  const availableGuideOptions = hasOwnVehicle === false
+    ? guideOptions.filter((o) => !o.requiresCustomerVehicle)
+    : guideOptions;
+
+  useEffect(() => {
+    if (!date) return;
+    const ctrl = new AbortController();
+    const options = [...guideOptions, ...transportOptions];
+    Promise.all(
+      options.map(async (option) => [
+        option.slug,
+        await api.getServiceOptionAvailability(option.slug, date, ctrl.signal),
+      ] as const),
+    ).then((entries) => {
+      if (!ctrl.signal.aborted) {
+        setServiceAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
+      }
+    }).catch(() => {
+      // The catalogue remains usable when the advisory availability endpoint
+      // is temporarily unreachable; booking still re-checks under a lock.
+    });
+    return () => ctrl.abort();
+  }, [date, guideOptions, transportOptions]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -101,6 +172,31 @@ export default function StayReservationForm({
     ? selectedAccommodation.priceFrom * accommodationQty
     : stay.priceFrom * partySize;
 
+  function optionQuantity(option: ServiceOptionCatalogItem): number {
+    return option.pricingUnit === "PER_PERSON" ? partySize : 1;
+  }
+
+  function optionAvailability(option: ServiceOptionCatalogItem) {
+    return serviceAvailability?.forDate === date
+      ? serviceAvailability.bySlug[option.slug]
+      : undefined;
+  }
+
+  function optionUnavailable(option: ServiceOptionCatalogItem): boolean {
+    const availability = optionAvailability(option);
+    return availability?.status === "UNAVAILABLE" ||
+      (availability?.unitsAvailable != null && availability.unitsAvailable < optionQuantity(option));
+  }
+
+  function optionPrice(option: ServiceOptionCatalogItem): number | null {
+    return option.priceTtc == null ? null : option.priceTtc * optionQuantity(option);
+  }
+
+  const serviceTotal = [selectedGuide, selectedTransport].reduce(
+    (sum, option) => sum + (option ? optionPrice(option) ?? 0 : 0),
+    0,
+  );
+
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
   }
@@ -132,7 +228,58 @@ export default function StayReservationForm({
       return;
     }
 
+    const newErrors: Record<string, string> = {};
+    if (hasOwnVehicle === null) {
+      newErrors.arrivalMode = "Please tell us how you'll join the experience.";
+    }
+    if (stay.guideRequired && !guideSlug) {
+      newErrors.guide = "This stay requires an accompanying guide — please choose one.";
+    }
+    if (hasOwnVehicle === false && !transportSlug) {
+      newErrors.transport = "Please choose how you'd like to get to the experience.";
+    }
+    if (
+      needsPickupDetails &&
+      !pickupHotelName.trim() &&
+      !pickupAirport.trim() &&
+      !pickupAddress.trim() &&
+      !pickupInstructions.trim()
+    ) {
+      newErrors.pickup = "Please tell us where to pick you up (hotel, airport, or address).";
+    }
+    if (selectedGuide && optionUnavailable(selectedGuide)) {
+      newErrors.guide = "That guide option is no longer available for this date.";
+    }
+    if (selectedTransport && optionUnavailable(selectedTransport)) {
+      newErrors.transport = "That transportation option is no longer available for this date.";
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setSubmitting(true);
+
+    const serviceOptions = [
+      ...(selectedGuide ? [{
+        serviceOptionSlug: selectedGuide.slug,
+        quantity: optionQuantity(selectedGuide),
+      }] : []),
+      ...(transportSlug
+        ? [
+            {
+              serviceOptionSlug: transportSlug,
+              quantity: selectedTransport ? optionQuantity(selectedTransport) : 1,
+              pickupHotelName: pickupHotelName.trim() || undefined,
+              pickupAirport: pickupAirport.trim() || undefined,
+              pickupFlightNumber: pickupFlightNumber.trim() || undefined,
+              pickupAddress: pickupAddress.trim() || undefined,
+              pickupArrivalTime: pickupArrivalTime.trim() || undefined,
+              pickupInstructions: pickupInstructions.trim() || undefined,
+            },
+          ]
+        : []),
+    ];
 
     const result = await api.createStayBooking({
       staySlug: stay.slug,
@@ -141,6 +288,8 @@ export default function StayReservationForm({
       date,
       partySize,
       rideSlugs,
+      arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
+      serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,
       email,
       phone,
@@ -294,6 +443,178 @@ export default function StayReservationForm({
         {errors.partySize && <span className="err">{errors.partySize}</span>}
       </div>
 
+      <div className="field" data-invalid={!!errors.arrivalMode}>
+        <label>How will you join the experience?</label>
+        <div className="ride-options">
+          <label className="ride-option">
+            <input
+              type="radio"
+              name="hasOwnVehicle"
+              checked={hasOwnVehicle === true}
+              onChange={() => {
+                setHasOwnVehicle(true);
+                setTransportSlug("");
+              }}
+            />
+            <span>I have my own vehicle</span>
+            <span className="ride-price">Car, 4x4 or motorcycle</span>
+          </label>
+          <label className="ride-option">
+            <input
+              type="radio"
+              name="hasOwnVehicle"
+              checked={hasOwnVehicle === false}
+              onChange={() => {
+                setHasOwnVehicle(false);
+                if (selectedGuide?.requiresCustomerVehicle) setGuideSlug("");
+              }}
+            />
+            <span>I need transportation</span>
+            <span className="ride-price">From your hotel, the airport, or a meeting point</span>
+          </label>
+        </div>
+        {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
+
+        {hasOwnVehicle === false && (
+          <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 12 }}>
+            <label>Transportation</label>
+            {transportOptions.length === 0 ? (
+              <p className="hint">No transportation options configured yet — contact us directly.</p>
+            ) : (
+              <div className="ride-options">
+                {transportOptions.map((o) => {
+                  const availability = optionAvailability(o);
+                  const unavailable = optionUnavailable(o);
+                  return (
+                  <label key={o.slug} className="ride-option" data-disabled={unavailable || undefined}>
+                    <input
+                      type="radio"
+                      name="transport"
+                      checked={transportSlug === o.slug}
+                      disabled={unavailable}
+                      onChange={() => setTransportSlug(o.slug)}
+                    />
+                    <span className="service-option-copy">
+                      <strong>{o.name}</strong>
+                      {o.description && <small>{o.description}</small>}
+                    </span>
+                    <span className="ride-price">
+                      {unavailable
+                        ? "Unavailable"
+                        : o.priceTtc == null
+                          ? "Contact us"
+                          : `${o.priceTtc} TND / ${PRICING_UNIT_LABEL[o.pricingUnit]}`}
+                      {!unavailable && availability?.unitsAvailable != null && availability.unitsAvailable <= 3 && (
+                        <small>{availability.unitsAvailable} left</small>
+                      )}
+                    </span>
+                  </label>
+                  );
+                })}
+              </div>
+            )}
+            {errors.transport && <span className="err">{errors.transport}</span>}
+
+            {needsPickupDetails && (
+              <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                {pickupFields.has("HOTEL_NAME") && <input
+                  placeholder="Hotel name (if hotel pickup)"
+                  required={requiredPickupFields.has("HOTEL_NAME")}
+                  value={pickupHotelName}
+                  onChange={(e) => setPickupHotelName(e.target.value)}
+                />}
+                {pickupFields.has("AIRPORT") && <input
+                  placeholder="Airport (if airport pickup)"
+                  required={requiredPickupFields.has("AIRPORT")}
+                  value={pickupAirport}
+                  onChange={(e) => setPickupAirport(e.target.value)}
+                />}
+                {pickupFields.has("FLIGHT_NUMBER") && <input
+                  placeholder="Flight number (optional)"
+                  required={requiredPickupFields.has("FLIGHT_NUMBER")}
+                  value={pickupFlightNumber}
+                  onChange={(e) => setPickupFlightNumber(e.target.value)}
+                />}
+                {pickupFields.has("ADDRESS") && <input
+                  placeholder="Address / meeting point"
+                  required={requiredPickupFields.has("ADDRESS")}
+                  value={pickupAddress}
+                  onChange={(e) => setPickupAddress(e.target.value)}
+                />}
+                {pickupFields.has("ARRIVAL_TIME") && <input
+                  placeholder="Expected arrival time (optional)"
+                  required={requiredPickupFields.has("ARRIVAL_TIME")}
+                  value={pickupArrivalTime}
+                  onChange={(e) => setPickupArrivalTime(e.target.value)}
+                />}
+                {pickupFields.has("INSTRUCTIONS") && <input
+                  placeholder="Anything else we should know?"
+                  required={requiredPickupFields.has("INSTRUCTIONS")}
+                  value={pickupInstructions}
+                  onChange={(e) => setPickupInstructions(e.target.value)}
+                />}
+                {errors.pickup && <span className="err">{errors.pickup}</span>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {hasOwnVehicle !== null && (
+          <div className="field" data-invalid={!!errors.guide} style={{ marginTop: 12 }}>
+            <label>
+              Choose your guide{!stay.guideRequired && " (optional)"}
+            </label>
+            {availableGuideOptions.length === 0 ? (
+              <p className="hint">No guide options configured yet.</p>
+            ) : (
+              <div className="ride-options">
+                {!stay.guideRequired && (
+                  <label className="ride-option">
+                    <input
+                      type="radio"
+                      name="guide"
+                      checked={guideSlug === ""}
+                      onChange={() => setGuideSlug("")}
+                    />
+                    <span>No guide</span>
+                  </label>
+                )}
+                {availableGuideOptions.map((o) => {
+                  const availability = optionAvailability(o);
+                  const unavailable = optionUnavailable(o);
+                  return (
+                  <label key={o.slug} className="ride-option" data-disabled={unavailable || undefined}>
+                    <input
+                      type="radio"
+                      name="guide"
+                      checked={guideSlug === o.slug}
+                      disabled={unavailable}
+                      onChange={() => setGuideSlug(o.slug)}
+                    />
+                    <span className="service-option-copy">
+                      <strong>{o.name}</strong>
+                      {o.description && <small>{o.description}</small>}
+                    </span>
+                    <span className="ride-price">
+                      {unavailable
+                        ? "Unavailable"
+                        : o.priceTtc == null
+                          ? "Contact us"
+                          : `+${o.priceTtc} TND / ${PRICING_UNIT_LABEL[o.pricingUnit]}`}
+                      {!unavailable && availability?.unitsAvailable != null && availability.unitsAvailable <= 3 && (
+                        <small>{availability.unitsAvailable} left</small>
+                      )}
+                    </span>
+                  </label>
+                  );
+                })}
+              </div>
+            )}
+            {errors.guide && <span className="err">{errors.guide}</span>}
+          </div>
+        )}
+      </div>
+
       <div className="field" data-invalid={!!errors.rideSlugs}>
         <label>Add a ride? (optional)</label>
         <div className="ride-options">
@@ -361,10 +682,38 @@ export default function StayReservationForm({
       </div>
 
       <div className="summary">
-        <div className="row total">
-          <span>Total</span>
+        <div className="row">
+          <span>{selectedAccommodation?.title ?? "Stay"}</span>
           <span>€{total}</span>
         </div>
+        {selectedGuide && (
+          <div className="row">
+            <span>{selectedGuide.name}</span>
+            <span>{optionPrice(selectedGuide) == null ? "On request" : `${optionPrice(selectedGuide)} TND`}</span>
+          </div>
+        )}
+        {selectedTransport && (
+          <div className="row">
+            <span>{selectedTransport.name}</span>
+            <span>{optionPrice(selectedTransport) == null ? "On request" : `${optionPrice(selectedTransport)} TND`}</span>
+          </div>
+        )}
+        {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
+          <div className="row" key={activity.slug}>
+            <span>{activity.title}</span>
+            <span>from €{activity.priceFrom}</span>
+          </div>
+        ))}
+        <div className="row total">
+          <span>Stay total</span>
+          <span>€{total}</span>
+        </div>
+        {serviceTotal > 0 && (
+          <div className="row total">
+            <span>Service options</span>
+            <span>{serviceTotal} TND</span>
+          </div>
+        )}
       </div>
 
       {formError && <div className="alert">{formError}</div>}
