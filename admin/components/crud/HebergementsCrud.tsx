@@ -3,6 +3,11 @@
 import CollectionList from "@/components/payload/CollectionList";
 import CollectionEditor from "@/components/payload/CollectionEditor";
 import type { ColumnDef, FieldDef } from "@/components/payload/fields";
+import TranslationsField, {
+  type CatalogTranslationForm,
+  translationsToArray,
+  translationsToRecord,
+} from "@/components/payload/TranslationsField";
 import type { AdminTourType } from "@/lib/api";
 
 const BASE_PATH = "/catalogue/hebergements";
@@ -59,7 +64,26 @@ const emptyForm = {
   tva: 13,
   guideRequired: false,
   isActive: true,
+  translations: {} as Record<string, CatalogTranslationForm>,
 };
+
+function tourTypeForm(item?: AdminTourType): Record<string, unknown> {
+  if (!item) return emptyForm;
+  return { ...item, translations: translationsToRecord(item.translations) };
+}
+
+function tourTypeRequest(form: Record<string, unknown>) {
+  return { ...form, translations: translationsToArray(form.translations as Record<string, CatalogTranslationForm>) };
+}
+
+function translationsSection(form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) {
+  return (
+    <TranslationsField
+      translations={(form.translations as Record<string, CatalogTranslationForm>) ?? {}}
+      onChange={(translations) => patch({ translations })}
+    />
+  );
+}
 
 export function HebergementsList({ initialItems }: { initialItems: AdminTourType[] }) {
   return (
@@ -82,8 +106,10 @@ export function HebergementEditor({ id, initialData }: { id?: string; initialDat
       basePath={BASE_PATH}
       apiPath={API_PATH}
       id={id}
-      initialData={initialData ?? emptyForm}
+      initialData={tourTypeForm(initialData)}
       fields={fields}
+      toRequestBody={tourTypeRequest}
+      extraSection={translationsSection}
     />
   );
 }

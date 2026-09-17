@@ -274,6 +274,7 @@ export type AdminTourType = {
   guideRequired: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
+  translations: AdminCatalogTranslation[];
 };
 
 export function getAllTourTypes(accessToken: string): Promise<AdminTourType[]> {
@@ -327,6 +328,7 @@ export type AdminExtra = {
   pickupFields: string[];
   requiredPickupFields: string[];
   resourceRequirements: Array<{ resourceExtraId: string; quantity: number; resourceName?: string }>;
+  translations: AdminCatalogTranslation[];
 };
 
 export function getAllExtras(accessToken: string): Promise<AdminExtra[]> {

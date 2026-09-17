@@ -4,6 +4,11 @@ import CollectionList from "@/components/payload/CollectionList";
 import CollectionEditor from "@/components/payload/CollectionEditor";
 import type { ColumnDef } from "@/components/payload/fields";
 import type { FieldDef } from "@/components/payload/fields";
+import TranslationsField, {
+  type CatalogTranslationForm,
+  translationsToArray,
+  translationsToRecord,
+} from "@/components/payload/TranslationsField";
 import type { AdminExtra } from "@/lib/api";
 
 const BASE_PATH = "/catalogue/extras";
@@ -87,6 +92,7 @@ const emptyForm = {
   isActive: true,
   category: "ACTIVITY" as const,
   pricingUnit: "PER_UNIT" as const,
+  translations: {} as Record<string, CatalogTranslationForm>,
 };
 
 const emptyServiceForm = {
@@ -98,6 +104,15 @@ const emptyServiceForm = {
   displayOrder: 0,
   resourceRequirementsJson: "[]",
 };
+
+function extraForm(item?: AdminExtra): Record<string, unknown> {
+  if (!item) return emptyForm;
+  return { ...item, translations: translationsToRecord(item.translations) };
+}
+
+function extraRequest(form: Record<string, unknown>) {
+  return { ...form, translations: translationsToArray(form.translations as Record<string, CatalogTranslationForm>) };
+}
 
 function serviceForm(item?: AdminExtra): Record<string, unknown> {
   if (!item) return emptyServiceForm;
@@ -111,6 +126,7 @@ function serviceForm(item?: AdminExtra): Record<string, unknown> {
     pickupArrivalTime: pickup.has("ARRIVAL_TIME"),
     pickupInstructions: pickup.has("INSTRUCTIONS"),
     resourceRequirementsJson: JSON.stringify(item.resourceRequirements ?? [], null, 2),
+    translations: translationsToRecord(item.translations),
   };
 }
 
@@ -125,7 +141,17 @@ function serviceRequest(form: Record<string, unknown>) {
   const type = String(form.serviceType ?? "").toUpperCase();
   const primary = type.includes("HOTEL") ? "HOTEL_NAME" : type.includes("AIRPORT") ? "AIRPORT" : "ADDRESS";
   return { ...form, pickupFields, requiredPickupFields: pickupFields.includes(primary) ? [primary] : [],
-    resourceRequirements, resourceRequirementsJson: undefined };
+    resourceRequirements, resourceRequirementsJson: undefined,
+    translations: translationsToArray(form.translations as Record<string, CatalogTranslationForm>) };
+}
+
+function translationsSection(form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) {
+  return (
+    <TranslationsField
+      translations={(form.translations as Record<string, CatalogTranslationForm>) ?? {}}
+      onChange={(translations) => patch({ translations })}
+    />
+  );
 }
 
 export function ExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
@@ -149,8 +175,10 @@ export function ExtraEditor({ id, initialData }: { id?: string; initialData?: Ad
       basePath={BASE_PATH}
       apiPath={API_PATH}
       id={id}
-      initialData={initialData ?? emptyForm}
+      initialData={extraForm(initialData)}
       fields={fields}
+      toRequestBody={extraRequest}
+      extraSection={translationsSection}
     />
   );
 }
@@ -164,5 +192,6 @@ export function ServiceExtrasList({ initialItems }: { initialItems: AdminExtra[]
 export function ServiceExtraEditor({ id, initialData }: { id?: string; initialData?: AdminExtra }) {
   return <CollectionEditor collectionLabel="Guides & transport"
     basePath="/catalogue/guides-transport" apiPath="extras" id={id}
-    initialData={serviceForm(initialData)} fields={serviceFields} toRequestBody={serviceRequest} />;
+    initialData={serviceForm(initialData)} fields={serviceFields} toRequestBody={serviceRequest}
+    extraSection={translationsSection} />;
 }

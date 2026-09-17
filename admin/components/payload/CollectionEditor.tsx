@@ -24,6 +24,7 @@ export default function CollectionEditor({
   fields,
   toRequestBody,
   titleKey = "name",
+  extraSection,
 }: {
   collectionLabel: string;
   basePath: string;
@@ -38,6 +39,10 @@ export default function CollectionEditor({
    *  "name" (Clients/Hébergements/Tours/Extras all have one); pass e.g.
    *  "label" for a collection that doesn't. */
   titleKey?: string;
+  /** An extra card rendered below the plain fields, with direct read/write
+   *  access to the same form state (e.g. TranslationsField) - saved in the
+   *  same submit as everything else, not a separate follow-up request. */
+  extraSection?: (form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) => React.ReactNode;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -109,7 +114,7 @@ export default function CollectionEditor({
 
       <form onSubmit={onSave} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
         {/* Main fields */}
-        <div className="card flex flex-col gap-4 rounded-2xl p-6">
+        <div className="card flex flex-col gap-4 rounded-2xl p-6 lg:col-start-1 lg:row-start-1">
           {fields.map((f) => (
             <div key={f.key} className="flex flex-col gap-1.5">
               <label htmlFor={f.key} className={labelClass}>
@@ -125,8 +130,14 @@ export default function CollectionEditor({
           ))}
         </div>
 
+        {extraSection && (
+          <div className="card rounded-2xl p-6 lg:col-span-2 lg:col-start-1 lg:row-start-2">
+            {extraSection(form, (patch) => setForm((s) => ({ ...s, ...patch })))}
+          </div>
+        )}
+
         {/* Sidebar panel — Payload's signature: save/status/delete live here, not inline with fields */}
-        <aside className="h-fit lg:sticky lg:top-20">
+        <aside className="h-fit lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1">
           <div className="card flex flex-col gap-4 rounded-2xl p-5">
             <button type="submit" disabled={busy} className="btn btn-primary btn-block">
               {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Créer"}

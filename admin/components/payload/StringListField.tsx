@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { inputClass } from "@/components/payload/fields";
+import { inputClass } from "./fields";
 
 /** A plain add/remove list of short strings — highlights, included /
  *  not-included items. Lighter than RepeaterField for a single-value list. */

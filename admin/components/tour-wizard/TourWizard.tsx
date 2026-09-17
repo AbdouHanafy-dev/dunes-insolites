@@ -7,9 +7,13 @@ import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import RepeaterField from "@/components/payload/RepeaterField";
-import StringListField from "./StringListField";
+import StringListField from "@/components/payload/StringListField";
 import PhotoGalleryField, { type TourPhoto } from "./PhotoGalleryField";
-import TranslationsField, { type TourTranslationForm } from "./TranslationsField";
+import TranslationsField, {
+  type CatalogTranslationForm,
+  translationsToArray,
+  translationsToRecord,
+} from "@/components/payload/TranslationsField";
 import type { AdminTour } from "@/lib/api";
 
 type ProgramStep = { label: string; title: string; description: string };
@@ -32,7 +36,7 @@ type TourForm = {
   cancellationHoursBeforeDeadline: number | null;
   coverPhotoUrl: string | null;
   photos: TourPhoto[];
-  translations: Record<string, TourTranslationForm>;
+  translations: Record<string, CatalogTranslationForm>;
   passengerAdultPrice: number;
   passengerChildPrice: number;
   partnerAdultPrice: number;
@@ -93,25 +97,7 @@ function fromInitialData(data?: AdminTour): TourForm {
     cancellationHoursBeforeDeadline: data.cancellationPolicy?.hoursBeforeDeadline ?? null,
     coverPhotoUrl: data.coverPhotoUrl ?? null,
     photos: data.photos ?? [],
-    translations: Object.fromEntries(
-      (data.translations ?? []).map((t) => [
-        t.locale,
-        {
-          locale: t.locale,
-          name: t.name ?? "",
-          description: t.description ?? "",
-          aboutText: t.aboutText ?? "",
-          highlights: t.highlights ?? [],
-          includedItems: t.includedItems ?? [],
-          notIncludedItems: t.notIncludedItems ?? [],
-          programSteps: (t.programSteps ?? []).map((s) => ({
-            label: s.label ?? "",
-            title: s.title ?? "",
-            description: s.description ?? "",
-          })),
-        } satisfies TourTranslationForm,
-      ]),
-    ),
+    translations: translationsToRecord(data.translations),
     passengerAdultPrice: data.passengerAdultPrice,
     passengerChildPrice: data.passengerChildPrice,
     partnerAdultPrice: data.partnerAdultPrice,
@@ -142,27 +128,7 @@ function toRequestBody(form: TourForm) {
     },
     coverPhotoUrl: form.coverPhotoUrl,
     photos: form.photos,
-    translations: Object.values(form.translations)
-      .filter(
-        (t) =>
-          t.name.trim() ||
-          t.description.trim() ||
-          t.aboutText.trim() ||
-          t.highlights.length ||
-          t.includedItems.length ||
-          t.notIncludedItems.length ||
-          t.programSteps.length,
-      )
-      .map((t) => ({
-        locale: t.locale,
-        name: t.name || null,
-        description: t.description || null,
-        aboutText: t.aboutText || null,
-        highlights: t.highlights,
-        includedItems: t.includedItems,
-        notIncludedItems: t.notIncludedItems,
-        programSteps: t.programSteps,
-      })),
+    translations: translationsToArray(form.translations),
     passengerAdultPrice: form.passengerAdultPrice,
     passengerChildPrice: form.passengerChildPrice,
     partnerAdultPrice: form.partnerAdultPrice,

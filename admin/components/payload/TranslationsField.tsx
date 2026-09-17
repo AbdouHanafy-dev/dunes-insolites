@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { inputClass, labelClass } from "@/components/payload/fields";
-import RepeaterField from "@/components/payload/RepeaterField";
+import { inputClass, labelClass } from "./fields";
+import RepeaterField from "./RepeaterField";
 import StringListField from "./StringListField";
 
 export type TranslationProgramStep = { label: string; title: string; description: string };
 
-export type TourTranslationForm = {
+export type CatalogTranslationForm = {
   locale: string;
   name: string;
   description: string;
@@ -26,35 +26,101 @@ const LOCALES = [
   { value: "DA", label: "Danois" },
 ];
 
-export function emptyTranslation(locale: string): TourTranslationForm {
+export function emptyTranslation(locale: string): CatalogTranslationForm {
   return { locale, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [] };
 }
 
-/** Not yet read by the public site (see V18 migration comment) - this
- *  drafts EN/DE/IT/DA/AR copy ready for whenever the frontend is wired to
- *  read it, same status TourType/Extra's translations already have. */
+// Shared conversions between the wire shape (CatalogTranslationDto[] - see
+// AdminCatalogTranslation in lib/api.ts) and this field's Record<locale, form>
+// - used by every editor that embeds this field (Tour/TourType/Extra).
+export function translationsToRecord(
+  list: Array<{
+    locale: string;
+    name: string | null;
+    description: string | null;
+    aboutText: string | null;
+    highlights: string[] | null;
+    includedItems: string[] | null;
+    notIncludedItems: string[] | null;
+    programSteps: Array<{ label: string | null; title: string | null; description: string | null }> | null;
+  }> | null | undefined,
+): Record<string, CatalogTranslationForm> {
+  return Object.fromEntries(
+    (list ?? []).map((t) => [
+      t.locale,
+      {
+        locale: t.locale,
+        name: t.name ?? "",
+        description: t.description ?? "",
+        aboutText: t.aboutText ?? "",
+        highlights: t.highlights ?? [],
+        includedItems: t.includedItems ?? [],
+        notIncludedItems: t.notIncludedItems ?? [],
+        programSteps: (t.programSteps ?? []).map((s) => ({
+          label: s.label ?? "",
+          title: s.title ?? "",
+          description: s.description ?? "",
+        })),
+      } satisfies CatalogTranslationForm,
+    ]),
+  );
+}
+
+export function translationsToArray(record: Record<string, CatalogTranslationForm>) {
+  return Object.values(record)
+    .filter(
+      (t) =>
+        t.name.trim() ||
+        t.description.trim() ||
+        t.aboutText.trim() ||
+        t.highlights.length ||
+        t.includedItems.length ||
+        t.notIncludedItems.length ||
+        t.programSteps.length,
+    )
+    .map((t) => ({
+      locale: t.locale,
+      name: t.name || null,
+      description: t.description || null,
+      aboutText: t.aboutText || null,
+      highlights: t.highlights,
+      includedItems: t.includedItems,
+      notIncludedItems: t.notIncludedItems,
+      programSteps: t.programSteps,
+    }));
+}
+
+/**
+ * Per-locale marketing copy for a Tour/TourType/Extra - shared shape with
+ * the backend's CatalogTranslationDto (see PublicCatalogTranslation), so
+ * this one component covers all three admin editors. The public site
+ * already reads TourType/Extra translations live with a French fallback
+ * per field (PublicActivityController/PublicStayController's `locale`
+ * param) - filling these in has an immediate effect on /en, /ar, etc.
+ * Tour's own translations aren't consumed by any public endpoint yet.
+ */
 export default function TranslationsField({
   translations,
   onChange,
 }: {
-  translations: Record<string, TourTranslationForm>;
-  onChange: (translations: Record<string, TourTranslationForm>) => void;
+  translations: Record<string, CatalogTranslationForm>;
+  onChange: (translations: Record<string, CatalogTranslationForm>) => void;
 }) {
   const [activeLocale, setActiveLocale] = useState("EN");
   const active = translations[activeLocale] ?? emptyTranslation(activeLocale);
 
-  function patchActive(fields: Partial<TourTranslationForm>) {
+  function patchActive(fields: Partial<CatalogTranslationForm>) {
     onChange({ ...translations, [activeLocale]: { ...active, ...fields } });
   }
 
-  const hasContent = (t: TourTranslationForm | undefined) =>
+  const hasContent = (t: CatalogTranslationForm | undefined) =>
     !!t && (t.name.trim() || t.description.trim() || t.aboutText.trim() || t.highlights.length || t.includedItems.length || t.notIncludedItems.length || t.programSteps.length);
 
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[13px] text-navy-700/55">
-        Contenu traduit pour ce tour. Le français reste la version de référence — une langue sans contenu ici
-        affichera simplement le français en attendant.
+        Contenu traduit. Le français reste la version de référence — une langue sans contenu ici affichera
+        simplement le français en attendant.
       </p>
       <div className="flex flex-wrap gap-2">
         {LOCALES.map((l) => (
@@ -77,7 +143,7 @@ export default function TranslationsField({
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Nom du tour</label>
+          <label className={labelClass}>Nom</label>
           <input className={inputClass} value={active.name} onChange={(e) => patchActive({ name: e.target.value })} />
         </div>
         <div className="flex flex-col gap-1.5">
