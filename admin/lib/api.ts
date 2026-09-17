@@ -286,6 +286,7 @@ export type AdminExtra = {
   isActive: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
+  maxUnitsPerDay: number | null;
 };
 
 export function getAllExtras(accessToken: string): Promise<AdminExtra[]> {

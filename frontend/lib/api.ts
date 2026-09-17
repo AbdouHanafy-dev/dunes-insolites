@@ -423,6 +423,32 @@ export async function getStayAvailability(
   );
 }
 
+export type ActivityAvailability = {
+  activitySlug: string;
+  date: string;
+  status: "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN";
+  unitsAvailable: number | null;
+};
+
+/**
+ * Truthful activity capacity (quads, camel-ride seats...) for one day.
+ * Advisory — the booking call re-checks under a lock. Returns `null` when
+ * there's no backend (local dev): the form then treats the activity as
+ * bookable with no cap, same convention as getStayAvailability.
+ */
+export async function getActivityAvailability(
+  slug: string,
+  date: string,
+  signal?: AbortSignal,
+): Promise<ActivityAvailability | null> {
+  if (!BASE) return null;
+  return get<ActivityAvailability | null>(
+    `/public/activities/${encodeURIComponent(slug)}/availability?date=${encodeURIComponent(date)}`,
+    { seed: null, empty: null },
+    { signal },
+  );
+}
+
 export async function getGallery(): Promise<GalleryItem[]> {
   return get<GalleryItem[]>(
     "/public/gallery",

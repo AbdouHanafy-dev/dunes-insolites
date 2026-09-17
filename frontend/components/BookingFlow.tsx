@@ -5,9 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "@/lib/api";
+import type { ActivityAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { formatDuration } from "@/lib/data/activities";
-import type { SlotAvailability } from "@/lib/bookings";
 import { MAX_PARTY_SIZE, SLOT_LABELS, type Activity, type TimeSlot } from "@/lib/types";
 
 const STEPS = ["Adventure", "Date & time", "Your details", "Review"] as const;
@@ -49,9 +49,13 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   // Availability is cached against the (activity, date) pair it was fetched
   // for, so a stale response can never be shown against a newer selection.
-  const [fetched, setFetched] = useState<{ key: string; slots: SlotAvailability[] }>({
+  // Real capacity (quads, camel-ride seats...), not a per-time-slot mock -
+  // the backend has no time-slot concept at all (the camp confirms the
+  // hour on arrival), so `timeSlot` below is a plain preference, never
+  // checked against capacity.
+  const [fetched, setFetched] = useState<{ key: string; availability: ActivityAvailability | null }>({
     key: "",
-    slots: [],
+    availability: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -61,17 +65,29 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const min = todayISO();
 
   const key = slug && date ? `${slug}|${date}` : "";
-  const slots = fetched.key === key ? fetched.slots : [];
-  const loadingSlots = key !== "" && fetched.key !== key;
+  const availability = fetched.key === key ? fetched.availability : null;
+  const loadingAvailability = key !== "" && fetched.key !== key;
+  const unitsAvailable = availability?.unitsAvailable ?? null;
+  const soldOut = availability?.status === "UNAVAILABLE";
 
   useEffect(() => {
     if (!key) return;
     const [a, d] = key.split("|");
     let cancelled = false;
     api
-      .getAvailability(a, d)
-      .then((slots) => !cancelled && setFetched({ key, slots }))
-      .catch(() => !cancelled && setFetched({ key, slots: [] }));
+      .getActivityAvailability(a, d)
+      .then((availability) => {
+        if (cancelled) return;
+        setFetched({ key, availability });
+        // Never let the party-size selector hold a value the guest could
+        // not actually book once real capacity comes back lower than
+        // their pick.
+        const units = availability?.unitsAvailable ?? null;
+        if (units != null) {
+          setPartySize((current) => (current > units ? Math.max(1, units) : current));
+        }
+      })
+      .catch(() => !cancelled && setFetched({ key, availability: null }));
     return () => {
       cancelled = true;
     };
@@ -80,10 +96,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   // Display-only estimate — never submitted. createBooking sends slug, date,
   // slot, party and contact; the server computes the authoritative price.
   const total = activity ? activity.priceFrom * partySize : 0;
-  const selectedSlot = slots.find((s) => s.slot === timeSlot);
-  // A slot picked before the date changed stops counting once the new
-  // availability says it is gone.
-  const chosenSlot: TimeSlot | "" = selectedSlot?.available ? timeSlot : "";
+  const chosenSlot: TimeSlot | "" = timeSlot;
 
   const validateStep = useCallback((): boolean => {
     const e: Record<string, string> = {};
@@ -91,9 +104,10 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     if (step === 1) {
       if (!date) e.date = "Pick a date.";
       else if (date < min) e.date = "Pick today or a future date.";
-      if (!chosenSlot) e.timeSlot = "Pick a time slot.";
-      else if (selectedSlot && selectedSlot.seatsLeft < partySize)
-        e.partySize = `Only ${selectedSlot.seatsLeft} seat${selectedSlot.seatsLeft === 1 ? "" : "s"} left in that slot.`;
+      if (!chosenSlot) e.timeSlot = "Pick a preferred time.";
+      if (soldOut) e.partySize = `${activity?.title ?? "This activity"} is fully booked for that date.`;
+      else if (unitsAvailable != null && unitsAvailable < partySize)
+        e.partySize = `Only ${unitsAvailable} spot${unitsAvailable === 1 ? "" : "s"} left for that date.`;
       if (partySize < 1 || partySize > MAX_PARTY_SIZE)
         e.partySize = `Party size must be between 1 and ${MAX_PARTY_SIZE}.`;
     }
@@ -105,7 +119,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     }
     setErrors(e);
     return Object.keys(e).length === 0;
-  }, [step, slug, date, min, chosenSlot, selectedSlot, partySize, name, email, phone]);
+  }, [step, slug, date, min, chosenSlot, soldOut, unitsAvailable, activity, partySize, name, email, phone]);
 
   function next() {
     if (validateStep()) {
@@ -208,8 +222,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <>
             <h2>When are you coming?</h2>
             <p className="hint">
-              {activity?.title} runs a morning departure and a golden-hour departure. Availability
-              updates as you change the date.
+              {activity?.title} runs a morning departure and a golden-hour departure — the camp
+              confirms the exact hour on arrival, once your spot is booked.
             </p>
 
             <div className="form-grid">
@@ -232,43 +246,41 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                   value={partySize}
                   onChange={(e) => setPartySize(Number(e.target.value))}
                 >
-                  {Array.from({ length: MAX_PARTY_SIZE }, (_, i) => i + 1).map((n) => (
+                  {Array.from(
+                    { length: unitsAvailable != null ? Math.min(MAX_PARTY_SIZE, unitsAvailable) || 1 : MAX_PARTY_SIZE },
+                    (_, i) => i + 1,
+                  ).map((n) => (
                     <option key={n} value={n}>
                       {n} {n === 1 ? "person" : "people"}
                     </option>
                   ))}
                 </select>
+                {!date && <p className="hint">Pick a date to check availability.</p>}
+                {date && loadingAvailability && <p className="hint">Checking availability…</p>}
+                {date && !loadingAvailability && soldOut && (
+                  <p className="hint err">Fully booked for that date — try another day.</p>
+                )}
+                {date && !loadingAvailability && !soldOut && unitsAvailable != null && (
+                  <p className="hint">✓ {unitsAvailable} spot{unitsAvailable === 1 ? "" : "s"} available</p>
+                )}
                 {errors.partySize && <span className="err">{errors.partySize}</span>}
               </div>
 
               <div className="field span-2" data-invalid={!!errors.timeSlot}>
-                <label>Departure</label>
-                {!date && <p className="hint">Pick a date to see open slots.</p>}
-                {date && loadingSlots && <p className="hint">Checking availability…</p>}
-                {date && !loadingSlots && slots.length === 0 && (
-                  <p className="hint">No departures that day. Try another date.</p>
-                )}
-                {date && !loadingSlots && slots.length > 0 && (
-                  <div className="slots">
-                    {slots.map((s) => (
-                      <button
-                        key={s.slot}
-                        type="button"
-                        className="slot"
-                        aria-pressed={chosenSlot === s.slot}
-                        disabled={!s.available}
-                        onClick={() => setTimeSlot(s.slot)}
-                      >
-                        <span className="t">{SLOT_LABELS[s.slot]}</span>
-                        <span className="s">
-                          {s.available
-                            ? `${s.seatsLeft} seat${s.seatsLeft === 1 ? "" : "s"} left`
-                            : "Sold out"}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <label>Preferred departure</label>
+                <div className="slots">
+                  {(Object.keys(SLOT_LABELS) as TimeSlot[]).map((slotOption) => (
+                    <button
+                      key={slotOption}
+                      type="button"
+                      className="slot"
+                      aria-pressed={chosenSlot === slotOption}
+                      onClick={() => setTimeSlot(slotOption)}
+                    >
+                      <span className="t">{SLOT_LABELS[slotOption]}</span>
+                    </button>
+                  ))}
+                </div>
                 {errors.timeSlot && <span className="err">{errors.timeSlot}</span>}
               </div>
             </div>

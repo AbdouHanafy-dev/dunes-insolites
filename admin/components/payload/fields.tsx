@@ -1,7 +1,7 @@
 export type FieldDef =
   | { type: "text"; key: string; label: string; required?: boolean; hint?: string }
   | { type: "textarea"; key: string; label: string; hint?: string }
-  | { type: "number"; key: string; label: string; required?: boolean; step?: number }
+  | { type: "number"; key: string; label: string; required?: boolean; step?: number; hint?: string }
   | { type: "datetime"; key: string; label: string; hint?: string }
   | { type: "select"; key: string; label: string; options: { value: string; label: string }[]; hint?: string }
   | { type: "checkbox"; key: string; label: string }

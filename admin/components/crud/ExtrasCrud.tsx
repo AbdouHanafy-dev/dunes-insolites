@@ -36,6 +36,12 @@ const fields: FieldDef[] = [
   { type: "textarea", key: "description", label: "Description" },
   { type: "number", key: "unitPrice", label: "Prix unitaire", required: true },
   { type: "number", key: "tva", label: "TVA (%)", required: true, step: 0.1 },
+  {
+    type: "number",
+    key: "maxUnitsPerDay",
+    label: "Capacité par jour",
+    hint: "Nombre total d'unités (quads, places chameau…) disponibles par jour. Laisser vide = pas de limite.",
+  },
   { type: "checkbox", key: "isActive", label: "Actif" },
 ];
 
