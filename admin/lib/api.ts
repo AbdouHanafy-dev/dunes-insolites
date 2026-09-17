@@ -242,6 +242,7 @@ export type AdminTourType = {
   partnerChildPrice: number;
   tva: number;
   isActive: boolean;
+  guideRequired: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
 };
@@ -293,6 +294,53 @@ export type AdminExtra = {
 
 export function getAllExtras(accessToken: string): Promise<AdminExtra[]> {
   return authedGet<AdminExtra[]>("/extras", accessToken, []);
+}
+
+/* ----------------------------------------------------- service options */
+
+export type ServiceOptionCategory = "GUIDE" | "TRANSPORT";
+export type PricingUnit = "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE";
+
+export type AdminServiceOption = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  category: ServiceOptionCategory;
+  type: string;
+  pricingUnit: PricingUnit;
+  unitPriceTtc: number | null;
+  tvaRate: number;
+  maxUnitsPerDay: number | null;
+  requiresPickupLocation: boolean;
+  requiresCustomerVehicle: boolean;
+  displayOrder: number;
+  active: boolean;
+  bookable: boolean;
+};
+
+export function getAllServiceOptions(accessToken: string): Promise<AdminServiceOption[]> {
+  return authedGet<AdminServiceOption[]>("/service-options", accessToken, []);
+}
+
+export function getServiceOptionById(accessToken: string, id: string): Promise<AdminServiceOption | null> {
+  return authedGet<AdminServiceOption | null>(`/service-options/${id}`, accessToken, null);
+}
+
+export type AdminPricingRule = {
+  id: string;
+  ruleType: "DATE" | "PERIOD";
+  startDate: string;
+  endDate: string;
+  priceTtc: number;
+  active: boolean;
+};
+
+export function getServiceOptionPricingRules(
+  accessToken: string,
+  serviceOptionId: string,
+): Promise<AdminPricingRule[]> {
+  return authedGet<AdminPricingRule[]>(`/service-options/${serviceOptionId}/pricing-rules`, accessToken, []);
 }
 
 export function getExtraById(accessToken: string, id: string): Promise<AdminExtra | null> {

@@ -31,6 +31,7 @@ public class TourTypeRequest {
     private String meetingPoint;
     private String location;
     private Boolean isActive;
+    private Boolean guideRequired;
     private GroupSizeType groupSizeType;
     private Set<Language> languages;
     private CancellationPolicy cancellationPolicy;

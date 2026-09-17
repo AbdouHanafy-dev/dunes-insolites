@@ -67,9 +67,13 @@ public class TourTypeServiceImpl implements TourTypeService {
     public TourTypeResponse updateTourType(UUID tourTypeId, TourTypeRequest request) {
         TourType tourType = findById(tourTypeId);
         Boolean previousIsActive = tourType.getIsActive();
+        Boolean previousGuideRequired = tourType.getGuideRequired();
         tourTypeMapper.updateEntity(request, tourType);
         if (tourType.getIsActive() == null) {
             tourType.setIsActive(previousIsActive);
+        }
+        if (tourType.getGuideRequired() == null) {
+            tourType.setGuideRequired(previousGuideRequired);
         }
         syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));

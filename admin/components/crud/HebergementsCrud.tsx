@@ -38,6 +38,11 @@ const fields: FieldDef[] = [
   { type: "number", key: "partnerAdultPrice", label: "Prix adulte (partenaire)", required: true },
   { type: "number", key: "partnerChildPrice", label: "Prix enfant (partenaire)", required: true },
   { type: "number", key: "tva", label: "TVA (%)", required: true, step: 0.1 },
+  {
+    type: "checkbox",
+    key: "guideRequired",
+    label: "Guide obligatoire — le client doit choisir un guide avant de continuer",
+  },
   { type: "checkbox", key: "isActive", label: "Actif" },
 ];
 
@@ -52,6 +57,7 @@ const emptyForm = {
   partnerAdultPrice: 0,
   partnerChildPrice: 0,
   tva: 13,
+  guideRequired: false,
   isActive: true,
 };
 
