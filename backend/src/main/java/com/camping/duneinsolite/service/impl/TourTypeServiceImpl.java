@@ -42,6 +42,15 @@ public class TourTypeServiceImpl implements TourTypeService {
         if (tourType.getIsActive() == null) {
             tourType.setIsActive(true);
         }
+        // Same bug class as isActive above and as updateTourType's own fix
+        // below - guide_required is NOT NULL in Postgres but nullable
+        // Boolean here, so a caller that simply omits it (the admin UI never
+        // does, it always sends false - but a direct API call, found live,
+        // does) 500s on the constraint instead of getting a sensible
+        // default of "no guide required."
+        if (tourType.getGuideRequired() == null) {
+            tourType.setGuideRequired(false);
+        }
         syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));
     }

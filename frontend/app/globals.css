@@ -2581,7 +2581,14 @@ footer.site-footer .bar-social a:hover {
 
 /* ---------- breadcrumbs ---------- */
 .breadcrumbs {
-  padding: 14px 24px;
+  /* The fixed .site-header (top: 20px, ~98px tall) floats over the page on
+     every route - found live: with only the default 14px here, the whole
+     breadcrumb trail rendered directly underneath it, completely hidden on
+     every page that renders <Breadcrumbs> (activities/[slug], camp/[slug],
+     about, contact, faq, gallery, guides, safety - confirmed on all of
+     them, not just the detail-hero pages). 134px clears the header (98 +
+     20 + 16px breathing room) before this text starts. */
+  padding: 134px 24px 14px;
   font-size: 0.82rem;
 }
 .breadcrumbs ol {
