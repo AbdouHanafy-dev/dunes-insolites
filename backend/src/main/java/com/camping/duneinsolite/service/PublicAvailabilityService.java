@@ -85,7 +85,11 @@ public class PublicAvailabilityService {
         String status = unavailable ? ExtraAvailabilityService.Status.UNAVAILABLE.name()
                 : availableSelections == null ? ExtraAvailabilityService.Status.UNKNOWN.name()
                 : ExtraAvailabilityService.Status.AVAILABLE.name();
-        return new PublicServiceOptionAvailabilityResponse(
-                serviceOptionSlug, date, status, unavailable ? 0 : availableSelections);
+        // NOT `unavailable ? 0 : availableSelections` - a ternary mixing an
+        // int literal with a boxed Integer forces the Integer branch to
+        // unbox even when it's null (the UNKNOWN case, no capacity
+        // configured), NPEing here every time. Keep both branches boxed.
+        Integer unitsAvailable = unavailable ? Integer.valueOf(0) : availableSelections;
+        return new PublicServiceOptionAvailabilityResponse(serviceOptionSlug, date, status, unitsAvailable);
     }
 }

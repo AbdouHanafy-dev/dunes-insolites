@@ -23,10 +23,18 @@ public record PublicServiceOptionResponse(
         Set<PickupField> requiredPickupFields
 ) {
     public static PublicServiceOptionResponse from(Extra o) {
+        // The admin form only ever lets requiredPickupFields be a subset of
+        // pickupFields (ExtrasCrud.tsx's serviceRequest()), but checking
+        // both here rather than just pickupFields means a booking can never
+        // be authoritatively rejected in ReservationServiceImpl#validatePickup
+        // for a field the guest was never shown a way to fill in - the
+        // frontend gate and the backend gate must agree even if that
+        // invariant were ever violated another way.
+        boolean requiresPickupLocation = !o.getPickupFields().isEmpty() || !o.getRequiredPickupFields().isEmpty();
         return new PublicServiceOptionResponse(
                 o.getSlug(), o.getName(), o.getDescription(),
                 o.getCategory(), o.getServiceType(),
-                o.getPricingUnit(), o.getUnitPrice(), !o.getPickupFields().isEmpty(),
+                o.getPricingUnit(), o.getUnitPrice(), requiresPickupLocation,
                 o.isRequiresCustomerVehicle(), o.getPickupFields(), o.getRequiredPickupFields());
     }
 }
