@@ -344,7 +344,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (selection.getAccommodationTypeId() != null) {
             int units = selection.getAccommodationUnits() != null ? selection.getAccommodationUnits() : 1;
             var priced = accommodationPricingService.resolveById(
-                    selection.getAccommodationTypeId(), units, 1, adults + children);
+                    selection.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
             builder.accommodationTypeId(priced.accommodationTypeId())
                     .accommodationName(priced.name())
                     .accommodationUnits(priced.units())
@@ -963,7 +963,7 @@ public class ReservationServiceImpl implements ReservationService {
                     // Explicit re-selection in the request → reprice (deliberate).
                     int units = selection.getAccommodationUnits() != null ? selection.getAccommodationUnits() : 1;
                     var priced = accommodationPricingService.resolveById(
-                            selection.getAccommodationTypeId(), units, 1, adults + children);
+                            selection.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
                     snapshotBuilder.accommodationTypeId(priced.accommodationTypeId())
                             .accommodationName(priced.name())
                             .accommodationUnits(priced.units())

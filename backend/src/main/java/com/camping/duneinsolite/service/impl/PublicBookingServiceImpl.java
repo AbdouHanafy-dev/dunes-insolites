@@ -163,7 +163,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
             // Reuses the pricing service's fail-closed rules (unpriced / inactive
             // / not enough beds) — throws before any side effect.
             accommodationPricingService.resolveById(
-                    accommodation.getId(), accommodationUnits, 1, request.getPartySize());
+                    accommodation.getId(), accommodationUnits, 1, request.getPartySize(), request.getDate());
 
             // Phase 2 — advisory pre-check: reject an obviously sold-out tier
             // before creating a guest account. NOT authoritative (no lock) —

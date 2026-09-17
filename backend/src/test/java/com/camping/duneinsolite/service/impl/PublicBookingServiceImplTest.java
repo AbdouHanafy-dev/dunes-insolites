@@ -203,7 +203,7 @@ class PublicBookingServiceImplTest {
         service.createStayBooking(request);
 
         // fail-closed pre-check ran before any reservation was built
-        verify(accommodationPricingService).resolveById(accId, 2, 1, 2);
+        verify(accommodationPricingService).resolveById(accId, 2, 1, 2, LocalDate.of(2026, 9, 20));
 
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
