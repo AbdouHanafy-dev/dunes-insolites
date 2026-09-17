@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { TourEditor } from "@/components/crud/ToursCrud";
+import TourWizard from "@/components/tour-wizard/TourWizard";
 
 export const metadata: Metadata = { title: "Nouveau tour" };
 
 export default function NewTourPage() {
-  return <TourEditor />;
+  return <TourWizard />;
 }

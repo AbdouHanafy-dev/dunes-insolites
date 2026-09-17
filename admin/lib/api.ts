@@ -376,6 +376,10 @@ export function getAllSources(accessToken: string): Promise<AdminSource[]> {
   return authedGet<AdminSource[]>("/sources", accessToken, []);
 }
 
+export type AdminTourProgramStep = { label: string | null; title: string | null; description: string | null };
+export type AdminTourPhoto = { url: string; caption: string | null };
+export type AdminTourCancellationPolicy = { freeCancellation: boolean | null; hoursBeforeDeadline: number | null };
+
 export type AdminTour = {
   tourId: string;
   name: string;
@@ -390,6 +394,20 @@ export type AdminTour = {
   isActive: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
+  // Rest of TourResponse - the old flat single-page form never read these,
+  // the wizard (TourWizard.tsx) does.
+  aboutText: string | null;
+  highlights: string[];
+  includedItems: string[];
+  notIncludedItems: string[];
+  programSteps: AdminTourProgramStep[];
+  meetingPoint: string | null;
+  groupSizeType: string | null;
+  languages: string[];
+  cancellationPolicy: AdminTourCancellationPolicy | null;
+  photos: AdminTourPhoto[];
+  averageRating: number | null;
+  reviewCount: number | null;
 };
 
 export function getAllTours(accessToken: string): Promise<AdminTour[]> {

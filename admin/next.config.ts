@@ -8,12 +8,25 @@ const frontendOrigin = (() => {
     return "'self'";
   }
 })();
+// Uploaded media (MediaLibrary, and the Tour wizard's cover/gallery
+// previews) is rendered via a plain <img src="..."> pointing straight at
+// the backend's own absolute URL (MediaController#absolute) - in
+// production that's api.dunesinsolites.com, a different origin from
+// admin.dunesinsolites.com. Without this, img-src 'self' silently blocks
+// every one of those thumbnails (found live: naturalWidth stayed 0).
+const apiOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8090/api").origin;
+  } catch {
+    return "'self'";
+  }
+})();
 const isDev = process.env.NODE_ENV !== "production";
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' ${apiOrigin} data: blob:`,
   "font-src 'self' data:",
   "connect-src 'self'",
   `frame-src ${frontendOrigin}`,

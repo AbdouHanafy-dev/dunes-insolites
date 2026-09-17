@@ -1,8 +1,7 @@
 "use client";
 
 import CollectionList from "@/components/payload/CollectionList";
-import CollectionEditor from "@/components/payload/CollectionEditor";
-import type { ColumnDef, FieldDef } from "@/components/payload/fields";
+import type { ColumnDef } from "@/components/payload/fields";
 import type { AdminTour } from "@/lib/api";
 
 const BASE_PATH = "/catalogue/tours";
@@ -27,34 +26,6 @@ const columns: ColumnDef<AdminTour>[] = [
   },
 ];
 
-const fields: FieldDef[] = [
-  { type: "text", key: "name", label: "Nom", required: true },
-  { type: "text", key: "slug", label: "Slug (URL)" },
-  { type: "text", key: "duration", label: "Durée", hint: 'ex. "3 Jours / 2 Nuits"' },
-  { type: "text", key: "location", label: "Lieu" },
-  { type: "textarea", key: "description", label: "Description" },
-  { type: "number", key: "passengerAdultPrice", label: "Prix adulte (passager)", required: true },
-  { type: "number", key: "passengerChildPrice", label: "Prix enfant (passager)", required: true },
-  { type: "number", key: "partnerAdultPrice", label: "Prix adulte (partenaire)", required: true },
-  { type: "number", key: "partnerChildPrice", label: "Prix enfant (partenaire)", required: true },
-  { type: "number", key: "tva", label: "TVA (%)", required: true, step: 0.1 },
-  { type: "checkbox", key: "isActive", label: "Actif" },
-];
-
-const emptyForm = {
-  name: "",
-  slug: "",
-  duration: "",
-  location: "",
-  description: "",
-  passengerAdultPrice: 0,
-  passengerChildPrice: 0,
-  partnerAdultPrice: 0,
-  partnerChildPrice: 0,
-  tva: 13,
-  isActive: true,
-};
-
 export function ToursList({ initialItems }: { initialItems: AdminTour[] }) {
   return (
     <CollectionList
@@ -65,19 +36,6 @@ export function ToursList({ initialItems }: { initialItems: AdminTour[] }) {
       titleKey="name"
       items={initialItems}
       columns={columns}
-    />
-  );
-}
-
-export function TourEditor({ id, initialData }: { id?: string; initialData?: AdminTour }) {
-  return (
-    <CollectionEditor
-      collectionLabel="Tours / Circuits"
-      basePath={BASE_PATH}
-      apiPath={API_PATH}
-      id={id}
-      initialData={initialData ?? emptyForm}
-      fields={fields}
     />
   );
 }

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getTourById } from "@/lib/api";
-import { TourEditor } from "@/components/crud/ToursCrud";
+import TourWizard from "@/components/tour-wizard/TourWizard";
 
 export default async function EditTourPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -11,5 +11,5 @@ export default async function EditTourPage({ params }: { params: Promise<{ id: s
   const item = await getTourById(session.accessToken, id);
   if (!item) notFound();
 
-  return <TourEditor id={id} initialData={item} />;
+  return <TourWizard id={id} initialData={item} />;
 }

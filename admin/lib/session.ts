@@ -17,8 +17,13 @@ export const OIDC_TX_COOKIE = "admin_oidc_tx";
 // SameSite=Strict keep it locked down.
 export const REFRESH_COOKIE_PATH = "/";
 
-export type StaffRole = "ADMIN" | "CAMPING" | "PARTENAIRE";
-const STAFF_ROLES: StaffRole[] = ["ADMIN", "CAMPING", "PARTENAIRE"];
+// STAFF is a real backoffice role (see StaffCrud.tsx / CustomRoleController):
+// a "blank slate" account whose actual permissions come entirely from its
+// attached custom role, enforced server-side by every endpoint's
+// @perm.can(...) check - this list only decides who gets past the login
+// gate at all, same as it already did for CAMPING/PARTENAIRE.
+export type StaffRole = "ADMIN" | "CAMPING" | "PARTENAIRE" | "STAFF";
+const STAFF_ROLES: StaffRole[] = ["ADMIN", "CAMPING", "PARTENAIRE", "STAFF"];
 
 export type Session = {
   id: string;
