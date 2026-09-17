@@ -47,7 +47,11 @@ export default async function ReservationsPage() {
               <tbody className="divide-y divide-gray-100">
                 {reservations.content.map((r) => (
                   <tr key={r.reservationId} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 font-medium text-gray-900">{r.userName}</td>
+                    <td className="px-6 py-3 font-medium text-gray-900">
+                      <Link href={`/reservations/${r.reservationId}`} className="hover:underline">
+                        {r.userName}
+                      </Link>
+                    </td>
                     <td className="px-6 py-3 text-gray-600">
                       {[...r.tourTypes, ...r.tours][0]?.name ?? r.reservationType}
                     </td>

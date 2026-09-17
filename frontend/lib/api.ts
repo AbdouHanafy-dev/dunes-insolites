@@ -747,6 +747,18 @@ export type MyTransaction = {
   transactionDate: string;
 };
 
+// Ad-hoc staff attached to a TOURS reservation by an admin (Guide.java /
+// Chauffeur.java) - not the customer's own booking-time guide/transport
+// selection, which lives in `extras` instead. Read-only here: the client
+// sees who was assigned, never assigns anyone themselves.
+export type MyReservationStaffMember = {
+  guideId?: string;
+  chauffeurId?: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+};
+
 export type MyReservation = {
   reservationId: string;
   reservationType: string;
@@ -768,6 +780,8 @@ export type MyReservation = {
   extras: MyReservationExtraLine[];
   paymentSummary: MyPaymentSummary | null;
   transactions: MyTransaction[];
+  guides: MyReservationStaffMember[];
+  chauffeurs: MyReservationStaffMember[];
 };
 
 export type MyReview = {
@@ -795,6 +809,13 @@ async function authedGet<T>(path: string, accessToken: string, fallback: T): Pro
 
 export function getMyReservations(accessToken: string): Promise<MyReservation[]> {
   return authedGet<MyReservation[]>("/reservations/my-reservations", accessToken, []);
+}
+
+// GET /reservations/{id} is ownership-scoped server-side (requireStaffOrOwner
+// in ReservationServiceImpl) - a CLIENT gets their own reservation or a 403,
+// never someone else's, so no extra check is needed here.
+export function getMyReservationById(accessToken: string, reservationId: string): Promise<MyReservation | null> {
+  return authedGet<MyReservation | null>(`/reservations/${reservationId}`, accessToken, null);
 }
 
 export function getMyReviews(accessToken: string): Promise<{ content: MyReview[] }> {

@@ -3942,6 +3942,17 @@ footer.site-footer .bar-social a:hover {
   color: var(--ink);
 }
 
+.account-booking-link {
+  margin-top: 16px;
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent, #a15c2a);
+}
+.account-booking-link:hover {
+  text-decoration: underline;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;

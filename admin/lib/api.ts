@@ -74,6 +74,35 @@ export function getActiveReservations(
   );
 }
 
+export type AdminReservationStaffMember = {
+  guideId?: string;
+  chauffeurId?: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  reservationId: string;
+};
+
+// Everything the reservation detail page needs — a superset of
+// AdminReservation (which only carries what the list table renders).
+export type AdminReservationDetail = AdminReservation & {
+  userId: string;
+  groupName: string | null;
+  groupLeaderName: string | null;
+  numberOfAdults: number | null;
+  numberOfChildren: number | null;
+  demandeSpecial: string | null;
+  guides: AdminReservationStaffMember[];
+  chauffeurs: AdminReservationStaffMember[];
+};
+
+export function getReservationById(
+  accessToken: string,
+  reservationId: string,
+): Promise<AdminReservationDetail | null> {
+  return authedGet<AdminReservationDetail | null>(`/reservations/${reservationId}`, accessToken, null);
+}
+
 /* ------------------------------------------------------------------ users */
 
 // The 4 roles the permission matrix (PermissionMatrix below) actually

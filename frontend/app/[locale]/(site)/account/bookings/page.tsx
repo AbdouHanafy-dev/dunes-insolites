@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getSession } from "@/lib/session";
 import { getMyReservations } from "@/lib/api";
+import { Link } from "@/i18n/navigation";
 
 function MoonIcon() {
   return (
@@ -74,6 +75,9 @@ export default async function AccountBookingsPage() {
                     <div className="v">{new Date(r.createdAt).toLocaleDateString()}</div>
                   </div>
                 </div>
+                <Link href={`/account/bookings/${r.reservationId}`} className="account-booking-link">
+                  {t("viewDetails")} →
+                </Link>
               </div>
             );
           })}
