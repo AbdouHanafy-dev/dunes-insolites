@@ -380,6 +380,18 @@ export type AdminTourProgramStep = { label: string | null; title: string | null;
 export type AdminTourPhoto = { url: string; caption: string | null };
 export type AdminTourCancellationPolicy = { freeCancellation: boolean | null; hoursBeforeDeadline: number | null };
 
+// CatalogTranslationDto - shared shape with TourType/Extra's translations.
+export type AdminCatalogTranslation = {
+  locale: string;
+  name: string | null;
+  description: string | null;
+  aboutText: string | null;
+  highlights: string[] | null;
+  includedItems: string[] | null;
+  notIncludedItems: string[] | null;
+  programSteps: AdminTourProgramStep[] | null;
+};
+
 export type AdminTour = {
   tourId: string;
   name: string;
@@ -406,6 +418,7 @@ export type AdminTour = {
   languages: string[];
   cancellationPolicy: AdminTourCancellationPolicy | null;
   photos: AdminTourPhoto[];
+  translations: AdminCatalogTranslation[];
   averageRating: number | null;
   reviewCount: number | null;
 };

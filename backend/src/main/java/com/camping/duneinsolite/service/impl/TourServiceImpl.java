@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.service.impl;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.dto.request.TourRequest;
 import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
@@ -7,6 +8,7 @@ import com.camping.duneinsolite.exception.ConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourMapper;
 import com.camping.duneinsolite.model.Tour;
+import com.camping.duneinsolite.model.TourTranslation;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourRepository;
@@ -38,6 +40,7 @@ public class TourServiceImpl implements TourService {
         if (tour.getIsActive() == null) {
             tour.setIsActive(true);
         }
+        syncTranslations(tour, request.getTranslations());
         return tourMapper.toResponse(tourRepository.save(tour));
     }
 
@@ -58,7 +61,40 @@ public class TourServiceImpl implements TourService {
         if (tour.getIsActive() == null) {
             tour.setIsActive(previousIsActive);
         }
+        syncTranslations(tour, request.getTranslations());
         return tourMapper.toResponse(tourRepository.save(tour));
+    }
+
+    // Replaces the whole translation set on every save rather than diffing -
+    // the admin wizard always submits the complete per-locale list, and
+    // orphanRemoval on Tour.translations cleans up the rows that drop out.
+    //
+    // saveAndFlush() right after clear() is load-bearing, not decoration -
+    // exact same reasoning as TourTypeServiceImpl.syncTranslations (see its
+    // own comment): without it, Hibernate can batch the DELETEs for the
+    // orphaned old translations and the INSERTs for the new ones into the
+    // same flush with the INSERTs ordered first, 400ing on
+    // (tour_id, locale)'s unique constraint when updating a Tour that
+    // already has a translation for that locale. Harmless on create, where
+    // getTranslations() is already empty and this flush has nothing to
+    // delete.
+    private void syncTranslations(Tour tour, List<CatalogTranslationDto> dtos) {
+        tour.getTranslations().clear();
+        tourRepository.saveAndFlush(tour);
+        if (dtos == null) return;
+        for (CatalogTranslationDto dto : dtos) {
+            TourTranslation translation = new TourTranslation();
+            translation.setTour(tour);
+            translation.setLocale(dto.getLocale());
+            translation.setName(dto.getName());
+            translation.setDescription(dto.getDescription());
+            translation.setAboutText(dto.getAboutText());
+            translation.setHighlights(dto.getHighlights());
+            translation.setIncludedItems(dto.getIncludedItems());
+            translation.setNotIncludedItems(dto.getNotIncludedItems());
+            translation.setProgramSteps(dto.getProgramSteps());
+            tour.getTranslations().add(translation);
+        }
     }
 
     @Override

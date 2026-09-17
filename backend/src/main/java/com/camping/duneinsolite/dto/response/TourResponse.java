@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.response;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
@@ -37,6 +38,7 @@ public class TourResponse {
     private CancellationPolicy cancellationPolicy;
     private String coverPhotoUrl;
     private List<Photo> photos;
+    private List<CatalogTranslationDto> translations;
     private Double averageRating;
     private Integer reviewCount;
 }

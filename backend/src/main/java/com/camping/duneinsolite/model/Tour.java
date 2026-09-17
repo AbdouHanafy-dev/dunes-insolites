@@ -124,4 +124,10 @@ public class Tour {
     @Column(name = "review_count")
     @Builder.Default
     private Integer reviewCount = 0;
+
+    // Non-French marketing copy - name/description/aboutText/etc. columns
+    // above are the French source of truth. See ContentLocale.
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<TourTranslation> translations = new ArrayList<>();
 }

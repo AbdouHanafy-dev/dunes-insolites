@@ -9,6 +9,7 @@ import { inputClass, labelClass } from "@/components/payload/fields";
 import RepeaterField from "@/components/payload/RepeaterField";
 import StringListField from "./StringListField";
 import PhotoGalleryField, { type TourPhoto } from "./PhotoGalleryField";
+import TranslationsField, { type TourTranslationForm } from "./TranslationsField";
 import type { AdminTour } from "@/lib/api";
 
 type ProgramStep = { label: string; title: string; description: string };
@@ -31,6 +32,7 @@ type TourForm = {
   cancellationHoursBeforeDeadline: number | null;
   coverPhotoUrl: string | null;
   photos: TourPhoto[];
+  translations: Record<string, TourTranslationForm>;
   passengerAdultPrice: number;
   passengerChildPrice: number;
   partnerAdultPrice: number;
@@ -57,6 +59,7 @@ const EMPTY_FORM: TourForm = {
   cancellationHoursBeforeDeadline: null,
   coverPhotoUrl: null,
   photos: [],
+  translations: {},
   passengerAdultPrice: 0,
   passengerChildPrice: 0,
   partnerAdultPrice: 0,
@@ -90,6 +93,25 @@ function fromInitialData(data?: AdminTour): TourForm {
     cancellationHoursBeforeDeadline: data.cancellationPolicy?.hoursBeforeDeadline ?? null,
     coverPhotoUrl: data.coverPhotoUrl ?? null,
     photos: data.photos ?? [],
+    translations: Object.fromEntries(
+      (data.translations ?? []).map((t) => [
+        t.locale,
+        {
+          locale: t.locale,
+          name: t.name ?? "",
+          description: t.description ?? "",
+          aboutText: t.aboutText ?? "",
+          highlights: t.highlights ?? [],
+          includedItems: t.includedItems ?? [],
+          notIncludedItems: t.notIncludedItems ?? [],
+          programSteps: (t.programSteps ?? []).map((s) => ({
+            label: s.label ?? "",
+            title: s.title ?? "",
+            description: s.description ?? "",
+          })),
+        } satisfies TourTranslationForm,
+      ]),
+    ),
     passengerAdultPrice: data.passengerAdultPrice,
     passengerChildPrice: data.passengerChildPrice,
     partnerAdultPrice: data.partnerAdultPrice,
@@ -120,6 +142,27 @@ function toRequestBody(form: TourForm) {
     },
     coverPhotoUrl: form.coverPhotoUrl,
     photos: form.photos,
+    translations: Object.values(form.translations)
+      .filter(
+        (t) =>
+          t.name.trim() ||
+          t.description.trim() ||
+          t.aboutText.trim() ||
+          t.highlights.length ||
+          t.includedItems.length ||
+          t.notIncludedItems.length ||
+          t.programSteps.length,
+      )
+      .map((t) => ({
+        locale: t.locale,
+        name: t.name || null,
+        description: t.description || null,
+        aboutText: t.aboutText || null,
+        highlights: t.highlights,
+        includedItems: t.includedItems,
+        notIncludedItems: t.notIncludedItems,
+        programSteps: t.programSteps,
+      })),
     passengerAdultPrice: form.passengerAdultPrice,
     passengerChildPrice: form.passengerChildPrice,
     partnerAdultPrice: form.partnerAdultPrice,
@@ -149,6 +192,7 @@ const STEPS = [
   "Points forts & inclusions",
   "Logistique",
   "Tarifs",
+  "Traductions",
   "Aperçu",
 ] as const;
 
@@ -467,6 +511,13 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
         )}
 
         {step === 6 && (
+          <TranslationsField
+            translations={form.translations}
+            onChange={(translations) => patch({ translations })}
+          />
+        )}
+
+        {step === 7 && (
           <div className="flex flex-col gap-5">
             {!canSubmit && (
               <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">

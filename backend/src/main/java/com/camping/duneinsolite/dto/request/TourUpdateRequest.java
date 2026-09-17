@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.request;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
@@ -33,6 +34,7 @@ public class TourUpdateRequest {
     private CancellationPolicy cancellationPolicy;
     private String coverPhotoUrl;
     private List<Photo> photos;
+    private List<CatalogTranslationDto> translations;
 
     @NotNull(message = "Passenger adult price is required")
     private java.math.BigDecimal passengerAdultPrice;
