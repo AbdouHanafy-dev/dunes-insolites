@@ -107,12 +107,15 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
     if (result.ok) {
       toast.success(isSignup ? t("signupSuccess") : t("loginSuccess"));
-      // Staff/partner roles have no home in this app yet (the real
-      // backoffice is R3, docs/ROADMAP.md) — send them to the existing
-      // Angular admin app rather than into the client-only account area.
-      // A full navigation (not the i18n router) since this is a different
-      // origin/app entirely.
-      if (result.data.role !== "CLIENT") {
+      // Staff/partner roles have no home in this app (the real backoffice
+      // is R3, docs/ROADMAP.md) — send them to the existing Angular admin
+      // app rather than into the client-only account area. A full
+      // navigation (not the i18n router) since this is a different
+      // origin/app entirely. CHAUFFEUR is the one exception (18 Sep 2026):
+      // its home IS this app (/account/trips, see AccountNav's driverMode)
+      // - found live, redirecting it away with everyone else sent every
+      // driver straight to a backoffice that has no view for them at all.
+      if (result.data.role !== "CLIENT" && result.data.role !== "CHAUFFEUR") {
         window.location.href = adminAppUrl;
         return;
       }

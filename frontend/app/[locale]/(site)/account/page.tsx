@@ -2,7 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { getSession } from "@/lib/session";
 import { getMyReservations, getActivities, type MyReservation } from "@/lib/api";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { site } from "@/lib/site";
 
 /**
@@ -69,6 +69,10 @@ export default async function AccountPage({
   const t = await getTranslations("account");
   const session = await getSession();
   if (!session) return null; // layout already redirects; keeps this render branch simple
+  if (session.role === "CHAUFFEUR") {
+    redirect({ href: "/account/trips", locale });
+    return null;
+  }
 
   const [reservations, activities] = await Promise.all([
     getMyReservations(session.accessToken),

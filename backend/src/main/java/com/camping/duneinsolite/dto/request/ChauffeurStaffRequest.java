@@ -10,4 +10,8 @@ public class ChauffeurStaffRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
     private String phoneNumber;
+    // Optional - links this assignment to a real driver account (User.role
+    // == CHAUFFEUR) so that account sees this trip on GET
+    // /api/chauffeurs/my-trips. Most assignments leave this null.
+    private String driverUserEmail;
 }

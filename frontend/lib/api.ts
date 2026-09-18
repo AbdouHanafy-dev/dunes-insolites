@@ -811,6 +811,24 @@ export function getMyReservations(accessToken: string): Promise<MyReservation[]>
   return authedGet<MyReservation[]>("/reservations/my-reservations", accessToken, []);
 }
 
+// The driver portal's own view - a CHAUFFEUR-role account's assigned trips
+// (DriverTripResponse), never a reservation's full pricing/guest detail.
+export type MyDriverTrip = {
+  reservationId: string;
+  chauffeurId: string;
+  tourName: string;
+  serviceDate: string | null;
+  groupName: string | null;
+  groupLeaderName: string | null;
+  numberOfAdults: number | null;
+  numberOfChildren: number | null;
+  status: string;
+};
+
+export function getMyTrips(accessToken: string): Promise<MyDriverTrip[]> {
+  return authedGet<MyDriverTrip[]>("/chauffeurs/my-trips", accessToken, []);
+}
+
 // GET /reservations/{id} is ownership-scoped server-side (requireStaffOrOwner
 // in ReservationServiceImpl) - a CLIENT gets their own reservation or a 403,
 // never someone else's, so no extra check is needed here.

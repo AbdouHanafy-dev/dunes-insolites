@@ -16,6 +16,7 @@ const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Administrateur",
   CAMPING: "Camping",
   STAFF: "Rôle personnalisé",
+  CHAUFFEUR: "Chauffeur",
 };
 
 const columns: ColumnDef<AdminUser>[] = [
@@ -48,6 +49,7 @@ function buildFields(customRoles: CustomRole[]): FieldDef[] {
         { value: "ADMIN", label: "Administrateur" },
         { value: "CAMPING", label: "Camping" },
         { value: "STAFF", label: "Rôle personnalisé" },
+        { value: "CHAUFFEUR", label: "Chauffeur" },
       ],
     },
     {

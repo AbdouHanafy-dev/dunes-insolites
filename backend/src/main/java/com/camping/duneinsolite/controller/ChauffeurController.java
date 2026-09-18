@@ -3,12 +3,14 @@ package com.camping.duneinsolite.controller;
 import com.camping.duneinsolite.dto.request.ChauffeurRequest;
 import com.camping.duneinsolite.dto.request.ChauffeurUpdateRequest;
 import com.camping.duneinsolite.dto.response.ChauffeurResponse;
+import com.camping.duneinsolite.dto.response.DriverTripResponse;
 import com.camping.duneinsolite.service.ChauffeurService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +27,16 @@ public class ChauffeurController {
 
     private final ChauffeurService chauffeurService;
 
-
+    // A real driver's own view of their assignments - not a staff endpoint
+    // at all, so it must override the class-level ADMIN/CAMPING rule above
+    // (method-level @PreAuthorize always wins over class-level in Spring
+    // Security) rather than widen it.
+    @PreAuthorize("hasRole('CHAUFFEUR')")
+    @GetMapping("/my-trips")
+    public ResponseEntity<List<DriverTripResponse>> getMyTrips() {
+        UUID driverUserId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        return ResponseEntity.ok(chauffeurService.getMyTrips(driverUserId));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ChauffeurResponse> getById(@PathVariable UUID id) {

@@ -46,7 +46,10 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 export function primaryRole(claims: Record<string, unknown>): string {
   const realmAccess = claims.realm_access as { roles?: string[] } | undefined;
   const roles = realmAccess?.roles ?? [];
-  const known = ["ADMIN", "CAMPING", "PARTENAIRE", "CLIENT"];
+  // CHAUFFEUR (18 Sep 2026): a real login, but for the driver portal
+  // (/account/trips) - the account layout branches on this to hide the
+  // customer-facing tabs (bookings/payments/reviews) a driver has no use for.
+  const known = ["ADMIN", "CAMPING", "PARTENAIRE", "CHAUFFEUR", "CLIENT"];
   return known.find((r) => roles.includes(r)) ?? "CLIENT";
 }
 

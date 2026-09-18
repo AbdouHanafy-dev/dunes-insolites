@@ -35,12 +35,20 @@ export default function ReservationStaffPanel({
     reservationType === "TOURS" &&
     !["CANCELLED", "REJECTED", "COMPLETED"].includes(status);
 
-  async function addStaff(kind: "guides" | "chauffeurs", firstName: string, lastName: string, phoneNumber: string) {
+  async function addStaff(
+    kind: "guides" | "chauffeurs",
+    firstName: string,
+    lastName: string,
+    phoneNumber: string,
+    driverUserEmail?: string,
+  ) {
     setBusy(true);
+    const entry: Record<string, unknown> = { firstName, lastName, phoneNumber: phoneNumber || null };
+    if (kind === "chauffeurs" && driverUserEmail) entry.driverUserEmail = driverUserEmail;
     const res = await fetch(`/api/proxy/reservations/${reservationId}/staff`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [kind]: [{ firstName, lastName, phoneNumber: phoneNumber || null }] }),
+      body: JSON.stringify({ [kind]: [entry] }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -99,20 +107,28 @@ function StaffList({
   kind: "guides" | "chauffeurs";
   label: string;
   items: AdminReservationStaffMember[];
-  onAdd: (kind: "guides" | "chauffeurs", firstName: string, lastName: string, phoneNumber: string) => Promise<void>;
+  onAdd: (
+    kind: "guides" | "chauffeurs",
+    firstName: string,
+    lastName: string,
+    phoneNumber: string,
+    driverUserEmail?: string,
+  ) => Promise<void>;
   onRemove: (kind: "guides" | "chauffeurs", id: string) => Promise<void>;
   disabled: boolean;
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [driverUserEmail, setDriverUserEmail] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    await onAdd(kind, firstName, lastName, phoneNumber);
+    await onAdd(kind, firstName, lastName, phoneNumber, kind === "chauffeurs" ? driverUserEmail : undefined);
     setFirstName("");
     setLastName("");
     setPhoneNumber("");
+    setDriverUserEmail("");
   }
 
   return (
@@ -129,6 +145,11 @@ function StaffList({
                 <span className="font-medium text-gray-900">
                   {m.firstName} {m.lastName}
                   {m.phoneNumber && <span className="ml-2 font-normal text-gray-500">{m.phoneNumber}</span>}
+                  {m.driverUserEmail && (
+                    <span className="ml-2 rounded-full bg-emerald/10 px-2 py-0.5 text-[11px] font-medium text-emerald">
+                      compte lié : {m.driverUserEmail}
+                    </span>
+                  )}
                 </span>
                 <button
                   type="button"
@@ -158,8 +179,22 @@ function StaffList({
             <label className={labelClass}>Téléphone</label>
             <input className={inputClass} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
           </div>
-          <div className="flex items-end">
-            <button type="submit" className="btn btn-primary w-full">
+          {kind === "chauffeurs" ? (
+            <div className="flex flex-col gap-1">
+              <label className={labelClass}>Compte chauffeur (optionnel)</label>
+              <input
+                type="email"
+                placeholder="email du compte"
+                className={inputClass}
+                value={driverUserEmail}
+                onChange={(e) => setDriverUserEmail(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div />
+          )}
+          <div className="flex items-end sm:col-span-4">
+            <button type="submit" className="btn btn-primary">
               Affecter
             </button>
           </div>

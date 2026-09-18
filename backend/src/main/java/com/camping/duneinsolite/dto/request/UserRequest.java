@@ -16,8 +16,14 @@ public class UserRequest {
     @Email(message = "Email must be valid")
     private String email;
 
-    // Password is optional here — if null, a random one is generated (admin flow)
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    // Password is optional here - if blank, a random one is generated
+    // (admin flow) or the field is simply unused. @Size(min=8) alone 400s
+    // on "" (found live: creating any staff account through the admin UI
+    // with its password field left blank - exactly what its own "vide =
+    // généré automatiquement" hint tells the admin to do), since @Size
+    // only exempts null, not blank. Only enforce the minimum when a real
+    // password was actually typed.
+    @Pattern(regexp = "^$|.{8,}$", message = "Password must be at least 8 characters")
     private String password;
 
     private String phone;

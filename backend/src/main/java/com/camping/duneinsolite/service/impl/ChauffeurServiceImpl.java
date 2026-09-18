@@ -3,6 +3,7 @@ package com.camping.duneinsolite.service.impl;
 import com.camping.duneinsolite.dto.request.ChauffeurRequest;
 import com.camping.duneinsolite.dto.request.ChauffeurUpdateRequest;
 import com.camping.duneinsolite.dto.response.ChauffeurResponse;
+import com.camping.duneinsolite.dto.response.DriverTripResponse;
 import com.camping.duneinsolite.mapper.ChauffeurMapper;
 import com.camping.duneinsolite.model.Chauffeur;
 import com.camping.duneinsolite.model.Reservation;
@@ -70,6 +71,31 @@ public class ChauffeurServiceImpl implements ChauffeurService {
     @Transactional
     public void deleteAllByReservation(UUID reservationId) {
         chauffeurRepository.deleteAllByReservation_ReservationId(reservationId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DriverTripResponse> getMyTrips(UUID driverUserId) {
+        return chauffeurRepository.findAllByDriverUser_UserIdOrderByReservation_ServiceDateDesc(driverUserId)
+                .stream()
+                .map(c -> {
+                    Reservation r = c.getReservation();
+                    String tourName = !r.getTours().isEmpty() ? r.getTours().get(0).getName()
+                            : !r.getTourTypes().isEmpty() ? r.getTourTypes().get(0).getName()
+                            : r.getReservationType().name();
+                    return DriverTripResponse.builder()
+                            .reservationId(r.getReservationId())
+                            .chauffeurId(c.getChauffeurId())
+                            .tourName(tourName)
+                            .serviceDate(r.getServiceDate())
+                            .groupName(r.getGroupName())
+                            .groupLeaderName(r.getGroupLeaderName())
+                            .numberOfAdults(r.getNumberOfAdults())
+                            .numberOfChildren(r.getNumberOfChildren())
+                            .status(r.getStatus())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     private Chauffeur findOrThrow(UUID id) {

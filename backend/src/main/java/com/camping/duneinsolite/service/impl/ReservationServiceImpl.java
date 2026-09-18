@@ -1402,6 +1402,7 @@ public class ReservationServiceImpl implements ReservationService {
                         .firstName(c.getFirstName())
                         .lastName(c.getLastName())
                         .phoneNumber(c.getPhoneNumber())
+                        .driverUser(resolveDriverUser(c.getDriverUserEmail()))
                         .build();
                 reservation.addChauffeur(chauffeur);
             });
@@ -1523,6 +1524,11 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getFirstName()   != null) chauffeur.setFirstName(request.getFirstName());
         if (request.getLastName()    != null) chauffeur.setLastName(request.getLastName());
         if (request.getPhoneNumber() != null) chauffeur.setPhoneNumber(request.getPhoneNumber());
+        // null = leave the link as-is, "" = unlink, anything else = relink.
+        if (request.getDriverUserEmail() != null) {
+            chauffeur.setDriverUser(
+                    request.getDriverUserEmail().isBlank() ? null : resolveDriverUser(request.getDriverUserEmail()));
+        }
 
         Reservation savedReservation = reservationRepository.save(reservation);
 
@@ -1541,6 +1547,15 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         return toEnrichedResponse(savedReservation);
+    }
+
+    // null/blank -> no account linked (the common case - a chauffeur
+    // assignment is just a name/phone snapshot). A non-blank value must
+    // resolve to a real user, so a typo doesn't silently link nobody.
+    private User resolveDriverUser(String email) {
+        if (email == null || email.isBlank()) return null;
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver account not found: " + email));
     }
 
     @Override

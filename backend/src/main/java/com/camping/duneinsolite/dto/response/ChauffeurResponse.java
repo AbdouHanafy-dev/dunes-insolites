@@ -10,4 +10,6 @@ public class ChauffeurResponse {
     private String lastName;
     private String phoneNumber;
     private UUID reservationId;
+    private UUID driverUserId;
+    private String driverUserEmail;
 }

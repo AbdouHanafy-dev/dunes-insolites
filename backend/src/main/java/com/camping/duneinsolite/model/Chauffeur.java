@@ -28,4 +28,11 @@ public class Chauffeur {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
+
+    // Optional link to a real driver account (User.role == CHAUFFEUR) so
+    // that account can see this trip. Most assignments have none - this
+    // stays a free-text name/phone snapshot either way.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_user_id")
+    private User driverUser;
 }

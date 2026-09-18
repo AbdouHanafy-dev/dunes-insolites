@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface ChauffeurRepository extends JpaRepository<Chauffeur, UUID> {
     List<Chauffeur> findAllByReservation_ReservationId(UUID reservationId);
     void deleteAllByReservation_ReservationId(UUID reservationId);
+    List<Chauffeur> findAllByDriverUser_UserIdOrderByReservation_ServiceDateDesc(UUID driverUserId);
 }

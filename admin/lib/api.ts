@@ -81,6 +81,10 @@ export type AdminReservationStaffMember = {
   lastName: string;
   phoneNumber: string | null;
   reservationId: string;
+  // Chauffeur only - the driver portal account this assignment is linked
+  // to, if any (see ChauffeurResponse.driverUserId/driverUserEmail).
+  driverUserId?: string | null;
+  driverUserEmail?: string | null;
 };
 
 // Everything the reservation detail page needs — a superset of
@@ -114,7 +118,9 @@ export type UserRole = "CLIENT" | "PARTENAIRE" | "CAMPING" | "ADMIN";
 // account whose real permissions come entirely from its one attached
 // custom role (AdminUser.customRoleName), not from this value itself.
 // Deliberately not merged into UserRole (see that type's own comment).
-export type AccountRole = UserRole | "STAFF";
+// CHAUFFEUR (18 Sep 2026) is the other exception - a real login, but for
+// the driver portal (GET /api/chauffeurs/my-trips), never the backoffice.
+export type AccountRole = UserRole | "STAFF" | "CHAUFFEUR";
 
 export type AdminUser = {
   userId: string;
@@ -622,7 +628,7 @@ export function searchStaff(
   accessToken: string,
   opts: { term?: string; page?: number; size?: number } = {},
 ): Promise<Page<AdminUser>> {
-  return searchUsers(accessToken, { ...opts, roles: ["ADMIN", "CAMPING", "STAFF"] });
+  return searchUsers(accessToken, { ...opts, roles: ["ADMIN", "CAMPING", "STAFF", "CHAUFFEUR"] });
 }
 
 /* ------------------------------------------------------------------ reviews */

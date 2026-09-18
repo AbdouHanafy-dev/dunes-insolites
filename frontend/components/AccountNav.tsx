@@ -43,6 +43,19 @@ const ICONS: Record<string, React.ReactNode> = {
       />
     </svg>
   ),
+  tabTrips: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M3.5 15.5l1.6-5.4A2.5 2.5 0 0 1 7.5 8.3h9a2.5 2.5 0 0 1 2.4 1.8l1.6 5.4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <rect x="2.5" y="15.5" width="19" height="4" rx="1.3" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="7" cy="19.5" r="1.4" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="17" cy="19.5" r="1.4" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  ),
 };
 
 const TABS = [
@@ -52,6 +65,10 @@ const TABS = [
   { href: "/account/support", key: "tabSupport", contextKey: null },
   { href: "/account/profile", key: "tabAccount", contextKey: null },
 ] as const;
+
+// CHAUFFEUR accounts have no bookings/payments/reviews of their own - a
+// single tab pointing at their trip list, not the customer nav.
+const DRIVER_TABS = [{ href: "/account/trips", key: "tabTrips", contextKey: null }] as const;
 
 /**
  * `upcomingCount`/`actionRequiredCount` are real, computed server-side in
@@ -64,10 +81,12 @@ export default function AccountNav({
   name,
   upcomingCount,
   actionRequiredCount,
+  driverMode = false,
 }: {
   name: string;
   upcomingCount: number;
   actionRequiredCount: number;
+  driverMode?: boolean;
 }) {
   const t = useTranslations("account");
   const pathname = usePathname();
@@ -85,6 +104,7 @@ export default function AccountNav({
     actionRequiredCount:
       actionRequiredCount > 0 ? t("sidebarActionRequired", { count: actionRequiredCount }) : null,
   };
+  const tabs = driverMode ? DRIVER_TABS : TABS;
 
   return (
     <nav className="account-sidebar" aria-label={t("navLabel")}>
@@ -100,7 +120,7 @@ export default function AccountNav({
         </div>
       </div>
       <div className="account-sidebar-links">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const contextText = tab.contextKey ? context[tab.contextKey] : null;
           return (
             <Link key={tab.href} href={tab.href} data-active={pathname === tab.href}>
