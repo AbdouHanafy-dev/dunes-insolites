@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
-import type { AdminTourType, AdminExtra, AdminSource, AdminAccommodationType, AdminUser } from "@/lib/api";
+import type { AdminTourType, AdminExtra, AdminSource, AdminAccommodationType, AdminUser, AdminTour } from "@/lib/api";
 
 /**
  * Staff-facing "book on behalf of a client" form (phone/walk-in booking) —
@@ -12,16 +12,22 @@ import type { AdminTourType, AdminExtra, AdminSource, AdminAccommodationType, Ad
  * POST /api/reservations the public site's guest-checkout uses
  * internally (ReservationController - ADMIN/CAMPING already pass its
  * hasAnyRole check), never a separate "admin booking" endpoint that
- * doesn't exist. Scoped to HEBERGEMENT (nuitée) + optional accommodation
- * tier + optional extras, matching this app's actual product — Route
- * Insolite's multi-day Tours are a different product, deliberately not
- * offered here (CLAUDE.md).
+ * doesn't exist.
+ *
+ * Covers both real products this platform books manually: Dunes Insolites'
+ * HEBERGEMENT (nuitée, optional accommodation tier) and Route Insolite's
+ * TOURS (multi-day circuit, referencing the Tour catalog) — Route Insolite
+ * has no backoffice of its own yet (R4, unscheduled), so its real circuits
+ * are booked from here in the meantime, same shared DB and reservation
+ * pipeline (see docs/SPACES-AND-WORKFLOW.md §6). This is the internal admin
+ * booking form, not the public vitrine — CLAUDE.md's "no multi-day touring
+ * on the Dunes vitrine" rule doesn't reach here.
  *
  * Pricing is never computed here: the server resolves it from the
- * catalog IDs + unit counts this form submits (AccommodationPricingService),
- * exactly like every other booking path — this form shows the total only
- * after the server returns it, never a client-side estimate presented as
- * real.
+ * catalog IDs + unit counts this form submits (AccommodationPricingService
+ * for HEBERGEMENT, the Tour's own snapshot for TOURS), exactly like every
+ * other booking path — this form shows the total only after the server
+ * returns it, never a client-side estimate presented as real.
  */
 
 type TierAvailability = { slug: string; name: string; status: "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN"; unitsAvailable: number | null };
@@ -32,13 +38,18 @@ export default function NewReservationForm({
   tourTypes,
   extras,
   sources,
+  tours,
 }: {
   tourTypes: AdminTourType[];
   extras: AdminExtra[];
   sources: AdminSource[];
+  tours: AdminTour[];
 }) {
   const router = useRouter();
   const toast = useToast();
+
+  // ── HEBERGEMENT (nuitée) vs TOURS (circuit Route Insolite) ────────
+  const [reservationKind, setReservationKind] = useState<"HEBERGEMENT" | "TOURS">("HEBERGEMENT");
 
   // ── Client ──────────────────────────────────────────────────────
   const [clientMode, setClientMode] = useState<"search" | "new">("search");
@@ -91,13 +102,13 @@ export default function NewReservationForm({
     async function load() {
       setAccommodationId("");
       setAccommodations([]);
-      if (!tourTypeId) return;
+      if (reservationKind !== "HEBERGEMENT" || !tourTypeId) return;
       const res = await fetch(`/api/proxy/accommodation-types?tourTypeId=${tourTypeId}`);
       const rows = res.ok ? ((await res.json()) as AdminAccommodationType[]) : [];
       setAccommodations(rows.filter((r) => r.active && r.bookable));
     }
     load();
-  }, [tourTypeId]);
+  }, [reservationKind, tourTypeId]);
 
   // Advisory only (same shape the public site's own availability check
   // uses, see PublicStayController) - the authoritative guard is the
@@ -107,7 +118,7 @@ export default function NewReservationForm({
   useEffect(() => {
     async function load() {
       setTierAvailability([]);
-      if (!selectedTourType?.slug || !checkInDate) return;
+      if (reservationKind !== "HEBERGEMENT" || !selectedTourType?.slug || !checkInDate) return;
       const res = await fetch(
         `/api/proxy/public/stays/${selectedTourType.slug}/availability?date=${checkInDate}`,
       );
@@ -115,7 +126,11 @@ export default function NewReservationForm({
       setTierAvailability(body?.accommodations ?? []);
     }
     load();
-  }, [selectedTourType?.slug, checkInDate]);
+  }, [reservationKind, selectedTourType?.slug, checkInDate]);
+
+  // ── Circuit (Tour, Route Insolite) ─────────────────────────────
+  const [tourId, setTourId] = useState(tours[0]?.tourId ?? "");
+  const [departureDate, setDepartureDate] = useState(today);
 
   // ── Extras / source / notes ─────────────────────────────────────
   const [extraLines, setExtraLines] = useState<ExtraLine[]>([]);
@@ -168,8 +183,16 @@ export default function NewReservationForm({
     e.preventDefault();
     setError("");
 
-    if (!tourTypeId || !sourceId || nights <= 0) {
-      setError("Vérifiez la nuitée, les dates et la source.");
+    if (!sourceId) {
+      setError("Sélectionnez une source.");
+      return;
+    }
+    if (reservationKind === "HEBERGEMENT" && (!tourTypeId || nights <= 0)) {
+      setError("Vérifiez la nuitée et les dates.");
+      return;
+    }
+    if (reservationKind === "TOURS" && (!tourId || !departureDate)) {
+      setError("Sélectionnez un circuit et une date de départ.");
       return;
     }
 
@@ -182,29 +205,43 @@ export default function NewReservationForm({
     }
     const { userId } = clientResult;
 
-    const body = {
-      userId,
-      sourceId,
-      reservationType: "HEBERGEMENT",
-      checkInDate,
-      checkOutDate,
-      numberOfAdults,
-      numberOfChildren,
-      groupName: groupName.trim() || null,
-      demandeSpecial: demandeSpecial.trim() || null,
-      tourTypes: [
-        {
-          tourTypeId,
-          numberOfAdults,
-          numberOfChildren,
-          activityDate: checkInDate,
-          ...(accommodationId
-            ? { accommodationTypeId: accommodationId, accommodationUnits }
-            : {}),
-        },
-      ],
-      extras: extraLines.map((l) => ({ extraId: l.extraId, quantity: l.quantity, activityDate: l.activityDate })),
-    };
+    const body =
+      reservationKind === "HEBERGEMENT"
+        ? {
+            userId,
+            sourceId,
+            reservationType: "HEBERGEMENT",
+            checkInDate,
+            checkOutDate,
+            numberOfAdults,
+            numberOfChildren,
+            groupName: groupName.trim() || null,
+            demandeSpecial: demandeSpecial.trim() || null,
+            tourTypes: [
+              {
+                tourTypeId,
+                numberOfAdults,
+                numberOfChildren,
+                activityDate: checkInDate,
+                ...(accommodationId
+                  ? { accommodationTypeId: accommodationId, accommodationUnits }
+                  : {}),
+              },
+            ],
+            extras: extraLines.map((l) => ({ extraId: l.extraId, quantity: l.quantity, activityDate: l.activityDate })),
+          }
+        : {
+            userId,
+            sourceId,
+            reservationType: "TOURS",
+            serviceDate: departureDate,
+            numberOfAdults,
+            numberOfChildren,
+            groupName: groupName.trim() || null,
+            demandeSpecial: demandeSpecial.trim() || null,
+            tours: [{ tourId }],
+            extras: extraLines.map((l) => ({ extraId: l.extraId, quantity: l.quantity, activityDate: l.activityDate })),
+          };
 
     const res = await fetch("/api/proxy/reservations", {
       method: "POST",
@@ -248,8 +285,28 @@ export default function NewReservationForm({
       <div>
         <h1 className="text-xl font-bold text-navy-800">Nouvelle réservation</h1>
         <p className="mt-1 text-sm text-navy-700/55">
-          Réservation par téléphone ou au guichet — nuitée à Sabria, avec hébergement et extras optionnels.
+          Réservation par téléphone ou au guichet — nuitée à Sabria, ou circuit Route Insolite.
         </p>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setReservationKind("HEBERGEMENT")}
+            className={reservationKind === "HEBERGEMENT" ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
+          >
+            Nuitée (Dunes Insolites)
+          </button>
+          <button
+            type="button"
+            onClick={() => setReservationKind("TOURS")}
+            disabled={tours.length === 0}
+            className={reservationKind === "TOURS" ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm"}
+          >
+            Circuit (Route Insolite)
+          </button>
+        </div>
+        {reservationKind === "TOURS" && tours.length === 0 && (
+          <p className="mt-2 text-[12px] text-navy-700/50">Aucun circuit actif dans le catalogue.</p>
+        )}
       </div>
 
       {/* ── Client ── */}
@@ -340,6 +397,7 @@ export default function NewReservationForm({
       </section>
 
       {/* ── Nuitée ── */}
+      {reservationKind === "HEBERGEMENT" && (
       <section className="card rounded-2xl p-5">
         <h2 className="text-[15px] font-bold text-navy-800">Nuitée</h2>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -455,6 +513,76 @@ export default function NewReservationForm({
           </div>
         )}
       </section>
+      )}
+
+      {/* ── Circuit (Route Insolite) ── */}
+      {reservationKind === "TOURS" && (
+      <section className="card rounded-2xl p-5">
+        <h2 className="text-[15px] font-bold text-navy-800">Circuit</h2>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="text-[13px] text-navy-700/70">
+            Circuit
+            <select
+              value={tourId}
+              onChange={(e) => setTourId(e.target.value)}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            >
+              {tours.map((t) => (
+                <option key={t.tourId} value={t.tourId}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-[13px] text-navy-700/70">
+            Source
+            <select
+              value={sourceId}
+              onChange={(e) => setSourceId(e.target.value)}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            >
+              {sources.map((s) => (
+                <option key={s.sourceId} value={s.sourceId}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-[13px] text-navy-700/70">
+            Date de départ
+            <input
+              type="date"
+              value={departureDate}
+              onChange={(e) => setDepartureDate(e.target.value)}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            />
+          </label>
+          <label className="text-[13px] text-navy-700/70">
+            Adultes
+            <input
+              type="number"
+              min={0}
+              value={numberOfAdults}
+              onChange={(e) => setNumberOfAdults(Number(e.target.value))}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            />
+          </label>
+          <label className="text-[13px] text-navy-700/70">
+            Enfants
+            <input
+              type="number"
+              min={0}
+              value={numberOfChildren}
+              onChange={(e) => setNumberOfChildren(Number(e.target.value))}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            />
+          </label>
+        </div>
+        <p className="mt-2 text-[12px] text-navy-700/50">
+          Hors nuitées au camp Sabria — celles-ci se réservent séparément si besoin (`ReservationTourHebergement`).
+        </p>
+      </section>
+      )}
 
       {/* ── Extras ── */}
       <section className="card rounded-2xl p-5">
