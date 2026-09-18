@@ -197,7 +197,13 @@ a {
 /* The bar narrows only once the utility row is out of the way, so the two
    changes read as one motion. */
 .site-header.condensed {
-  max-width: 1040px;
+  /* Was 1040px. Measured live (Playwright, 18 Sep 2026): at that width the
+     nav + "Book Direct" button — both `white-space: nowrap`, so neither
+     can shrink — need more room than that to lay out without overflowing,
+     which pushed the button a few px past the header's own right edge and
+     ate the padding fix above entirely. 1120px was the smallest value that
+     stopped the overflow at a 1400px viewport with the full 6-item nav. */
+  max-width: 1120px;
 }
 /* With the drawer open, the header stops reading as a pill floating over
    the page and becomes the drawer panel's own top edge — flush, full-width,
@@ -417,7 +423,12 @@ body:has(.auth-page) .site-header {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 8px 8px 8px 26px;
+  /* Right side was only 8px — the "Book Direct" button (the last visible
+     item on desktop, where header-mobile-controls stays empty) crowded
+     right up against the pill's own rounded corner. 16px still read as
+     cramped next to the left side's 26px — matched it instead of
+     half-fixing it again. */
+  padding: 8px 26px 8px 26px;
 }
 
 .site-header .brand {
@@ -649,11 +660,18 @@ body:has(.auth-page) .site-header {
 }
 
 /* Groups the mobile language control with the burger so the two sit
-   together at the right edge, regardless of whether `.header-main`'s
-   `space-between` would otherwise spread them apart. Empty (and so
-   invisible) on desktop, where both children stay display: none. */
+   together at the right edge. `display: none` here, not just empty
+   children — even with both children hidden, a `display: flex` wrapper is
+   still a flex ITEM in `.header-main`'s own `justify-content: space-between`,
+   so it silently ate a share of the distributed space between itself and
+   `.header-cta`. That share scales with how much free room `.header-main`
+   has, which is exactly why the gap after "Book Direct" looked fine at the
+   top of the page (wide, max-width: 1180px) and shrank once `.condensed`
+   narrowed the bar to 1040px (found live, 18 Sep 2026) — nothing to do
+   with the button's own padding. Switched to `display: flex` only inside
+   the same breakpoints that reveal `.burger` below. */
 .header-mobile-controls {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 10px;
 }
@@ -5508,6 +5526,9 @@ body:has(.drawer[data-open="true"]) .wa-float {
   .burger {
     display: flex;
   }
+  .header-mobile-controls {
+    display: flex;
+  }
   .page-head {
     padding: 160px 0 76px;
   }
@@ -5599,6 +5620,9 @@ body:has(.drawer[data-open="true"]) .wa-float {
     display: none;
   }
   .burger {
+    display: flex;
+  }
+  .header-mobile-controls {
     display: flex;
   }
   .drawer .header-cta {
