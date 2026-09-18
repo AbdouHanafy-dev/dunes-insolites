@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "@/lib/api";
 import type { ActivityAvailability } from "@/lib/api";
@@ -10,17 +11,15 @@ import { useToast } from "@/components/Toast";
 import { formatDuration } from "@/lib/data/activities";
 import { MAX_PARTY_SIZE, SLOT_LABELS, type Activity, type TimeSlot } from "@/lib/types";
 
-const STEPS = ["Adventure", "Date & time", "Your details", "Review"] as const;
-
 function todayISO(): string {
   const d = new Date();
   const off = d.getTimezoneOffset();
   return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
 }
 
-function prettyDate(iso: string): string {
+function prettyDate(iso: string, locale: string): string {
   if (!iso) return "—";
-  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -32,6 +31,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const router = useRouter();
   const params = useSearchParams();
   const toast = useToast();
+  const locale = useLocale();
+  const t = useTranslations("bookingFlow");
+  const STEPS = [t("stepAdventure"), t("stepDateTime"), t("stepYourDetails"), t("stepReview")] as const;
 
   // Deep link: /book?activity=quad-safari opens straight on the date step.
   const preset = params.get("activity");
@@ -100,26 +102,29 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   const validateStep = useCallback((): boolean => {
     const e: Record<string, string> = {};
-    if (step === 0 && !slug) e.activitySlug = "Pick an adventure to continue.";
+    if (step === 0 && !slug) e.activitySlug = t("errorPickAdventure");
     if (step === 1) {
-      if (!date) e.date = "Pick a date.";
-      else if (date < min) e.date = "Pick today or a future date.";
-      if (!chosenSlot) e.timeSlot = "Pick a preferred time.";
-      if (soldOut) e.partySize = `${activity?.title ?? "This activity"} is fully booked for that date.`;
+      if (!date) e.date = t("errorPickDate");
+      else if (date < min) e.date = t("errorPastDate");
+      if (!chosenSlot) e.timeSlot = t("errorPickTimeSlot");
+      if (soldOut) e.partySize = t("errorSoldOut", { activity: activity?.title ?? "" });
       else if (unitsAvailable != null && unitsAvailable < partySize)
-        e.partySize = `Only ${unitsAvailable} spot${unitsAvailable === 1 ? "" : "s"} left for that date.`;
+        e.partySize =
+          unitsAvailable === 1
+            ? t("errorLimitedSpotsOne", { n: unitsAvailable })
+            : t("errorLimitedSpotsOther", { n: unitsAvailable });
       if (partySize < 1 || partySize > MAX_PARTY_SIZE)
-        e.partySize = `Party size must be between 1 and ${MAX_PARTY_SIZE}.`;
+        e.partySize = t("errorPartySizeRange", { max: MAX_PARTY_SIZE });
     }
     if (step === 2) {
-      if (!name.trim()) e.name = "We need a name for the booking.";
-      if (!email.trim()) e.email = "We need an email for the confirmation.";
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = "That email looks off.";
-      if (!phone.trim()) e.phone = "A phone number, in case plans change.";
+      if (!name.trim()) e.name = t("errorName");
+      if (!email.trim()) e.email = t("errorEmail");
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = t("errorEmailInvalid");
+      if (!phone.trim()) e.phone = t("errorPhone");
     }
     setErrors(e);
     return Object.keys(e).length === 0;
-  }, [step, slug, date, min, chosenSlot, soldOut, unitsAvailable, activity, partySize, name, email, phone]);
+  }, [step, slug, date, min, chosenSlot, soldOut, unitsAvailable, activity, partySize, name, email, phone, t]);
 
   function next() {
     if (validateStep()) {
@@ -152,9 +157,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     if (!result.ok) {
       setErrors(result.errors ?? {});
       setFormError(
-        result.errors
-          ? "Some details need another look — check the steps above."
-          : (result.message ?? "We couldn't save that booking. Try again."),
+        result.errors ? t("errorFormSteps") : (result.message ?? t("errorGeneric")),
       );
       setSubmitting(false);
       return;
@@ -167,7 +170,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     } catch {
       /* storage unavailable — the API lookup still works */
     }
-    toast.success(`Reserved — ${result.data.id}`);
+    toast.success(t("toastReserved", { id: result.data.id }));
     router.push(`/bookings/${result.data.id}`);
   }
 
@@ -189,8 +192,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         {/* ---------- 1. adventure ---------- */}
         {step === 0 && (
           <>
-            <h2>Which adventure?</h2>
-            <p className="hint">Pick one to start. You can add another trip after checkout.</p>
+            <h2>{t("adventureTitle")}</h2>
+            <p className="hint">{t("adventureHint")}</p>
             <div className="picker">
               {activities.map((a) => (
                 <button
@@ -207,7 +210,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                     <h3>{a.title}</h3>
                     <p>{a.tagline}</p>
                     <span className="price">
-                      From €{a.priceFrom} · {formatDuration(a.durationMins)}
+                      {t("fromPrice", { price: a.priceFrom, duration: formatDuration(a.durationMins) })}
                     </span>
                   </div>
                 </button>
@@ -220,15 +223,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         {/* ---------- 2. date + slot ---------- */}
         {step === 1 && (
           <>
-            <h2>When are you coming?</h2>
-            <p className="hint">
-              {activity?.title} runs a morning departure and a golden-hour departure — the camp
-              confirms the exact hour on arrival, once your spot is booked.
-            </p>
+            <h2>{t("dateTimeTitle")}</h2>
+            <p className="hint">{t("dateTimeHint", { activity: activity?.title ?? "" })}</p>
 
             <div className="form-grid">
               <div className="field" data-invalid={!!errors.date}>
-                <label htmlFor="date">Date</label>
+                <label htmlFor="date">{t("dateLabel")}</label>
                 <input
                   id="date"
                   type="date"
@@ -240,7 +240,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               </div>
 
               <div className="field" data-invalid={!!errors.partySize}>
-                <label htmlFor="party">Party size</label>
+                <label htmlFor="party">{t("partySizeLabel")}</label>
                 <select
                   id="party"
                   value={partySize}
@@ -251,23 +251,27 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                     (_, i) => i + 1,
                   ).map((n) => (
                     <option key={n} value={n}>
-                      {n} {n === 1 ? "person" : "people"}
+                      {n} {n === 1 ? t("personSingular") : t("peoplePlural")}
                     </option>
                   ))}
                 </select>
-                {!date && <p className="hint">Pick a date to check availability.</p>}
-                {date && loadingAvailability && <p className="hint">Checking availability…</p>}
+                {!date && <p className="hint">{t("pickDateForAvailability")}</p>}
+                {date && loadingAvailability && <p className="hint">{t("checkingAvailability")}</p>}
                 {date && !loadingAvailability && soldOut && (
-                  <p className="hint err">Fully booked for that date — try another day.</p>
+                  <p className="hint err">{t("fullyBookedTryAnother")}</p>
                 )}
                 {date && !loadingAvailability && !soldOut && unitsAvailable != null && (
-                  <p className="hint">✓ {unitsAvailable} spot{unitsAvailable === 1 ? "" : "s"} available</p>
+                  <p className="hint">
+                    {unitsAvailable === 1
+                      ? t("spotsAvailableOne", { n: unitsAvailable })
+                      : t("spotsAvailableOther", { n: unitsAvailable })}
+                  </p>
                 )}
                 {errors.partySize && <span className="err">{errors.partySize}</span>}
               </div>
 
               <div className="field span-2" data-invalid={!!errors.timeSlot}>
-                <label>Preferred departure</label>
+                <label>{t("preferredDeparture")}</label>
                 <div className="slots">
                   {(Object.keys(SLOT_LABELS) as TimeSlot[]).map((slotOption) => (
                     <button
@@ -290,13 +294,11 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         {/* ---------- 3. contact ---------- */}
         {step === 2 && (
           <>
-            <h2>Who&apos;s riding?</h2>
-            <p className="hint">
-              We only use these to confirm your trip and reach you if the weather turns.
-            </p>
+            <h2>{t("contactTitle")}</h2>
+            <p className="hint">{t("contactHint")}</p>
             <div className="form-grid">
               <div className="field" data-invalid={!!errors.name}>
-                <label htmlFor="name">Full name</label>
+                <label htmlFor="name">{t("fullName")}</label>
                 <input
                   id="name"
                   value={name}
@@ -306,7 +308,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 {errors.name && <span className="err">{errors.name}</span>}
               </div>
               <div className="field" data-invalid={!!errors.email}>
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">{t("emailLabel")}</label>
                 <input
                   id="email"
                   type="email"
@@ -317,7 +319,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 {errors.email && <span className="err">{errors.email}</span>}
               </div>
               <div className="field" data-invalid={!!errors.phone}>
-                <label htmlFor="phone">Phone</label>
+                <label htmlFor="phone">{t("phoneLabel")}</label>
                 <input
                   id="phone"
                   type="tel"
@@ -328,10 +330,10 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 {errors.phone && <span className="err">{errors.phone}</span>}
               </div>
               <div className="field">
-                <label htmlFor="hotel">Hotel / pickup point (optional)</label>
+                <label htmlFor="hotel">{t("hotelLabel")}</label>
                 <input
                   id="hotel"
-                  placeholder="Where should we collect you?"
+                  placeholder={t("hotelPlaceholder")}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
@@ -343,48 +345,45 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         {/* ---------- 4. review ---------- */}
         {step === 3 && (
           <>
-            <h2>Check it over.</h2>
-            <p className="hint">
-              Nothing is charged now. We hold the seats, email you a confirmation, and take payment
-              at the gate or by secure link before the trip.
-            </p>
+            <h2>{t("reviewTitle")}</h2>
+            <p className="hint">{t("reviewHint")}</p>
             <div className="summary">
               <div className="row">
-                <span className="k">Adventure</span>
+                <span className="k">{t("adventureLabel")}</span>
                 <span>{activity?.title}</span>
               </div>
               <div className="row">
-                <span className="k">Date</span>
-                <span>{prettyDate(date)}</span>
+                <span className="k">{t("dateLabelSummary")}</span>
+                <span>{prettyDate(date, locale)}</span>
               </div>
               <div className="row">
-                <span className="k">Departure</span>
+                <span className="k">{t("departureLabel")}</span>
                 <span>{chosenSlot ? SLOT_LABELS[chosenSlot] : "—"}</span>
               </div>
               <div className="row">
-                <span className="k">Party</span>
+                <span className="k">{t("partyLabel")}</span>
                 <span>
-                  {partySize} {partySize === 1 ? "person" : "people"}
+                  {partySize} {partySize === 1 ? t("personSingular") : t("peoplePlural")}
                 </span>
               </div>
               <div className="row">
-                <span className="k">Name</span>
+                <span className="k">{t("nameLabel")}</span>
                 <span>{name}</span>
               </div>
               <div className="row">
-                <span className="k">Contact</span>
+                <span className="k">{t("contactLabel")}</span>
                 <span>
                   {email} · {phone}
                 </span>
               </div>
               {notes && (
                 <div className="row">
-                  <span className="k">Pickup</span>
+                  <span className="k">{t("pickupLabel")}</span>
                   <span>{notes}</span>
                 </div>
               )}
               <div className="row total">
-                <span>Total</span>
+                <span>{t("totalLabel")}</span>
                 <span>€{total}</span>
               </div>
             </div>
@@ -395,16 +394,16 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <div className="book-actions">
           {step > 0 && (
             <button type="button" className="btn-quiet" onClick={back} disabled={submitting}>
-              ← Back
+              ← {t("back")}
             </button>
           )}
           {step < STEPS.length - 1 ? (
             <button type="button" className="btn-accent" onClick={next}>
-              Continue
+              {t("continue")}
             </button>
           ) : (
             <button type="button" className="btn-accent" onClick={submit} disabled={submitting}>
-              {submitting ? "Reserving…" : "Confirm booking"}
+              {submitting ? t("reserving") : t("confirmBooking")}
             </button>
           )}
         </div>

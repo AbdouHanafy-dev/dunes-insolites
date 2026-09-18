@@ -1,17 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import * as api from "@/lib/api";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
 import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
-
-const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
-  PER_DAY: "day",
-  PER_BOOKING: "booking",
-  PER_PERSON: "person",
-  PER_VEHICLE: "vehicle",
-};
 
 type ServiceAvailabilityState = {
   forDate: string;
@@ -42,6 +36,13 @@ export default function StayReservationForm({
   accommodations?: Accommodation[];
   initialAccommodationSlug?: string;
 }) {
+  const t = useTranslations("stayReservationForm");
+  const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
+    PER_DAY: t("unitDay"),
+    PER_BOOKING: t("unitBooking"),
+    PER_PERSON: t("unitPerson"),
+    PER_VEHICLE: t("unitVehicle"),
+  };
   const [date, setDate] = useState("");
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
@@ -224,19 +225,19 @@ export default function StayReservationForm({
     setFormError("");
 
     if (accommodationSlug && tierSoldOut(accommodationSlug)) {
-      setErrors({ accommodationSlug: "That camp is sold out for this date — pick another or a new date." });
+      setErrors({ accommodationSlug: t("errorSoldOut") });
       return;
     }
 
     const newErrors: Record<string, string> = {};
     if (hasOwnVehicle === null) {
-      newErrors.arrivalMode = "Please tell us how you'll join the experience.";
+      newErrors.arrivalMode = t("errorArrivalMode");
     }
     if (stay.guideRequired && !guideSlug) {
-      newErrors.guide = "This stay requires an accompanying guide — please choose one.";
+      newErrors.guide = t("errorGuideRequired");
     }
     if (hasOwnVehicle === false && !transportSlug) {
-      newErrors.transport = "Please choose how you'd like to get to the experience.";
+      newErrors.transport = t("errorTransportRequired");
     }
     if (
       needsPickupDetails &&
@@ -245,13 +246,13 @@ export default function StayReservationForm({
       !pickupAddress.trim() &&
       !pickupInstructions.trim()
     ) {
-      newErrors.pickup = "Please tell us where to pick you up (hotel, airport, or address).";
+      newErrors.pickup = t("errorPickup");
     }
     if (selectedGuide && optionUnavailable(selectedGuide)) {
-      newErrors.guide = "That guide option is no longer available for this date.";
+      newErrors.guide = t("errorGuideUnavailable");
     }
     if (selectedTransport && optionUnavailable(selectedTransport)) {
-      newErrors.transport = "That transportation option is no longer available for this date.";
+      newErrors.transport = t("errorTransportUnavailable");
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -299,7 +300,7 @@ export default function StayReservationForm({
     if (!result.ok) {
       setErrors(result.errors ?? {});
       setFormError(
-        result.errors ? "" : (result.message ?? "We couldn't reserve that. Try again."),
+        result.errors ? "" : (result.message ?? t("errorGeneric")),
       );
       setSubmitting(false);
       // A capacity conflict (another guest took the last unit between the page
@@ -311,7 +312,7 @@ export default function StayReservationForm({
 
     setBooking(result.data);
     setSubmitting(false);
-    toast.success(`Reserved — ${result.data.id}`);
+    toast.success(t("reservedConfirmation", { id: result.data.id }));
   }
 
   if (booking) {
@@ -320,14 +321,8 @@ export default function StayReservationForm({
       .map((a) => a.title);
     return (
       <div className="alert ok" style={{ marginTop: 0 }}>
-        <strong>Reserved — {booking.id}.</strong> Nothing is charged now. We hold your spot and
-        confirm by email or WhatsApp within a day
-        {rideNames.length > 0 && (
-          <>
-            {" "}
-            — we&apos;ll also sort out timing for {rideNames.join(", ")} once you arrive.
-          </>
-        )}
+        <strong>{t("reservedConfirmation", { id: booking.id })}</strong> {t("reservedBody")}
+        {rideNames.length > 0 && t("reservedWithRides", { rides: rideNames.join(", ") })}
       </div>
     );
   }
@@ -336,7 +331,7 @@ export default function StayReservationForm({
     <form onSubmit={onSubmit} className="reserve-form">
       {accommodations && accommodations.length > 0 && (
         <div className="field" data-invalid={!!errors.accommodationSlug}>
-          <label>Choose your camp</label>
+          <label>{t("chooseCamp")}</label>
           <div className="ride-options">
             {accommodations.map((a) => {
               const av = tierAvailability(a.slug);
@@ -357,10 +352,12 @@ export default function StayReservationForm({
                   <span>{a.title}</span>
                   <span className="ride-price">
                     {soldOut
-                      ? "Sold out for this date"
+                      ? t("soldOutForDate")
                       : av?.status === "AVAILABLE" && av.unitsAvailable != null && av.unitsAvailable <= 3
-                        ? `${av.unitsAvailable} left · from €${a.priceFrom}`
-                        : `from €${a.priceFrom}`}
+                        ? (av.unitsAvailable === 1
+                            ? t("leftFromPriceOne", { units: av.unitsAvailable, price: a.priceFrom })
+                            : t("leftFromPriceOther", { units: av.unitsAvailable, price: a.priceFrom }))
+                        : t("fromPrice", { price: a.priceFrom })}
                   </span>
                 </label>
               );
@@ -371,26 +368,26 @@ export default function StayReservationForm({
             <div className="guest-picker" style={{ marginTop: 10 }}>
               <div className="guest-row">
                 <div>
-                  <strong>How many {selectedAccommodation.title.toLowerCase()}s?</strong>
-                  <span>Exact rule to be confirmed with the camp — pick what you need for now</span>
+                  <strong>{t("howMany")}</strong>
+                  <span>{t("exactRuleNote")}</span>
                 </div>
                 <div className="guest-stepper">
                   <button
                     type="button"
                     onClick={() => changeAccommodationQty(-1)}
                     disabled={accommodationQty === 1}
-                    aria-label={`Remove one ${selectedAccommodation.title.toLowerCase()}`}
+                    aria-label={t("decrease")}
                   >
                     −
                   </button>
-                  <output aria-label={`${accommodationQty} ${selectedAccommodation.title.toLowerCase()}s`}>
+                  <output aria-label={`${accommodationQty} ${selectedAccommodation.title}`}>
                     {accommodationQty}
                   </output>
                   <button
                     type="button"
                     onClick={() => changeAccommodationQty(1)}
                     disabled={accommodationQty === 6}
-                    aria-label={`Add one ${selectedAccommodation.title.toLowerCase()}`}
+                    aria-label={t("increase")}
                   >
                     +
                   </button>
@@ -403,7 +400,7 @@ export default function StayReservationForm({
       )}
 
       <div className="field" data-invalid={!!errors.date}>
-        <label htmlFor="s-date">Arrival date</label>
+        <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
         <input
           id="s-date"
           type="date"
@@ -411,32 +408,32 @@ export default function StayReservationForm({
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
-        {availabilityLoading && <p className="hint">Checking availability…</p>}
+        {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
         {availabilityFor &&
           availabilityFor.accommodations.length > 0 &&
-          availabilityFor.accommodations.every((t) => t.status === "UNAVAILABLE") && (
-            <p className="hint">Every camp is booked for this date — try another.</p>
+          availabilityFor.accommodations.every((a) => a.status === "UNAVAILABLE") && (
+            <p className="hint">{t("everyCampBooked")}</p>
           )}
         {errors.date && <span className="err">{errors.date}</span>}
       </div>
 
       <div className="field" data-invalid={!!errors.partySize}>
-        <label>Who&apos;s coming?</label>
+        <label>{t("whosComing")}</label>
         <div className="guest-picker">
           <div className="guest-row">
-            <div><strong>Adults</strong><span>Ages 7+</span></div>
+            <div><strong>{t("adults")}</strong><span>{t("adultsAge")}</span></div>
             <div className="guest-stepper">
-              <button type="button" onClick={() => changeGuests("adults", -1)} disabled={adults === 1} aria-label="Remove one adult">−</button>
-              <output aria-label={`${adults} adults`}>{adults}</output>
-              <button type="button" onClick={() => changeGuests("adults", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label="Add one adult">+</button>
+              <button type="button" onClick={() => changeGuests("adults", -1)} disabled={adults === 1} aria-label={t("decrease")}>−</button>
+              <output aria-label={`${adults} ${t("adults")}`}>{adults}</output>
+              <button type="button" onClick={() => changeGuests("adults", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
             </div>
           </div>
           <div className="guest-row">
-            <div><strong>Children</strong><span>Ages 6 and under</span></div>
+            <div><strong>{t("children")}</strong><span>{t("childrenAge")}</span></div>
             <div className="guest-stepper">
-              <button type="button" onClick={() => changeGuests("children", -1)} disabled={children === 0} aria-label="Remove one child">−</button>
-              <output aria-label={`${children} children`}>{children}</output>
-              <button type="button" onClick={() => changeGuests("children", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label="Add one child">+</button>
+              <button type="button" onClick={() => changeGuests("children", -1)} disabled={children === 0} aria-label={t("decrease")}>−</button>
+              <output aria-label={`${children} ${t("children")}`}>{children}</output>
+              <button type="button" onClick={() => changeGuests("children", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
             </div>
           </div>
         </div>
@@ -444,7 +441,7 @@ export default function StayReservationForm({
       </div>
 
       <div className="field" data-invalid={!!errors.arrivalMode}>
-        <label>How will you join the experience?</label>
+        <label>{t("howWillYouJoin")}</label>
         <div className="ride-options">
           <label className="ride-option">
             <input
@@ -456,8 +453,8 @@ export default function StayReservationForm({
                 setTransportSlug("");
               }}
             />
-            <span>I have my own vehicle</span>
-            <span className="ride-price">Car, 4x4 or motorcycle</span>
+            <span>{t("ownVehicle")}</span>
+            <span className="ride-price">{t("ownVehicleHint")}</span>
           </label>
           <label className="ride-option">
             <input
@@ -469,17 +466,17 @@ export default function StayReservationForm({
                 if (selectedGuide?.requiresCustomerVehicle) setGuideSlug("");
               }}
             />
-            <span>I need transportation</span>
-            <span className="ride-price">From your hotel, the airport, or a meeting point</span>
+            <span>{t("needTransport")}</span>
+            <span className="ride-price">{t("needTransportHint")}</span>
           </label>
         </div>
         {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
 
         {hasOwnVehicle === false && (
           <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 12 }}>
-            <label>Transportation</label>
+            <label>{t("transportation")}</label>
             {transportOptions.length === 0 ? (
-              <p className="hint">No transportation options configured yet — contact us directly.</p>
+              <p className="hint">{t("noTransportOptions")}</p>
             ) : (
               <div className="ride-options">
                 {transportOptions.map((o) => {
@@ -500,12 +497,16 @@ export default function StayReservationForm({
                     </span>
                     <span className="ride-price">
                       {unavailable
-                        ? "Unavailable"
+                        ? t("unavailable")
                         : o.priceTtc == null
-                          ? "Contact us"
-                          : `${o.priceTtc} TND / ${PRICING_UNIT_LABEL[o.pricingUnit]}`}
+                          ? t("contactUsShort")
+                          : t("pricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
                       {!unavailable && availability?.unitsAvailable != null && availability.unitsAvailable <= 3 && (
-                        <small>{availability.unitsAvailable} left</small>
+                        <small>
+                          {availability.unitsAvailable === 1
+                            ? t("unitsLeftOne", { units: availability.unitsAvailable })
+                            : t("unitsLeftOther", { units: availability.unitsAvailable })}
+                        </small>
                       )}
                     </span>
                   </label>
@@ -518,37 +519,37 @@ export default function StayReservationForm({
             {needsPickupDetails && (
               <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                 {pickupFields.has("HOTEL_NAME") && <input
-                  placeholder="Hotel name (if hotel pickup)"
+                  placeholder={t("pickupHotelPlaceholder")}
                   required={requiredPickupFields.has("HOTEL_NAME")}
                   value={pickupHotelName}
                   onChange={(e) => setPickupHotelName(e.target.value)}
                 />}
                 {pickupFields.has("AIRPORT") && <input
-                  placeholder="Airport (if airport pickup)"
+                  placeholder={t("pickupAirportPlaceholder")}
                   required={requiredPickupFields.has("AIRPORT")}
                   value={pickupAirport}
                   onChange={(e) => setPickupAirport(e.target.value)}
                 />}
                 {pickupFields.has("FLIGHT_NUMBER") && <input
-                  placeholder="Flight number (optional)"
+                  placeholder={t("pickupFlightPlaceholder")}
                   required={requiredPickupFields.has("FLIGHT_NUMBER")}
                   value={pickupFlightNumber}
                   onChange={(e) => setPickupFlightNumber(e.target.value)}
                 />}
                 {pickupFields.has("ADDRESS") && <input
-                  placeholder="Address / meeting point"
+                  placeholder={t("pickupAddressPlaceholder")}
                   required={requiredPickupFields.has("ADDRESS")}
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
                 />}
                 {pickupFields.has("ARRIVAL_TIME") && <input
-                  placeholder="Expected arrival time (optional)"
+                  placeholder={t("pickupArrivalTimePlaceholder")}
                   required={requiredPickupFields.has("ARRIVAL_TIME")}
                   value={pickupArrivalTime}
                   onChange={(e) => setPickupArrivalTime(e.target.value)}
                 />}
                 {pickupFields.has("INSTRUCTIONS") && <input
-                  placeholder="Anything else we should know?"
+                  placeholder={t("pickupInstructionsPlaceholder")}
                   required={requiredPickupFields.has("INSTRUCTIONS")}
                   value={pickupInstructions}
                   onChange={(e) => setPickupInstructions(e.target.value)}
@@ -562,10 +563,10 @@ export default function StayReservationForm({
         {hasOwnVehicle !== null && (
           <div className="field" data-invalid={!!errors.guide} style={{ marginTop: 12 }}>
             <label>
-              Choose your guide{!stay.guideRequired && " (optional)"}
+              {t("chooseYourGuide")}{!stay.guideRequired && t("optionalSuffix")}
             </label>
             {availableGuideOptions.length === 0 ? (
-              <p className="hint">No guide options configured yet.</p>
+              <p className="hint">{t("noGuideOptions")}</p>
             ) : (
               <div className="ride-options">
                 {!stay.guideRequired && (
@@ -576,7 +577,7 @@ export default function StayReservationForm({
                       checked={guideSlug === ""}
                       onChange={() => setGuideSlug("")}
                     />
-                    <span>No guide</span>
+                    <span>{t("noGuide")}</span>
                   </label>
                 )}
                 {availableGuideOptions.map((o) => {
@@ -597,12 +598,16 @@ export default function StayReservationForm({
                     </span>
                     <span className="ride-price">
                       {unavailable
-                        ? "Unavailable"
+                        ? t("unavailable")
                         : o.priceTtc == null
-                          ? "Contact us"
-                          : `+${o.priceTtc} TND / ${PRICING_UNIT_LABEL[o.pricingUnit]}`}
+                          ? t("contactUsShort")
+                          : t("plusPricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
                       {!unavailable && availability?.unitsAvailable != null && availability.unitsAvailable <= 3 && (
-                        <small>{availability.unitsAvailable} left</small>
+                        <small>
+                          {availability.unitsAvailable === 1
+                            ? t("unitsLeftOne", { units: availability.unitsAvailable })
+                            : t("unitsLeftOther", { units: availability.unitsAvailable })}
+                        </small>
                       )}
                     </span>
                   </label>
@@ -616,7 +621,7 @@ export default function StayReservationForm({
       </div>
 
       <div className="field" data-invalid={!!errors.rideSlugs}>
-        <label>Add a ride? (optional)</label>
+        <label>{t("addRide")}</label>
         <div className="ride-options">
           {activities.map((a) => (
             <label key={a.slug} className="ride-option">
@@ -626,18 +631,16 @@ export default function StayReservationForm({
                 onChange={() => toggleRide(a.slug)}
               />
               <span>{a.title}</span>
-              <span className="ride-price">from €{a.priceFrom}</span>
+              <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
             </label>
           ))}
         </div>
-        <p className="hint">
-          We confirm the exact time for each with you once you&apos;re on-site.
-        </p>
+        <p className="hint">{t("confirmOnSite")}</p>
         {errors.rideSlugs && <span className="err">{errors.rideSlugs}</span>}
       </div>
 
       <div className="field" data-invalid={!!errors.name}>
-        <label htmlFor="s-name">Full name</label>
+        <label htmlFor="s-name">{t("fullName")}</label>
         <input
           id="s-name"
           value={name}
@@ -648,7 +651,7 @@ export default function StayReservationForm({
       </div>
 
       <div className="field" data-invalid={!!errors.email}>
-        <label htmlFor="s-email">Email</label>
+        <label htmlFor="s-email">{t("email")}</label>
         <input
           id="s-email"
           type="email"
@@ -660,7 +663,7 @@ export default function StayReservationForm({
       </div>
 
       <div className="field" data-invalid={!!errors.phone}>
-        <label htmlFor="s-phone">Phone</label>
+        <label htmlFor="s-phone">{t("phone")}</label>
         <input
           id="s-phone"
           type="tel"
@@ -672,10 +675,10 @@ export default function StayReservationForm({
       </div>
 
       <div className="field">
-        <label htmlFor="s-notes">Anything we should know? (optional)</label>
+        <label htmlFor="s-notes">{t("anythingElse")}</label>
         <input
           id="s-notes"
-          placeholder="Dietary needs, arrival time…"
+          placeholder={t("notesPlaceholder")}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
@@ -683,34 +686,34 @@ export default function StayReservationForm({
 
       <div className="summary">
         <div className="row">
-          <span>{selectedAccommodation?.title ?? "Stay"}</span>
+          <span>{selectedAccommodation?.title ?? t("stayFallbackLabel")}</span>
           <span>€{total}</span>
         </div>
         {selectedGuide && (
           <div className="row">
             <span>{selectedGuide.name}</span>
-            <span>{optionPrice(selectedGuide) == null ? "On request" : `${optionPrice(selectedGuide)} TND`}</span>
+            <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `${optionPrice(selectedGuide)} TND`}</span>
           </div>
         )}
         {selectedTransport && (
           <div className="row">
             <span>{selectedTransport.name}</span>
-            <span>{optionPrice(selectedTransport) == null ? "On request" : `${optionPrice(selectedTransport)} TND`}</span>
+            <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `${optionPrice(selectedTransport)} TND`}</span>
           </div>
         )}
         {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
           <div className="row" key={activity.slug}>
             <span>{activity.title}</span>
-            <span>from €{activity.priceFrom}</span>
+            <span>{t("fromPrice", { price: activity.priceFrom })}</span>
           </div>
         ))}
         <div className="row total">
-          <span>Stay total</span>
+          <span>{t("stayTotal")}</span>
           <span>€{total}</span>
         </div>
         {serviceTotal > 0 && (
           <div className="row total">
-            <span>Service options</span>
+            <span>{t("serviceOptionsLabel")}</span>
             <span>{serviceTotal} TND</span>
           </div>
         )}
@@ -719,9 +722,9 @@ export default function StayReservationForm({
       {formError && <div className="alert">{formError}</div>}
 
       <button type="submit" className="btn-accent" disabled={submitting}>
-        {submitting ? "Reserving…" : "Reserve this stay"}
+        {submitting ? t("reserving") : t("reserveThisStay")}
       </button>
-      <p className="note">Free cancellation up to 48 hours before arrival.</p>
+      <p className="note">{t("freeCancellation")}</p>
     </form>
   );
 }
