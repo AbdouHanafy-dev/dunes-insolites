@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { alexandria, inter } from "../fonts";
-import { getActivities, getStays, getNavigation, getSiteSettings } from "@/lib/api";
+import { getActivities, getStays, getNavigation, getSiteSettings, getReviews } from "@/lib/api";
+import { averageRating } from "@/lib/data/reviews";
 import { site, nav as staticNav } from "@/lib/site";
 import { routing, isRtl } from "@/i18n/routing";
 import Header from "@/components/Header";
@@ -84,7 +85,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   // rendering just to read the current locale.
   setRequestLocale(locale);
 
-  const [activities, stays, cmsNav, messages, t, tNav, settings] = await Promise.all([
+  const [activities, stays, cmsNav, messages, t, tNav, settings, reviews] = await Promise.all([
     getActivities(locale),
     getStays(locale),
     getNavigation(locale),
@@ -92,6 +93,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     getTranslations({ locale, namespace: "site" }),
     getTranslations({ locale, namespace: "nav" }),
     getSiteSettings(),
+    getReviews(),
   ]);
 
   // An admin-managed nav (docs/cms.md) wins if anything has been authored
@@ -143,6 +145,20 @@ export default async function LocaleLayout({ children, params }: Props) {
     image: `${site.url}/images/under-hero.jpg`,
     sameAs: settings.social.map((s) => s.href),
     inLanguage: locale,
+    // Rich-result star snippets in search — only emitted when real reviews
+    // back it (CLAUDE.md: never fabricate a rating). Sitewide, same guard
+    // ReviewsShowcase/activity/stay detail pages each already use on their
+    // own AggregateRating blocks; this is the one on the business entity
+    // itself, previously missing entirely even as a stub.
+    ...(reviews.length > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: averageRating(reviews),
+            reviewCount: reviews.length,
+          },
+        }
+      : {}),
   };
 
   // Organization + WebSite (SEO audit, step 7) — sitewide, locale-independent

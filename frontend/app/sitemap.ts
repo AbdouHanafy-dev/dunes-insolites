@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getActivities, getStays } from "@/lib/api";
+import { getActivities, getStays, getTours } from "@/lib/api";
 import { site } from "@/lib/site";
 import { canonicalActivityPath, canonicalStayPath } from "@/lib/legacySlugs";
 import { routing, localeHref } from "@/i18n/routing";
@@ -37,7 +37,7 @@ import { GUIDE_SLUGS } from "@/lib/guides";
 // copy now instead of two that could drift apart again.
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [activities, stays] = await Promise.all([getActivities(), getStays()]);
+  const [activities, stays, tours] = await Promise.all([getActivities(), getStays(), getTours()]);
 
   const staticPaths = [
     { path: "", priority: 1 },
@@ -45,10 +45,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/camp", priority: 0.9 },
     { path: "/gallery", priority: 0.7 },
     { path: "/about", priority: 0.7 },
-    // DI-024's "coming soon" landing for the legacy WordPress circuit URLs
-    // (Ksar Ghilane, Tataouine/Chenini, Douz-Matmata, 4x4...) that 301 here
-    // — see the page's own doc comment and docs/OPEN-QUESTIONS.md Q6.
-    { path: "/circuits", priority: 0.5 },
+    // Route Insolite's circuit listing — real, admin-managed content since
+    // 18 Sep 2026 (see docs/OPEN-QUESTIONS.md Q6's addendum), not the
+    // "coming soon" stub the legacy WordPress circuit URLs used to 301 to.
+    { path: "/circuits", priority: 0.7 },
     { path: "/safety", priority: 0.6 },
     { path: "/contact", priority: 0.6 },
     { path: "/faq", priority: 0.6 },
@@ -101,6 +101,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "monthly",
         priority: 0.8,
         alternates: { languages: languageAlternates((l) => canonicalActivityPath(activity.slug, l)) },
+      });
+    }
+  }
+
+  for (const tour of tours) {
+    const path = `/circuits/${tour.slug}`;
+    for (const locale of routing.locales) {
+      entries.push({
+        url: `${site.url}${withTrailingSlash(localeHref(locale, path))}`,
+        changeFrequency: "monthly",
+        priority: 0.7,
+        alternates: { languages: languageAlternates((l) => localeHref(l, path)) },
       });
     }
   }
