@@ -16,18 +16,37 @@
   --color-salt: #e9e3d7; /* pale Chott el Jerid / limestone */
   --color-ink: #241b17; /* deep warm charcoal-brown */
   --color-night: #1a2429; /* Sahara night, indigo-black */
-  --color-ember: #a04a2f; /* muted clay / burnt desert red — warmth, booking
-     emphasis. Darkened slightly from the brief's suggested #A94F32: that
-     value was only 4.27:1 as text on --salt, just under WCAG AA's 4.5:1;
-     this value clears 4.67:1 on --salt and 4.98:1 on --paper. */
+
+  /* Warm Sahara palette (18 Sep 2026) — sand, terracotta and dune gold as
+     the primary identity, sampled/verified against the real logo
+     (public/logo-mark.png's dune #e0a060/#f0c080 family and path #604030
+     family) rather than a generic template orange. A blue-primary version
+     (matching the logo's sky) was tried first and reverted on request —
+     it also tested poorly for contrast once the chrome went light: the
+     logo's actual sky blue (#256599 — still defined below for rare,
+     decorative use, e.g. the header's top hairline) only clears 2.86:1–
+     5.15:1 depending on shade, while --color-ember clears a clean 4.98:1
+     text / 5.97:1 white-on-fill. --color-ember is the primary interactive
+     color again — see --color-accent alias below. */
+  --color-ember: #a04a2f; /* muted clay / burnt desert red — the site's
+     primary interactive color (buttons, links, active states, selection).
+     Darkened slightly from the brief's suggested #A94F32: that value was
+     only 4.27:1 as text on --salt, just under WCAG AA's 4.5:1; this value
+     clears 4.67:1 on --salt and 4.98:1 on --paper, and 5.97:1 for white
+     text on this as a button fill. */
   --color-ember-hot: #8f3f27; /* ember hover — deeper, not brighter: no glow */
-  /* Lighter warm accent for TEXT/icons on dark backgrounds (header, drawer,
-     photo overlays, night-toned sections). Ember itself is too dark to use
-     as text on those grounds — verified: ember-on-night is 2.9:1, well
-     under WCAG AA's 4.5:1 for normal text. Amber clears 6.5:1+ on both the
-     night token and the header's dark glass. Never used as a fill/button
-     background — only as text/icon color on a dark ground. */
-  --color-amber: #d99a5c;
+  --color-amber: #d99a5c; /* dune gold — already close to the logo's own
+     sand tones (#e0a060/#f0c080). Only 2.0:1 as text on --paper/--salt, so
+     it stays reserved for TEXT/icons on dark grounds (drawer, night
+     sections) or large ornamental use — never body text on a light
+     ground; --color-ember carries that role instead. */
+  --color-sky: #256599; /* the logo's own sky blue — kept for rare,
+     decorative use only (the header's top hairline gradient) now that the
+     header itself is light-chrome, not as an interactive color: it clears
+     only 2.86:1 as text on --paper, well under WCAG AA. */
+  --color-sky-hot: #1f5885;
+  --color-sky-light: #7fb8e0; /* the lighter sky tone, still usable as
+     text/icons on a genuinely dark ground if one is ever added back. */
   --color-teal: #3a6a66; /* Tunisian mineral tile-green — darkened from the
      brief's #3e716d so it clears 4.5:1 as text on both --paper (5.1:1) and
      --salt (4.79:1); still too dark to read as text on --night (2.6:1), so
@@ -72,6 +91,11 @@
   --maroon: var(--color-night);
   --accent: var(--color-ember);
   --accent-hot: var(--color-ember-hot);
+  --sky: var(--color-sky);
+  --sky-hot: var(--color-sky-hot);
+  --sky-light: var(--color-sky-light);
+  --ember: var(--color-ember);
+  --ember-hot: var(--color-ember-hot);
   --teal: var(--color-teal);
   /* Named --amber, not --flare — Hero.tsx's `.flare` element already owns a
      scroll-driven inline custom property called `--flare` (an opacity
@@ -135,23 +159,38 @@ a {
   padding: 0;
   /* No overflow clipping here — the utility row does its own collapse, and
      clipping the bar would cut off the Experiences dropdown. */
-  /* More architectural than glass (redesign, audit §5): a quieter, flatter
-     bar — smaller radius, a thin hairline border, no inset highlight, and
-     enough opacity that it reads as a solid panel rather than a floating
-     frosted widget. Blur stays, at a fraction of the old strength, only so
-     text under the utility row's edge doesn't alias against the photo. */
+  /* Flat, solid, LIGHT panel (redesign, 18 Sep 2026, on request — "la
+     palette de Sahara... je veux light"): dropped both the frosted-glass
+     blur (the single most "generic SaaS" note the visual audit flagged)
+     and the dark near-black chrome the header/footer carried before, in
+     favour of the same warm cream used across the rest of the site. The
+     brand signature is the top edge: a hairline gradient running from the
+     logo's sky blue into its dune gold — a decorative nod to the actual
+     logo colors that doesn't need to be the interactive accent (see the
+     --color-ember/--color-sky comments in the @theme block above for why
+     ember, not the logo's blue, ended up as --color-accent). */
   border-radius: var(--radius-md);
-  color: var(--paper);
-  background: rgba(26, 36, 41, 0.66);
+  color: var(--ink);
+  background: rgba(244, 233, 216, 0.95);
   border: 1px solid rgba(244, 233, 216, 0.14);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  border-top: none;
   box-shadow: 0 10px 24px rgba(10, 14, 16, 0.22);
   transition: background 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease,
     max-width 0.4s ease;
 }
+.site-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--radius-md);
+  right: var(--radius-md);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-sky-light) 20%, var(--color-amber) 80%, transparent);
+  opacity: 0.85;
+  pointer-events: none;
+}
 .site-header.scrolled {
-  background: rgba(26, 36, 41, 0.92);
+  background: rgba(244, 233, 216, 0.99);
   border-color: rgba(244, 233, 216, 0.12);
   box-shadow: 0 12px 28px rgba(10, 14, 16, 0.3);
 }
@@ -162,7 +201,7 @@ a {
 }
 /* With the drawer open, the header stops reading as a pill floating over
    the page and becomes the drawer panel's own top edge — flush, full-width,
-   same near-black ground as the menu below it, with a hairline instead of
+   same cream ground as the menu below it, with a hairline instead of
    a drop shadow to mark where it ends. */
 .site-header.menu-open {
   top: 0;
@@ -172,10 +211,14 @@ a {
   max-width: none;
   border-radius: 0;
   border: 0;
-  border-bottom: 1px solid rgba(253, 241, 225, 0.1);
-  background: #161d20;
+  border-bottom: 1px solid rgba(36, 27, 23, 0.1);
+  background: #f4e9d8;
   box-shadow: none;
   padding-top: env(safe-area-inset-top, 0px);
+}
+.site-header.menu-open::before {
+  left: 0;
+  right: 0;
 }
 .site-header.menu-open .header-main {
   padding: 16px 16px 16px 22px;
@@ -201,7 +244,7 @@ body:has(.auth-page) .site-header {
   gap: 20px;
   height: 34px;
   padding: 0 16px 0 26px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(36, 27, 23, 0.08);
   font-size: 10.5px;
   /* Visible by default so the language dropdown can escape the row; clipped
      only while collapsing, which is the one moment it needs to be. */
@@ -228,22 +271,22 @@ body:has(.auth-page) .site-header {
   padding: 6px 8px;
   border-radius: 7px;
   letter-spacing: 0.05em;
-  color: rgba(253, 241, 225, 0.6);
+  color: rgba(36, 27, 23, 0.6);
   white-space: nowrap;
   transition: color 0.2s, background 0.2s;
 }
 .u-link:hover {
-  color: var(--paper);
-  background: rgba(255, 255, 255, 0.07);
+  color: var(--ink);
+  background: rgba(36, 27, 23, 0.07);
 }
 .u-link.u-strong {
-  color: rgba(240, 165, 88, 0.88);
+  color: rgba(160, 74, 47, 0.88);
   font-weight: 700;
 }
 .u-sep {
   width: 1px;
   height: 12px;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(36, 27, 23, 0.14);
   margin: 0 4px;
 }
 
@@ -260,21 +303,21 @@ body:has(.auth-page) .site-header {
   border-radius: 7px;
   background: transparent;
   font: inherit;
-  color: rgba(253, 241, 225, 0.75);
+  color: rgba(36, 27, 23, 0.75);
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
 }
 .lang-btn:hover,
 .lang-btn[aria-expanded="true"] {
-  color: var(--paper);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  background: rgba(36, 27, 23, 0.08);
 }
 .lang-btn .flag {
   flex: none;
   width: 18px;
   height: 13.5px;
   border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(36, 27, 23, 0.18);
 }
 .chev {
   width: 6px;
@@ -299,10 +342,10 @@ body:has(.auth-page) .site-header {
   padding: 6px;
   list-style: none;
   border-radius: 12px;
-  background: rgba(22, 29, 32, 0.97);
+  background: rgba(244, 233, 216, 0.98);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(253, 241, 225, 0.14);
+  border: 1px solid rgba(36, 27, 23, 0.14);
   box-shadow: 0 20px 44px rgba(8, 5, 3, 0.5);
   transform-origin: top right;
   animation: langIn 0.16s var(--ease-out-expo) both;
@@ -328,13 +371,13 @@ body:has(.auth-page) .site-header {
   background: transparent;
   font: inherit;
   font-size: 12.5px;
-  color: var(--paper);
+  color: var(--ink);
   cursor: pointer;
   text-align: start;
   transition: background 0.15s ease;
 }
 .lang-menu button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(36, 27, 23, 0.09);
 }
 .lang-menu button[aria-selected="true"] {
   background: rgba(160, 74, 47, 0.14);
@@ -348,22 +391,22 @@ body:has(.auth-page) .site-header {
   width: 22px;
   height: 16.5px;
   border-radius: 2.5px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 1px rgba(36, 27, 23, 0.16);
 }
 .lang-menu .name {
   flex: 1;
 }
 .lang-menu .check {
   flex: none;
-  color: var(--color-amber);
+  color: var(--color-ember);
 }
 .lang-menu .soon {
   flex: none;
   font-size: 9px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-amber);
-  border: 1px solid rgba(240, 165, 88, 0.4);
+  color: var(--color-ember);
+  border: 1px solid rgba(160, 74, 47, 0.4);
   border-radius: var(--radius-pill);
   padding: 2px 7px;
 }
@@ -442,8 +485,8 @@ body:has(.auth-page) .site-header {
 .nav a:hover,
 .nav a[data-active="true"] {
   opacity: 1;
-  color: var(--color-amber);
-  background: rgba(255, 255, 255, 0.07);
+  color: var(--color-ember);
+  background: rgba(36, 27, 23, 0.07);
 }
 .nav-item.has-menu > a[aria-expanded="true"] .chev {
   transform: rotate(-135deg) translate(-2px, -2px);
@@ -459,10 +502,10 @@ body:has(.auth-page) .site-header {
   width: 440px;
   padding: 12px;
   border-radius: 16px;
-  background: rgba(22, 29, 32, 0.97);
+  background: rgba(244, 233, 216, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(253, 241, 225, 0.14);
+  border: 1px solid rgba(36, 27, 23, 0.14);
   box-shadow: 0 26px 60px rgba(8, 5, 3, 0.55);
   animation: megaIn 0.22s var(--ease-out-expo) both;
 }
@@ -503,7 +546,7 @@ body:has(.auth-page) .site-header {
   font-size: inherit !important;
 }
 .mega-card:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(36, 27, 23, 0.08) !important;
   color: inherit !important;
 }
 .mega-card .thumb {
@@ -525,29 +568,29 @@ body:has(.auth-page) .site-header {
   font-family: var(--font-display), sans-serif;
   font-weight: 600;
   font-size: 14px;
-  color: var(--paper);
+  color: var(--ink);
 }
 .mega-card .d {
   font-size: 12px;
   line-height: 1.35;
-  color: rgba(253, 241, 225, 0.62);
+  color: rgba(36, 27, 23, 0.62);
   overflow-wrap: anywhere;
 }
 .mega-all {
   display: block !important;
   margin-top: 6px;
   padding: 12px 10px !important;
-  border-top: 1px solid rgba(253, 241, 225, 0.12);
+  border-top: 1px solid rgba(36, 27, 23, 0.12);
   border-radius: 0 !important;
   font-size: 11px !important;
   font-weight: 700 !important;
   letter-spacing: 0.16em !important;
-  color: var(--color-amber);
+  color: var(--color-ember);
   opacity: 1 !important;
 }
 .mega-all:hover {
   background: transparent !important;
-  color: var(--paper) !important;
+  color: var(--ink) !important;
 }
 .header-cta {
   font-family: var(--font-display), sans-serif;
@@ -562,7 +605,9 @@ body:has(.auth-page) .site-header {
   background: var(--accent);
   color: var(--paper);
   /* No colored glow — the button reads through contrast and type, not a
-     tinted shadow (redesign, §4). */
+     tinted shadow (redesign, §4). White-on-ember, not ink-on-ember — this
+     is text on the colored button FILL, not on the header's light chrome,
+     so it stays light (5.97:1 on --color-ember). */
   transition: transform 0.15s, background 0.2s;
   white-space: nowrap;
 }
@@ -579,7 +624,7 @@ body:has(.auth-page) .site-header {
   gap: 10px;
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid rgba(253, 241, 225, 0.1);
+  border-top: 1px solid rgba(36, 27, 23, 0.1);
 }
 /* `.drawer a` sets further down the file and would otherwise win on source
    order at equal specificity — hence the extra `.drawer` here. */
@@ -593,14 +638,14 @@ body:has(.auth-page) .site-header {
   text-align: center;
   white-space: nowrap;
   padding: 17px 10px;
-  border: 1px solid rgba(253, 241, 225, 0.3);
+  border: 1px solid rgba(36, 27, 23, 0.3);
   border-radius: 12px;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 .drawer .drawer-auth a:hover,
 .drawer .drawer-auth a:active {
-  border-color: rgba(253, 241, 225, 0.55);
-  background: rgba(253, 241, 225, 0.05);
+  border-color: rgba(36, 27, 23, 0.55);
+  background: rgba(36, 27, 23, 0.05);
 }
 
 /* Groups the mobile language control with the burger so the two sit
@@ -663,7 +708,7 @@ body:has(.auth-page) .site-header {
   inset: 0;
   z-index: 39;
   /* Opaque — a translucent panel left the page text legible underneath. */
-  background: #161d20;
+  background: #f4e9d8;
   display: flex;
   flex-direction: column;
   /* Anchored under the header, not centred — a short menu (five links, no
@@ -671,7 +716,7 @@ body:has(.auth-page) .site-header {
      above "The camp" and another below the WhatsApp line, with nothing
      visually tying the menu to the header it opened from. */
   justify-content: flex-start;
-  color: var(--paper);
+  color: var(--ink);
   opacity: 0;
   visibility: hidden;
   /* A slight settle rather than a hard cut — closing runs the same
@@ -730,7 +775,7 @@ body:has(.auth-page) .site-header {
   font-size: 26px;
   font-weight: 500;
   padding: 17px 0;
-  border-bottom: 1px solid rgba(253, 241, 225, 0.12);
+  border-bottom: 1px solid rgba(36, 27, 23, 0.12);
   transition: color 0.2s ease;
 }
 /* Understated on purpose — invisible at rest, a small nudge of colour and
@@ -738,7 +783,7 @@ body:has(.auth-page) .site-header {
    turning every link into a button. */
 .drawer a .nav-arrow {
   font-size: 18px;
-  color: var(--color-amber);
+  color: var(--color-ember);
   opacity: 0;
   transform: translateX(-6px);
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -746,7 +791,7 @@ body:has(.auth-page) .site-header {
 .drawer a:hover,
 .drawer a:focus-visible,
 .drawer a:active {
-  color: var(--color-amber);
+  color: var(--color-ember);
 }
 .drawer a:hover .nav-arrow,
 .drawer a:focus-visible .nav-arrow,
@@ -784,22 +829,22 @@ body:has(.auth-page) .site-header {
   gap: 10px !important;
   padding: 14px 16px !important;
   border-radius: 12px;
-  border: 1px solid rgba(253, 241, 225, 0.12) !important;
-  background: rgba(253, 241, 225, 0.04);
+  border: 1px solid rgba(36, 27, 23, 0.12) !important;
+  background: rgba(36, 27, 23, 0.04);
   font-family: var(--font-body) !important;
   font-size: 13.5px !important;
   letter-spacing: 0.02em;
-  color: rgba(253, 241, 225, 0.76) !important;
+  color: rgba(36, 27, 23, 0.76) !important;
 }
 .drawer-wa:hover,
 .drawer-wa:active {
-  color: rgba(253, 241, 225, 0.95) !important;
-  border-color: rgba(253, 241, 225, 0.28) !important;
-  background: rgba(253, 241, 225, 0.07);
+  color: rgba(36, 27, 23, 0.95) !important;
+  border-color: rgba(36, 27, 23, 0.28) !important;
+  background: rgba(36, 27, 23, 0.07);
 }
 .drawer-wa strong {
   font-weight: 600;
-  color: var(--paper);
+  color: var(--ink);
 }
 .drawer-wa-icon {
   display: inline-flex;
@@ -2371,9 +2416,15 @@ section.block {
 }
 
 /* ---------- footer ---------- */
+/* Light Sahara chrome, matching the header (redesign, 18 Sep 2026, on
+   request — warm sand instead of the dark near-black ground this used to
+   share with the hero/CTA photo bands). --sand (--color-salt) instead of
+   --paper so the footer reads as a distinct panel from the lighter page
+   sections above it, the same way it used to read as a distinct dark
+   panel against them. */
 footer.site-footer {
-  background: var(--maroon);
-  color: rgba(253, 241, 225, 0.8);
+  background: var(--sand);
+  color: rgba(36, 27, 23, 0.8);
   padding: 72px 0 40px;
 }
 footer.site-footer .top {
@@ -2409,7 +2460,7 @@ footer.site-footer .brand .bn {
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--paper);
+  color: var(--ink);
 }
 footer.site-footer .brand .bl {
   font-size: 10px;
@@ -2432,6 +2483,24 @@ footer.site-footer .footer-coords {
   letter-spacing: 0.01em;
   opacity: 0.55;
 }
+footer.site-footer .footer-contact {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+footer.site-footer .footer-contact a {
+  color: var(--ink);
+  transition: color 0.2s;
+}
+footer.site-footer .footer-contact a:hover {
+  color: var(--color-ember);
+}
+footer.site-footer .footer-contact span {
+  opacity: 0.4;
+}
 footer.site-footer .cols {
   display: grid;
   grid-template-columns: repeat(2, minmax(140px, 200px));
@@ -2439,7 +2508,7 @@ footer.site-footer .cols {
   gap: 32px;
 }
 footer.site-footer h5 {
-  color: var(--paper);
+  color: var(--ink);
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -2455,12 +2524,12 @@ footer.site-footer ul {
   margin: 0;
 }
 footer.site-footer ul a:hover {
-  color: var(--color-amber);
+  color: var(--color-ember);
 }
 footer.site-footer .bar {
   margin-top: 56px;
   padding-top: 24px;
-  border-top: 1px solid rgba(253, 241, 225, 0.16);
+  border-top: 1px solid rgba(36, 27, 23, 0.16);
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -2477,7 +2546,7 @@ footer.site-footer .bar-legal {
   gap: 18px;
 }
 footer.site-footer .bar-social a:hover {
-  color: var(--color-amber);
+  color: var(--color-ember);
 }
 
 /* ---------- generic light section ---------- */

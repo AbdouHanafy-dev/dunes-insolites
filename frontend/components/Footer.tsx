@@ -33,6 +33,13 @@ export default async function Footer({ settings }: { settings: SiteSettingsData 
             <p className="footer-coords">
               {coords} — {settings.address}
             </p>
+            <p className="footer-contact">
+              <a href={`mailto:${settings.email}`}>{settings.email}</a>
+              <span aria-hidden="true">·</span>
+              <a href={`https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`} target="_blank" rel="noreferrer noopener">
+                {settings.whatsapp}
+              </a>
+            </p>
             <Newsletter />
           </div>
           <div className="cols">

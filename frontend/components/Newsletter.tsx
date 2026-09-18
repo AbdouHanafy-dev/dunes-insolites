@@ -29,7 +29,7 @@ export default function Newsletter() {
 
   if (state === "done") {
     return (
-      <p style={{ marginTop: 22, fontSize: ".95rem", color: "#f0a558" }}>
+      <p style={{ marginTop: 22, fontSize: ".95rem", color: "var(--color-ember)" }}>
         {t("subscribed")}
       </p>
     );
@@ -65,9 +65,9 @@ export default function Newsletter() {
             fontSize: ".92rem",
             padding: "12px 14px",
             borderRadius: 10,
-            border: "1px solid rgba(253,241,225,.24)",
-            background: "rgba(253,241,225,.06)",
-            color: "var(--paper)",
+            border: "1px solid rgba(36,27,23,.24)",
+            background: "rgba(36,27,23,.04)",
+            color: "var(--ink)",
             outline: "none",
           }}
         />
@@ -81,7 +81,7 @@ export default function Newsletter() {
         </button>
       </div>
       {error && (
-        <p style={{ marginTop: 8, fontSize: ".85rem", color: "#f0a558" }}>{error}</p>
+        <p style={{ marginTop: 8, fontSize: ".85rem", color: "var(--color-ember)" }}>{error}</p>
       )}
     </form>
   );
