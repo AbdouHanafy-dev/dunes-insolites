@@ -35,7 +35,8 @@ public class PublicReviewController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> getReviews(
             @RequestParam(required = false) String activity,
-            @RequestParam(required = false) String stay) {
-        return ResponseEntity.ok(Map.of("reviews", reviewService.getPublicReviews(activity, stay)));
+            @RequestParam(required = false) String stay,
+            @RequestParam(required = false) String tour) {
+        return ResponseEntity.ok(Map.of("reviews", reviewService.getPublicReviews(activity, stay, tour)));
     }
 }

@@ -37,6 +37,9 @@ import type {
   Stay,
   StayBooking,
   StayBookingInput,
+  Tour,
+  TourBooking,
+  TourBookingInput,
 } from "@/lib/types";
 import type { SlotAvailability } from "@/lib/bookings";
 
@@ -391,6 +394,37 @@ export async function getRelatedStays(slug: string, locale?: string): Promise<St
   return all.filter((s) => s.slug !== slug);
 }
 
+/* ------------------------------------------------------ tours (circuits) */
+// Route Insolite's product — published on the Dunes vitrine since 18 Sep
+// 2026 (business owner, explicit; see docs/OPEN-QUESTIONS.md Q6's
+// addendum). No curated seed content exists for Tours (unlike
+// activities/stays' lib/data/*-i18n) — honest empty state when no backend
+// is configured, same convention getRedirects/getNavigation use, rather
+// than inventing placeholder circuits.
+
+export async function getTours(locale?: string): Promise<Tour[]> {
+  const data = await get<{ tours: Tour[] }>(
+    `/public/tours${localeQuery(locale)}`,
+    { seed: { tours: [] }, empty: { tours: [] } },
+    { revalidate: 300 },
+  );
+  return data.tours ?? [];
+}
+
+export async function getTour(slug: string, locale?: string): Promise<Tour | undefined> {
+  if (!BASE) return seedOrThrow("getTour", undefined);
+  return get<Tour | undefined>(
+    `/public/tours/${encodeURIComponent(slug)}${localeQuery(locale)}`,
+    { seed: undefined, empty: undefined },
+  );
+}
+
+export async function getRelatedTours(slug: string, locale?: string): Promise<Tour[]> {
+  if (!BASE) return seedOrThrow("getRelatedTours", []);
+  const all = await getTours(locale);
+  return all.filter((t) => t.slug !== slug);
+}
+
 /* --------------------------------------------------- accommodation availability */
 
 export type TierAvailability = {
@@ -521,10 +555,12 @@ export async function getGalleryStrip(): Promise<GalleryItem[]> {
 export async function getReviews(filter?: {
   activitySlug?: string;
   staySlug?: string;
+  tourSlug?: string;
 }): Promise<Review[]> {
   const params = new URLSearchParams();
   if (filter?.activitySlug) params.set("activity", filter.activitySlug);
   if (filter?.staySlug) params.set("stay", filter.staySlug);
+  if (filter?.tourSlug) params.set("tour", filter.tourSlug);
   const qs = params.toString();
   // usingRemoteApi, not a bare "/reviews" - found live (UI/UX audit, 30 Aug
   // 2026): this used to hit the same path in both modes, which against the
@@ -614,6 +650,15 @@ export function createStayBooking(
 ): Promise<WriteResult<StayBooking>> {
   return post<StayBooking>(
     usingRemoteApi ? "/public/stay-bookings" : "/stay-bookings",
+    input,
+  );
+}
+
+export function createTourBooking(
+  input: TourBookingInput,
+): Promise<WriteResult<TourBooking>> {
+  return post<TourBooking>(
+    usingRemoteApi ? "/public/tour-bookings" : "/tour-bookings",
     input,
   );
 }

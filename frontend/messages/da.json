@@ -397,6 +397,57 @@
     "dateLabel": "Dato",
     "partySizeLabel": "Antal personer"
   },
+  "tourDetail": {
+    "breadcrumbCircuits": "Ture",
+    "fromPrice": "Fra {price} €",
+    "ratingFact": "{rating} ★ ({count} anmeldelser)",
+    "theTrip": "Turen",
+    "highlights": "Højdepunkter",
+    "whatsIncluded": "Inkluderet",
+    "notIncluded": "Ikke inkluderet",
+    "itineraryEyebrow": "Dag for dag",
+    "itineraryHeading": "Rejseplanen",
+    "route": "Ruten",
+    "openInMaps": "Åbn i Maps",
+    "meetingPointHeading": "Mødested",
+    "goodToKnow": "Godt at vide",
+    "languagesSpoken": "Talte sprog: {languages}",
+    "freeCancellationNote": "Gratis afbestilling",
+    "perAdultLabel": "pr. voksen",
+    "duration": "Varighed",
+    "groupSize": "Gruppestørrelse",
+    "location": "Sted",
+    "alsoWorthALook": "Også værd at se",
+    "otherCircuits": "Andre ture",
+    "reviewsTitle": "Hvad rejsende siger om {tour}",
+    "ctaTitle": "Klar til eventyret?",
+    "ctaBody": "Book {tour} — vores team bekræfter ledig kapacitet og vender hurtigt tilbage til dig.",
+    "ctaLabel": "Anmod om booking"
+  },
+  "tourBookingForm": {
+    "dateLabel": "Afgangsdato",
+    "adultsLabel": "Voksne",
+    "childrenLabel": "Børn",
+    "fullName": "Fulde navn",
+    "email": "E-mail",
+    "phone": "Telefon",
+    "notesLabel": "Er der andet, vi bør vide? (valgfrit)",
+    "notesPlaceholder": "Kostbehov, afhentningshotel…",
+    "estimatedTotal": "Anslået total",
+    "reserving": "Sender…",
+    "requestToBook": "Anmod om booking",
+    "noChargeNote": "Der bliver ikke trukket noget nu — vores team bekræfter ledig kapacitet og vender tilbage til dig.",
+    "reservedConfirmation": "Anmodning sendt — {id}.",
+    "reservedBody": "Vi vender tilbage til dig via e-mail eller telefon for at bekræfte ledig kapacitet og betaling.",
+    "errorPickDate": "Vælg en dato.",
+    "errorPastDate": "Vælg i dag eller en fremtidig dato.",
+    "errorAtLeastOneAdult": "Mindst én voksen er påkrævet.",
+    "errorName": "Et navn er påkrævet.",
+    "errorEmail": "En e-mail er påkrævet.",
+    "errorEmailInvalid": "Den e-mailadresse ser ikke rigtig ud.",
+    "errorPhone": "Et telefonnummer er påkrævet.",
+    "errorGeneric": "Vi kunne ikke sende den anmodning. Prøv igen."
+  },
   "accommodationCard": {
     "exploreThisStay": "Udforsk dette ophold ↗"
   },
@@ -696,8 +747,8 @@
       "title": "Din booking"
     },
     "circuits": {
-      "title": "Flerdagsture",
-      "description": "Ksar Ghilane, Tataouine og Chenini, Douz og Matmata i 4x4 — vores flerdagsture fra Djerba lanceres snart med Route Insolite."
+      "title": "Flerdages Sahara-ture",
+      "description": "Flerdages udflugter fra Djerba — det sydlige Tunesiens arv, nætter i nomadelejr og afslapning ved havet, med Route Insolite."
     }
   },
   "legal": {
@@ -798,8 +849,9 @@
   },
   "circuitsPage": {
     "eyebrow": "Flerdagsture",
-    "title": "Vores Sahara-ture kommer snart",
-    "lead": "Ksar Ghilane, Tataouine og Chenini på Star Wars-optagelsesruten, Douz og Matmata i 4x4 — disse flerdagsture fra Djerba er det nye projekt fra Route Insolite, vores søstermærke for længere udflugter. Mens vi venter på lanceringen, kan du opdage vores overnatninger og dagsaktiviteter i lejren i Sabria.",
+    "title": "Vores Sahara-ture",
+    "lead": "Flerdages udflugter fra Djerba, arrangeret af Route Insolite — det sydlige Tunesiens arv, nætter i nomadelejr og afslapning ved havet, af det samme team som Dunes Insolites.",
+    "noneYet": "Ingen tur tilgængelig lige nu — kig forbi igen snart.",
     "destinationsLabel": "Destinationer på vej",
     "destinations": [
       "Ksar Ghilane",

@@ -29,6 +29,9 @@ export type {
   StayBooking,
   StayBookingInput,
   TimeSlot,
+  Tour,
+  TourBooking,
+  TourBookingInput,
 } from "@dunes/api-types";
 
 export { MAX_PARTY_SIZE } from "@dunes/api-types";

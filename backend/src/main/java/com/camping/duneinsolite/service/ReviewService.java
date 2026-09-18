@@ -25,5 +25,5 @@ public interface ReviewService {
      * internal id/ProductType. Exactly one of activitySlug/staySlug should
      * be set, or neither for the site-wide feed.
      */
-    List<PublicReviewResponse> getPublicReviews(String activitySlug, String staySlug);
+    List<PublicReviewResponse> getPublicReviews(String activitySlug, String staySlug, String tourSlug);
 }

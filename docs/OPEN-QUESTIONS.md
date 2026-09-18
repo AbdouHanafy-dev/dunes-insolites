@@ -162,6 +162,21 @@ exist. Revisit once R4 actually ships `route-insolite.com`. DI-024's
 legacy-slug 301 map is unblocked by this and should **not** include these
 nine circuit pages — they stay exactly where they are.
 
+**Addendum, 18 Sep 2026 (business owner, explicit):** the *domain* answer
+above is unchanged — circuits stay on `dunes-insolites.com`, the nine
+legacy WordPress URLs and DI-024's 301 map are untouched by this. What
+changes: `/circuits` stops being a "coming soon" stub and becomes a real,
+admin-managed Tour listing + detail page (GetYourGuide-style: gallery,
+price/date picker, itinerary+map, inclusions, reviews), publicly indexed.
+This was flagged before building as a reversal of CLAUDE.md's "no
+multi-day touring on the Dunes vitrine" rule and of this Q6 entry's
+original implementation choice — the business owner confirmed explicitly,
+after being told the SEO tradeoff (a real page now starts accruing its
+own ranking rather than waiting for route-insolite.com to exist), and the
+choice is theirs to make. `CLAUDE.md`'s rule text should be revisited to
+reflect this the next time it's touched, so a future session doesn't
+re-flag a now-settled decision.
+
 ### ✅ Canonical domain — `www.dunes-insolites.com`
 *Answered 25 Aug 2026.* With `www`, matching the legacy sitemap's declared
 canonical host. The new vitrine replaces the existing WordPress site.

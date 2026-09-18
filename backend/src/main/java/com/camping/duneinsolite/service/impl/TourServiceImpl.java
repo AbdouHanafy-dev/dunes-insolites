@@ -4,9 +4,11 @@ import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.dto.request.TourRequest;
 import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
+import com.camping.duneinsolite.dto.response.publicapi.PublicTourResponse;
 import com.camping.duneinsolite.exception.ConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourMapper;
+import com.camping.duneinsolite.mapper.publicapi.PublicTourMapper;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourTranslation;
 import com.camping.duneinsolite.model.enums.ProductType;
@@ -28,6 +30,7 @@ public class TourServiceImpl implements TourService {
 
     private final TourRepository tourRepository;
     private final TourMapper tourMapper;
+    private final PublicTourMapper publicTourMapper;
     private final UserProductRemiseRepository userProductRemiseRepository;
     private final ReviewRepository reviewRepository;
 
@@ -136,5 +139,22 @@ public class TourServiceImpl implements TourService {
     private Tour findById(UUID tourId) {
         return tourRepository.findById(tourId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + tourId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublicTourResponse> getPublicTours(String locale) {
+        return tourRepository.findByIsActiveTrue().stream()
+                .filter(tour -> tour.getSlug() != null && !tour.getSlug().isBlank())
+                .map(tour -> publicTourMapper.toResponse(tour, locale))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PublicTourResponse getPublicTourBySlug(String slug, String locale) {
+        Tour tour = tourRepository.findBySlugAndIsActiveTrue(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + slug));
+        return publicTourMapper.toResponse(tour, locale);
     }
 }

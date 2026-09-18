@@ -12,6 +12,7 @@ import com.camping.duneinsolite.model.enums.ReservationType;
 import com.camping.duneinsolite.model.enums.UserRole;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.SourceRepository;
+import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import com.camping.duneinsolite.service.ReservationService;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.when;
 class PublicBookingServiceImplTest {
 
     private TourTypeRepository tourTypeRepository;
+    private TourRepository tourRepository;
     private ExtraRepository extraRepository;
     private SourceRepository sourceRepository;
     private com.camping.duneinsolite.repository.AccommodationTypeRepository accommodationTypeRepository;
@@ -58,6 +60,7 @@ class PublicBookingServiceImplTest {
     @BeforeEach
     void setUp() {
         tourTypeRepository = mock(TourTypeRepository.class);
+        tourRepository = mock(TourRepository.class);
         extraRepository = mock(ExtraRepository.class);
         sourceRepository = mock(SourceRepository.class);
         accommodationTypeRepository = mock(com.camping.duneinsolite.repository.AccommodationTypeRepository.class);
@@ -69,7 +72,7 @@ class PublicBookingServiceImplTest {
         reservationService = mock(ReservationService.class);
 
         service = new PublicBookingServiceImpl(
-                tourTypeRepository, extraRepository,
+                tourTypeRepository, tourRepository, extraRepository,
                 sourceRepository,
                 accommodationTypeRepository, accommodationPricingService,
                 accommodationAvailabilityService, availabilityMetrics,

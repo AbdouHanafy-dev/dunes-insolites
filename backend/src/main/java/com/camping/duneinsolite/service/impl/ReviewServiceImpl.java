@@ -10,6 +10,7 @@ import com.camping.duneinsolite.exception.UserNotFoundException;
 import com.camping.duneinsolite.mapper.ReviewMapper;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.Review;
+import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.repository.ExtraRepository;
@@ -115,7 +116,7 @@ public class ReviewServiceImpl implements ReviewService {
     // list instead of anything invented.
     @Override
     @Transactional(readOnly = true)
-    public List<PublicReviewResponse> getPublicReviews(String activitySlug, String staySlug) {
+    public List<PublicReviewResponse> getPublicReviews(String activitySlug, String staySlug, String tourSlug) {
         List<Review> reviews;
         ProductType filterType = null;
 
@@ -131,6 +132,12 @@ public class ReviewServiceImpl implements ReviewService {
             reviews = reviewRepository.findByProductIdAndProductTypeOrderByCreatedAtDesc(
                     tourType.get().getTourTypeId(), ProductType.TOURTYPE);
             filterType = ProductType.TOURTYPE;
+        } else if (tourSlug != null && !tourSlug.isBlank()) {
+            Optional<Tour> tour = tourRepository.findBySlugAndIsActiveTrue(tourSlug);
+            if (tour.isEmpty()) return List.of();
+            reviews = reviewRepository.findByProductIdAndProductTypeOrderByCreatedAtDesc(
+                    tour.get().getTourId(), ProductType.TOUR);
+            filterType = ProductType.TOUR;
         } else {
             reviews = reviewRepository.findAllByOrderByCreatedAtDesc();
         }
@@ -151,10 +158,9 @@ public class ReviewServiceImpl implements ReviewService {
         String staySlug = type == ProductType.TOURTYPE
                 ? tourTypeRepository.findById(r.getProductId()).map(TourType::getSlug).orElse(null)
                 : null;
-        // A review on a Route Insolite Tour has neither - correct, not a
-        // bug: the Dunes vitrine never renders Tour-scoped content (root
-        // CLAUDE.md), so this review simply won't appear on any activity/
-        // stay page, only the unfiltered site-wide feed if one exists.
+        String tourSlug = type == ProductType.TOUR
+                ? tourRepository.findById(r.getProductId()).map(Tour::getSlug).orElse(null)
+                : null;
 
         return PublicReviewResponse.builder()
                 .id(r.getReviewId().toString())
@@ -164,6 +170,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .body(r.getComment())
                 .activitySlug(activitySlug)
                 .staySlug(staySlug)
+                .tourSlug(tourSlug)
                 .source("direct")
                 .build();
     }

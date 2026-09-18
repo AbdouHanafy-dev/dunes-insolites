@@ -127,7 +127,7 @@ public class SecurityConfig {
 
                         // Guest checkout (DI-013) - no login step. Finds/creates the
                         // account server-side; see PublicBookingServiceImpl.
-                        .requestMatchers(HttpMethod.POST, "/api/public/bookings", "/api/public/stay-bookings").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/public/bookings", "/api/public/stay-bookings", "/api/public/tour-bookings").permitAll()
 
                         // The vitrine's contact form and newsletter signup (SEO/vitrine
                         // audit fix) - both rate-limited below, same as bookings/register.

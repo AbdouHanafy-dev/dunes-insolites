@@ -397,6 +397,57 @@
     "dateLabel": "Datum",
     "partySizeLabel": "Gruppengröße"
   },
+  "tourDetail": {
+    "breadcrumbCircuits": "Rundreisen",
+    "fromPrice": "Ab {price} €",
+    "ratingFact": "{rating} ★ ({count} Bewertungen)",
+    "theTrip": "Die Rundreise",
+    "highlights": "Highlights",
+    "whatsIncluded": "Inklusive",
+    "notIncluded": "Nicht inklusive",
+    "itineraryEyebrow": "Tag für Tag",
+    "itineraryHeading": "Der Reiseverlauf",
+    "route": "Die Route",
+    "openInMaps": "In Maps öffnen",
+    "meetingPointHeading": "Treffpunkt",
+    "goodToKnow": "Gut zu wissen",
+    "languagesSpoken": "Gesprochene Sprachen: {languages}",
+    "freeCancellationNote": "Kostenlose Stornierung",
+    "perAdultLabel": "pro Erwachsenem",
+    "duration": "Dauer",
+    "groupSize": "Gruppengröße",
+    "location": "Ort",
+    "alsoWorthALook": "Auch interessant",
+    "otherCircuits": "Weitere Rundreisen",
+    "reviewsTitle": "Was Reisende über {tour} sagen",
+    "ctaTitle": "Bereit für das Abenteuer?",
+    "ctaBody": "Buchen Sie {tour} — unser Team bestätigt die Verfügbarkeit und meldet sich schnell bei Ihnen.",
+    "ctaLabel": "Buchung anfragen"
+  },
+  "tourBookingForm": {
+    "dateLabel": "Abreisedatum",
+    "adultsLabel": "Erwachsene",
+    "childrenLabel": "Kinder",
+    "fullName": "Vollständiger Name",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "notesLabel": "Gibt es noch etwas, das wir wissen sollten? (optional)",
+    "notesPlaceholder": "Ernährungsbedürfnisse, Abholhotel…",
+    "estimatedTotal": "Geschätzter Gesamtpreis",
+    "reserving": "Wird gesendet…",
+    "requestToBook": "Buchung anfragen",
+    "noChargeNote": "Es wird jetzt nichts abgebucht — unser Team bestätigt die Verfügbarkeit und meldet sich bei Ihnen.",
+    "reservedConfirmation": "Anfrage gesendet — {id}.",
+    "reservedBody": "Wir melden uns per E-Mail oder Telefon bei Ihnen, um Verfügbarkeit und Zahlung zu bestätigen.",
+    "errorPickDate": "Wählen Sie ein Datum.",
+    "errorPastDate": "Wählen Sie heute oder ein zukünftiges Datum.",
+    "errorAtLeastOneAdult": "Mindestens ein Erwachsener ist erforderlich.",
+    "errorName": "Ein Name ist erforderlich.",
+    "errorEmail": "Eine E-Mail-Adresse ist erforderlich.",
+    "errorEmailInvalid": "Diese E-Mail-Adresse scheint nicht korrekt zu sein.",
+    "errorPhone": "Eine Telefonnummer ist erforderlich.",
+    "errorGeneric": "Diese Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
+  },
   "accommodationCard": {
     "exploreThisStay": "Diese Übernachtung entdecken ↗"
   },
@@ -696,8 +747,8 @@
       "title": "Ihre Buchung"
     },
     "circuits": {
-      "title": "Mehrtägige Rundreisen",
-      "description": "Ksar Ghilane, Tataouine und Chenini, Douz und Matmata per 4x4 — unsere mehrtägigen Rundreisen ab Djerba kommen bald mit Route Insolite."
+      "title": "Mehrtägige Sahara-Rundreisen",
+      "description": "Mehrtägige Ausflüge ab Djerba — das Erbe Südtunesiens, Nächte im Nomaden-Biwak und Entspannung am Meer, mit Route Insolite."
     }
   },
   "legal": {
@@ -798,8 +849,9 @@
   },
   "circuitsPage": {
     "eyebrow": "Mehrtägige Rundreisen",
-    "title": "Unsere Sahara-Rundreisen kommen bald",
-    "lead": "Ksar Ghilane, Tataouine und Chenini auf der Star-Wars-Drehroute, Douz und Matmata per 4x4 — diese mehrtägigen Rundreisen ab Djerba sind das neue Projekt von Route Insolite, unserer Schwestermarke für längere Ausflüge. Entdecken Sie bis zum Start unsere Übernachtungen und Tagesaktivitäten im Camp von Sabria.",
+    "title": "Unsere Sahara-Rundreisen",
+    "lead": "Mehrtägige Ausflüge ab Djerba, organisiert von Route Insolite — das Erbe Südtunesiens, Nächte im Nomaden-Biwak und Entspannung am Meer, vom selben Team wie Dunes Insolites.",
+    "noneYet": "Derzeit keine Rundreise verfügbar — schauen Sie bald wieder vorbei.",
     "destinationsLabel": "Bald verfügbare Ziele",
     "destinations": [
       "Ksar Ghilane",

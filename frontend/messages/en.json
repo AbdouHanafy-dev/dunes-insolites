@@ -397,6 +397,57 @@
     "dateLabel": "Date",
     "partySizeLabel": "Party size"
   },
+  "tourDetail": {
+    "breadcrumbCircuits": "Circuits",
+    "fromPrice": "From €{price}",
+    "ratingFact": "{rating} ★ ({count} reviews)",
+    "theTrip": "The circuit",
+    "highlights": "Highlights",
+    "whatsIncluded": "What's included",
+    "notIncluded": "Not included",
+    "itineraryEyebrow": "Day by day",
+    "itineraryHeading": "The itinerary",
+    "route": "The route",
+    "openInMaps": "Open in Maps",
+    "meetingPointHeading": "Meeting point",
+    "goodToKnow": "Good to know",
+    "languagesSpoken": "Languages spoken: {languages}",
+    "freeCancellationNote": "Free cancellation",
+    "perAdultLabel": "per adult",
+    "duration": "Duration",
+    "groupSize": "Group size",
+    "location": "Location",
+    "alsoWorthALook": "Also worth a look",
+    "otherCircuits": "Other circuits",
+    "reviewsTitle": "What travellers say about {tour}",
+    "ctaTitle": "Ready for the adventure?",
+    "ctaBody": "Book {tour} — our team confirms availability and gets back to you quickly.",
+    "ctaLabel": "Request to book"
+  },
+  "tourBookingForm": {
+    "dateLabel": "Departure date",
+    "adultsLabel": "Adults",
+    "childrenLabel": "Children",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "notesLabel": "Anything else we should know? (optional)",
+    "notesPlaceholder": "Dietary needs, pickup hotel…",
+    "estimatedTotal": "Estimated total",
+    "reserving": "Sending…",
+    "requestToBook": "Request to book",
+    "noChargeNote": "Nothing is charged now — our team confirms availability and gets back to you.",
+    "reservedConfirmation": "Request sent — {id}.",
+    "reservedBody": "We'll get back to you by email or phone to confirm availability and payment.",
+    "errorPickDate": "Pick a date.",
+    "errorPastDate": "Pick today or a future date.",
+    "errorAtLeastOneAdult": "At least one adult is required.",
+    "errorName": "A name is required.",
+    "errorEmail": "An email is required.",
+    "errorEmailInvalid": "That email looks off.",
+    "errorPhone": "A phone number is required.",
+    "errorGeneric": "We couldn't send that request. Try again."
+  },
   "accommodationCard": {
     "exploreThisStay": "Explore this stay ↗"
   },
@@ -696,8 +747,8 @@
       "title": "Your booking"
     },
     "circuits": {
-      "title": "Multi-day circuits",
-      "description": "Ksar Ghilane, Tataouine and Chenini, Douz and Matmata by 4x4 — our multi-day circuits from Djerba are coming soon with Route Insolite."
+      "title": "Multi-day Sahara circuits",
+      "description": "Multi-day excursions departing from Djerba — southern Tunisia's heritage, nomad bivouac nights and seaside relaxation, with Route Insolite."
     }
   },
   "legal": {
@@ -798,8 +849,9 @@
   },
   "circuitsPage": {
     "eyebrow": "Multi-day circuits",
-    "title": "Our Sahara circuits are coming soon",
-    "lead": "Ksar Ghilane, Tataouine and Chenini along the Star Wars filming trail, Douz and Matmata by 4x4 — these multi-day circuits from Djerba are the new project from Route Insolite, our sister brand dedicated to longer excursions. While it launches, discover our overnight stays and day activities at the Sabria camp.",
+    "title": "Our Sahara circuits",
+    "lead": "Multi-day excursions departing from Djerba, run by Route Insolite — southern Tunisia's heritage, nights in a nomad bivouac and seaside relaxation, organised by the same team as Dunes Insolites.",
+    "noneYet": "No circuit available right now — check back soon.",
     "destinationsLabel": "Destinations coming soon",
     "destinations": [
       "Ksar Ghilane",

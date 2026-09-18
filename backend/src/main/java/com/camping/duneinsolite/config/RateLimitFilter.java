@@ -34,6 +34,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private static final List<Limit> LIMITS = List.of(
             new Limit("/api/public/bookings", "POST", 10, 60_000),
             new Limit("/api/public/stay-bookings", "POST", 10, 60_000),
+            new Limit("/api/public/tour-bookings", "POST", 10, 60_000),
             new Limit("/api/auth/register", "POST", 5, 60_000),
             new Limit("/api/auth/login", "POST", 10, 60_000),
             // Contact/newsletter (SEO/vitrine audit fix) - unauthenticated,

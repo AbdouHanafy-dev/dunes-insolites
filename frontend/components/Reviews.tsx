@@ -7,15 +7,17 @@ import { averageRating } from "@/lib/data/reviews";
 export default async function Reviews({
   activitySlug,
   staySlug,
+  tourSlug,
   title = "What guests actually say.",
   limit = 6,
 }: {
   activitySlug?: string;
   staySlug?: string;
+  tourSlug?: string;
   title?: string;
   limit?: number;
 }) {
-  const all = await getReviews({ activitySlug, staySlug });
+  const all = await getReviews({ activitySlug, staySlug, tourSlug });
   if (!all.length) return null;
 
   const shown = [...all]

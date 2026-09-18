@@ -2,6 +2,7 @@ package com.camping.duneinsolite.service.impl;
 
 import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.mapper.TourMapper;
+import com.camping.duneinsolite.mapper.publicapi.PublicTourMapper;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourRepository;
@@ -41,6 +42,7 @@ class TourServiceImplTest {
     void setUp() {
         repository = mock(TourRepository.class);
         TourMapper mapper = mock(TourMapper.class);
+        PublicTourMapper publicTourMapper = mock(PublicTourMapper.class);
         UserProductRemiseRepository remiseRepository = mock(UserProductRemiseRepository.class);
         ReviewRepository reviewRepository = mock(ReviewRepository.class);
 
@@ -57,7 +59,7 @@ class TourServiceImplTest {
 
         when(repository.save(any(Tour.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        service = new TourServiceImpl(repository, mapper, remiseRepository, reviewRepository);
+        service = new TourServiceImpl(repository, mapper, publicTourMapper, remiseRepository, reviewRepository);
     }
 
     @Test

@@ -114,6 +114,70 @@ export type Stay = {
   guideRequired?: boolean;
 };
 
+/**
+ * A multi-day circuit — Route Insolite's product, departing Djerba.
+ *
+ * Backend note: projected from `Tour`. Route Insolite has no backoffice or
+ * vitrine of its own yet (R4, unscheduled) — real circuits are managed from
+ * the shared admin and, since 18 Sep 2026 (business owner, explicit; see
+ * docs/OPEN-QUESTIONS.md Q6's addendum), published on dunes-insolites.com
+ * under /circuits. Unlike Activity/Stay, Tour has no capacity/availability
+ * concept — booking is request-to-book, staff confirm.
+ */
+export type Tour = {
+  slug: string;
+  title: string;
+  description: string;
+  aboutText: string | null;
+  duration: string;
+  location: string | null;
+  meetingPoint: string | null;
+  groupSize: string;
+  languages: string[];
+  coverImage: string | null;
+  gallery: string[];
+  highlights: string[];
+  included: string[];
+  notIncluded: string[];
+  itinerary: Array<{
+    label: string | null;
+    title: string | null;
+    description: string | null;
+  }>;
+  cancellationPolicy: {
+    freeCancellation: boolean | null;
+    hoursBeforeDeadline: number | null;
+  } | null;
+  /** Per adult, in the currency the endpoint was asked for. Same as `passengerAdultPrice`. */
+  priceFrom: number;
+  passengerAdultPrice: number;
+  passengerChildPrice: number;
+  averageRating: number | null;
+  reviewCount: number | null;
+};
+
+/**
+ * Booking a Tour — one departure date, adults/children, contact details.
+ * No accommodation/service-option complexity like `StayBookingInput`: a
+ * Tour's own price already covers the circuit end to end.
+ */
+export type TourBooking = {
+  id: string;
+  tourSlug: string;
+  date: string;
+  numberOfAdults: number;
+  numberOfChildren: number;
+  name: string;
+  email: string;
+  phone: string;
+  notes?: string;
+  status: BookingStatus;
+  total: number;
+  createdAt: string;
+};
+
+export type TourBookingInput = Omit<TourBooking, "id" | "status" | "total" | "createdAt">;
+
 export type Accommodation = {
   slug: string;
   title: string;
@@ -167,6 +231,8 @@ export type Review = {
   activitySlug?: string;
   /** The specific stay this review is about, if any. */
   staySlug?: string;
+  /** The specific Tour circuit this review is about, if any. */
+  tourSlug?: string;
   source: ReviewSource;
 };
 

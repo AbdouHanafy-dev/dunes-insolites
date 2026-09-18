@@ -48,10 +48,21 @@ Camel trek, quad safari and sandboarding are **optional add-ons to a nuitée**,
 not a separate bookable line. No time-of-day picker — the camp confirms the hour
 on arrival, depending on who else is booked that day.
 
-> **Do not add multi-day touring to the Dunes vitrine.** That is Route Insolite's
-> product. This has been corrected twice. The backend *does* model multi-day
-> tours (`Tour.programSteps`) because it serves both companies — that is not a
-> contradiction.
+> **Do not add multi-day touring to the Dunes vitrine — this rule held from
+> launch through 17 Sep 2026 and was corrected twice in that window.** The
+> backend *does* model multi-day tours (`Tour.programSteps`) because it
+> serves both companies — that was never the contradiction.
+>
+> **Reversed 18 Sep 2026, business owner, explicit — see
+> `docs/OPEN-QUESTIONS.md` Q6's addendum for the full tradeoff.** `/circuits`
+> is now a real, admin-managed, publicly indexed Tour listing + detail page.
+> Route Insolite still has no vitrine of its own (R4, unscheduled) and
+> `dunes-insolites.com` still is not `route-insolite.com` — the business
+> owner chose to publish real tour content on the Dunes domain now rather
+> than wait, accepting that it starts the domain's own ranking history
+> instead of `route-insolite.com`'s. Don't re-flag this as the old rule; do
+> flag anything that looks like it's guessing at scope beyond what Q6's
+> addendum actually settled.
 
 ---
 

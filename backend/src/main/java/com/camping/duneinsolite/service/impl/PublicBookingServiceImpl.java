@@ -2,17 +2,21 @@ package com.camping.duneinsolite.service.impl;
 
 import com.camping.duneinsolite.dto.request.ReservationExtraRequest;
 import com.camping.duneinsolite.dto.request.ReservationRequest;
+import com.camping.duneinsolite.dto.request.TourSelectionRequest;
 import com.camping.duneinsolite.dto.request.TourTypeSelectionRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicActivityBookingRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicStayBookingRequest;
+import com.camping.duneinsolite.dto.request.publicapi.PublicTourBookingRequest;
 import com.camping.duneinsolite.dto.response.ReservationResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicBookingResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicStayBookingResponse;
+import com.camping.duneinsolite.dto.response.publicapi.PublicTourBookingResponse;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.exception.ReservationValidationException;
 import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.Source;
+import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.ReservationType;
@@ -20,6 +24,7 @@ import com.camping.duneinsolite.model.enums.ExtraCategory;
 import com.camping.duneinsolite.repository.AccommodationTypeRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.SourceRepository;
+import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import com.camping.duneinsolite.service.AccommodationAvailabilityService;
 import com.camping.duneinsolite.service.AccommodationPricingService;
@@ -45,6 +50,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
     private static final String VITRINE_SOURCE_NAME = "Site web";
 
     private final TourTypeRepository tourTypeRepository;
+    private final TourRepository tourRepository;
     private final ExtraRepository extraRepository;
     private final SourceRepository sourceRepository;
     private final AccommodationTypeRepository accommodationTypeRepository;
@@ -135,6 +141,54 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // totalAmount is explicitly null for a pure EXTRAS reservation - the
         // real price lives in totalExtrasAmount for this reservation type.
         response.setTotal(reservation.getTotalExtrasAmount());
+        response.setCreatedAt(reservation.getCreatedAt());
+        return response;
+    }
+
+    @Override
+    public PublicTourBookingResponse createTourBooking(PublicTourBookingRequest request) {
+        var replay = replayOf(request.getIdempotencyKey());
+        if (replay.isPresent()) return toTourResponse(replay.get(), request);
+
+        Tour tour = tourRepository.findBySlugAndIsActiveTrue(request.getTourSlug())
+                .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + request.getTourSlug()));
+        User user = findOrCreateUser(request.getName(), request.getEmail(), request.getPhone());
+        Source source = vitrineSource();
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setUserId(user.getUserId());
+        reservationRequest.setSourceId(source.getSourceId());
+        reservationRequest.setReservationType(ReservationType.TOURS);
+        reservationRequest.setServiceDate(request.getDate());
+        reservationRequest.setNumberOfAdults(request.getNumberOfAdults());
+        reservationRequest.setNumberOfChildren(
+                request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0);
+        reservationRequest.setHoldExpiresAt(holdExpiry());
+        reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
+        reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), null));
+
+        TourSelectionRequest selection = new TourSelectionRequest();
+        selection.setTourId(tour.getTourId());
+        reservationRequest.setTours(List.of(selection));
+
+        ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
+        availabilityMetrics.holdCreated();
+        return toTourResponse(reservation, request);
+    }
+
+    private PublicTourBookingResponse toTourResponse(ReservationResponse reservation, PublicTourBookingRequest request) {
+        PublicTourBookingResponse response = new PublicTourBookingResponse();
+        response.setId(reservation.getReservationId().toString());
+        response.setTourSlug(request.getTourSlug());
+        response.setDate(request.getDate().toString());
+        response.setNumberOfAdults(request.getNumberOfAdults());
+        response.setNumberOfChildren(request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0);
+        response.setName(request.getName());
+        response.setEmail(request.getEmail());
+        response.setPhone(request.getPhone());
+        response.setNotes(request.getNotes());
+        response.setStatus("pending");
+        response.setTotal(reservation.getTotalAmount());
         response.setCreatedAt(reservation.getCreatedAt());
         return response;
     }
