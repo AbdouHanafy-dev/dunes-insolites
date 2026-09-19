@@ -6,15 +6,21 @@ import com.camping.duneinsolite.dto.response.GuideResponse;
 import com.camping.duneinsolite.mapper.GuideMapper;
 import com.camping.duneinsolite.model.Guide;
 import com.camping.duneinsolite.model.Reservation;
+import com.camping.duneinsolite.model.SpokenLanguage;
 import com.camping.duneinsolite.repository.GuideRepository;
 import com.camping.duneinsolite.repository.ReservationRepository;
+import com.camping.duneinsolite.repository.SpokenLanguageRepository;
 import com.camping.duneinsolite.service.GuideService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,6 +30,7 @@ public class GuideServiceImpl implements GuideService {
 
     private final GuideRepository guideRepository;
     private final ReservationRepository reservationRepository;
+    private final SpokenLanguageRepository spokenLanguageRepository;
     private final GuideMapper guideMapper;
 
     @Override
@@ -34,7 +41,17 @@ public class GuideServiceImpl implements GuideService {
                         "Reservation not found: " + request.getReservationId()));
         Guide guide = guideMapper.toEntity(request);
         guide.setReservation(reservation);
+        guide.setLanguages(resolveLanguages(request.getLanguageIds()));
         return guideMapper.toResponse(guideRepository.save(guide));
+    }
+
+    private Set<SpokenLanguage> resolveLanguages(Set<UUID> languageIds) {
+        if (languageIds == null || languageIds.isEmpty()) return new HashSet<>();
+        Set<SpokenLanguage> languages = new HashSet<>(spokenLanguageRepository.findAllById(languageIds));
+        if (languages.size() != languageIds.size()) {
+            throw new EntityNotFoundException("One or more languages not found");
+        }
+        return languages;
     }
 
     @Override
@@ -53,10 +70,19 @@ public class GuideServiceImpl implements GuideService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<GuideResponse> getAll(Pageable pageable) {
+        return guideRepository.findAll(pageable).map(guideMapper::toResponse);
+    }
+
+    @Override
     @Transactional
     public GuideResponse update(UUID id, GuideUpdateRequest request) {
         Guide guide = findOrThrow(id);
         guideMapper.updateEntity(request, guide);
+        if (request.getLanguageIds() != null) {
+            guide.setLanguages(resolveLanguages(request.getLanguageIds()));
+        }
         return guideMapper.toResponse(guideRepository.save(guide));
     }
 

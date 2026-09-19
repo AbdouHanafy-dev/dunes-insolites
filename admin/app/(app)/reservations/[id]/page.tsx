@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getReservationById } from "@/lib/api";
+import { getDriverProfiles, getReservationById, getSpokenLanguages } from "@/lib/api";
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 
 export const metadata: Metadata = { title: "Réservation" };
@@ -12,7 +12,11 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   const session = await getSession();
   if (!session) return null;
 
-  const reservation = await getReservationById(session.accessToken, id);
+  const [reservation, languages, driverProfiles] = await Promise.all([
+    getReservationById(session.accessToken, id),
+    getSpokenLanguages(session.accessToken),
+    getDriverProfiles(session.accessToken),
+  ]);
   if (!reservation) notFound();
 
   const line = [...reservation.tourTypes, ...reservation.tours][0];
@@ -36,14 +40,23 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         <Field label="Montant" value={`${reservation.totalAmount} ${reservation.currency}`} />
         {reservation.groupName && <Field label="Groupe" value={reservation.groupName} />}
         {reservation.groupLeaderName && <Field label="Responsable groupe" value={reservation.groupLeaderName} />}
+        {reservation.preferredLanguages.length > 0 && (
+          <Field label="Langue(s) préférée(s) du client" value={reservation.preferredLanguages.map((l) => l.name).join(", ")} />
+        )}
+        {reservation.otherLanguageRequested && (
+          <Field label="Autre langue demandée" value={reservation.otherLanguageRequested} />
+        )}
       </div>
 
       <ReservationStaffPanel
         reservationId={reservation.reservationId}
         reservationType={reservation.reservationType}
         status={reservation.status}
+        preferredLanguages={reservation.preferredLanguages}
+        allLanguages={languages}
         initialGuides={reservation.guides ?? []}
         initialChauffeurs={reservation.chauffeurs ?? []}
+        driverProfiles={driverProfiles}
       />
     </div>
   );

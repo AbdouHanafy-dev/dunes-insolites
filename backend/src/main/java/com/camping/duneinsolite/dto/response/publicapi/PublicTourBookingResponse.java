@@ -3,6 +3,7 @@ package com.camping.duneinsolite.dto.response.publicapi;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /** Response for POST /api/public/tour-bookings. */
 @Data
@@ -12,6 +13,10 @@ public class PublicTourBookingResponse {
     private String date;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private List<String> rideSlugs;
+    private String arrivalMode;
+    private List<String> preferredLanguageIds;
+    private String otherLanguageRequested;
     private String name;
     private String email;
     private String phone;

@@ -3,6 +3,8 @@ package com.camping.duneinsolite.service;
 import com.camping.duneinsolite.dto.request.GuideRequest;
 import com.camping.duneinsolite.dto.request.GuideUpdateRequest;
 import com.camping.duneinsolite.dto.response.GuideResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,6 +12,8 @@ public interface GuideService {
     GuideResponse create(GuideRequest request);
     GuideResponse getById(UUID id);
     List<GuideResponse> getByReservation(UUID reservationId);
+    // Every Guide across every reservation - the backoffice roster view.
+    Page<GuideResponse> getAll(Pageable pageable);
     GuideResponse update(UUID id, GuideUpdateRequest request);
     void delete(UUID id);
     void deleteAllByReservation(UUID reservationId);

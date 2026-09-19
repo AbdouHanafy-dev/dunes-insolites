@@ -14,4 +14,6 @@ public interface NavigationItemRepository extends JpaRepository<NavigationItem, 
 
     List<NavigationItem> findByLocaleAndCompanyTypeOrderByDisplayOrderAsc(
             PageLocale locale, CompanyType companyType);
+
+    boolean existsByUrlAndLocaleAndCompanyType(String url, PageLocale locale, CompanyType companyType);
 }

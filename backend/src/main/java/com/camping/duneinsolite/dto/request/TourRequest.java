@@ -5,12 +5,12 @@ import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.enums.GroupSizeType;
-import com.camping.duneinsolite.model.enums.Language;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 public class TourRequest {
@@ -32,7 +32,7 @@ public class TourRequest {
     private String meetingPoint;
     private String location;
     private GroupSizeType groupSizeType;
-    private Set<Language> languages;
+    private Set<UUID> languageIds;
     private CancellationPolicy cancellationPolicy;
     private String coverPhotoUrl;
     private List<Photo> photos;

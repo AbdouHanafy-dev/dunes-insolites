@@ -3,28 +3,37 @@
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
-import type { AdminReservationStaffMember } from "@/lib/api";
+import type { AdminDriverProfile, AdminReservationStaffMember, AdminSpokenLanguage } from "@/lib/api";
 
 /**
- * Guide/chauffeur are ad-hoc staff records tied 1:1 to a reservation (see
- * Guide.java / Chauffeur.java - a `reservation` FK is required at creation),
- * not a roster to pick from. So this is a small "type a name, attach it"
- * form on each side, not a dropdown - matching what the backend actually
- * models. Backend enforces reservationType === TOURS and a non-terminal
- * status; this panel mirrors that instead of letting a doomed request round-trip.
+ * Guides remain reservation-specific records. Chauffeurs are selected from
+ * the permanent driver directory; the backend copies a snapshot into the
+ * reservation assignment so later profile edits never rewrite history.
+ *
+ * Guide and chauffeur are deliberately separate roles here: a guide
+ * translates (Guide.languages, matched against `preferredLanguage`) and
+ * never drives; a chauffeur drives their own vehicle (vehicleModel /
+ * numberOfSeats) and doesn't need to speak the client's language. A
+ * reservation can get either, both, or neither.
  */
 export default function ReservationStaffPanel({
   reservationId,
   reservationType,
   status,
+  preferredLanguages,
+  allLanguages,
   initialGuides,
   initialChauffeurs,
+  driverProfiles,
 }: {
   reservationId: string;
   reservationType: string;
   status: string;
+  preferredLanguages: AdminSpokenLanguage[];
+  allLanguages: AdminSpokenLanguage[];
   initialGuides: AdminReservationStaffMember[];
   initialChauffeurs: AdminReservationStaffMember[];
+  driverProfiles: AdminDriverProfile[];
 }) {
   const toast = useToast();
   const [guides, setGuides] = useState(initialGuides);
@@ -35,16 +44,8 @@ export default function ReservationStaffPanel({
     reservationType === "TOURS" &&
     !["CANCELLED", "REJECTED", "COMPLETED"].includes(status);
 
-  async function addStaff(
-    kind: "guides" | "chauffeurs",
-    firstName: string,
-    lastName: string,
-    phoneNumber: string,
-    driverUserEmail?: string,
-  ) {
+  async function addStaff(kind: "guides" | "chauffeurs", entry: Record<string, unknown>) {
     setBusy(true);
-    const entry: Record<string, unknown> = { firstName, lastName, phoneNumber: phoneNumber || null };
-    if (kind === "chauffeurs" && driverUserEmail) entry.driverUserEmail = driverUserEmail;
     const res = await fetch(`/api/proxy/reservations/${reservationId}/staff`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,87 +76,132 @@ export default function ReservationStaffPanel({
     toast.success("Retiré de la réservation");
   }
 
+  const unmanageableNotice = !manageable && (
+    <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+      {reservationType !== "TOURS"
+        ? "Le personnel ne peut être affecté qu'aux réservations de type Tours."
+        : `Le personnel ne peut plus être modifié pour une réservation ${status.toLowerCase()}.`}
+    </p>
+  );
+
   return (
-    <div className="card rounded-2xl p-5">
-      <h3 className="text-[13px] font-bold uppercase tracking-wide text-navy-700/50">Équipe affectée</h3>
-      <p className="mt-1 text-[12px] text-navy-700/45">
-        Guide(s) et chauffeur(s) affectés à cette réservation. Le client les voit dans son espace personnel.
-      </p>
-
-      {!manageable && (
-        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
-          {reservationType !== "TOURS"
-            ? "Le personnel ne peut être affecté qu'aux réservations de type Tours."
-            : `Le personnel ne peut plus être modifié pour une réservation ${status.toLowerCase()}.`}
+    <div className="flex flex-col gap-6">
+      <div className="card rounded-2xl p-5">
+        <h3 className="text-[13px] font-bold uppercase tracking-wide text-navy-700/50">Guides</h3>
+        <p className="mt-1 text-[12px] text-navy-700/45">
+          Le guide traduit pour le groupe — affecté séparément du chauffeur. Le client le voit dans son
+          espace personnel.
         </p>
-      )}
 
-      <StaffList kind="guides" label="Guides" items={guides} onAdd={addStaff} onRemove={removeStaff} disabled={!manageable || busy} />
-      <StaffList kind="chauffeurs" label="Chauffeurs" items={chauffeurs} onAdd={addStaff} onRemove={removeStaff} disabled={!manageable || busy} />
+        {preferredLanguages.length > 0 && (
+          <p className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-[13px] text-sky-800">
+            Langue(s) préférée(s) du client :{" "}
+            <strong>{preferredLanguages.map((l) => l.name).join(", ")}</strong> — choisissez un guide qui en
+            parle une.
+          </p>
+        )}
+
+        {unmanageableNotice}
+
+        <GuideList
+          items={guides}
+          preferredLanguages={preferredLanguages}
+          allLanguages={allLanguages}
+          onAdd={(entry) => addStaff("guides", entry)}
+          onRemove={(id) => removeStaff("guides", id)}
+          disabled={!manageable || busy}
+        />
+      </div>
+
+      <div className="card rounded-2xl p-5">
+        <h3 className="text-[13px] font-bold uppercase tracking-wide text-navy-700/50">Chauffeurs</h3>
+        <p className="mt-1 text-[12px] text-navy-700/45">
+          Le chauffeur conduit son propre véhicule — affecté séparément du guide. Le client le voit dans son
+          espace personnel.
+        </p>
+
+        {unmanageableNotice}
+
+        <ChauffeurList
+          items={chauffeurs}
+          driverProfiles={driverProfiles}
+          onAdd={(entry) => addStaff("chauffeurs", entry)}
+          onRemove={(id) => removeStaff("chauffeurs", id)}
+          disabled={!manageable || busy}
+        />
+      </div>
     </div>
   );
 }
 
-function StaffList({
-  kind,
-  label,
+function GuideList({
   items,
+  preferredLanguages,
+  allLanguages,
   onAdd,
   onRemove,
   disabled,
 }: {
-  kind: "guides" | "chauffeurs";
-  label: string;
   items: AdminReservationStaffMember[];
-  onAdd: (
-    kind: "guides" | "chauffeurs",
-    firstName: string,
-    lastName: string,
-    phoneNumber: string,
-    driverUserEmail?: string,
-  ) => Promise<void>;
-  onRemove: (kind: "guides" | "chauffeurs", id: string) => Promise<void>;
+  preferredLanguages: AdminSpokenLanguage[];
+  allLanguages: AdminSpokenLanguage[];
+  onAdd: (entry: Record<string, unknown>) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
   disabled: boolean;
 }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [driverUserEmail, setDriverUserEmail] = useState("");
+  const [languageIds, setLanguageIds] = useState<string[]>([]);
+  const preferredIds = new Set(preferredLanguages.map((l) => l.languageId));
+  const selectableLanguages = allLanguages.filter((l) => l.active || preferredIds.has(l.languageId));
+
+  function toggleLanguage(id: string) {
+    setLanguageIds((cur) => (cur.includes(id) ? cur.filter((l) => l !== id) : [...cur, id]));
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    await onAdd(kind, firstName, lastName, phoneNumber, kind === "chauffeurs" ? driverUserEmail : undefined);
+    await onAdd({ firstName, lastName, phoneNumber: phoneNumber || null, languageIds });
     setFirstName("");
     setLastName("");
     setPhoneNumber("");
-    setDriverUserEmail("");
+    setLanguageIds([]);
   }
 
   return (
-    <div className="mt-5">
-      <h4 className="text-[12px] font-semibold uppercase tracking-wide text-navy-700/40">{label}</h4>
+    <div className="mt-3">
       {items.length === 0 ? (
-        <p className="mt-2 text-sm text-gray-400">Aucun {label.toLowerCase().slice(0, -1)} affecté pour le moment.</p>
+        <p className="mt-2 text-sm text-gray-400">Aucun guide affecté pour le moment.</p>
       ) : (
         <ul className="mt-2 divide-y divide-gray-100 rounded-xl border border-navy-700/10">
           {items.map((m) => {
-            const id = (m.guideId ?? m.chauffeurId)!;
+            const id = m.guideId!;
+            const speaksPreferred = (m.languages ?? []).some((l) => preferredIds.has(l.languageId));
             return (
               <li key={id} className="flex items-center justify-between px-4 py-2 text-sm">
                 <span className="font-medium text-gray-900">
                   {m.firstName} {m.lastName}
                   {m.phoneNumber && <span className="ml-2 font-normal text-gray-500">{m.phoneNumber}</span>}
-                  {m.driverUserEmail && (
-                    <span className="ml-2 rounded-full bg-emerald/10 px-2 py-0.5 text-[11px] font-medium text-emerald">
-                      compte lié : {m.driverUserEmail}
+                  {(m.languages ?? []).map((lang) => (
+                    <span
+                      key={lang.languageId}
+                      className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        preferredIds.has(lang.languageId)
+                          ? "bg-emerald/15 text-emerald"
+                          : "bg-navy-700/5 text-navy-700/50"
+                      }`}
+                    >
+                      {lang.name}
                     </span>
-                  )}
+                  ))}
+                  {speaksPreferred && <span className="ml-2 text-[11px] text-emerald">✓ parle la langue du client</span>}
                 </span>
                 <button
                   type="button"
                   disabled={disabled}
                   className="text-rose hover:underline disabled:opacity-40"
-                  onClick={() => onRemove(kind, id)}
+                  onClick={() => onRemove(id)}
                 >
                   Retirer
                 </button>
@@ -179,25 +225,117 @@ function StaffList({
             <label className={labelClass}>Téléphone</label>
             <input className={inputClass} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
           </div>
-          {kind === "chauffeurs" ? (
-            <div className="flex flex-col gap-1">
-              <label className={labelClass}>Compte chauffeur (optionnel)</label>
-              <input
-                type="email"
-                placeholder="email du compte"
-                className={inputClass}
-                value={driverUserEmail}
-                onChange={(e) => setDriverUserEmail(e.target.value)}
-              />
-            </div>
-          ) : (
-            <div />
-          )}
+          <div className="flex flex-col gap-1">
+            <label className={labelClass}>Langues parlées</label>
+            {selectableLanguages.length === 0 ? (
+              <p className="text-[12px] text-navy-700/45">
+                Aucune langue configurée — gérez la liste sous Catalogue → Langues.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {selectableLanguages.map((lang) => (
+                  <label key={lang.languageId} className="flex items-center gap-1 text-[12px] text-navy-700/70">
+                    <input
+                      type="checkbox"
+                      checked={languageIds.includes(lang.languageId)}
+                      onChange={() => toggleLanguage(lang.languageId)}
+                    />
+                    {lang.name}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="flex items-end sm:col-span-4">
             <button type="submit" className="btn btn-primary">
               Affecter
             </button>
           </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function ChauffeurList({
+  items,
+  driverProfiles,
+  onAdd,
+  onRemove,
+  disabled,
+}: {
+  items: AdminReservationStaffMember[];
+  driverProfiles: AdminDriverProfile[];
+  onAdd: (entry: Record<string, unknown>) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
+  disabled: boolean;
+}) {
+  const activeDrivers = driverProfiles.filter((driver) => driver.active);
+  const [driverProfileId, setDriverProfileId] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!driverProfileId) return;
+    await onAdd({ driverProfileId });
+    setDriverProfileId("");
+  }
+
+  return (
+    <div className="mt-3">
+      {items.length === 0 ? (
+        <p className="mt-2 text-sm text-gray-400">Aucun chauffeur affecté pour le moment.</p>
+      ) : (
+        <ul className="mt-2 divide-y divide-gray-100 rounded-xl border border-navy-700/10">
+          {items.map((m) => {
+            const id = m.chauffeurId!;
+            return (
+              <li key={id} className="flex items-center justify-between px-4 py-2 text-sm">
+                <span className="font-medium text-gray-900">
+                  {m.firstName} {m.lastName}
+                  {m.phoneNumber && <span className="ml-2 font-normal text-gray-500">{m.phoneNumber}</span>}
+                  {m.vehicleModel && (
+                    <span className="ml-2 rounded-full bg-navy-700/5 px-2 py-0.5 text-[11px] font-medium text-navy-700/60">
+                      {m.vehicleModel}
+                      {m.numberOfSeats != null ? ` · ${m.numberOfSeats} places` : ""}
+                    </span>
+                  )}
+                  {m.driverUserEmail && (
+                    <span className="ml-2 rounded-full bg-emerald/10 px-2 py-0.5 text-[11px] font-medium text-emerald">
+                      compte lié : {m.driverUserEmail}
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  className="text-rose hover:underline disabled:opacity-40"
+                  onClick={() => onRemove(id)}
+                >
+                  Retirer
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {!disabled && (
+        <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex flex-1 flex-col gap-1">
+            <label className={labelClass}>Chauffeur de l’annuaire</label>
+            <select required className={inputClass} value={driverProfileId} onChange={(event) => setDriverProfileId(event.target.value)}>
+              <option value="">Sélectionner un chauffeur</option>
+              {activeDrivers.map((driver) => (
+                <option key={driver.driverProfileId} value={driver.driverProfileId}>
+                  {driver.firstName} {driver.lastName} — {driver.vehicleModel ?? "véhicule non renseigné"}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={activeDrivers.length === 0}>Affecter</button>
+          {activeDrivers.length === 0 && (
+            <p className="text-xs text-amber-700">Créez d’abord un chauffeur dans l’annuaire.</p>
+          )}
         </form>
       )}
     </div>

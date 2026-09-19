@@ -516,6 +516,22 @@ export async function getServiceOptions(category?: ServiceOptionCategory): Promi
   return data.serviceOptions ?? [];
 }
 
+/** An admin-managed language (SpokenLanguage) - not a hardcoded FR/EN/AR
+ *  set, since real guides speak German, Italian, etc. Used by the Tour
+ *  booking form's "preferred language" step. */
+export type Language = { id: string; name: string };
+
+/** Empty array on any failure - the step degrades to a free-text "other language" field only. */
+export async function getLanguages(signal?: AbortSignal): Promise<Language[]> {
+  if (!BASE) return [];
+  const data = await get<{ languageId: string; name: string }[]>(
+    "/public/languages",
+    { seed: [], empty: [] },
+    { revalidate: 300, signal },
+  );
+  return data.map((l) => ({ id: l.languageId, name: l.name }));
+}
+
 export type ServiceOptionAvailability = {
   serviceOptionSlug: string;
   date: string;

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import DriverTripsCalendar from "@/components/DriverTripsCalendar";
 import { getSession } from "@/lib/session";
 import { getMyTrips } from "@/lib/api";
 
@@ -17,42 +18,7 @@ export default async function DriverTripsPage() {
       {trips.length === 0 ? (
         <p className="account-empty">{t("tripsEmpty")}</p>
       ) : (
-        <div className="account-list" style={{ marginTop: 32 }}>
-          {trips.map((trip) => {
-            const status = trip.status.toLowerCase();
-            const guests = (trip.numberOfAdults ?? 0) + (trip.numberOfChildren ?? 0);
-            return (
-              <div key={trip.chauffeurId} className="account-booking-card">
-                <div className="account-booking-top">
-                  <div className="account-booking-heading">
-                    <div>
-                      <div className="account-booking-title">{trip.tourName}</div>
-                      {trip.groupLeaderName && (
-                        <div className="account-booking-sub">{trip.groupLeaderName}</div>
-                      )}
-                    </div>
-                  </div>
-                  <span className="status-pill" data-status={status}>
-                    {t.has(`status.${status}` as never) ? t(`status.${status}` as never) : status}
-                  </span>
-                </div>
-
-                <div className="account-booking-grid">
-                  <div>
-                    <div className="k">{t("dateLabel")}</div>
-                    <div className="v">{trip.serviceDate ?? "—"}</div>
-                  </div>
-                  {guests > 0 && (
-                    <div>
-                      <div className="k">{t("guestsLabel")}</div>
-                      <div className="v">{guests}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <DriverTripsCalendar trips={trips} />
       )}
     </div>
   );

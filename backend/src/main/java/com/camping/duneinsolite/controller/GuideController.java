@@ -6,6 +6,9 @@ import com.camping.duneinsolite.dto.response.GuideResponse;
 import com.camping.duneinsolite.service.GuideService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +28,14 @@ public class GuideController {
 
     private final GuideService guideService;
 
+
+    // Every guide across every reservation - the backoffice roster page
+    // (admin/app/(app)/guides). Separate from getByReservation, which is
+    // scoped to one reservation's staff panel.
+    @GetMapping
+    public ResponseEntity<Page<GuideResponse>> getAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(guideService.getAll(pageable));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<GuideResponse> getById(@PathVariable UUID id) {

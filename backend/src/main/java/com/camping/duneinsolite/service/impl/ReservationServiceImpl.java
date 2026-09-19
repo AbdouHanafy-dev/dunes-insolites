@@ -71,6 +71,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationCapacityValidator reservationCapacityValidator;
     private final CurrencyConfig              currencyConfig;
     private final EmailService                emailService;
+    private final WhatsAppNotificationService whatsAppNotificationService;
     private final AccommodationPricingService accommodationPricingService;
     private final AccommodationAvailabilityService accommodationAvailabilityService;
     private final com.camping.duneinsolite.service.ExtraAvailabilityService extraAvailabilityService;
@@ -78,6 +79,9 @@ public class ReservationServiceImpl implements ReservationService {
     private final com.camping.duneinsolite.security.CallerContext caller;
     private final com.camping.duneinsolite.service.ReservationStateMachine stateMachine;
     private final com.camping.duneinsolite.service.ReservationInvoiceService reservationInvoiceService;
+    private final SpokenLanguageRepository    spokenLanguageRepository;
+    private final ChauffeurRepository          chauffeurRepository;
+    private final com.camping.duneinsolite.service.DriverProfileService driverProfileService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -216,6 +220,8 @@ public class ReservationServiceImpl implements ReservationService {
                 .groupName(request.getGroupName())
                 .groupLeaderName(request.getGroupLeaderName())
                 .demandeSpecial(request.getDemandeSpecial())
+                .preferredLanguages(resolveLanguages(request.getPreferredLanguageIds()))
+                .otherLanguageRequested(request.getOtherLanguageRequested())
                 .numberOfAdults(globalAdults)
                 .numberOfChildren(globalChildren)
                 .currency(Currency.TND)
@@ -225,6 +231,20 @@ public class ReservationServiceImpl implements ReservationService {
                 .idempotencyKey(request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()
                         ? request.getIdempotencyKey() : null)
                 .build();
+    }
+
+    // Resolves SpokenLanguage ids from a public/admin request into real
+    // entities. Used for both Reservation.preferredLanguages and
+    // Guide.languages - an unknown id fails closed rather than silently
+    // dropping a language the caller explicitly asked for.
+    private java.util.Set<com.camping.duneinsolite.model.SpokenLanguage> resolveLanguages(
+            java.util.Set<UUID> languageIds) {
+        if (languageIds == null || languageIds.isEmpty()) return new java.util.HashSet<>();
+        var languages = new java.util.HashSet<>(spokenLanguageRepository.findAllById(languageIds));
+        if (languages.size() != languageIds.size()) {
+            throw new ReservationValidationException("One or more languages not found");
+        }
+        return languages;
     }
 
     // ── Items dispatcher ──────────────────────────────────────────────────────────
@@ -923,7 +943,12 @@ public class ReservationServiceImpl implements ReservationService {
             Invoice proforma = reservationInvoiceService.generateProforma(savedReservation, companyType);
             java.math.BigDecimal totalTtc = proforma.getTotalTtc();
 
-            // ── Email the client: only when the admin actually provided a payment link ──
+            // ── Email + WhatsApp the client. No online payment gateway (Click
+            // to Pay) is integrated yet, so a confirmation always goes out here
+            // — either the payment-link email (admin already provided one) or
+            // the plain "accepted, we'll follow up" email. WhatsApp is a stub
+            // (see WhatsAppNotificationService) until a real API account
+            // exists; it never blocks or fails this flow. ──
             if (savedReservation.getPaymentLink() != null && !savedReservation.getPaymentLink().isBlank()) {
                 LocalDate paymentDueDate = savedReservation.getCheckInDate() != null
                         ? savedReservation.getCheckInDate()
@@ -940,7 +965,19 @@ public class ReservationServiceImpl implements ReservationService {
                         paymentDueDate,
                         savedReservation.getPaymentLink()
                 );
+            } else {
+                emailService.sendReservationAcceptedEmail(
+                        savedReservation.getUser().getEmail(),
+                        savedReservation.getUser().getName(),
+                        savedReservation.getGroupName()
+                );
             }
+
+            whatsAppNotificationService.sendReservationAccepted(
+                    savedReservation.getUser().getPhone(),
+                    savedReservation.getUser().getName(),
+                    savedReservation.getGroupName()
+            );
     }
 
     /** COMPLETED: generate the FACTURE if a companyType was given, then notify the client. */
@@ -1020,6 +1057,8 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getGroupName()        != null) reservation.setGroupName(request.getGroupName());
         if (request.getGroupLeaderName()  != null) reservation.setGroupLeaderName(request.getGroupLeaderName());
         if (request.getDemandeSpecial()   != null) reservation.setDemandeSpecial(request.getDemandeSpecial());
+        if (request.getPreferredLanguageIds() != null) reservation.setPreferredLanguages(resolveLanguages(request.getPreferredLanguageIds()));
+        if (request.getOtherLanguageRequested() != null) reservation.setOtherLanguageRequested(request.getOtherLanguageRequested());
         if (request.getPromoCode()        != null) reservation.setPromoCode(request.getPromoCode());
         if (request.getNumberOfAdults()   != null) reservation.setNumberOfAdults(request.getNumberOfAdults());
         if (request.getNumberOfChildren() != null) reservation.setNumberOfChildren(request.getNumberOfChildren());
@@ -1391,6 +1430,7 @@ public class ReservationServiceImpl implements ReservationService {
                         .firstName(g.getFirstName())
                         .lastName(g.getLastName())
                         .phoneNumber(g.getPhoneNumber())
+                        .languages(resolveLanguages(g.getLanguageIds()))
                         .build();
                 reservation.addGuide(guide);
             });
@@ -1398,12 +1438,40 @@ public class ReservationServiceImpl implements ReservationService {
 
         if (request.getChauffeurs() != null && !request.getChauffeurs().isEmpty()) {
             request.getChauffeurs().forEach(c -> {
-                Chauffeur chauffeur = Chauffeur.builder()
-                        .firstName(c.getFirstName())
-                        .lastName(c.getLastName())
-                        .phoneNumber(c.getPhoneNumber())
-                        .driverUser(resolveDriverUser(c.getDriverUserEmail()))
-                        .build();
+                Chauffeur chauffeur;
+                if (c.getDriverProfileId() != null) {
+                    DriverProfile profile = driverProfileService.lockActiveEntity(c.getDriverProfileId());
+                    if (reservation.getServiceDate() != null && chauffeurRepository
+                            .existsByDriverProfile_DriverProfileIdAndReservation_ServiceDateAndReservation_StatusIn(
+                                    profile.getDriverProfileId(), reservation.getServiceDate(),
+                                    List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.CHECKED_IN))) {
+                        throw new ReservationValidationException(
+                                "This driver is already assigned to another trip on " + reservation.getServiceDate());
+                    }
+                    chauffeur = Chauffeur.builder()
+                            .firstName(profile.getFirstName())
+                            .lastName(profile.getLastName())
+                            .phoneNumber(profile.getPhoneNumber())
+                            .vehicleModel(profile.getVehicleModel())
+                            .numberOfSeats(profile.getNumberOfSeats())
+                            .driverUser(profile.getUser())
+                            .driverProfile(profile)
+                            .build();
+                } else {
+                    if (c.getFirstName() == null || c.getFirstName().isBlank()
+                            || c.getLastName() == null || c.getLastName().isBlank()) {
+                        throw new ReservationValidationException(
+                                "Select a driver profile or provide the driver's first and last name");
+                    }
+                    chauffeur = Chauffeur.builder()
+                            .firstName(c.getFirstName())
+                            .lastName(c.getLastName())
+                            .phoneNumber(c.getPhoneNumber())
+                            .vehicleModel(c.getVehicleModel())
+                            .numberOfSeats(c.getNumberOfSeats())
+                            .driverUser(resolveDriverUser(c.getDriverUserEmail()))
+                            .build();
+                }
                 reservation.addChauffeur(chauffeur);
             });
         }
@@ -1454,6 +1522,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getFirstName()   != null) guide.setFirstName(request.getFirstName());
         if (request.getLastName()    != null) guide.setLastName(request.getLastName());
         if (request.getPhoneNumber() != null) guide.setPhoneNumber(request.getPhoneNumber());
+        if (request.getLanguageIds()   != null) guide.setLanguages(resolveLanguages(request.getLanguageIds()));
 
         Reservation savedReservation = reservationRepository.save(reservation);
 
@@ -1521,9 +1590,11 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Chauffeur not found: " + chauffeurId + " in reservation: " + reservationId));
 
-        if (request.getFirstName()   != null) chauffeur.setFirstName(request.getFirstName());
-        if (request.getLastName()    != null) chauffeur.setLastName(request.getLastName());
-        if (request.getPhoneNumber() != null) chauffeur.setPhoneNumber(request.getPhoneNumber());
+        if (request.getFirstName()    != null) chauffeur.setFirstName(request.getFirstName());
+        if (request.getLastName()     != null) chauffeur.setLastName(request.getLastName());
+        if (request.getPhoneNumber()  != null) chauffeur.setPhoneNumber(request.getPhoneNumber());
+        if (request.getVehicleModel() != null) chauffeur.setVehicleModel(request.getVehicleModel());
+        if (request.getNumberOfSeats() != null) chauffeur.setNumberOfSeats(request.getNumberOfSeats());
         // null = leave the link as-is, "" = unlink, anything else = relink.
         if (request.getDriverUserEmail() != null) {
             chauffeur.setDriverUser(
@@ -1554,8 +1625,12 @@ public class ReservationServiceImpl implements ReservationService {
     // resolve to a real user, so a typo doesn't silently link nobody.
     private User resolveDriverUser(String email) {
         if (email == null || email.isBlank()) return null;
-        return userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver account not found: " + email));
+        if (user.getRole() != UserRole.CHAUFFEUR) {
+            throw new ReservationValidationException("The linked account must have the CHAUFFEUR role");
+        }
+        return user;
     }
 
     @Override

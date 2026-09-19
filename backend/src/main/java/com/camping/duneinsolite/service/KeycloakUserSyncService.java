@@ -219,6 +219,27 @@ public class KeycloakUserSyncService {
     // creates anything in Keycloak when it fails validation.
     @Transactional
     public User adminCreateUser(UserRequest request) {
+        return adminCreateUser(request, true);
+    }
+
+    /** Creates a chauffeur identity whose secret is never disclosed by email. */
+    @Transactional
+    public User adminCreateInvitedDriver(String name, String email, String phone) {
+        UserRequest request = new UserRequest();
+        request.setName(name);
+        request.setEmail(email);
+        request.setPhone(phone);
+        request.setRole(UserRole.CHAUFFEUR);
+        return adminCreateUser(request, false);
+    }
+
+    public void setUserEnabled(UUID userId, boolean enabled) {
+        UserRepresentation representation = keycloak.realm(realm).users().get(userId.toString()).toRepresentation();
+        representation.setEnabled(enabled);
+        keycloak.realm(realm).users().get(userId.toString()).update(representation);
+    }
+
+    private User adminCreateUser(UserRequest request, boolean sendTemporaryPassword) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyInUseException(request.getEmail());
         }
@@ -277,7 +298,9 @@ public class KeycloakUserSyncService {
         // Same fix as findOrCreateGuestUser's own comment explains: a generated
         // password nobody is ever told is a real account nobody can log into.
         // This was already sitting here, commented out, doing nothing.
-        emailService.sendWelcomeEmail(request.getEmail(), request.getName(), generatedPassword);
+        if (sendTemporaryPassword) {
+            emailService.sendWelcomeEmail(request.getEmail(), request.getName(), generatedPassword);
+        }
 
         return reloadWithRemises(savedUser);
     }

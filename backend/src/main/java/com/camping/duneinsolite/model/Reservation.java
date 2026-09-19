@@ -11,7 +11,9 @@ import org.hibernate.annotations.UuidGenerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 // Soft-deleted rows (deletedAt set) are excluded from every query on this
@@ -98,6 +100,23 @@ public class Reservation {
 
     @Column(name = "demande_special", columnDefinition = "TEXT")
     private String demandeSpecial;
+
+    // Client's preferred language(s) for this booking (currently only
+    // captured by the Tour public booking form, where staff assign a
+    // translating Guide) - lets admin match Guide.languages to the guest
+    // instead of guessing from a name. From the admin-managed catalog
+    // (SpokenLanguage), not a hardcoded enum - a guest may speak several.
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "reservation_preferred_languages",
+            joinColumns = @JoinColumn(name = "reservation_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id"))
+    @Builder.Default
+    private Set<SpokenLanguage> preferredLanguages = new HashSet<>();
+
+    // Free-text fallback when the guest's language isn't in the catalog yet
+    // - surfaced to admin so they know to ask, rather than silently dropping it.
+    @Column(name = "other_language_requested")
+    private String otherLanguageRequested;
 
     // Optional payment link (e.g. Konnect/Flouci checkout URL) set by the admin at
     // confirmation time. Sent to the client in the payment-reminder email.

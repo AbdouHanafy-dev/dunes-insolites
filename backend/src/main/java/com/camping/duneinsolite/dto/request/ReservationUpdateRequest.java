@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 public class ReservationUpdateRequest {
@@ -15,6 +17,9 @@ public class ReservationUpdateRequest {
     private String groupName;
     private String groupLeaderName;
     private String demandeSpecial;
+    // null = leave untouched; a set (incl. empty) replaces it.
+    private Set<UUID> preferredLanguageIds;
+    private String otherLanguageRequested;
     private String promoCode;
    // private Currency currency;
     private Integer numberOfAdults;

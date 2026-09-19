@@ -7,18 +7,22 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = SpokenLanguageMapper.class)
 public interface ExtraMapper {
     ExtraResponse toResponse(Extra extra);
 
     // Translations are entities owning their own FK back to the Extra, which
     // MapStruct can't wire up from a flat DTO - synced explicitly in
-    // ExtraServiceImpl instead (see syncTranslations).
+    // ExtraServiceImpl instead (see syncTranslations). languages is
+    // resolved from languageIds by ExtraServiceImpl (needs a repository
+    // lookup MapStruct can't do) - never set here.
     @Mapping(target = "translations", ignore = true)
     @Mapping(target = "resourceRequirements", ignore = true)
+    @Mapping(target = "languages", ignore = true)
     Extra toEntity(ExtraRequest request);
 
     @Mapping(target = "translations", ignore = true)
     @Mapping(target = "resourceRequirements", ignore = true)
+    @Mapping(target = "languages", ignore = true)
     void updateEntity(ExtraRequest request, @MappingTarget Extra extra);
 }

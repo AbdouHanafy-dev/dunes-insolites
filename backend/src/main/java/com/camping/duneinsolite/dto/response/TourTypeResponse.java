@@ -5,7 +5,6 @@ import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.enums.GroupSizeType;
-import com.camping.duneinsolite.model.enums.Language;
 import lombok.Data;
 
 import java.util.List;
@@ -35,7 +34,7 @@ public class TourTypeResponse {
     private Boolean isActive;
     private Boolean guideRequired;
     private GroupSizeType groupSizeType;
-    private Set<Language> languages;
+    private Set<SpokenLanguageResponse> languages;
     private CancellationPolicy cancellationPolicy;
     private String coverPhotoUrl;
     private List<Photo> photos;

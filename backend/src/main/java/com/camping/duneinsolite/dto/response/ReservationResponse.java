@@ -7,6 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -31,6 +32,8 @@ public class ReservationResponse {
     private java.math.BigDecimal exchangeRateApplied;
     private String promoCode;
     private String demandeSpecial;
+    private Set<SpokenLanguageResponse> preferredLanguages;
+    private String otherLanguageRequested;
     private String paymentLink;
     private List<ReservationTourTypeResponse> tourTypes;
     private List<ReservationTourResponse> tours;

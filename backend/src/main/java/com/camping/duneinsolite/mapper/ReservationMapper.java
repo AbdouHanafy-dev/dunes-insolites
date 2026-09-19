@@ -18,7 +18,8 @@ import java.util.List;
         ReservationTourMapper.class,
         SourceMapper.class,
         GuideMapper.class,
-        ChauffeurMapper.class
+        ChauffeurMapper.class,
+        SpokenLanguageMapper.class
 })
 public interface ReservationMapper {
 

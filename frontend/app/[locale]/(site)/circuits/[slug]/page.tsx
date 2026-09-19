@@ -9,7 +9,7 @@ import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import TourCard from "@/components/TourCard";
-import TourBookingForm from "@/components/TourBookingForm";
+import TourBookingFlow from "@/components/TourBookingFlow";
 import Reveal from "@/components/Reveal";
 import Reviews from "@/components/Reviews";
 import CTA from "@/components/CTA";
@@ -273,7 +273,7 @@ export default async function TourDetail({ params }: Props) {
                   </div>
                 )}
               </div>
-              <TourBookingForm tourSlug={tour.slug} priceFrom={tour.priceFrom} />
+              <TourBookingFlow tourSlug={tour.slug} tourTitle={tour.title} priceFrom={tour.priceFrom} />
             </aside>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Modal from "@/components/Modal";
@@ -14,7 +14,7 @@ import TranslationsField, {
   translationsToArray,
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
-import type { AdminTour } from "@/lib/api";
+import type { AdminSpokenLanguage, AdminTour } from "@/lib/api";
 
 type ProgramStep = { label: string; title: string; description: string };
 
@@ -31,7 +31,7 @@ type TourForm = {
   notIncludedItems: string[];
   programSteps: ProgramStep[];
   meetingPoint: string;
-  languages: string[];
+  languageIds: string[];
   cancellationFreeCancellation: boolean;
   cancellationHoursBeforeDeadline: number | null;
   coverPhotoUrl: string | null;
@@ -58,7 +58,7 @@ const EMPTY_FORM: TourForm = {
   notIncludedItems: [],
   programSteps: [],
   meetingPoint: "",
-  languages: ["FR"],
+  languageIds: [],
   cancellationFreeCancellation: false,
   cancellationHoursBeforeDeadline: null,
   coverPhotoUrl: null,
@@ -92,7 +92,7 @@ function fromInitialData(data?: AdminTour): TourForm {
       description: s.description ?? "",
     })),
     meetingPoint: data.meetingPoint ?? "",
-    languages: data.languages ?? EMPTY_FORM.languages,
+    languageIds: (data.languages ?? []).map((l) => l.languageId),
     cancellationFreeCancellation: data.cancellationPolicy?.freeCancellation ?? false,
     cancellationHoursBeforeDeadline: data.cancellationPolicy?.hoursBeforeDeadline ?? null,
     coverPhotoUrl: data.coverPhotoUrl ?? null,
@@ -121,7 +121,7 @@ function toRequestBody(form: TourForm) {
     notIncludedItems: form.notIncludedItems,
     programSteps: form.programSteps,
     meetingPoint: form.meetingPoint || null,
-    languages: form.languages,
+    languageIds: form.languageIds,
     cancellationPolicy: {
       freeCancellation: form.cancellationFreeCancellation,
       hoursBeforeDeadline: form.cancellationHoursBeforeDeadline,
@@ -145,12 +145,6 @@ const GROUP_SIZE_OPTIONS = [
   { value: "PRIVATIF", label: "Privatif" },
 ];
 
-const LANGUAGE_OPTIONS = [
-  { value: "FR", label: "Français" },
-  { value: "EN", label: "Anglais" },
-  { value: "AR", label: "Arabe" },
-];
-
 const STEPS = [
   "Informations de base",
   "Photos",
@@ -172,6 +166,18 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [languages, setLanguages] = useState<AdminSpokenLanguage[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/proxy/languages")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => !cancelled && setLanguages(data))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function patch(fields: Partial<TourForm>) {
     setForm((s) => ({ ...s, ...fields }));
@@ -374,22 +380,27 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
               />
             </Field>
             <Field label="Langues parlées">
-              <div className="flex gap-4">
-                {LANGUAGE_OPTIONS.map((o) => (
-                  <label key={o.value} className="flex items-center gap-2 text-sm text-navy-700/80">
+              <div className="flex flex-wrap gap-4">
+                {languages.length === 0 && (
+                  <p className="text-[13px] text-navy-700/45">
+                    Aucune langue configurée — gérez la liste sous Catalogue → Langues.
+                  </p>
+                )}
+                {languages.map((o) => (
+                  <label key={o.languageId} className="flex items-center gap-2 text-sm text-navy-700/80">
                     <input
                       type="checkbox"
-                      checked={form.languages.includes(o.value)}
+                      checked={form.languageIds.includes(o.languageId)}
                       onChange={(e) =>
                         patch({
-                          languages: e.target.checked
-                            ? [...form.languages, o.value]
-                            : form.languages.filter((l) => l !== o.value),
+                          languageIds: e.target.checked
+                            ? [...form.languageIds, o.languageId]
+                            : form.languageIds.filter((l) => l !== o.languageId),
                         })
                       }
                       className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
                     />
-                    {o.label}
+                    {o.name}
                   </label>
                 ))}
               </div>

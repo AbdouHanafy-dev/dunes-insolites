@@ -49,7 +49,6 @@ function buildFields(customRoles: CustomRole[]): FieldDef[] {
         { value: "ADMIN", label: "Administrateur" },
         { value: "CAMPING", label: "Camping" },
         { value: "STAFF", label: "Rôle personnalisé" },
-        { value: "CHAUFFEUR", label: "Chauffeur" },
       ],
     },
     {

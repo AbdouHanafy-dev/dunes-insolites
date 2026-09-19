@@ -74,6 +74,19 @@ export function getActiveReservations(
   );
 }
 
+// An admin-managed language (SpokenLanguage) — not a hardcoded FR/EN/AR
+// enum, since real guides speak German, Italian, etc. `active` lets one be
+// retired from new selections without breaking past assignments.
+export type AdminSpokenLanguage = {
+  languageId: string;
+  name: string;
+  active: boolean;
+};
+
+export function getSpokenLanguages(accessToken: string): Promise<AdminSpokenLanguage[]> {
+  return authedGet<AdminSpokenLanguage[]>("/languages", accessToken, []);
+}
+
 export type AdminReservationStaffMember = {
   guideId?: string;
   chauffeurId?: string;
@@ -81,11 +94,34 @@ export type AdminReservationStaffMember = {
   lastName: string;
   phoneNumber: string | null;
   reservationId: string;
+  // Guide only - languages this guide can translate/guide the group in
+  // (see Guide.languages), matched against AdminReservationDetail.preferredLanguages.
+  languages?: AdminSpokenLanguage[];
+  // Chauffeur only - their own vehicle.
+  vehicleModel?: string | null;
+  numberOfSeats?: number | null;
   // Chauffeur only - the driver portal account this assignment is linked
   // to, if any (see ChauffeurResponse.driverUserId/driverUserEmail).
   driverUserId?: string | null;
   driverUserEmail?: string | null;
+  driverProfileId?: string | null;
 };
+
+export type AdminDriverProfile = {
+  driverProfileId: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string | null;
+  vehicleModel: string | null;
+  numberOfSeats: number | null;
+  active: boolean;
+};
+
+export function getDriverProfiles(accessToken: string): Promise<AdminDriverProfile[]> {
+  return authedGet<AdminDriverProfile[]>("/driver-profiles", accessToken, []);
+}
 
 // Everything the reservation detail page needs — a superset of
 // AdminReservation (which only carries what the list table renders).
@@ -96,6 +132,11 @@ export type AdminReservationDetail = AdminReservation & {
   numberOfAdults: number | null;
   numberOfChildren: number | null;
   demandeSpecial: string | null;
+  // The client's preferred language(s) for this booking (set from the
+  // public Tour booking form today) - lets staff pick a Guide who speaks
+  // one. otherLanguageRequested is free text when none of the catalog fit.
+  preferredLanguages: AdminSpokenLanguage[];
+  otherLanguageRequested: string | null;
   guides: AdminReservationStaffMember[];
   chauffeurs: AdminReservationStaffMember[];
 };
@@ -105,6 +146,34 @@ export function getReservationById(
   reservationId: string,
 ): Promise<AdminReservationDetail | null> {
   return authedGet<AdminReservationDetail | null>(`/reservations/${reservationId}`, accessToken, null);
+}
+
+// Every Guide/Chauffeur across every reservation — the backoffice roster
+// pages (/guides, /chauffeurs), separate from the per-reservation staff
+// panel. `clientName`/`tourDate` come from the reservation each is attached
+// to (GuideMapper/ChauffeurMapper), so the roster page doesn't need a
+// second round-trip to explain "whose guide is this."
+export type AdminRosterMember = AdminReservationStaffMember & {
+  clientName: string | null;
+  tourDate: string | null;
+};
+
+export function getGuides(
+  accessToken: string,
+  page = 0,
+  size = 20,
+): Promise<Page<AdminRosterMember>> {
+  const empty: Page<AdminRosterMember> = { content: [], totalElements: 0, totalPages: 0, number: 0 };
+  return authedGet<Page<AdminRosterMember>>(`/guides?page=${page}&size=${size}`, accessToken, empty);
+}
+
+export function getChauffeurs(
+  accessToken: string,
+  page = 0,
+  size = 20,
+): Promise<Page<AdminRosterMember>> {
+  const empty: Page<AdminRosterMember> = { content: [], totalElements: 0, totalPages: 0, number: 0 };
+  return authedGet<Page<AdminRosterMember>>(`/chauffeurs?page=${page}&size=${size}`, accessToken, empty);
 }
 
 /* ------------------------------------------------------------------ users */
@@ -423,7 +492,7 @@ export type AdminTour = {
   programSteps: AdminTourProgramStep[];
   meetingPoint: string | null;
   groupSizeType: string | null;
-  languages: string[];
+  languages: AdminSpokenLanguage[];
   cancellationPolicy: AdminTourCancellationPolicy | null;
   photos: AdminTourPhoto[];
   translations: AdminCatalogTranslation[];

@@ -8,6 +8,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -45,6 +46,11 @@ public class ReservationRequest {
    // private Currency currency;
     private String promoCode;
     private String demandeSpecial;
+
+    // Client's preferred language(s) — SpokenLanguage ids — so staff can
+    // pick a Guide who speaks one. Free-text fallback if not in the catalog.
+    private Set<UUID> preferredLanguageIds;
+    private String otherLanguageRequested;
 
     // Phase 2 — set by PublicBookingServiceImpl for a public guest hold
     // (now + app.reservation.hold-duration-minutes). Null for staff-created

@@ -11,7 +11,6 @@ import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.TourTypeTranslation;
 import com.camping.duneinsolite.model.enums.ContentLocale;
-import com.camping.duneinsolite.model.enums.Language;
 import com.camping.duneinsolite.model.enums.UserRole;
 
 import java.math.BigDecimal;
@@ -56,6 +55,8 @@ public class Seed implements CommandLineRunner {
     private final TourRepository tourRepository;
     private final ExtraRepository extraRepository;
     private final com.camping.duneinsolite.repository.GalleryImageRepository galleryImageRepository;
+    private final com.camping.duneinsolite.repository.NavigationItemRepository navigationItemRepository;
+    private final com.camping.duneinsolite.repository.SpokenLanguageRepository spokenLanguageRepository;
 
     @Value("${seed.admin.email:}")
     private String adminEmail;
@@ -77,6 +78,7 @@ public class Seed implements CommandLineRunner {
         seedTours();
         seedExtras();
         seedGallery();
+        seedCircuitsNavItem();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -281,7 +283,7 @@ public class Seed implements CommandLineRunner {
                 .partnerChildPrice(adultPrice)
                 .tva(new BigDecimal("13.0"))
                 .isActive(true)
-                .languages(Set.of(Language.FR, Language.EN, Language.AR))
+                .languages(spokenLanguages("Français", "Anglais", "Arabe"))
                 .cancellationPolicy(new CancellationPolicy(true, 24))
                 .coverPhotoUrl(photos.get(0).getUrl())
                 .photos(photos)
@@ -352,7 +354,7 @@ public class Seed implements CommandLineRunner {
                 .partnerChildPrice(adultPrice)
                 .tva(new BigDecimal("13.0"))
                 .isActive(true)
-                .languages(Set.of(Language.FR, Language.EN))
+                .languages(spokenLanguages("Français", "Anglais"))
                 .cancellationPolicy(new CancellationPolicy(true, 24))
                 .coverPhotoUrl(photos.get(0).getUrl())
                 .photos(photos)
@@ -460,5 +462,55 @@ public class Seed implements CommandLineRunner {
                     .build());
         }
         log.info("Seed: created {} gallery photos", photos.size());
+    }
+
+    // Circuits went live on the vitrine 18 Sep 2026 (business owner,
+    // explicit - see docs/OPEN-QUESTIONS.md Q6's addendum) after the other
+    // six nav items below were already seeded via scripts/seed-navigation.py
+    // (a one-off HTTP script, not idempotent - NavigationItem has no unique
+    // constraint). This one lives here instead so it's real, versioned, and
+    // reaches every environment - including the VPS - on the next normal
+    // deploy, with no manual script/admin-login step. Labels match
+    // frontend/messages/{locale}.json's nav.circuits key exactly.
+    private void seedCircuitsNavItem() {
+        record NavLabel(com.camping.duneinsolite.model.enums.PageLocale locale, String label) {}
+        List<NavLabel> labels = List.of(
+                new NavLabel(com.camping.duneinsolite.model.enums.PageLocale.FR, "Circuits"),
+                new NavLabel(com.camping.duneinsolite.model.enums.PageLocale.EN, "Circuits"),
+                new NavLabel(com.camping.duneinsolite.model.enums.PageLocale.DE, "Rundreisen"),
+                new NavLabel(com.camping.duneinsolite.model.enums.PageLocale.IT, "Circuiti"),
+                new NavLabel(com.camping.duneinsolite.model.enums.PageLocale.DA, "Ture"),
+                new NavLabel(com.camping.duneinsolite.model.enums.PageLocale.AR, "الرحلات")
+        );
+
+        for (NavLabel l : labels) {
+            if (navigationItemRepository.existsByUrlAndLocaleAndCompanyType(
+                    "/circuits", l.locale(), com.camping.duneinsolite.model.enums.CompanyType.DUNES_INSOLITES)) {
+                continue;
+            }
+            navigationItemRepository.save(com.camping.duneinsolite.model.NavigationItem.builder()
+                    .label(l.label())
+                    .url("/circuits")
+                    .locale(l.locale())
+                    .companyType(com.camping.duneinsolite.model.enums.CompanyType.DUNES_INSOLITES)
+                    .displayOrder(6)
+                    .menuType(com.camping.duneinsolite.model.enums.NavMenuType.NONE)
+                    .build());
+            log.info("Seed: added Circuits nav item [{}]", l.locale());
+        }
+    }
+
+    // Looks up SpokenLanguage rows by name (V20 seeds Français/Anglais/Arabe
+    // among others) - Tour.languages is the admin-managed catalog now, not
+    // a hardcoded enum, so seed data references it by name like any caller would.
+    private Set<com.camping.duneinsolite.model.SpokenLanguage> spokenLanguages(String... names) {
+        Set<com.camping.duneinsolite.model.SpokenLanguage> result = new java.util.HashSet<>();
+        for (String name : names) {
+            spokenLanguageRepository.findAllByOrderByNameAsc().stream()
+                    .filter(l -> l.getName().equals(name))
+                    .findFirst()
+                    .ifPresent(result::add);
+        }
+        return result;
     }
 }

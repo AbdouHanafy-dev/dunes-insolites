@@ -92,6 +92,37 @@ public class EmailService {
     }
 
     /**
+     * Sent when the admin confirms a reservation that has no payment link set
+     * yet — i.e. every confirmation today, since no online payment gateway
+     * (Click to Pay) is integrated. Distinct from
+     * {@link #sendReservationConfirmedPaymentEmail}, which assumes a
+     * paymentLink and an amount due; this one just tells the guest their
+     * booking was accepted and that staff will follow up (by email and
+     * WhatsApp — see {@link WhatsAppNotificationService}) to arrange payment.
+     * Drop this method once Click to Pay ships and every confirmation carries
+     * a real payment link.
+     */
+    @Async
+    public void sendReservationAcceptedEmail(String to, String name, String groupName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Réservation confirmée");
+            helper.setText(buildAcceptedPlainText(name, groupName), false);
+            helper.setText(buildAcceptedHtml(name, groupName), true);
+
+            mailSender.send(message);
+            log.info("✅ Reservation-accepted email sent to: {}", maskEmail(to));
+
+        } catch (MessagingException e) {
+            log.error("❌ Failed to send reservation-accepted email to: {} — {}", maskEmail(to), e.getMessage());
+        }
+    }
+
+    /**
      * Sent once, right after a guest or client submits a booking request
      * (DI-014) - a plain acknowledgement, not an invoice. This platform
      * confirms bookings as a manual staff step ("booking as request"), so
@@ -192,6 +223,24 @@ public class EmailService {
             // See sendVerificationEmail's comment on why this is Exception,
             // not MessagingException.
             log.error("❌ Failed to send password-reset email to: {} — {}", maskEmail(to), e.getMessage());
+        }
+    }
+
+    /** Invitation for an admin-created chauffeur account; no password is ever emailed. */
+    @Async
+    public void sendDriverInvitationEmail(String to, String name, String setupLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Activez votre espace chauffeur — Dune Insolite");
+            helper.setText(buildDriverInvitePlainText(name, setupLink), false);
+            helper.setText(buildDriverInviteHtml(name, setupLink), true);
+            mailSender.send(message);
+            log.info("✅ Driver invitation email sent to: {}", maskEmail(to));
+        } catch (Exception e) {
+            log.error("❌ Failed to send driver invitation to: {} — {}", maskEmail(to), e.getMessage());
         }
     }
 
@@ -480,6 +529,39 @@ public class EmailService {
             """.formatted(name, link);
     }
 
+    private String buildDriverInvitePlainText(String name, String link) {
+        return """
+            Bonjour %s,
+
+            Dune Insolite vous invite à accéder à votre espace chauffeur.
+            Choisissez votre mot de passe avec ce lien personnel, valable 24 heures :
+
+              %s
+
+            Ce lien est à usage unique. Si vous ne connaissez pas Dune Insolite,
+            ignorez simplement cet email.
+
+            Cordialement,
+            L'équipe Dune Insolite
+            """.formatted(name, link);
+    }
+
+    private String buildDriverInviteHtml(String name, String link) {
+        return """
+            <!DOCTYPE html>
+            <html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+            <body style="margin:0;padding:40px;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <div style="max-width:600px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+                <div style="background:#a07030;padding:32px;text-align:center;color:#fff"><h1 style="margin:0">Dune Insolite</h1><p>Espace chauffeur</p></div>
+                <div style="padding:36px;color:#374151"><p>Bonjour <strong>%s</strong>,</p><p>Dune Insolite vous invite à accéder à votre espace chauffeur. Choisissez votre mot de passe avec le lien personnel ci-dessous, valable 24 heures.</p>
+                  <p style="text-align:center;margin:28px"><a href="%s" style="display:inline-block;background:#a07030;color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:600">Activer mon compte →</a></p>
+                  <p style="font-size:13px;color:#9ca3af">Ce lien est à usage unique. Si vous ne connaissez pas Dune Insolite, ignorez cet email.</p>
+                </div>
+              </div>
+            </body></html>
+            """.formatted(name, link);
+    }
+
     private String buildResetHtml(String name, String link) {
         return """
             <!DOCTYPE html>
@@ -656,6 +738,78 @@ public class EmailService {
             </body>
             </html>
             """.formatted(name, dateRow, totalRow);
+    }
+
+    private String buildAcceptedPlainText(String name, String groupName) {
+        return """
+            Bonjour %s,
+
+            Votre réservation pour le groupe "%s" a été confirmée par notre équipe.
+
+            Nous vous recontactons par email et WhatsApp pour organiser le paiement —
+            aucun montant n'est prélevé automatiquement pour le moment.
+
+            Cordialement,
+            L'équipe Dune Insolite
+            """.formatted(name, groupName);
+    }
+
+    private String buildAcceptedHtml(String name, String groupName) {
+        return """
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+                <tr>
+                  <td align="center">
+                    <table width="600" cellpadding="0" cellspacing="0"
+                           style="background:#ffffff;border-radius:12px;overflow:hidden;
+                                  box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#c8963e,#a07030);
+                                   padding:36px 40px;text-align:center;">
+                          <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;
+                                     letter-spacing:1px;">🏕️ Dune Insolite</h1>
+                          <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">
+                            Réservation confirmée
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:40px 40px 24px;">
+                          <p style="margin:0 0 16px;font-size:16px;color:#374151;">
+                            Bonjour <strong>%s</strong>,
+                          </p>
+                          <p style="margin:0 0 16px;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Votre réservation pour le groupe <strong>%s</strong> a été confirmée
+                            par notre équipe.
+                          </p>
+                          <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6;">
+                            Nous vous recontactons par email et WhatsApp pour organiser le
+                            paiement — aucun montant n'est prélevé automatiquement pour le moment.
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:24px 40px 36px;border-top:1px solid #f3f4f6;
+                                   text-align:center;">
+                          <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">
+                            Cet email a été envoyé automatiquement — merci de ne pas y répondre.<br>
+                            © 2025 Dune Insolite. Tous droits réservés.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(name, groupName);
     }
 
     private String buildPaymentPlainText(String name, String groupName, java.math.BigDecimal totalAmount, java.math.BigDecimal minPaymentAmount,

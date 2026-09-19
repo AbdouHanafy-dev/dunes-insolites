@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "@/lib/api";
 import type { ActivityAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import DatePicker from "@/components/DatePicker";
 import { formatDuration } from "@/lib/data/activities";
 import { MAX_PARTY_SIZE, SLOT_LABELS, type Activity, type TimeSlot } from "@/lib/types";
 
@@ -229,13 +230,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             <div className="form-grid">
               <div className="field" data-invalid={!!errors.date}>
                 <label htmlFor="date">{t("dateLabel")}</label>
-                <input
-                  id="date"
-                  type="date"
-                  min={min}
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
+                <DatePicker id="date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
                 {errors.date && <span className="err">{errors.date}</span>}
               </div>
 

@@ -12,6 +12,8 @@ import com.camping.duneinsolite.repository.ReservationRepository;
 import com.camping.duneinsolite.service.ChauffeurService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +53,12 @@ public class ChauffeurServiceImpl implements ChauffeurService {
                 .stream()
                 .map(chauffeurMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ChauffeurResponse> getAll(Pageable pageable) {
+        return chauffeurRepository.findAll(pageable).map(chauffeurMapper::toResponse);
     }
 
     @Override

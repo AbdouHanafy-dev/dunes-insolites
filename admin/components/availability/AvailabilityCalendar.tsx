@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/Modal";
 import type { AdminTourType, AvailabilityDay } from "@/lib/api";
+
+const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 function currentMonth(): string {
   const now = new Date();
@@ -10,14 +12,43 @@ function currentMonth(): string {
 }
 
 function shiftMonth(month: string, delta: number): string {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(y, m - 1 + delta, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const [year, monthNumber] = month.split("-").map(Number);
+  const date = new Date(year, monthNumber - 1 + delta, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function formatDate(iso: string): string {
-  const d = new Date(iso + "T00:00:00");
-  return d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function buildMonthGrid(month: string, days: AvailabilityDay[]): Array<AvailabilityDay | null> {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const numberOfDays = new Date(year, monthNumber, 0).getDate();
+  const mondayFirstOffset = (new Date(year, monthNumber - 1, 1).getDay() + 6) % 7;
+  const byDate = new Map(days.map((day) => [day.date, day]));
+  const cells: Array<AvailabilityDay | null> = Array.from({ length: mondayFirstOffset }, () => null);
+
+  for (let day = 1; day <= numberOfDays; day += 1) {
+    const date = `${month}-${String(day).padStart(2, "0")}`;
+    cells.push(
+      byDate.get(date) ?? {
+        date,
+        reservationCount: 0,
+        adults: 0,
+        children: 0,
+        blockId: null,
+        blockNote: null,
+      },
+    );
+  }
+
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
 }
 
 export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTourType[] }) {
@@ -26,28 +57,24 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
   const [days, setDays] = useState<AvailabilityDay[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [blockTarget, setBlockTarget] = useState<string | null>(null); // date being blocked
+  const [blockTarget, setBlockTarget] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // A plain fetch().then() chain, not an async function called synchronously
-  // from the effect body — matches the pattern PageBuilder.tsx's own
-  // useEffect already uses, and (unlike calling a named async function)
-  // doesn't trip react-hooks/set-state-in-effect.
+  const calendarCells = useMemo(() => buildMonthGrid(month, days), [month, days]);
+  const today = new Date().toLocaleDateString("en-CA");
+
   useEffect(() => {
     if (!tourTypeId) return;
     let ignore = false;
-    // setLoading/setError are deferred into the first .then() rather than
-    // called synchronously here — a direct setState call in the effect
-    // body itself (not inside a promise callback) trips
-    // react-hooks/set-state-in-effect.
+
     Promise.resolve()
       .then(() => {
         setLoading(true);
         setError("");
         return fetch(`/api/proxy/availability/calendar?tourTypeId=${tourTypeId}&month=${month}`);
       })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("bad response"))))
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("bad response"))))
       .then((data: AvailabilityDay[]) => {
         if (!ignore) setDays(data);
       })
@@ -60,50 +87,50 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
       .finally(() => {
         if (!ignore) setLoading(false);
       });
+
     return () => {
       ignore = true;
     };
   }, [tourTypeId, month]);
 
-  // Reused after a block/unblock mutation — called from click handlers,
-  // never from the effect above, so it's fine for this one to be a normal
-  // async function.
   async function reload() {
     if (!tourTypeId) return;
-    const res = await fetch(`/api/proxy/availability/calendar?tourTypeId=${tourTypeId}&month=${month}`);
-    if (res.ok) setDays(await res.json());
+    const response = await fetch(
+      `/api/proxy/availability/calendar?tourTypeId=${tourTypeId}&month=${month}`,
+    );
+    if (response.ok) setDays(await response.json());
   }
 
   async function confirmBlock() {
     if (!blockTarget) return;
     setBusy(true);
     setError("");
-    const res = await fetch("/api/proxy/availability/blocks", {
+    const response = await fetch("/api/proxy/availability/blocks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tourTypeId, date: blockTarget, note: noteDraft || undefined }),
     });
     setBusy(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
       setError(data.message ?? "Impossible de bloquer cette date.");
       return;
     }
     setBlockTarget(null);
     setNoteDraft("");
-    reload();
+    await reload();
   }
 
   async function unblock(blockId: string) {
     setBusy(true);
     setError("");
-    const res = await fetch(`/api/proxy/availability/blocks/${blockId}`, { method: "DELETE" });
+    const response = await fetch(`/api/proxy/availability/blocks/${blockId}`, { method: "DELETE" });
     setBusy(false);
-    if (!res.ok) {
+    if (!response.ok) {
       setError("Impossible de débloquer cette date.");
       return;
     }
-    reload();
+    await reload();
   }
 
   return (
@@ -111,23 +138,21 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
       <div>
         <h1 className="text-xl font-bold text-navy-800">Disponibilités</h1>
         <p className="mt-1 text-sm text-navy-700/55">
-          Vue opérationnelle par tour — comptage réel des réservations (annulées/refusées exclues) par
-          jour, plus un blocage manuel optionnel pour marquer une date indisponible. N&apos;affecte pas la
-          réservation en ligne : c&apos;est un outil de visibilité pour l&apos;équipe, pas encore branché au
-          parcours de réservation.
+          Calendrier mensuel des réservations et des fermetures manuelles par tour.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <select
           value={tourTypeId}
-          onChange={(e) => setTourTypeId(e.target.value)}
+          onChange={(event) => setTourTypeId(event.target.value)}
           className="rounded-[9px] border border-navy-700/15 bg-surface-alt px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+          aria-label="Tour affiché"
         >
           {tourTypes.length === 0 && <option value="">Aucun tour</option>}
-          {tourTypes.map((t) => (
-            <option key={t.tourTypeId} value={t.tourTypeId}>
-              {t.name}
+          {tourTypes.map((tourType) => (
+            <option key={tourType.tourTypeId} value={tourType.tourTypeId}>
+              {tourType.name}
             </option>
           ))}
         </select>
@@ -135,20 +160,32 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
         <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setMonth((m) => shiftMonth(m, -1))}
+            onClick={() => setMonth((value) => shiftMonth(value, -1))}
             className="h-9 w-9 rounded-lg border border-navy-700/15 text-navy-700/70 hover:bg-navy-700/5"
+            aria-label="Mois précédent"
           >
             ←
           </button>
-          <span className="min-w-32 text-center text-[14px] font-medium text-navy-800">
-            {new Date(month + "-01T00:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+          <span className="min-w-40 text-center text-[14px] font-semibold capitalize text-navy-800">
+            {new Date(`${month}-01T00:00:00`).toLocaleDateString("fr-FR", {
+              month: "long",
+              year: "numeric",
+            })}
           </span>
           <button
             type="button"
-            onClick={() => setMonth((m) => shiftMonth(m, 1))}
+            onClick={() => setMonth((value) => shiftMonth(value, 1))}
             className="h-9 w-9 rounded-lg border border-navy-700/15 text-navy-700/70 hover:bg-navy-700/5"
+            aria-label="Mois suivant"
           >
             →
+          </button>
+          <button
+            type="button"
+            onClick={() => setMonth(currentMonth())}
+            className="ml-2 rounded-lg border border-navy-700/15 px-3 py-2 text-[12px] font-medium text-navy-700 hover:bg-navy-700/5"
+          >
+            Aujourd&apos;hui
           </button>
         </div>
       </div>
@@ -162,67 +199,122 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
       <div className="card overflow-hidden rounded-2xl">
         {loading ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Chargement…</p>
-        ) : days.length === 0 ? (
-          <p className="px-6 py-16 text-center text-sm text-gray-400">
-            {tourTypeId ? "Aucune donnée pour ce mois." : "Sélectionnez un tour."}
-          </p>
+        ) : !tourTypeId ? (
+          <p className="px-6 py-16 text-center text-sm text-gray-400">Sélectionnez un tour.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                <th className="px-6 py-3 font-medium">Date</th>
-                <th className="px-6 py-3 font-medium">Réservations</th>
-                <th className="px-6 py-3 font-medium">Personnes</th>
-                <th className="px-6 py-3 font-medium">Statut</th>
-                <th className="px-6 py-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {days.map((day) => (
-                <tr key={day.date} className="hover:bg-gray-50">
-                  <td className="px-6 py-2.5 text-navy-800">{formatDate(day.date)}</td>
-                  <td className="px-6 py-2.5 text-gray-700">{day.reservationCount}</td>
-                  <td className="px-6 py-2.5 text-gray-700">
-                    {day.adults + day.children > 0 ? `${day.adults + day.children} (${day.adults} ad. · ${day.children} enf.)` : "—"}
-                  </td>
-                  <td className="px-6 py-2.5">
-                    {day.blockId ? (
-                      <span className="text-rose" title={day.blockNote ?? ""}>
-                        Fermé{day.blockNote ? ` — ${day.blockNote}` : ""}
-                      </span>
-                    ) : (
-                      <span className="text-emerald">Ouvert</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-2.5 text-right">
-                    {day.blockId ? (
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => unblock(day.blockId!)}
-                        className="btn btn-secondary btn-sm"
-                      >
-                        Rouvrir
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => {
-                          setBlockTarget(day.date);
-                          setNoteDraft("");
-                        }}
-                        className="btn btn-danger-outline btn-sm"
-                      >
-                        Fermer
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <div className="min-w-[760px]">
+              <div className="grid grid-cols-7 border-b border-navy-700/10 bg-navy-700/[0.025]">
+                {WEEKDAYS.map((weekday) => (
+                  <div
+                    key={weekday}
+                    className="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-navy-700/45"
+                  >
+                    {weekday}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-px bg-navy-700/10">
+                {calendarCells.map((day, index) => {
+                  if (!day) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="min-h-36 bg-navy-700/[0.025]"
+                        aria-hidden="true"
+                      />
+                    );
+                  }
+
+                  const people = day.adults + day.children;
+                  const isToday = day.date === today;
+                  return (
+                    <article
+                      key={day.date}
+                      className={`relative min-h-36 bg-white p-3 transition-colors hover:bg-gold/[0.035] ${
+                        day.blockId ? "bg-rose/[0.035]" : ""
+                      }`}
+                      aria-label={formatDate(day.date)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span
+                          className={`flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-[13px] font-semibold ${
+                            isToday ? "bg-navy-800 text-white" : "text-navy-800"
+                          }`}
+                        >
+                          {Number(day.date.slice(-2))}
+                        </span>
+                        <span
+                          className={`mt-1 h-2 w-2 rounded-full ${day.blockId ? "bg-rose" : "bg-emerald"}`}
+                          title={day.blockId ? "Fermé" : "Ouvert"}
+                        />
+                      </div>
+
+                      <div className="mt-2 space-y-1 text-[12px]">
+                        {day.reservationCount > 0 ? (
+                          <>
+                            <p className="font-semibold text-navy-800">
+                              {day.reservationCount} réservation{day.reservationCount > 1 ? "s" : ""}
+                            </p>
+                            <p
+                              className="text-navy-700/55"
+                              title={`${day.adults} adultes, ${day.children} enfants`}
+                            >
+                              {people} personne{people > 1 ? "s" : ""}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-navy-700/35">Aucune réservation</p>
+                        )}
+                        {day.blockId && (
+                          <p className="line-clamp-2 font-medium text-rose" title={day.blockNote ?? "Date fermée"}>
+                            Fermée{day.blockNote ? ` · ${day.blockNote}` : ""}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="absolute inset-x-3 bottom-3">
+                        {day.blockId ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => unblock(day.blockId!)}
+                            className="w-full rounded-md border border-navy-700/15 px-2 py-1 text-[11px] font-medium text-navy-700 hover:bg-navy-700/5 disabled:opacity-50"
+                          >
+                            Rouvrir
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              setBlockTarget(day.date);
+                              setNoteDraft("");
+                            }}
+                            className="w-full rounded-md border border-rose/20 px-2 py-1 text-[11px] font-medium text-rose hover:bg-rose/5 disabled:opacity-50"
+                          >
+                            Fermer
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-navy-700/55">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-emerald" /> Ouvert
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-rose" /> Fermé
+        </span>
+        <span>Les nombres affichés proviennent des réservations réelles.</span>
       </div>
 
       {blockTarget && (
@@ -230,15 +322,15 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
           <label className="text-[13px] font-medium text-navy-700/70">Note (optionnel)</label>
           <textarea
             value={noteDraft}
-            onChange={(e) => setNoteDraft(e.target.value)}
+            onChange={(event) => setNoteDraft(event.target.value)}
             placeholder="ex. Maintenance du campement"
             className="mt-1.5 min-h-24 w-full rounded-[9px] border border-navy-700/15 bg-surface-alt px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
           />
           <div className="mt-5 flex justify-end gap-2">
-            <button onClick={() => setBlockTarget(null)} className="btn btn-secondary">
+            <button type="button" onClick={() => setBlockTarget(null)} className="btn btn-secondary">
               Annuler
             </button>
-            <button onClick={confirmBlock} disabled={busy} className="btn btn-danger">
+            <button type="button" onClick={confirmBlock} disabled={busy} className="btn btn-danger">
               {busy ? "…" : "Fermer cette date"}
             </button>
           </div>

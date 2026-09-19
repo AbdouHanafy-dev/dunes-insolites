@@ -45,6 +45,7 @@ class TourServiceImplTest {
         PublicTourMapper publicTourMapper = mock(PublicTourMapper.class);
         UserProductRemiseRepository remiseRepository = mock(UserProductRemiseRepository.class);
         ReviewRepository reviewRepository = mock(ReviewRepository.class);
+        SpokenLanguageResolver spokenLanguageResolver = mock(SpokenLanguageResolver.class);
 
         // Reproduces the real mapper's overwrite-with-null behavior.
         doAnswer(inv -> {
@@ -59,7 +60,7 @@ class TourServiceImplTest {
 
         when(repository.save(any(Tour.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        service = new TourServiceImpl(repository, mapper, publicTourMapper, remiseRepository, reviewRepository);
+        service = new TourServiceImpl(repository, mapper, publicTourMapper, remiseRepository, reviewRepository, spokenLanguageResolver);
     }
 
     @Test

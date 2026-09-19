@@ -97,6 +97,13 @@ const DUNES_INSOLITES: BrandConfig = {
     { labelKey: "gallery", href: "/gallery" },
     { labelKey: "safety", href: "/safety" },
     { labelKey: "contact", href: "/contact" },
+    // Route Insolite's circuits — published here since 18 Sep 2026 (business
+    // owner, explicit; see docs/OPEN-QUESTIONS.md Q6's addendum). Appended
+    // last rather than reordering the five items above, which already exist
+    // as real rows (scripts/seed-navigation.py) in the CMS-managed
+    // Navigation collection production actually reads — this static array
+    // is only the fallback for an environment with no CMS nav at all.
+    { labelKey: "circuits", href: "/circuits" },
   ],
 };
 

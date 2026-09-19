@@ -7,7 +7,6 @@ import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourTranslation;
 import com.camping.duneinsolite.model.enums.ContentLocale;
-import com.camping.duneinsolite.model.enums.Language;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -54,7 +53,7 @@ public class PublicTourMapper {
         response.setMeetingPoint(tour.getMeetingPoint());
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
         response.setLanguages(tour.getLanguages() == null ? List.of()
-                : tour.getLanguages().stream().map(Language::name).sorted().toList());
+                : tour.getLanguages().stream().map(com.camping.duneinsolite.model.SpokenLanguage::getName).sorted().toList());
         response.setCoverImage(tour.getCoverPhotoUrl());
         response.setGallery(gallery(tour.getPhotos()));
         response.setHighlights(highlights == null ? List.of() : highlights);

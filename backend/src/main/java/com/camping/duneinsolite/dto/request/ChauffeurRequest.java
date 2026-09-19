@@ -12,6 +12,8 @@ public class ChauffeurRequest {
     @NotBlank
     private String lastName;
     private String phoneNumber;
+    private String vehicleModel;
+    private Integer numberOfSeats;
     @NotNull
     private UUID reservationId;
 }

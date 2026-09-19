@@ -34,11 +34,13 @@ public class ExtraServiceImpl implements ExtraService {
     private final PublicActivityMapper publicActivityMapper;
     private final UserProductRemiseRepository userProductRemiseRepository;
     private final ReviewRepository reviewRepository;
+    private final SpokenLanguageResolver spokenLanguageResolver;
 
     @Override
     public ExtraResponse createExtra(ExtraRequest request) {
         validateConfiguration(request);
         Extra extra = extraMapper.toEntity(request);
+        extra.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         syncTranslations(extra, request.getTranslations());
         syncResourceRequirements(extra, request.getResourceRequirements());
         return toResponse(extraRepository.save(extra));
@@ -78,6 +80,9 @@ public class ExtraServiceImpl implements ExtraService {
         extraMapper.updateEntity(request, extra);
         if (extra.getIsActive() == null) {
             extra.setIsActive(previousIsActive);
+        }
+        if (request.getLanguageIds() != null) {
+            extra.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         }
         syncTranslations(extra, request.getTranslations());
         syncResourceRequirements(extra, request.getResourceRequirements());

@@ -25,6 +25,15 @@ public class Chauffeur {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    // The chauffeur's own vehicle — separate from a guide, who translates
+    // and never drives. Both are optional: a group can have a guide with no
+    // car (rides in the client's own vehicle) or a chauffeur with no guide.
+    @Column(name = "vehicle_model")
+    private String vehicleModel;
+
+    @Column(name = "number_of_seats")
+    private Integer numberOfSeats;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
@@ -35,4 +44,10 @@ public class Chauffeur {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_user_id")
     private User driverUser;
+
+    // Permanent directory entry used to create this assignment. The name,
+    // phone and vehicle above remain snapshots for historical accuracy.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_profile_id")
+    private DriverProfile driverProfile;
 }

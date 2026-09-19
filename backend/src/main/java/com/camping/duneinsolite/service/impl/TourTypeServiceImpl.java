@@ -32,6 +32,7 @@ public class TourTypeServiceImpl implements TourTypeService {
     private final PublicStayMapper publicStayMapper;
     private final UserProductRemiseRepository userProductRemiseRepository;
     private final ReviewRepository reviewRepository;
+    private final SpokenLanguageResolver spokenLanguageResolver;
 
     @Override
     public TourTypeResponse createTourType(TourTypeRequest request) {
@@ -39,6 +40,7 @@ public class TourTypeServiceImpl implements TourTypeService {
             throw new ConflictException("Tour type already exists: " + request.getName());
         }
         TourType tourType = tourTypeMapper.toEntity(request);
+        tourType.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         if (tourType.getIsActive() == null) {
             tourType.setIsActive(true);
         }
@@ -83,6 +85,9 @@ public class TourTypeServiceImpl implements TourTypeService {
         }
         if (tourType.getGuideRequired() == null) {
             tourType.setGuideRequired(previousGuideRequired);
+        }
+        if (request.getLanguageIds() != null) {
+            tourType.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         }
         syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));

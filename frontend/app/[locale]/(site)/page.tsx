@@ -7,6 +7,7 @@ import Location from "@/components/Location";
 import GalleryStrip from "@/components/GalleryStrip";
 import ReviewsShowcase from "@/components/ReviewsShowcase";
 import BookDirect from "@/components/BookDirect";
+import Circuits from "@/components/Circuits";
 import CTA from "@/components/CTA";
 import { getActivities, getCmsPage, getStats, getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -45,8 +46,13 @@ export default async function Home() {
           app/layout.tsx, not here — it applies to every page, not just this
           one. See DI-026. */}
       <Hero stats={stats} activities={activities} />
-      {/* Stays lead: the nuitée is the product being sold, and the rides are
-          add-ons to it. Showing the rides first framed them as the offer. */}
+      {/* Circuits (Route Insolite) leads, then Stays: the nuitée is still
+          the product being sold — Stays keeps its own full lead/feature
+          treatment below — but the multi-day circuit is the first thing
+          shown on the homepage now (business owner, explicit, 18 Sep
+          2026). Activities are add-ons to a nuitée, so they stay last of
+          the three catalogue sections. */}
+      <Circuits />
       <Stays />
       <Activities />
       <Steps override={stepsOverride} />

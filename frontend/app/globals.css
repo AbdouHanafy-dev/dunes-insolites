@@ -2389,6 +2389,131 @@ section.block {
   font-size: 0.85rem;
   color: #a8371a;
 }
+
+/* ---------- date picker (real calendar grid, not the native <input type=date>) ---------- */
+.date-picker {
+  position: relative;
+}
+.date-picker-trigger {
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(42, 21, 16, 0.18);
+  border-radius: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.date-picker-trigger[data-placeholder] {
+  color: var(--muted);
+}
+.date-picker-trigger:hover {
+  border-color: var(--accent);
+}
+.date-picker-trigger:focus-visible,
+.date-picker-trigger[aria-expanded="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(160, 74, 47, 0.16);
+  outline: none;
+}
+.date-picker-trigger[data-invalid] {
+  border-color: #a8371a;
+}
+.date-picker-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  background: var(--paper, #fff);
+  border: 1px solid rgba(42, 21, 16, 0.14);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 40px rgba(42, 21, 16, 0.18);
+  padding: 16px;
+}
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.date-picker-header strong {
+  font-size: 0.95rem;
+  color: var(--ink);
+  text-transform: capitalize;
+}
+.date-picker-header button {
+  background: none;
+  border: 1px solid rgba(42, 21, 16, 0.16);
+  border-radius: var(--radius-pill);
+  width: 30px;
+  height: 30px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink);
+  transition: border-color 0.15s, color 0.15s;
+}
+.date-picker-header button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.date-picker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.date-picker-weekdays span {
+  text-align: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.date-picker-grid button {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.date-picker-grid button:hover:not(:disabled) {
+  background: rgba(160, 74, 47, 0.12);
+}
+.date-picker-grid button[data-outside] {
+  color: rgba(42, 21, 16, 0.32);
+}
+.date-picker-grid button[data-today]:not([data-selected]) {
+  font-weight: 700;
+  color: var(--accent);
+}
+.date-picker-grid button[data-selected] {
+  background: var(--accent);
+  color: #fff;
+}
+.date-picker-grid button:disabled {
+  color: rgba(42, 21, 16, 0.2);
+  cursor: not-allowed;
+}
 .star-rating-input {
   display: flex;
   align-items: center;
@@ -4082,6 +4207,186 @@ footer.site-footer .bar-social a:hover {
 .status-pill[data-status="completed"] {
   background: rgba(42, 21, 16, 0.08);
   color: var(--muted);
+}
+
+/* Chauffeur workspace calendar */
+.driver-calendar {
+  margin-top: 30px;
+}
+.driver-calendar-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.driver-calendar-toolbar h3 {
+  min-width: 190px;
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.2rem;
+  text-align: center;
+  text-transform: capitalize;
+}
+.driver-calendar-nav,
+.driver-calendar-today {
+  border: 1px solid rgba(42, 21, 16, 0.14);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.driver-calendar-nav {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+.driver-calendar-today {
+  margin-inline-start: auto;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.driver-calendar-nav:hover,
+.driver-calendar-today:hover {
+  border-color: var(--accent);
+  background: rgba(160, 74, 47, 0.08);
+  color: var(--accent);
+}
+.driver-calendar-nav:focus-visible,
+.driver-calendar-today:focus-visible {
+  outline: 3px solid rgba(160, 74, 47, 0.22);
+  outline-offset: 2px;
+}
+.driver-calendar-empty {
+  margin: -4px 0 14px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-style: italic;
+}
+.driver-calendar-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.driver-calendar-grid {
+  display: grid;
+  min-width: 760px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid rgba(42, 21, 16, 0.12);
+  border-radius: 18px;
+  background: rgba(42, 21, 16, 0.08);
+  gap: 1px;
+}
+.driver-calendar-weekday {
+  padding: 11px 8px;
+  background: #f3ece4;
+  color: var(--muted);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.driver-calendar-day {
+  min-height: 138px;
+  padding: 9px;
+  background: var(--paper);
+}
+.driver-calendar-day.is-outside {
+  background: #f7f2ec;
+}
+.driver-calendar-date {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  margin-inline-start: auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.driver-calendar-day.is-today .driver-calendar-date {
+  background: var(--accent);
+  color: #fff;
+}
+.driver-calendar-trips {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 5px;
+}
+.driver-calendar-trip {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 8px;
+  background: rgba(160, 74, 47, 0.09);
+  color: var(--ink);
+}
+.driver-calendar-trip strong,
+.driver-calendar-trip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.driver-calendar-trip strong {
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+.driver-calendar-trip > span {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+.driver-calendar-trip .driver-calendar-trip-status {
+  margin-top: 3px;
+  color: #a4700f;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.driver-calendar-trip-status[data-status="confirmed"] {
+  color: #2c7a3d;
+}
+.driver-calendar-trip-status[data-status="cancelled"],
+.driver-calendar-trip-status[data-status="rejected"] {
+  color: #a4292b;
+}
+.driver-calendar-trip-status[data-status="completed"] {
+  color: var(--muted);
+}
+.driver-undated-trips {
+  margin-top: 34px;
+}
+.driver-undated-trips > h3 {
+  margin: 0 0 16px;
+  color: var(--ink);
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .driver-calendar-toolbar {
+    flex-wrap: wrap;
+  }
+  .driver-calendar-toolbar h3 {
+    min-width: 150px;
+    flex: 1;
+    font-size: 1.05rem;
+  }
+  .driver-calendar-today {
+    width: 100%;
+    margin-inline-start: 0;
+  }
 }
 
 /* ---------- account overview: the trip-centric redesign ---------- */

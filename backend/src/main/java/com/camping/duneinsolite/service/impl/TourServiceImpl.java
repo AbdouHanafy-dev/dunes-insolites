@@ -33,6 +33,7 @@ public class TourServiceImpl implements TourService {
     private final PublicTourMapper publicTourMapper;
     private final UserProductRemiseRepository userProductRemiseRepository;
     private final ReviewRepository reviewRepository;
+    private final SpokenLanguageResolver spokenLanguageResolver;
 
     @Override
     public TourResponse createTour(TourRequest request) {
@@ -43,6 +44,7 @@ public class TourServiceImpl implements TourService {
         if (tour.getIsActive() == null) {
             tour.setIsActive(true);
         }
+        tour.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         syncTranslations(tour, request.getTranslations());
         return tourMapper.toResponse(tourRepository.save(tour));
     }
@@ -63,6 +65,9 @@ public class TourServiceImpl implements TourService {
         tourMapper.updateEntity(request, tour);
         if (tour.getIsActive() == null) {
             tour.setIsActive(previousIsActive);
+        }
+        if (request.getLanguageIds() != null) {
+            tour.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         }
         syncTranslations(tour, request.getTranslations());
         return tourMapper.toResponse(tourRepository.save(tour));

@@ -1,15 +1,20 @@
 package com.camping.duneinsolite.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Data
 public class ChauffeurStaffRequest {
-    @NotBlank(message = "First name is required")
+    // Preferred flow: select one permanent active profile. Legacy free-text
+    // fields remain accepted for old API clients and historical imports.
+    private UUID driverProfileId;
     private String firstName;
-    @NotBlank(message = "Last name is required")
     private String lastName;
     private String phoneNumber;
+    // The chauffeur's own vehicle. Both optional.
+    private String vehicleModel;
+    private Integer numberOfSeats;
     // Optional - links this assignment to a real driver account (User.role
     // == CHAUFFEUR) so that account sees this trip on GET
     // /api/chauffeurs/my-trips. Most assignments leave this null.

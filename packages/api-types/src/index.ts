@@ -157,9 +157,10 @@ export type Tour = {
 };
 
 /**
- * Booking a Tour — one departure date, adults/children, contact details.
- * No accommodation/service-option complexity like `StayBookingInput`: a
- * Tour's own price already covers the circuit end to end.
+ * Booking a Tour — one departure date, adults/children, contact details,
+ * and (since 19 Sep 2026) the same "Getting There & Guide" + extras step
+ * `StayBookingInput` already has: a circuit's own price covers the route
+ * itself, not the guide/support-vehicle/extra activities layered on top.
  */
 export type TourBooking = {
   id: string;
@@ -167,6 +168,16 @@ export type TourBooking = {
   date: string;
   numberOfAdults: number;
   numberOfChildren: number;
+  rideSlugs: string[];
+  /** How the guest reaches the meeting point; validated against selected transport options. */
+  arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
+  serviceOptions?: ServiceOptionSelection[];
+  /** SpokenLanguage ids the guest prefers, from the admin-managed catalog
+   *  (see Language / getLanguages), so staff can assign a Guide who speaks
+   *  one. Not a fixed FR/EN/AR set — the catalog can grow. */
+  preferredLanguageIds?: string[];
+  /** Free-text fallback when the guest's language isn't in the catalog. */
+  otherLanguageRequested?: string;
   name: string;
   email: string;
   phone: string;

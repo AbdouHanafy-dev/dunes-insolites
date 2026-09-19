@@ -1,7 +1,6 @@
 package com.camping.duneinsolite.model;
 
 import com.camping.duneinsolite.model.enums.GroupSizeType;
-import com.camping.duneinsolite.model.enums.Language;
 import com.camping.duneinsolite.model.enums.ExtraCategory;
 import com.camping.duneinsolite.model.enums.PickupField;
 import com.camping.duneinsolite.model.enums.PricingUnit;
@@ -142,12 +141,16 @@ public class Extra {
     @Column(name = "group_size_type")
     private GroupSizeType groupSizeType;
 
-    @ElementCollection
-    @CollectionTable(name = "extra_languages", joinColumns = @JoinColumn(name = "extra_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "language")
+    // From the admin-managed language catalog (SpokenLanguage), not the old
+    // hardcoded FR/EN/AR enum - which languages this activity/service is
+    // offered in, product-level (not a specific guide's own languages, see
+    // Guide.languages).
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "extra_languages",
+            joinColumns = @JoinColumn(name = "extra_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id"))
     @Builder.Default
-    private Set<Language> languages = new HashSet<>();
+    private Set<SpokenLanguage> languages = new HashSet<>();
 
     @Embedded
     private CancellationPolicy cancellationPolicy;

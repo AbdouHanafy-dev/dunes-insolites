@@ -7,7 +7,6 @@ import com.camping.duneinsolite.model.ExtraDuration;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.enums.GroupSizeType;
-import com.camping.duneinsolite.model.enums.Language;
 import com.camping.duneinsolite.model.enums.ExtraCategory;
 import com.camping.duneinsolite.model.enums.PickupField;
 import com.camping.duneinsolite.model.enums.PricingUnit;
@@ -17,6 +16,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 public class ExtraRequest {
@@ -56,7 +56,8 @@ public class ExtraRequest {
     private String meetingPoint;
     private String location;
     private GroupSizeType groupSizeType;
-    private Set<Language> languages;
+    // SpokenLanguage ids - which languages this is offered in.
+    private Set<UUID> languageIds;
     private CancellationPolicy cancellationPolicy;
     private ExtraDuration extraDuration;
     private String coverPhotoUrl;

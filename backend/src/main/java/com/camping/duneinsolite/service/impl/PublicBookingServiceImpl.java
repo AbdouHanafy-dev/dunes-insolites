@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -148,10 +149,41 @@ public class PublicBookingServiceImpl implements PublicBookingService {
     @Override
     public PublicTourBookingResponse createTourBooking(PublicTourBookingRequest request) {
         var replay = replayOf(request.getIdempotencyKey());
-        if (replay.isPresent()) return toTourResponse(replay.get(), request);
+        if (replay.isPresent()) {
+            List<String> rides = request.getRideSlugs() == null ? List.of() : request.getRideSlugs();
+            return toTourResponse(replay.get(), request, rides);
+        }
 
         Tour tour = tourRepository.findBySlugAndIsActiveTrue(request.getTourSlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + request.getTourSlug()));
+
+        if (request.getArrivalMode() != null
+                && !"OWN_VEHICLE".equals(request.getArrivalMode())
+                && !"TRANSPORT".equals(request.getArrivalMode())) {
+            throw new ReservationValidationException(
+                    "Please tell us how you'll join the tour.");
+        }
+
+        // Same mutual-exclusion rule as createStayBooking: resolve and
+        // validate before any side effect (guest-account creation, the
+        // reservation itself).
+        List<ResolvedServiceOption> resolvedServiceOptions = request.getServiceOptions() == null
+                ? List.of()
+                : request.getServiceOptions().stream()
+                        .map(sel -> resolveServiceOption(sel, request.getDate(),
+                                request.getNumberOfAdults() + orZero(request.getNumberOfChildren())))
+                        .toList();
+        boolean hasTransport = resolvedServiceOptions.stream()
+                .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
+        if ("TRANSPORT".equals(request.getArrivalMode()) && !hasTransport) {
+            throw new ReservationValidationException(
+                    "Please choose transportation to reach the meeting point.");
+        }
+        if ("OWN_VEHICLE".equals(request.getArrivalMode()) && hasTransport) {
+            throw new ReservationValidationException(
+                    "Transportation can't be selected when joining with your own vehicle.");
+        }
+
         User user = findOrCreateUser(request.getName(), request.getEmail(), request.getPhone());
         Source source = vitrineSource();
 
@@ -166,23 +198,61 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), null));
+        reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
+        reservationRequest.setOtherLanguageRequested(
+                request.getOtherLanguageRequested() != null && !request.getOtherLanguageRequested().isBlank()
+                        ? request.getOtherLanguageRequested().trim() : null);
 
         TourSelectionRequest selection = new TourSelectionRequest();
         selection.setTourId(tour.getTourId());
         reservationRequest.setTours(List.of(selection));
 
+        List<String> rideSlugs = request.getRideSlugs() == null ? List.of() : request.getRideSlugs();
+        List<ReservationExtraRequest> selectedExtras = new java.util.ArrayList<>();
+        if (!rideSlugs.isEmpty()) {
+            selectedExtras.addAll(rideSlugs.stream()
+                    .map(slug -> resolveRide(slug, request.getDate()))
+                    .toList());
+        }
+        if (!resolvedServiceOptions.isEmpty()) {
+            selectedExtras.addAll(resolvedServiceOptions.stream()
+                    .map(ResolvedServiceOption::request)
+                    .toList());
+        }
+        if (!selectedExtras.isEmpty()) reservationRequest.setExtras(selectedExtras);
+
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
         availabilityMetrics.holdCreated();
-        return toTourResponse(reservation, request);
+        return toTourResponse(reservation, request, rideSlugs);
     }
 
-    private PublicTourBookingResponse toTourResponse(ReservationResponse reservation, PublicTourBookingRequest request) {
+    private static int orZero(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    // Public callers send SpokenLanguage ids as strings (JSON has no UUID
+    // type) - a malformed one is a bad request, not a 500.
+    private static java.util.Set<UUID> parseLanguageIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return java.util.Set.of();
+        try {
+            return ids.stream().map(UUID::fromString).collect(java.util.stream.Collectors.toSet());
+        } catch (IllegalArgumentException e) {
+            throw new ReservationValidationException("Invalid language id");
+        }
+    }
+
+    private PublicTourBookingResponse toTourResponse(
+            ReservationResponse reservation, PublicTourBookingRequest request, List<String> rideSlugs) {
         PublicTourBookingResponse response = new PublicTourBookingResponse();
         response.setId(reservation.getReservationId().toString());
         response.setTourSlug(request.getTourSlug());
         response.setDate(request.getDate().toString());
         response.setNumberOfAdults(request.getNumberOfAdults());
         response.setNumberOfChildren(request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0);
+        response.setRideSlugs(rideSlugs);
+        response.setArrivalMode(request.getArrivalMode());
+        response.setPreferredLanguageIds(request.getPreferredLanguageIds());
+        response.setOtherLanguageRequested(request.getOtherLanguageRequested());
         response.setName(request.getName());
         response.setEmail(request.getEmail());
         response.setPhone(request.getPhone());

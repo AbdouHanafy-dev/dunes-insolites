@@ -74,6 +74,15 @@ public class AccountActionServiceImpl implements AccountActionService {
 
     @Override
     @Transactional
+    public void sendPasswordSetupInvitation(User user) {
+        invalidateExisting(user, AccountActionType.PASSWORD_RESET);
+        String token = issueToken(user, AccountActionType.PASSWORD_RESET, Duration.ofHours(24));
+        String link = frontendUrl + "/reset-password?token=" + token;
+        emailService.sendDriverInvitationEmail(user.getEmail(), user.getName(), link);
+    }
+
+    @Override
+    @Transactional
     public void verifyEmail(String token) {
         AccountActionToken accountToken = redeem(token, AccountActionType.EMAIL_VERIFY);
         User user = accountToken.getUser();

@@ -6,6 +6,7 @@ import * as api from "@/lib/api";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
 import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
+import DatePicker from "@/components/DatePicker";
 
 type ServiceAvailabilityState = {
   forDate: string;
@@ -401,13 +402,7 @@ export default function StayReservationForm({
 
       <div className="field" data-invalid={!!errors.date}>
         <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
-        <input
-          id="s-date"
-          type="date"
-          min={min}
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        <DatePicker id="s-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
         {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
         {availabilityFor &&
           availabilityFor.accommodations.length > 0 &&

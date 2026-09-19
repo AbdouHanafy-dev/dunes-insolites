@@ -7,7 +7,6 @@ import com.camping.duneinsolite.model.ExtraDuration;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.enums.GroupSizeType;
-import com.camping.duneinsolite.model.enums.Language;
 import com.camping.duneinsolite.model.enums.ExtraCategory;
 import com.camping.duneinsolite.model.enums.PickupField;
 import com.camping.duneinsolite.model.enums.PricingUnit;
@@ -45,7 +44,7 @@ public class ExtraResponse {
     private String meetingPoint;
     private String location;
     private GroupSizeType groupSizeType;
-    private Set<Language> languages;
+    private Set<SpokenLanguageResponse> languages;
     private CancellationPolicy cancellationPolicy;
     private ExtraDuration extraDuration;
     private String coverPhotoUrl;

@@ -42,3 +42,6 @@ yarn-error.log*
 
 # local backup archives / off-host pull dir — never commit
 backend/backups/
+
+# machine-specific Docker Compose port overrides
+backend/docker-compose.override.yml

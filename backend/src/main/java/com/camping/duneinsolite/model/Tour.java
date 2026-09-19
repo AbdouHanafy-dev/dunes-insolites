@@ -2,7 +2,6 @@ package com.camping.duneinsolite.model;
 
 
 import com.camping.duneinsolite.model.enums.GroupSizeType;
-import com.camping.duneinsolite.model.enums.Language;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -99,12 +98,14 @@ public class Tour {
     @Column(name = "group_size_type")
     private GroupSizeType groupSizeType;
 
-    @ElementCollection
-    @CollectionTable(name = "tour_languages", joinColumns = @JoinColumn(name = "tour_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "language")
+    // From the admin-managed language catalog (SpokenLanguage), not the old
+    // hardcoded FR/EN/AR enum.
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "tour_languages",
+            joinColumns = @JoinColumn(name = "tour_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id"))
     @Builder.Default
-    private Set<Language> languages = new HashSet<>();
+    private Set<SpokenLanguage> languages = new HashSet<>();
 
     @Embedded
     private CancellationPolicy cancellationPolicy;
