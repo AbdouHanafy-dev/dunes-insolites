@@ -30,8 +30,8 @@ const GROUPS: NavGroup[] = [
     label: "Catalogue",
     items: [
       { label: "Hébergements", href: "/catalogue/hebergements", icon: "🏕️" },
-      { label: "Tours / Circuits", href: "/catalogue/tours", icon: "🗺️" },
-      { label: "Extras", href: "/catalogue/extras", icon: "➕" },
+      { label: "Circuits", href: "/catalogue/tours", icon: "🗺️" },
+      { label: "Activités", href: "/catalogue/extras", icon: "➕" },
       { label: "Véhicules & transport", href: "/catalogue/guides-transport", icon: "🚐" },
       { label: "Langues", href: "/catalogue/langues", icon: "🌐" },
       { label: "Disponibilités", href: "/catalogue/disponibilites", icon: "🗓️" },

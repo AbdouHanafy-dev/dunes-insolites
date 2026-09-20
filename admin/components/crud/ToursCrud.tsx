@@ -29,7 +29,7 @@ const columns: ColumnDef<AdminTour>[] = [
 export function ToursList({ initialItems }: { initialItems: AdminTour[] }) {
   return (
     <CollectionList
-      title="Tours / Circuits"
+      title="Circuits"
       basePath={BASE_PATH}
       apiPath={API_PATH}
       idKey="tourId"

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { getAllTours } from "@/lib/api";
 import { ToursList } from "@/components/crud/ToursCrud";
 
-export const metadata: Metadata = { title: "Tours / Circuits" };
+export const metadata: Metadata = { title: "Circuits" };
 
 export default async function ToursPage() {
   const session = await getSession();

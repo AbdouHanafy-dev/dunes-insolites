@@ -199,7 +199,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   async function onSubmit() {
     if (!canSubmit) {
       setStep(0);
-      toast.error("Le nom du tour est requis avant de pouvoir l'enregistrer.");
+      toast.error("Le nom du circuit est requis avant de pouvoir l'enregistrer.");
       return;
     }
     setBusy(true);
@@ -218,7 +218,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
       toast.error(message);
       return;
     }
-    toast.success(isEdit ? "Tour modifié avec succès" : "Tour créé avec succès");
+    toast.success(isEdit ? "Circuit modifié avec succès" : "Circuit créé avec succès");
     router.push("/catalogue/tours");
     router.refresh();
   }
@@ -229,7 +229,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     const res = await fetch(`/api/proxy/tours/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      toast.error("Suppression impossible — ce tour est peut-être référencé ailleurs.");
+      toast.error("Suppression impossible — ce circuit est peut-être référencé ailleurs.");
       setDeleteOpen(false);
       return;
     }
@@ -242,10 +242,10 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     <div className="flex flex-col gap-5">
       <div>
         <Link href="/catalogue/tours" className="text-sm text-navy-700/50 hover:underline">
-          ← Tours / Circuits
+          ← Circuits
         </Link>
         <h1 className="mt-1 text-xl font-bold text-navy-800">
-          {isEdit ? form.name || "Modifier" : "Nouveau tour"}
+          {isEdit ? form.name || "Modifier" : "Nouveau circuit"}
         </h1>
       </div>
 
@@ -273,7 +273,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
       <div className="card rounded-2xl p-6">
         {step === 0 && (
           <div className="flex flex-col gap-4">
-            <Field label="Nom du tour" required>
+            <Field label="Nom du circuit" required>
               <input className={inputClass} value={form.name} onChange={(e) => patch({ name: e.target.value })} />
             </Field>
             <Field label="Slug (URL)">
@@ -307,7 +307,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 onChange={(e) => patch({ description: e.target.value })}
               />
             </Field>
-            <Field label="Présentation détaillée" hint="Affichée sur la page du tour">
+            <Field label="Présentation détaillée" hint="Affichée sur la page du circuit">
               <textarea
                 className={`${inputClass} min-h-32`}
                 value={form.aboutText}
@@ -346,7 +346,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
 
         {step === 3 && (
           <div className="flex flex-col gap-6">
-            <Field label="Points forts" hint="Ce qui rend ce tour unique">
+            <Field label="Points forts" hint="Ce qui rend ce circuit unique">
               <StringListField
                 items={form.highlights}
                 onChange={(highlights) => patch({ highlights })}
@@ -498,7 +498,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
           <div className="flex flex-col gap-5">
             {!canSubmit && (
               <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
-                Le nom du tour est requis avant de pouvoir l&apos;enregistrer.
+                Le nom du circuit est requis avant de pouvoir l&apos;enregistrer.
               </div>
             )}
             <PreviewCard form={form} />
@@ -534,7 +534,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             </button>
           ) : (
             <button type="button" onClick={onSubmit} disabled={busy} className="btn btn-primary">
-              {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Publier le tour"}
+              {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Publier le circuit"}
             </button>
           )}
         </div>

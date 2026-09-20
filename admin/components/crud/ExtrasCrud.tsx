@@ -157,7 +157,7 @@ function translationsSection(form: Record<string, unknown>, patch: (fields: Reco
 export function ExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
   return (
     <CollectionList
-      title="Extras"
+      title="Activités"
       basePath={BASE_PATH}
       apiPath={API_PATH}
       idKey="extraId"
@@ -171,7 +171,7 @@ export function ExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
 export function ExtraEditor({ id, initialData }: { id?: string; initialData?: AdminExtra }) {
   return (
     <CollectionEditor
-      collectionLabel="Extras"
+      collectionLabel="Activités"
       basePath={BASE_PATH}
       apiPath={API_PATH}
       id={id}

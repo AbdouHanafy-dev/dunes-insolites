@@ -81,7 +81,7 @@ export default function ReservationStaffPanel({
   const unmanageableNotice = !manageable && (
     <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
       {reservationType !== "TOURS"
-        ? "Le personnel ne peut être affecté qu'aux réservations de type Tours."
+        ? "Le personnel ne peut être affecté qu'aux réservations de type Circuit."
         : `Le personnel ne peut plus être modifié pour une réservation ${status.toLowerCase()}.`}
     </p>
   );
