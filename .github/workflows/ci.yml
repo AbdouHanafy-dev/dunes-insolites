@@ -120,16 +120,26 @@ jobs:
           # from inside the container itself, or via Docker's own compose
           # healthcheck (which already checks it, correctly, on that port).
           # Reading that healthcheck's own verdict is more reliable than
-          # guessing at a port from the outside — found live, the smoke
-          # check's first version curled the wrong (app, not mgmt) port.
+          # guessing at a port from the outside. The image has a 90-second
+          # startup grace period, so allow enough time for real cold starts.
           script: |
             set -e
-            for i in $(seq 1 18); do
+            status=starting
+            for i in $(seq 1 48); do
               status=$(docker inspect -f '{{.State.Health.Status}}' dunes-v2-backend 2>/dev/null || echo starting)
               [ "$status" = "healthy" ] && break
               sleep 5
             done
-            [ "$status" = "healthy" ] || { echo "backend did not become healthy after deploy (status: $status)"; exit 1; }
+            if [ "$status" != "healthy" ]; then
+              echo "backend did not become healthy after deploy (status: $status)"
+              echo "--- recent Docker health probes ---"
+              docker inspect -f '{{range .State.Health.Log}}{{.End}} exit={{.ExitCode}} {{printf "%q" .Output}}{{println}}{{end}}' dunes-v2-backend 2>/dev/null || true
+              echo "--- recent backend logs ---"
+              docker logs --tail 200 dunes-v2-backend 2>&1 || true
+              echo "--- readiness endpoint ---"
+              docker exec dunes-v2-backend curl -sS http://localhost:9099/actuator/health/readiness 2>&1 || true
+              exit 1
+            fi
             curl -sf -o /dev/null https://www.dunes-insolites.com/
             curl -sf -o /dev/null https://admin.dunesinsolites.com/
             echo "deploy verified: backend healthy, frontend + admin responding"

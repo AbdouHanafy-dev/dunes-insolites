@@ -152,8 +152,9 @@ services:
       GOOGLE_SERVICE_ACCOUNT_KEY_PATH: ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:-}
       MANAGEMENT_SERVER_PORT: "9099"
       MANAGEMENT_SERVER_ADDRESS: 0.0.0.0
-      # Keep SMTP in the readiness signal so a future credential or provider
-      # failure is visible in /actuator/health instead of going unnoticed.
+      # Keep SMTP monitoring enabled, but use the dedicated readiness group
+      # below for container readiness so a mail-provider outage does not make
+      # an otherwise working API fail deployment.
       MANAGEMENT_HEALTH_MAIL_ENABLED: "true"
     volumes:
       # No-op (mounts /dev/null onto itself) until GOOGLE_SERVICE_ACCOUNT_
@@ -166,9 +167,10 @@ services:
       - "127.0.0.1:8090:8080"
       - "127.0.0.1:9099:9099"
     # actuator moved to the private mgmt port — override the image's baked-in
-    # healthcheck (which hits :8080) to hit :9099 instead.
+    # healthcheck (which hits :8080) to hit the dedicated readiness group on
+    # :9099 instead. This group checks the app lifecycle, database and RabbitMQ.
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9099/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:9099/actuator/health/readiness"]
       interval: 15s
       timeout: 5s
       start_period: 90s
