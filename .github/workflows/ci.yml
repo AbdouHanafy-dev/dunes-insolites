@@ -140,8 +140,31 @@ jobs:
               docker exec dunes-v2-backend curl -sS http://localhost:9099/actuator/health/readiness 2>&1 || true
               exit 1
             fi
-            curl -sf -o /dev/null https://www.dunes-insolites.com/
-            curl -sf -o /dev/null https://admin.dunesinsolites.com/
+            public_response=$(curl -sS --connect-timeout 10 --max-time 30 -D - -o /dev/null -w '\n%{http_code}' https://www.dunes-insolites.com/)
+            public_status=$(printf '%s\n' "$public_response" | tail -n 1)
+            case "$public_status" in
+              2??|3??)
+                ;;
+              503)
+                # A global maintenance window deliberately returns 503 for SEO.
+                # Accept it only when Next.js confirms the maintenance rewrite;
+                # an nginx/Cloudflare/origin 503 must still fail deployment.
+                printf '%s\n' "$public_response" | grep -qi '^x-middleware-rewrite: /maintenance/' || {
+                  echo "public site returned an unexpected 503"
+                  printf '%s\n' "$public_response"
+                  docker logs --tail 100 dunes-v2-frontend 2>&1 || true
+                  exit 1
+                }
+                echo "public site is intentionally in maintenance mode"
+                ;;
+              *)
+                echo "public site smoke check failed (HTTP $public_status)"
+                printf '%s\n' "$public_response"
+                docker logs --tail 100 dunes-v2-frontend 2>&1 || true
+                exit 1
+                ;;
+            esac
+            curl -sf --connect-timeout 10 --max-time 30 -o /dev/null https://admin.dunesinsolites.com/
             echo "deploy verified: backend healthy, frontend + admin responding"
 
   # Real post-deploy verification against the live site — not an independent
