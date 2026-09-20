@@ -89,6 +89,11 @@
   --sand: var(--color-salt);
   --ink: var(--color-ink);
   --maroon: var(--color-night);
+  /* Semantic alias used by the dark editorial bands (experience, direct
+     booking and closing CTA). Without this alias, every `var(--night)`
+     declaration is invalid: the browser drops the dark background while
+     keeping the light foreground text, making entire sections unreadable. */
+  --night: var(--color-night);
   --accent: var(--color-ember);
   --accent-hot: var(--color-ember-hot);
   --sky: var(--color-sky);
@@ -2791,49 +2796,6 @@ footer.site-footer .bar-social a:hover {
   }
 }
 
-/* ---------- breadcrumbs ---------- */
-.breadcrumbs {
-  /* The fixed .site-header (top: 20px, ~98px tall) floats over the page on
-     every route - found live: with only the default 14px here, the whole
-     breadcrumb trail rendered directly underneath it, completely hidden on
-     every page that renders <Breadcrumbs> (activities/[slug], camp/[slug],
-     about, contact, faq, gallery, guides, safety - confirmed on all of
-     them, not just the detail-hero pages). 134px clears the header (98 +
-     20 + 16px breathing room) before this text starts. */
-  padding: 134px 24px 14px;
-  font-size: 0.82rem;
-}
-.breadcrumbs ol {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.breadcrumbs li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.breadcrumbs a {
-  color: var(--muted-ink, #6b6459);
-  text-decoration: none;
-}
-.breadcrumbs a:hover {
-  color: var(--color-accent);
-  text-decoration: underline;
-}
-.breadcrumbs [aria-current="page"] {
-  color: var(--ink, #241b17);
-  font-weight: 500;
-}
-.breadcrumbs .sep {
-  color: var(--muted-ink, #6b6459);
-  opacity: 0.5;
-}
-
 /* ---------- activity detail ---------- */
 .detail-hero {
   position: relative;
@@ -4996,6 +4958,42 @@ footer.site-footer .bar-social a:hover {
 }
 
 /* ---------- FAQ ---------- */
+.faq-cms {
+  background: var(--sand);
+  padding: 72px 0 0;
+}
+.faq-cms .section-sand {
+  padding: 0;
+  background: transparent;
+}
+.faq-cms .cms-rich-text-section + .cms-faq-section {
+  margin-top: 24px;
+}
+.faq-cms .cms-faq-section + .cms-rich-text-section {
+  margin-top: 72px;
+}
+.faq-cms .faq {
+  margin-top: 0;
+}
+.faq-researched {
+  padding-top: 80px;
+  border-top: 1px solid rgba(42, 21, 16, 0.12);
+}
+.faq-category {
+  max-width: 820px;
+}
+.faq-category + .faq-category {
+  margin-top: 72px;
+}
+.faq-category h2 {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(28px, 3.2vw, 42px);
+  font-weight: 600;
+  line-height: 1.08;
+}
+.faq-category .faq {
+  margin-top: 28px;
+}
 .faq {
   margin-top: 44px;
   max-width: 820px;

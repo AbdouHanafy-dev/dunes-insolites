@@ -20,6 +20,7 @@ export default function ReservationStaffPanel({
   reservationId,
   reservationType,
   status,
+  arrivalMode,
   preferredLanguages,
   allLanguages,
   initialGuides,
@@ -29,6 +30,7 @@ export default function ReservationStaffPanel({
   reservationId: string;
   reservationType: string;
   status: string;
+  arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
   preferredLanguages: AdminSpokenLanguage[];
   allLanguages: AdminSpokenLanguage[];
   initialGuides: AdminReservationStaffMember[];
@@ -119,6 +121,17 @@ export default function ReservationStaffPanel({
           Le chauffeur conduit son propre véhicule — affecté séparément du guide. Le client le voit dans son
           espace personnel.
         </p>
+
+        {arrivalMode === "TRANSPORT" && chauffeurs.length === 0 && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-800">
+            Transport demandé par le client — confirmez le tarif puis affectez un chauffeur disponible ci-dessous.
+          </p>
+        )}
+        {arrivalMode === "OWN_VEHICLE" && (
+          <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800">
+            Le client a indiqué qu’il viendra avec son propre véhicule. Aucun chauffeur n’est requis.
+          </p>
+        )}
 
         {unmanageableNotice}
 

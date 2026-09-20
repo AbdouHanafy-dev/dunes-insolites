@@ -13,11 +13,10 @@ import Reveal from "@/components/Reveal";
  * cross-sell — so it reads next to the accommodation, not buried after the
  * booking CTA.
  *
- * Same field-guide row list as Activities.tsx rather than the 2-card grid
- * this used to be, so the three catalogue sections (stays/activities/
- * circuits) read as one consistent visual language instead of the teaser
- * looking like a bolted-on ad unit. Renders nothing if the catalogue is
- * empty (no fabricated content).
+ * The homepage redesign gives circuits their own route-dossier composition:
+ * image-led, staggered and slower than the practical activity index below.
+ * It still renders only catalogue data and disappears when that catalogue
+ * is empty (no fabricated content).
  */
 export default async function Circuits() {
   const [tours, t] = await Promise.all([
@@ -27,28 +26,28 @@ export default async function Circuits() {
   if (!tours.length) return null;
 
   return (
-    <section className="block activities" id="circuits">
-      <div className="wrap">
-        <Reveal className="head">
-          <p className="idx-label">
-            {t("eyebrow")} — 01–{String(tours.length).padStart(2, "0")}
-          </p>
+    <section className="block route-ledger" id="circuits">
+      <div className="wrap route-ledger-layout">
+        <Reveal className="route-ledger-intro">
+          <p className="idx-label">{t("eyebrow")}</p>
           <h2 className="sect-title">{t("title")}</h2>
           <p>{t("lead")}</p>
+          <Link href="/circuits" className="editorial-link">
+            {t("seeAll")}
+          </Link>
         </Reveal>
 
-        <div className="field-list">
+        <div className="route-dossiers">
           {tours.map((tour, i) => (
             <Reveal key={tour.slug} delay={i * 80}>
-              <Link href={`/circuits/${tour.slug}`} className="field-row">
-                <span className="idx-label field-row-idx">{String(i + 1).padStart(2, "0")}</span>
-                <span className="field-row-media">
+              <Link href={`/circuits/${tour.slug}`} className="route-dossier">
+                <span className="route-dossier-media">
                   {tour.coverImage ? (
                     <Image
                       src={tour.coverImage}
                       alt={tour.title}
                       fill
-                      sizes="(max-width: 900px) 100vw, 320px"
+                      sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 360px"
                       style={{ objectFit: "cover" }}
                     />
                   ) : (
@@ -73,39 +72,28 @@ export default async function Circuits() {
                     </span>
                   )}
                 </span>
-                <span className="field-row-body">
-                  <span className="field-row-title">{tour.title}</span>
-                  <span className="field-row-tagline">{tour.description}</span>
-                  <span className="field-row-meta">
+                <span className="route-dossier-cap">
+                  <span className="route-dossier-topline">
+                    <span className="idx-label">{String(i + 1).padStart(2, "0")}</span>
                     <span>{tour.duration}</span>
+                  </span>
+                  <strong>{tour.title}</strong>
+                  <span className="route-dossier-description">{tour.description}</span>
+                  <span className="route-dossier-meta">
                     {tour.location && (
-                      <>
-                        <span aria-hidden="true">·</span>
-                        <span>{tour.location}</span>
-                      </>
+                      <span>{tour.location}</span>
                     )}
                     {tour.groupSize && (
-                      <>
-                        <span aria-hidden="true">·</span>
-                        <span>{tour.groupSize}</span>
-                      </>
+                      <span>{tour.groupSize}</span>
                     )}
+                    <span>{t("fromPrice", { price: tour.priceFrom })}</span>
                   </span>
-                </span>
-                <span className="field-row-price">{t("fromPrice", { price: tour.priceFrom })}</span>
-                <span className="field-row-arrow" aria-hidden="true">
-                  →
+                  <span className="route-dossier-arrow" aria-hidden="true">↗</span>
                 </span>
               </Link>
             </Reveal>
           ))}
         </div>
-
-        <p style={{ marginTop: 32 }}>
-          <Link href="/circuits" className="editorial-link">
-            {t("seeAll")}
-          </Link>
-        </p>
       </div>
     </section>
   );

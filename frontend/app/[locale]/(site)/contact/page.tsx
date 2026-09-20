@@ -6,7 +6,6 @@ import LivePreview from "@/components/LivePreview";
 import { getCmsPage, getSiteSettings } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 const CMS_SLUG = "contact";
 
@@ -78,7 +77,6 @@ export default async function ContactPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={title} lead={lead} image="/images/sandboard.jpg" />
 
       <section className="section-sand">

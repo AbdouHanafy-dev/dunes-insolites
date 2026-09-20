@@ -1,5 +1,10 @@
 # Roadmap
 
+> **Document historique.** Ce fichier conserve le plan initial et la trace des
+> phases réalisées. Pour l'état réel au 20 septembre 2026 et la prochaine
+> séquence recommandée, lire
+> [`PROJECT-AUDIT-2026-09-20.md`](PROJECT-AUDIT-2026-09-20.md).
+
 Single source of sequencing. The PDFs in this directory hold the reasoning and
 the line-level detail; **this file is what gets updated** as work lands.
 
@@ -97,8 +102,8 @@ image files already shipping from `frontend/public/images/`) · ✅ DI-011
 public reads for stays and activities (marketing-copy fields not stored
 server-side are derived, not invented — see `PublicCatalogText`) · ✅ DI-013
 booking → real `PENDING` reservation, **server-side pricing authoritative**
-(guest checkout via silent account creation — no login step; see
-`PublicBookingServiceImpl`) · ✅ DI-014 confirmation email over RabbitMQ
+(guest checkout creates an invited account with a one-use setup link; existing
+accounts must authenticate; see `PublicBookingServiceImpl`) · ✅ DI-014 confirmation email over RabbitMQ
 (separate `email.queue` bound to `reservation.created`, see
 `ReservationEmailConsumer`) · ✅ DI-015 rate-limit public writes (in-memory,
 single-instance — `RateLimitFilter`) · ✅ DI-016 brand config by hostname

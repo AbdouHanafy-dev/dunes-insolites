@@ -2,11 +2,13 @@ package com.camping.duneinsolite.service.impl;
 
 import com.camping.duneinsolite.dto.request.ReservationRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicStayBookingRequest;
+import com.camping.duneinsolite.dto.request.publicapi.PublicTourBookingRequest;
 import com.camping.duneinsolite.dto.response.ReservationResponse;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.Source;
 import com.camping.duneinsolite.model.TourType;
+import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.ReservationType;
 import com.camping.duneinsolite.model.enums.UserRole;
@@ -50,6 +52,9 @@ class PublicBookingServiceImplTest {
     private com.camping.duneinsolite.repository.AccommodationTypeRepository accommodationTypeRepository;
     private com.camping.duneinsolite.service.AccommodationPricingService accommodationPricingService;
     private KeycloakUserSyncService keycloakUserSyncService;
+    private com.camping.duneinsolite.service.AccountActionService accountActionService;
+    private com.camping.duneinsolite.repository.UserRepository userRepository;
+    private com.camping.duneinsolite.security.CallerContext callerContext;
     private ReservationService reservationService;
     private PublicBookingServiceImpl service;
 
@@ -69,6 +74,9 @@ class PublicBookingServiceImplTest {
         var availabilityMetrics = new com.camping.duneinsolite.observability.AvailabilityMetrics(
                 new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
         keycloakUserSyncService = mock(KeycloakUserSyncService.class);
+        accountActionService = mock(com.camping.duneinsolite.service.AccountActionService.class);
+        userRepository = mock(com.camping.duneinsolite.repository.UserRepository.class);
+        callerContext = mock(com.camping.duneinsolite.security.CallerContext.class);
         reservationService = mock(ReservationService.class);
 
         service = new PublicBookingServiceImpl(
@@ -76,7 +84,8 @@ class PublicBookingServiceImplTest {
                 sourceRepository,
                 accommodationTypeRepository, accommodationPricingService,
                 accommodationAvailabilityService, availabilityMetrics,
-                keycloakUserSyncService, reservationService,
+                keycloakUserSyncService, accountActionService, userRepository,
+                callerContext, reservationService,
                 java.time.Clock.systemUTC());
 
         // status() default (Mockito) returns null → NPE in createStayBooking's
@@ -89,7 +98,7 @@ class PublicBookingServiceImplTest {
 
         when(sourceRepository.findByName("Site web"))
                 .thenReturn(Optional.of(Source.builder().sourceId(sourceId).name("Site web").build()));
-        when(keycloakUserSyncService.findOrCreateGuestUser(any(), any(), any()))
+        when(keycloakUserSyncService.createInvitedGuestUser(any(), any(), any()))
                 .thenReturn(User.builder().userId(userId).role(UserRole.CLIENT).build());
     }
 
@@ -123,9 +132,10 @@ class PublicBookingServiceImplTest {
         ReservationResponse response = new ReservationResponse();
         response.setReservationId(UUID.randomUUID());
         response.setTotalAmount(new java.math.BigDecimal("190.0"));
+        response.setTotalExtrasAmount(new java.math.BigDecimal("35.0"));
         when(reservationService.createReservation(any())).thenReturn(response);
 
-        service.createStayBooking(baseRequest());
+        var publicResponse = service.createStayBooking(baseRequest());
 
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
@@ -145,6 +155,9 @@ class PublicBookingServiceImplTest {
         assertThat(built.getTourTypes()).hasSize(1);
         assertThat(built.getTourTypes().get(0).getTourTypeId()).isEqualTo(tourTypeId);
         assertThat(built.getExtras()).isNull();
+        assertThat(publicResponse.getTotal()).isEqualByComparingTo("225.000");
+        assertThat(publicResponse.getStatus()).isEqualTo("pending");
+        verify(accountActionService).sendGuestPasswordSetupInvitation(any(User.class));
     }
 
     @Test
@@ -161,7 +174,7 @@ class PublicBookingServiceImplTest {
         // touch an external system" discipline KeycloakUserSyncService's own
         // adminCreateUser/registerUser already follow).
         verify(keycloakUserSyncService, org.mockito.Mockito.never())
-                .findOrCreateGuestUser(any(), any(), any());
+                .createInvitedGuestUser(any(), any(), any());
         verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
     }
 
@@ -230,7 +243,7 @@ class PublicBookingServiceImplTest {
         assertThatThrownBy(() -> service.createStayBooking(request))
                 .isInstanceOf(ResourceNotFoundException.class);
         verify(keycloakUserSyncService, org.mockito.Mockito.never())
-                .findOrCreateGuestUser(any(), any(), any());
+                .createInvitedGuestUser(any(), any(), any());
         verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
     }
 
@@ -276,7 +289,7 @@ class PublicBookingServiceImplTest {
                 .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
                 .hasMessageContaining("choose transportation");
         verify(keycloakUserSyncService, org.mockito.Mockito.never())
-                .findOrCreateGuestUser(any(), any(), any());
+                .createInvitedGuestUser(any(), any(), any());
     }
 
     @Test
@@ -305,5 +318,57 @@ class PublicBookingServiceImplTest {
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
         assertThat(captor.getValue().getExtras().get(0).getQuantity()).isEqualTo(4);
+    }
+
+    @Test
+    void tourTransportRequestIsSavedForAdminAssignmentWithoutForcingACatalogVehicle() {
+        UUID tourId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("sahara-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).isActive(true).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicTourBookingRequest request = new PublicTourBookingRequest();
+        request.setTourSlug("sahara-circuit");
+        request.setDate(LocalDate.of(2026, 10, 20));
+        request.setNumberOfAdults(2);
+        request.setNumberOfChildren(1);
+        request.setArrivalMode("TRANSPORT");
+        request.setName("Transport Guest");
+        request.setEmail("transport@example.com");
+        request.setPhone("+21650000009");
+
+        service.createTourBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        ReservationRequest built = captor.getValue();
+        assertThat(built.getArrivalMode())
+                .isEqualTo(com.camping.duneinsolite.model.enums.ArrivalMode.TRANSPORT);
+        assertThat(built.getExtras()).isNull();
+        assertThat(built.getTours()).hasSize(1);
+        assertThat(built.getTours().get(0).getTourId()).isEqualTo(tourId);
+    }
+
+    @Test
+    void authenticatedClientOwnsTheBookingAndNoGuestAccountIsCreated() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        when(callerContext.isAuthenticatedUser()).thenReturn(true);
+        when(callerContext.requireUserId()).thenReturn(userId);
+        User signedIn = User.builder()
+                .userId(userId).name("Signed In Guest").email("guest@example.com")
+                .role(UserRole.CLIENT).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(signedIn));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        service.createStayBooking(baseRequest());
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        assertThat(captor.getValue().getUserId()).isEqualTo(userId);
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+        verify(accountActionService, org.mockito.Mockito.never())
+                .sendGuestPasswordSetupInvitation(any());
     }
 }

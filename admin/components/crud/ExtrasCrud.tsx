@@ -55,8 +55,8 @@ const serviceFields: FieldDef[] = [
   { type: "text", key: "slug", label: "Slug", required: true },
   { type: "textarea", key: "description", label: "Description" },
   { type: "select", key: "category", label: "Catégorie", options: [
-    { value: "GUIDE", label: "Guide" },
-    { value: "TRANSPORT", label: "Transport / pickup" },
+    { value: "TRANSPORT", label: "Véhicule / transport / pickup" },
+    { value: "GUIDE", label: "Option guide interne (non sélectionnée par le client)" },
     { value: "RESOURCE", label: "Ressource interne (guide/véhicule)" },
   ] },
   { type: "text", key: "serviceType", label: "Type métier", hint: "Ex. HOTEL_PICKUP, GUIDE_WITH_SUPPORT_VEHICLE" },
@@ -97,8 +97,8 @@ const emptyForm = {
 
 const emptyServiceForm = {
   ...emptyForm,
-  category: "GUIDE" as const,
-  pricingUnit: "PER_DAY" as const,
+  category: "TRANSPORT" as const,
+  pricingUnit: "PER_VEHICLE" as const,
   serviceType: "",
   requiresCustomerVehicle: false,
   displayOrder: 0,
@@ -184,13 +184,13 @@ export function ExtraEditor({ id, initialData }: { id?: string; initialData?: Ad
 }
 
 export function ServiceExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
-  return <CollectionList title="Guides & transport" basePath="/catalogue/guides-transport"
+  return <CollectionList title="Véhicules & transport" basePath="/catalogue/guides-transport"
     apiPath="extras" idKey="extraId" titleKey="name" items={initialItems}
     columns={columns} />;
 }
 
 export function ServiceExtraEditor({ id, initialData }: { id?: string; initialData?: AdminExtra }) {
-  return <CollectionEditor collectionLabel="Guides & transport"
+  return <CollectionEditor collectionLabel="Véhicules & transport"
     basePath="/catalogue/guides-transport" apiPath="extras" id={id}
     initialData={serviceForm(initialData)} fields={serviceFields} toRequestBody={serviceRequest}
     extraSection={translationsSection} />;

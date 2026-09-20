@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
 import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
@@ -38,6 +39,7 @@ export default function StayReservationForm({
   initialAccommodationSlug?: string;
 }) {
   const t = useTranslations("stayReservationForm");
+  const ta = useTranslations("auth");
   const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
     PER_DAY: t("unitDay"),
     PER_BOOKING: t("unitBooking"),
@@ -113,6 +115,8 @@ export default function StayReservationForm({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const idempotencyKeyRef = useRef("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -255,12 +259,14 @@ export default function StayReservationForm({
     if (selectedTransport && optionUnavailable(selectedTransport)) {
       newErrors.transport = t("errorTransportUnavailable");
     }
+    if (!acceptedTerms) newErrors.acceptedTerms = ta("termsRequired");
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
     setSubmitting(true);
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
 
     const serviceOptions = [
       ...(selectedGuide ? [{
@@ -296,6 +302,8 @@ export default function StayReservationForm({
       email,
       phone,
       notes: notes.trim() || undefined,
+      idempotencyKey: idempotencyKeyRef.current,
+      acceptedTerms,
     });
 
     if (!result.ok) {
@@ -713,6 +721,15 @@ export default function StayReservationForm({
           </div>
         )}
       </div>
+
+      <label className="ride-option" data-invalid={!!errors.acceptedTerms}>
+        <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+        <span>
+          {ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>
+          {ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}
+        </span>
+      </label>
+      {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
 
       {formError && <div className="alert">{formError}</div>}
 

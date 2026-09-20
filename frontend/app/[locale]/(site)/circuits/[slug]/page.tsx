@@ -7,23 +7,16 @@ import { getTour, getTours, getRelatedTours, getReviews } from "@/lib/api";
 import { averageRating } from "@/lib/data/reviews";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import TourCard from "@/components/TourCard";
 import TourBookingFlow from "@/components/TourBookingFlow";
-import Reveal from "@/components/Reveal";
 import Reviews from "@/components/Reviews";
-import CTA from "@/components/CTA";
 import { site } from "@/lib/site";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
-// No seed source for Tours (unlike activities/stays' lib/data/*-i18n) — the
-// real catalog, from the real backend, is the only source of truth. Without
-// a backend configured this simply renders nothing at build time; pages
-// still resolve on demand at request time (dynamicParams defaults to true).
 export async function generateStaticParams() {
   const tours = await getTours().catch(() => []);
-  return tours.map((t) => ({ slug: t.slug }));
+  return tours.map((tour) => ({ slug: tour.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,11 +27,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: tour.title,
     description: tour.description,
-    alternates: localeAlternates(locale, (l) => localeHref(l, `/circuits/${tour.slug}`)),
+    alternates: localeAlternates(locale, (language) =>
+      localeHref(language, `/circuits/${tour.slug}`),
+    ),
     openGraph: {
       title: `${tour.title} — ${site.name}`,
       description: tour.description,
-      images: tour.coverImage ? [{ url: tour.coverImage, width: 1200, height: 630, alt: tour.title }] : undefined,
+      images: tour.coverImage
+        ? [{ url: tour.coverImage, width: 1200, height: 630, alt: tour.title }]
+        : undefined,
     },
   };
 }
@@ -49,12 +46,21 @@ export default async function TourDetail({ params }: Props) {
   if (!tour) notFound();
 
   const [related, tourReviews, t, tLinks, tNav] = await Promise.all([
-    getRelatedTours(slug, locale).then((r) => r.slice(0, 2)),
+    getRelatedTours(slug, locale).then((items) => items.slice(0, 3)),
     getReviews({ tourSlug: slug }),
     getTranslations("tourDetail"),
     getTranslations("contentLinks"),
     getTranslations("nav"),
   ]);
+
+  const rating = tourReviews.length
+    ? averageRating(tourReviews)
+    : tour.averageRating?.toFixed(1) ?? null;
+  const reviewCount = tourReviews.length || tour.reviewCount || 0;
+  const suppliedMedia = Array.from(
+    new Set([tour.coverImage, ...tour.gallery].filter((source): source is string => !!source)),
+  );
+  const media = suppliedMedia.length ? suppliedMedia.slice(0, 5) : ["/images/camp-hero-poster.jpg"];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -68,8 +74,6 @@ export default async function TourDetail({ params }: Props) {
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
     },
-    // Same guard as activities/stays — only emitted when reviews exist
-    // behind it, never a fabricated aggregate.
     ...(tourReviews.length
       ? {
           aggregateRating: {
@@ -86,225 +90,243 @@ export default async function TourDetail({ params }: Props) {
     { name: t("breadcrumbCircuits"), path: localeHref(locale, "/circuits") },
     { name: tour.title, path: localeHref(locale, `/circuits/${tour.slug}`) },
   ];
-  const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
   return (
-    <>
+    <main className="tour-product-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <Breadcrumbs items={breadcrumbItems} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(breadcrumbItems)) }}
+      />
 
-      <section className="detail-hero">
-        <div className="bg">
-          {tour.coverImage && (
-            <Image src={tour.coverImage} alt={tour.title} fill sizes="100vw" preload style={{ objectFit: "cover" }} />
+      <div className="tour-product-head wrap">
+        <div className="tour-product-title">
+          <div>
+            {tour.location && <p className="tour-location">{tour.location}</p>}
+            <h1>{tour.title}</h1>
+          </div>
+          {rating && (
+            <a className="tour-rating" href="#reviews">
+              <strong>★ {rating}</strong>
+              <span>{reviewCount ? `(${reviewCount})` : ""}</span>
+            </a>
           )}
         </div>
-        <div className="wrap">
-          {tour.location && <p className="kicker">{tour.location}</p>}
-          <h1>{tour.title}</h1>
-          <p className="tagline">{tour.description}</p>
-          <div className="facts">
-            <span className="fact">{t("fromPrice", { price: tour.priceFrom })}</span>
-            <span className="fact">{tour.duration}</span>
-            {tour.groupSize && <span className="fact">{tour.groupSize}</span>}
-            {tourReviews.length > 0 && (
-              <span className="fact">
-                {t("ratingFact", { rating: averageRating(tourReviews), count: tourReviews.length })}
-              </span>
-            )}
-          </div>
+        <p className="tour-product-lead">{tour.description}</p>
+      </div>
+
+      <section className={`tour-media wrap media-count-${media.length}`} aria-label={tour.title}>
+        <div className="tour-media-primary">
+          <Image src={media[0]} alt={suppliedMedia.length ? tour.title : ""} fill sizes="(max-width: 800px) 100vw, 68vw" priority />
         </div>
+        {media.length > 1 && (
+          <div className="tour-media-secondary">
+            {media.slice(1).map((source, index) => (
+              <div className="tour-media-cell" key={`${source}-${index}`}>
+                <Image src={source} alt={`${tour.title} — ${index + 2}`} fill sizes="(max-width: 800px) 50vw, 22vw" />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section className="detail-body">
+      <nav className="tour-subnav" aria-label={tour.title}>
         <div className="wrap">
-          <div className="detail-grid">
-            <div>
-              {tour.aboutText && (
-                <Reveal className="prose">
-                  <h2>{t("theTrip")}</h2>
-                  <p>{tour.aboutText}</p>
-                </Reveal>
-              )}
+          <div>
+            <a href="#overview">{t("theTrip")}</a>
+            <a href="#how-it-works">{t("howItWorks")}</a>
+            {tour.itinerary.length > 0 && <a href="#itinerary">{t("itineraryHeading")}</a>}
+            {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
+              <a href="#included">{t("whatsIncluded")}</a>
+            )}
+            {tour.meetingPoint && <a href="#meeting">{t("meetingPointHeading")}</a>}
+          </div>
+          <a className="tour-subnav-book" href="#reserve">
+            {t("fromPrice", { price: tour.priceFrom })} · {t("ctaLabel")}
+          </a>
+        </div>
+      </nav>
 
-              {tour.highlights.length > 0 && (
-                <Reveal>
-                  <div className="prose" style={{ maxWidth: "none" }}>
-                    <h3>{t("highlights")}</h3>
-                    <ul>
-                      {tour.highlights.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </Reveal>
+      <section className="tour-product-content">
+        <div className="wrap tour-product-grid">
+          <div className="tour-product-main">
+            <div className="tour-essentials" aria-label={t("goodToKnow")}>
+              <div><small>{t("duration")}</small><strong>{tour.duration}</strong></div>
+              {tour.groupSize && <div><small>{t("groupSize")}</small><strong>{tour.groupSize}</strong></div>}
+              {tour.languages.length > 0 && (
+                <div><small>{t("goodToKnow")}</small><strong>{tour.languages.join(" · ")}</strong></div>
               )}
-
-              {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
-                <Reveal>
-                  <div className="include-grid">
-                    {tour.included.length > 0 && (
-                      <div className="prose" style={{ maxWidth: "none" }}>
-                        <h3 style={{ marginTop: 0 }}>{t("whatsIncluded")}</h3>
-                        <ul>
-                          {tour.included.map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {tour.notIncluded.length > 0 && (
-                      <div className="prose" style={{ maxWidth: "none" }}>
-                        <h3 style={{ marginTop: 0 }}>{t("notIncluded")}</h3>
-                        <ul>
-                          {tour.notIncluded.map((item) => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </Reveal>
-              )}
-
-              {tour.itinerary.length > 0 && (
-                <Reveal className="stay-programme">
-                  <div className="stay-programme-heading">
-                    <p className="sect-eyebrow">{t("itineraryEyebrow")}</p>
-                    <h2>{t("itineraryHeading")}</h2>
-                  </div>
-                  <div className="stay-itinerary-layout">
-                    <ol className="stay-timeline">
-                      {tour.itinerary.map((step, i) => (
-                        <li key={`${step.label ?? i}-${step.title ?? i}`}>
-                          <span className="stay-stop" aria-hidden="true" />
-                          {step.label && <p className="stay-time">{step.label}</p>}
-                          <div>
-                            {step.title && <h3>{step.title}</h3>}
-                            {step.description && <p>{step.description}</p>}
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                    {tour.location && (
-                      <div className="stay-map">
-                        <p className="stay-map-label">{t("route")}</p>
-                        <iframe
-                          title={tour.title}
-                          src={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}&output=embed`}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                        />
-                        <a
-                          href={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {t("openInMaps")}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </Reveal>
-              )}
-
-              {tour.meetingPoint && (
-                <Reveal className="prose">
-                  <h2>{t("meetingPointHeading")}</h2>
-                  <p>{tour.meetingPoint}</p>
-                </Reveal>
-              )}
-
-              {(tour.languages.length > 0 || tour.cancellationPolicy) && (
-                <Reveal>
-                  <div className="prose" style={{ maxWidth: "none" }}>
-                    <h3>{t("goodToKnow")}</h3>
-                    <ul>
-                      {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.join(", ") })}</li>}
-                      {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
-                    </ul>
-                    <h3>{tLinks("planningHeading")}</h3>
-                    <ul>
-                      <li>
-                        <Link href="/faq">{tLinks("faq")}</Link>
-                      </li>
-                      <li>
-                        <Link href="/contact">{tLinks("planTrip")}</Link>
-                      </li>
-                    </ul>
-                  </div>
-                </Reveal>
-              )}
-
-              {tour.gallery.length > 0 && (
-                <Reveal>
-                  <div className="detail-gallery">
-                    {tour.gallery.map((src, i) => (
-                      <div key={`${src}-${i}`} className="g">
-                        <Image src={src} alt={`${tour.title} — photo ${i + 1}`} fill sizes="(max-width: 900px) 50vw, 33vw" />
-                      </div>
-                    ))}
-                  </div>
-                </Reveal>
+              {tour.cancellationPolicy?.freeCancellation && (
+                <div><small>{t("goodToKnow")}</small><strong>{t("freeCancellationNote")}</strong></div>
               )}
             </div>
 
-            <aside className="book-panel" id="reserve">
-              <div className="price">
-                <span className="v">€{tour.priceFrom}</span>
-                <span className="u">{t("perAdultLabel")}</span>
+            <section className="tour-booking-benefits" aria-labelledby="booking-benefits-title">
+              <h2 id="booking-benefits-title">{t("bookingBenefitsHeading")}</h2>
+              <div>
+                <article>
+                  <span aria-hidden="true">01</span>
+                  <h3>{t("noPaymentTitle")}</h3>
+                  <p>{t("noPaymentBody")}</p>
+                </article>
+                <article>
+                  <span aria-hidden="true">02</span>
+                  <h3>{t("localConfirmationTitle")}</h3>
+                  <p>{t("localConfirmationBody")}</p>
+                </article>
+                <article>
+                  <span aria-hidden="true">03</span>
+                  <h3>{t("whatsappSupportTitle")}</h3>
+                  <p>{t("whatsappSupportBody")}</p>
+                </article>
               </div>
-              <div className="rows">
-                <div className="row">
-                  <span className="k">{t("duration")}</span>
-                  <span className="v">{tour.duration}</span>
+            </section>
+
+            <section className="tour-section tour-overview" id="overview">
+              <h2>{t("theTrip")}</h2>
+              <p>{tour.aboutText || tour.description}</p>
+            </section>
+
+            {tour.highlights.length > 0 && (
+              <section className="tour-section tour-highlights">
+                <h2>{t("highlights")}</h2>
+                <ul>
+                  {tour.highlights.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </section>
+            )}
+
+            {tour.itinerary.length > 0 && (
+              <section className="tour-section tour-itinerary" id="itinerary">
+                <p className="tour-section-kicker">{t("itineraryEyebrow")}</p>
+                <h2>{t("itineraryHeading")}</h2>
+                <ol>
+                  {tour.itinerary.map((step, index) => (
+                    <li key={`${step.label ?? index}-${step.title ?? index}`}>
+                      <span className="tour-itinerary-number">{String(index + 1).padStart(2, "0")}</span>
+                      <div>
+                        {step.label && <small>{step.label}</small>}
+                        {step.title && <h3>{step.title}</h3>}
+                        {step.description && <p>{step.description}</p>}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
+
+            {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
+              <section className="tour-section" id="included">
+                <h2>{t("whatsIncluded")}</h2>
+                <div className="tour-inclusions">
+                  {tour.included.length > 0 && (
+                    <div>
+                      <h3>{t("whatsIncluded")}</h3>
+                      <ul>{tour.included.map((item) => <li key={item} data-kind="yes">{item}</li>)}</ul>
+                    </div>
+                  )}
+                  {tour.notIncluded.length > 0 && (
+                    <div>
+                      <h3>{t("notIncluded")}</h3>
+                      <ul>{tour.notIncluded.map((item) => <li key={item} data-kind="no">{item}</li>)}</ul>
+                    </div>
+                  )}
                 </div>
-                {tour.groupSize && (
-                  <div className="row">
-                    <span className="k">{t("groupSize")}</span>
-                    <span className="v">{tour.groupSize}</span>
-                  </div>
-                )}
+              </section>
+            )}
+
+            {(tour.meetingPoint || tour.location) && (
+              <section className="tour-section tour-meeting" id="meeting">
+                <div>
+                  <h2>{t("meetingPointHeading")}</h2>
+                  {tour.meetingPoint && <p>{tour.meetingPoint}</p>}
+                  {tour.location && <strong>{tour.location}</strong>}
+                </div>
                 {tour.location && (
-                  <div className="row">
-                    <span className="k">{t("location")}</span>
-                    <span className="v">{tour.location}</span>
+                  <div className="tour-map">
+                    <iframe
+                      title={tour.title}
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}&output=embed`}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                    <a href={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}`} target="_blank" rel="noreferrer">
+                      {t("openInMaps")} ↗
+                    </a>
                   </div>
                 )}
-              </div>
-              <TourBookingFlow tourSlug={tour.slug} tourTitle={tour.title} priceFrom={tour.priceFrom} />
-            </aside>
+              </section>
+            )}
+
+            <section className="tour-section tour-how-it-works" id="how-it-works">
+              <p className="tour-section-kicker">{t("directBooking")}</p>
+              <h2>{t("howItWorks")}</h2>
+              <ol>
+                <li>
+                  <span>1</span>
+                  <div><h3>{t("stepChooseTitle")}</h3><p>{t("stepChooseBody")}</p></div>
+                </li>
+                <li>
+                  <span>2</span>
+                  <div><h3>{t("stepConfirmTitle")}</h3><p>{t("stepConfirmBody")}</p></div>
+                </li>
+                <li>
+                  <span>3</span>
+                  <div><h3>{t("stepPrepareTitle")}</h3><p>{t("stepPrepareBody")}</p></div>
+                </li>
+              </ol>
+            </section>
+
+            <section className="tour-section tour-planning">
+              <h2>{t("goodToKnow")}</h2>
+              <ul>
+                {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.join(", ") })}</li>}
+                {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
+              </ul>
+              <p>
+                <Link href="/faq">{tLinks("faq")}</Link>
+                <Link href="/contact">{tLinks("planTrip")}</Link>
+              </p>
+            </section>
           </div>
 
-          {related.length > 0 && (
-            <div style={{ marginTop: 110 }}>
-              <Reveal>
-                <p className="sect-eyebrow">{t("alsoWorthALook")}</p>
-                <h2 className="sect-title" style={{ fontSize: "clamp(30px,3.6vw,52px)" }}>
-                  {t("otherCircuits")}
-                </h2>
-              </Reveal>
-              <div className="cards cols-2">
-                {related.map((tr, i) => (
-                  <Reveal key={tr.slug} delay={i * 90}>
-                    <TourCard tour={tr} />
-                  </Reveal>
-                ))}
-              </div>
+          <aside className="tour-booking-card" id="reserve">
+            <div className="tour-booking-heading">
+              <small>{t("directBooking")}</small>
+              <h2>{tour.title}</h2>
             </div>
-          )}
+            <div className="tour-booking-price">
+              <span>{t("fromPrice", { price: tour.priceFrom })}</span>
+              <small>{t("perAdultLabel")}</small>
+            </div>
+            <ul className="tour-booking-promises">
+              <li>{t("noPaymentTitle")}</li>
+              <li>{t("localConfirmationTitle")}</li>
+              <li>{t("whatsappSupportTitle")}</li>
+            </ul>
+            <TourBookingFlow
+              tourSlug={tour.slug}
+              tourTitle={tour.title}
+              adultPrice={tour.passengerAdultPrice}
+              childPrice={tour.passengerChildPrice}
+            />
+          </aside>
         </div>
       </section>
 
       <Reviews tourSlug={slug} title={t("reviewsTitle", { tour: tour.title })} />
 
-      <CTA
-        title={t("ctaTitle")}
-        body={t("ctaBody", { tour: tour.title })}
-        href={`/circuits/${tour.slug}#reserve`}
-        label={t("ctaLabel")}
-      />
-    </>
+      {related.length > 0 && (
+        <section className="tour-related">
+          <div className="wrap">
+            <p className="tour-section-kicker">{t("alsoWorthALook")}</p>
+            <h2>{t("otherCircuits")}</h2>
+            <div className="cards cols-3">
+              {related.map((item) => <TourCard key={item.slug} tour={item} />)}
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
   );
 }

@@ -80,16 +80,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Guide articles - now translated into all 6 locales (lib/guides.ts),
-  // same languageAlternates() every other page on the site uses.
+  // Guide articles may be available in all locales or in a documented
+  // subset while their reviewed translations are being prepared.
   for (const guide of GUIDE_SLUGS) {
     const path = `/guides/${guide.slug}`;
-    for (const locale of routing.locales) {
+    const guideLocales = "locales" in guide ? guide.locales : routing.locales;
+    const languages: Record<string, string> = {
+      "x-default": `${site.url}${withTrailingSlash(localeHref("fr", path))}`,
+    };
+    for (const locale of guideLocales) {
+      languages[locale] = `${site.url}${withTrailingSlash(localeHref(locale, path))}`;
+    }
+    for (const locale of guideLocales) {
       entries.push({
         url: `${site.url}${withTrailingSlash(localeHref(locale, path))}`,
         changeFrequency: "monthly",
         priority: 0.7,
-        alternates: { languages: languageAlternates((l) => localeHref(l, path)) },
+        alternates: { languages },
       });
     }
   }

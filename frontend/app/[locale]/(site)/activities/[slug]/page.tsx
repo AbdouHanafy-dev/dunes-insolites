@@ -10,7 +10,6 @@ import { canonicalActivityPath } from "@/lib/legacySlugs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import ActivityCard from "@/components/ActivityCard";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import Reveal from "@/components/Reveal";
 import Reviews from "@/components/Reviews";
 import CTA from "@/components/CTA";
@@ -100,7 +99,6 @@ export default async function ActivityDetail({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
 
       <section className="detail-hero">
         <div className="bg">

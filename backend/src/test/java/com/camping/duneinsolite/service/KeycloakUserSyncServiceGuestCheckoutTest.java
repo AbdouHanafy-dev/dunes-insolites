@@ -30,7 +30,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,14 +115,15 @@ class KeycloakUserSyncServiceGuestCheckoutTest {
     }
 
     @Test
-    void newGuestGetsARealUsablePasswordAndAWelcomeEmail() {
-        when(userRepository.findByEmail("guest@example.com")).thenReturn(Optional.empty());
+    void newGuestGetsAnInvitedAccountWithoutAPasswordEmail() {
+        when(userRepository.existsByEmail("guest@example.com")).thenReturn(false);
         stubSuccessfulKeycloakCreate("11111111-1111-1111-1111-111111111111");
 
-        User result = service.findOrCreateGuestUser("Claude Test Guest", "guest@example.com", "+21650000000");
+        User result = service.createInvitedGuestUser("Claude Test Guest", "guest@example.com", "+21650000000");
 
         assertThat(result.getRole()).isEqualTo(UserRole.CLIENT);
         assertThat(result.getEmail()).isEqualTo("guest@example.com");
+        assertThat(result.getTermsAcceptedAt()).isNotNull();
 
         ArgumentCaptor<UserRepresentation> userCaptor = ArgumentCaptor.forClass(UserRepresentation.class);
         verify(usersResource).create(userCaptor.capture());
@@ -138,27 +138,18 @@ class KeycloakUserSyncServiceGuestCheckoutTest {
         // password. Pinning false here is pinning the actual fix, not the
         // first attempt at one.
         assertThat(credentials.get(0).isTemporary()).isFalse();
-        String generatedPassword = credentials.get(0).getValue();
-        assertThat(generatedPassword).isNotBlank();
-
-        // The real fix that survived: someone has to actually be told the
-        // password, or a real-but-secret credential is no improvement over
-        // the original bug. This used to never fire for this path at all.
-        verify(emailService).sendWelcomeEmail("guest@example.com", "Claude Test Guest", generatedPassword);
+        assertThat(credentials.get(0).getValue()).isNotBlank();
+        verify(emailService, never()).sendWelcomeEmail(any(), any(), any());
     }
 
     @Test
-    void returningGuestReusesTheirExistingAccountWithoutTouchingKeycloak() {
-        User existing = User.builder()
-                .userId(UUID.randomUUID())
-                .email("returning@example.com")
-                .role(UserRole.CLIENT)
-                .build();
-        when(userRepository.findByEmail("returning@example.com")).thenReturn(Optional.of(existing));
+    void existingEmailRequiresSignInAndIsNeverReusedAnonymously() {
+        when(userRepository.existsByEmail("returning@example.com")).thenReturn(true);
 
-        User result = service.findOrCreateGuestUser("Returning Guest", "returning@example.com", "+21650000001");
-
-        assertThat(result).isSameAs(existing);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                service.createInvitedGuestUser("Returning Guest", "returning@example.com", "+21650000001"))
+                .isInstanceOf(com.camping.duneinsolite.exception.ConflictException.class)
+                .hasMessageContaining("sign in");
         // A repeat guest must never get a second Keycloak identity, a second
         // generated password, or a second welcome email - findByEmail already
         // resolved them, so nothing downstream should fire.

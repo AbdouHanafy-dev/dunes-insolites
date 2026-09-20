@@ -6,7 +6,6 @@ import { getTranslations } from "next-intl/server";
 import { getStay } from "@/lib/api";
 import { getStays } from "@/lib/data/stays";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: string; slug: string; accommodation: string }> };
@@ -59,7 +58,6 @@ export default async function AccommodationDetail({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
       <section className="accommodation-hero">
         <Image src={accommodation.image} alt={accommodation.title} fill sizes="100vw" preload style={{ objectFit: "cover" }} />
         <div className="wrap">

@@ -1,73 +1,62 @@
 # Dunes Insolites
 
-Booking platform for two Tunisian desert businesses sharing one system:
-**Dunes Insolites** (camp stays and activities at Sabria) and **Route Insolite**
-(multi-day Sahara circuits from Djerba).
+Plateforme de réservation pour Dunes Insolites et Route Insolite : vitrine
+publique, espace client/chauffeur, backoffice et API dans un monorepo.
 
----
+## État courant
 
-## Quick start
+La plateforme fonctionnelle est en phase de hardening. La note, les preuves,
+les risques et les prochaines étapes sont dans
+[`docs/PROJECT-AUDIT-2026-09-20.md`](docs/PROJECT-AUDIT-2026-09-20.md).
 
-```bash
-npm install          # once, at the root — installs every workspace
-
-npm run dev          # frontend at localhost:3000
-npm run backend:run  # API at localhost:8080
-
-npm run verify       # typecheck + lint + backend compile
-```
-
-The backend needs Postgres, Keycloak and RabbitMQ:
+## Démarrage local
 
 ```bash
-cd backend && docker compose up -d
+npm install
+cd backend
+Copy-Item .env.example .env
+docker compose up -d
+cd ..
+npm run backend:run
+npm run dev
 ```
 
-Copy `backend/.env.example` to `backend/.env` and fill it in. **`.env` is
-gitignored and must stay that way.**
+Le frontend est servi sur `localhost:3000`. Le backoffice se lance séparément
+avec `npm run dev:admin`. PostgreSQL, Keycloak et RabbitMQ sont nécessaires au
+backend.
 
----
+## Structure
 
-## Layout
-
+```text
+frontend/      Next.js 16 — vitrine, réservation, espace client/chauffeur
+admin/         Next.js 16 — backoffice
+backend/       Spring Boot 4 / Java 21 — API et règles métier
+packages/      contrats TypeScript partagés
+scripts/       validation, SEO, release et seeds
+nginx/         configuration d'entrée et migration SEO
+docs/          audit, décisions, runbooks et rapports historiques
 ```
-frontend/      Next.js 16 — the public site (espace client)
-backend/       Spring Boot 4 — the API, plus docker-compose
-packages/
-  api-types/   the wire contract, imported by every frontend
-scripts/       cross-platform tooling
-design/        design handoff + brand assets
-docs/          roadmap, ADRs, open questions, plans
+
+## Vérification
+
+```bash
+npm run typecheck
+npm run lint
+npm run test:web
+npm run backend:test:unit
+npm run backend:test:it
 ```
 
----
+`npm run verify:full` regroupe ces contrôles. Les tests d'intégration exigent
+Docker.
 
 ## Documentation
 
-| | |
-|---|---|
-| [`CLAUDE.md`](CLAUDE.md) | **Start here.** Working agreement, conventions, rules |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | How the system is built, and its known debt |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | What ships when |
-| [`docs/OPEN-QUESTIONS.md`](docs/OPEN-QUESTIONS.md) | Decisions still needed, and who owns each |
-| [`docs/adr/`](docs/adr/) | Architecture decision records |
-| [`docs/proposals/`](docs/proposals/) | Proposals under consideration |
+- [Index de la documentation](docs/README.md)
+- [Audit courant](docs/PROJECT-AUDIT-2026-09-20.md)
+- [Architecture détaillée](ARCHITECTURE.md)
+- [Questions métier ouvertes](docs/OPEN-QUESTIONS.md)
+- [Runbooks](docs/runbooks/)
 
----
-
-## Stack
-
-**Frontend** — Next.js 16.3.1 · React 19 · Tailwind v4 · TypeScript strict
-
-**Backend** — Spring Boot 4.0.3 · Java 21 · PostgreSQL 16 · Keycloak 26 ·
-RabbitMQ 3 · MapStruct
-
----
-
-## Status
-
-Pre-launch. Target: **15 September 2026**.
-
-Replaces a live WordPress site with 53 indexed URLs and real French search
-rankings, so the URL migration is the one irreversible step — see
-`docs/ROADMAP.md` before touching routing or slugs.
+Les anciens PDF, roadmaps et rapports datés sont des archives de décision, pas
+la source de vérité sur l'état actuel.

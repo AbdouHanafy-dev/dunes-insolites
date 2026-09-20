@@ -198,9 +198,9 @@ app:
       max-interval-ms: ${APP_EMAIL_RETRY_MAX_MS:15000}
   reservation:
     # Phase 2 — how long a public guest hold reserves accommodation inventory
-    # before HoldExpiryJob releases it. Default 4320 = 72h.
+    # before HoldExpiryJob releases it. Default 1440 = 24h.
     # BUSINESS DECISION (F-3): confirm the real hold window for launch.
-    hold-duration-minutes: ${APP_RESERVATION_HOLD_MINUTES:4320}
+    hold-duration-minutes: ${APP_RESERVATION_HOLD_MINUTES:1440}
     # How often the expiry sweep runs. Not correctness-critical (availability
     # already ignores expired holds) — just housekeeping.
     hold-expiry-sweep-ms: ${APP_RESERVATION_HOLD_SWEEP_MS:300000}

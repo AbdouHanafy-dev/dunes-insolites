@@ -6,7 +6,6 @@ import CTA from "@/components/CTA";
 import { getGallery } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 export async function generateMetadata({
   params,
@@ -47,7 +46,6 @@ export default async function GalleryPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/camel.jpg" />
 
       <section className="section-sand">

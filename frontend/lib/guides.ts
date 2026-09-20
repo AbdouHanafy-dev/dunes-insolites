@@ -1,21 +1,154 @@
 // Single source of truth for which guide articles exist - the index page,
 // the [slug] detail route, and the sitemap all read from this instead of
-// each keeping their own copy of the slug list. Deliberately a short,
-// hardcoded array rather than a CMS-driven list: there are only two
-// articles today, and both are FR/EN-only pending real translation into
-// the other 4 locales (see ARCHITECTURE.md's translation Phase B) - a
-// small array like this is easier to keep honest than a generic content
-// query that would need its own locale-availability logic.
+// each keeping their own copy of the slug list. Researched editorial guides
+// declare their reviewed locales and primary sources here; CMS-authored
+// articles remain dynamic and are merged into the index separately.
 export const GUIDE_SLUGS = [
   {
     slug: "desert-sabria-tunisie",
     namespace: "guideSahara",
     metaNamespace: "meta.guideSahara",
+    image: "/images/gate.jpg",
+    format: "sabria",
   },
   {
     slug: "que-faut-il-emporter-desert",
     namespace: "guidePacking",
     metaNamespace: "meta.guidePacking",
+    image: "/images/camel.jpg",
+    format: "packing",
+  },
+  {
+    slug: "djerba-tataouine-chenini-guide",
+    namespace: "guideDjerbaTataouine",
+    metaNamespace: "meta.guideDjerbaTataouine",
+    image: "/images/tours/depuis-tunis-2-jours-camp-sahara/03.avif",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["UNESCO · Djerba", "https://whc.unesco.org/en/list/1640"],
+      ["Discover Tunisia · Tataouine", "https://www.discovertunisia.com/en/discover/around-tataouine"],
+      ["Discover Tunisia · Djerba", "https://www.discovertunisia.com/en/discover/around-djerba-and-zarzis"],
+      ["France Diplomatie · Tunisia", "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/tunisie/"],
+    ],
+  },
+  {
+    slug: "sabria-douz-chott-el-jerid-guide",
+    namespace: "guideSabriaDouz",
+    metaNamespace: "meta.guideSabriaDouz",
+    image: "/images/tours/tunisie-2-jours-oasis-montagne-sahara/03.avif",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Discover Tunisia · Douz", "https://www.discovertunisia.com/en/discover/around-douz"],
+      ["Discover Tunisia · Seasons", "https://www.discovertunisia.com/en/tunisia-all-year-round"],
+      ["World Bank · Tunisia climate", "https://climateknowledgeportal.worldbank.org/sites/default/files/country-profiles/17191-WB_Tunisia%20Country%20Profile-WEB.pdf"],
+      ["UK FCDO · Tunisia", "https://www.gov.uk/foreign-travel-advice/tunisia"],
+    ],
+  },
+  {
+    slug: "camp-dunes-insolites-sabria-guide",
+    namespace: "guideDunesCamp",
+    metaNamespace: "meta.guideDunesCamp",
+    image: "/images/under-hero.jpg",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Official site", "https://www.dunes-insolites.com/"],
+      ["Dunes Insolites · Camp presentation", "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/"],
+      ["Dunes Insolites · Stays", "https://www.dunes-insolites.com/services/sejours/"],
+    ],
+  },
+  {
+    slug: "activites-repas-soiree-dunes-insolites",
+    namespace: "guideDunesExperience",
+    metaNamespace: "meta.guideDunesExperience",
+    image: "/images/quad.jpg",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Activities", "https://www.dunes-insolites.com/services/activites/"],
+      ["Dunes Insolites · Camp presentation", "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/"],
+      ["Dunes Insolites · Official site", "https://www.dunes-insolites.com/"],
+    ],
+  },
+  {
+    slug: "bivouac-ou-camp-sabria",
+    namespace: "guideBivouacCamp",
+    metaNamespace: "meta.guideBivouacCamp",
+    image: "/images/camel.jpg",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Bivouac", "https://www.dunes-insolites.com/bivouac-desert-tunisie/"],
+      ["Dunes Insolites · Camp overnight", "https://www.dunes-insolites.com/nuitee-campement-desert/"],
+      ["Dunes Insolites · Stays", "https://www.dunes-insolites.com/services/sejours/"],
+    ],
+  },
+  {
+    slug: "diner-bedouin-pain-de-sable-sabria",
+    namespace: "guideBedouinDinner",
+    metaNamespace: "meta.guideBedouinDinner",
+    image: "/images/tours/depuis-tunis-2-jours-camp-sahara/05.avif",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Bedouin dinner", "https://www.dunes-insolites.com/bedouin-diner-sahara-tunisien/"],
+      ["Dunes Insolites · Camp overnight", "https://www.dunes-insolites.com/nuitee-campement-desert/"],
+      ["Dunes Insolites · Camp presentation", "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/"],
+    ],
+  },
+  {
+    slug: "dromadaire-quad-sandboard-quelle-activite",
+    namespace: "guideChooseActivity",
+    metaNamespace: "meta.guideChooseActivity",
+    image: "/images/sandboard.jpg",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Activities", "https://www.dunes-insolites.com/services/activites/"],
+      ["Dunes Insolites · Quad", "https://www.dunes-insolites.com/quad-desert/"],
+      ["Dunes Insolites · Sandboarding", "https://www.dunes-insolites.com/sandboarding-desert/"],
+    ],
+  },
+  {
+    slug: "sejour-famille-desert-sabria",
+    namespace: "guideFamilyStay",
+    metaNamespace: "meta.guideFamilyStay",
+    image: "/images/under-hero.jpg",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Camp presentation", "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/"],
+      ["Dunes Insolites · Stays", "https://www.dunes-insolites.com/services/sejours/"],
+      ["Dunes Insolites · Activities", "https://www.dunes-insolites.com/services/activites/"],
+    ],
+  },
+  {
+    slug: "coucher-soleil-etoiles-photo-sabria",
+    namespace: "guideDesertLight",
+    metaNamespace: "meta.guideDesertLight",
+    image: "/images/gate.jpg",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Official site", "https://www.dunes-insolites.com/"],
+      ["Dunes Insolites · Camp presentation", "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/"],
+      ["Dunes Insolites · Gallery", "https://www.dunes-insolites.com/dunes-insolites-camp-gallery/"],
+    ],
+  },
+  {
+    slug: "djerba-matmata-sabria-deux-jours",
+    namespace: "guideDjerbaSabria",
+    metaNamespace: "meta.guideDjerbaSabria",
+    image: "/images/tours/tunisie-2-jours-oasis-montagne-sahara/01.avif",
+    format: "researched",
+    locales: ["fr", "en"],
+    sources: [
+      ["Dunes Insolites · Two-day desert tour", "https://www.dunes-insolites.com/excursion-desert-tunisie-2-jours/"],
+      ["Discover Tunisia · Djerba", "https://www.discovertunisia.com/en/discover/around-djerba-and-zarzis"],
+      ["Discover Tunisia · Douz", "https://www.discovertunisia.com/en/discover/around-douz"],
+    ],
   },
 ] as const;
 

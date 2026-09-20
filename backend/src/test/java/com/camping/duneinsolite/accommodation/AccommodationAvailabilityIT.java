@@ -85,7 +85,7 @@ class AccommodationAvailabilityIT {
                 .name("P2 nuitée").slug(staySlug).isActive(true)
                 .passengerAdultPrice(new java.math.BigDecimal("999.0")).passengerChildPrice(new java.math.BigDecimal("999.0"))
                 .partnerAdultPrice(new java.math.BigDecimal("999.0")).partnerChildPrice(new java.math.BigDecimal("999.0")).tva(java.math.BigDecimal.ZERO).build());
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder().userId(UUID.randomUUID())
                         .name("G").email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build()));
     }

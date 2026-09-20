@@ -61,6 +61,7 @@ class PublicBookingIdempotencyIT {
     @Autowired ReservationRepository reservationRepository;
     @Autowired UserRepository userRepository;
     @Autowired SourceRepository sourceRepository;
+    @Autowired AccountActionTokenRepository accountActionTokenRepository;
 
     private String staySlug;
 
@@ -86,7 +87,7 @@ class PublicBookingIdempotencyIT {
         User guest = userRepository.save(User.builder()
                 .userId(UUID.randomUUID()).name("Guest")
                 .email("idem@example.com").role(UserRole.CLIENT).build());
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.findByEmail(inv.getArgument(1)).orElse(guest));
     }
 
@@ -105,6 +106,7 @@ class PublicBookingIdempotencyIT {
     @AfterEach
     void cleanup() {
         reservationRepository.deleteAll();
+        accountActionTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 

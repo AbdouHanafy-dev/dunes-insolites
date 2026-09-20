@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { getAllExtras } from "@/lib/api";
 import { ServiceExtrasList } from "@/components/crud/ExtrasCrud";
 
-export const metadata: Metadata = { title: "Guides & transport" };
+export const metadata: Metadata = { title: "Véhicules & transport" };
 
 export default async function ServiceOptionsPage() {
   const session = await getSession();

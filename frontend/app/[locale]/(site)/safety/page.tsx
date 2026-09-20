@@ -9,7 +9,6 @@ import LivePreview from "@/components/LivePreview";
 import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 const CMS_SLUG = "safety";
 
@@ -86,7 +85,6 @@ export default async function SafetyPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
-        <Breadcrumbs items={breadcrumbItems} />
         <PageHead eyebrow={t("eyebrow")} title={cms.title} lead="" image="/images/quad.jpg" />
         <CmsBlocks blocks={cms.blocks} />
       </>
@@ -109,7 +107,6 @@ export default async function SafetyPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
 
       <section className="section-sand">

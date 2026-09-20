@@ -45,7 +45,7 @@ export default async function Home() {
       {/* Sitewide business identity markup (LodgingBusiness) now lives in
           app/layout.tsx, not here — it applies to every page, not just this
           one. See DI-026. */}
-      <Hero stats={stats} activities={activities} />
+      <Hero stats={stats} />
       {/* Circuits (Route Insolite) leads, then Stays: the nuitée is still
           the product being sold — Stays keeps its own full lead/feature
           treatment below — but the multi-day circuit is the first thing

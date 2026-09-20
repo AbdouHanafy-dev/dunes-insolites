@@ -1,8 +1,11 @@
 import { seedRouteDisabled } from "@/lib/seedGuard";
 import { createBooking, validateBooking } from "@/lib/bookings";
 import type { BookingInput } from "@/lib/types";
+import { proxyPublicBooking } from "@/lib/publicBookingProxy";
 
 export async function POST(req: Request) {
+  const proxied = await proxyPublicBooking(req.clone(), "/public/bookings");
+  if (proxied) return proxied;
   const _seedOff = seedRouteDisabled();
   if (_seedOff) return _seedOff;
   let body: Partial<BookingInput>;

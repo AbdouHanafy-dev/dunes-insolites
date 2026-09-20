@@ -38,6 +38,12 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         <Field label="Type" value={reservation.reservationType} />
         <Field label="Adultes / Enfants" value={`${reservation.numberOfAdults ?? 0} / ${reservation.numberOfChildren ?? 0}`} />
         <Field label="Montant" value={`${reservation.totalAmount} ${reservation.currency}`} />
+        {reservation.arrivalMode && (
+          <Field
+            label="Transport client"
+            value={reservation.arrivalMode === "TRANSPORT" ? "Véhicule et chauffeur demandés" : "Le client vient avec son véhicule"}
+          />
+        )}
         {reservation.groupName && <Field label="Groupe" value={reservation.groupName} />}
         {reservation.groupLeaderName && <Field label="Responsable groupe" value={reservation.groupLeaderName} />}
         {reservation.preferredLanguages.length > 0 && (
@@ -52,6 +58,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         reservationId={reservation.reservationId}
         reservationType={reservation.reservationType}
         status={reservation.status}
+        arrivalMode={reservation.arrivalMode}
         preferredLanguages={reservation.preferredLanguages}
         allLanguages={languages}
         initialGuides={reservation.guides ?? []}

@@ -52,6 +52,7 @@ export type AdminReservation = {
   checkInDate: string | null;
   checkOutDate: string | null;
   serviceDate: string | null;
+  arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
   totalAmount: number;
   currency: string;
   createdAt: string;

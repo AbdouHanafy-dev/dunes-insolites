@@ -77,6 +77,7 @@ class SitewideCapacityConcurrencyIT {
     @Autowired CampingSettingsRepository campingSettingsRepository;
     @Autowired InvoiceRepository invoiceRepository;
     @Autowired TransactionRepository transactionRepository;
+    @Autowired AccountActionTokenRepository accountActionTokenRepository;
 
     private String staySlug;
     private final LocalDate date = LocalDate.now().plusDays(50);
@@ -99,7 +100,7 @@ class SitewideCapacityConcurrencyIT {
         // Camp holds 5. Each booking below is 2 adults.
         campingSettingsRepository.save(CampingSettings.builder().id(1L).maxCapacity(5).build());
 
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder().userId(UUID.randomUUID())
                         .name("G").email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build()));
     }
@@ -111,6 +112,7 @@ class SitewideCapacityConcurrencyIT {
         invoiceRepository.deleteAll();
         campingSettingsRepository.deleteAll();
         reservationRepository.deleteAll();   // cascades to tourTypes / extras / participants
+        accountActionTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 

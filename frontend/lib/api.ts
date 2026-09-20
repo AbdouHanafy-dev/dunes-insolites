@@ -313,6 +313,7 @@ export type SiteSettingsData = {
   /** The real Google Business rating (Places API) — null until configured/fetched, never invented. */
   googleRating: number | null;
   googleRatingCount: number | null;
+  googlePlaceId: string | null;
 };
 
 export async function getSiteSettings(): Promise<SiteSettingsData> {
@@ -327,6 +328,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     yearsRunning: seedStats.yearsRunning,
     googleRating: null,
     googleRatingCount: null,
+    googlePlaceId: null,
   };
   if (!BASE) return seedOrThrow("getSiteSettings", fallback);
 
@@ -344,6 +346,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     yearsRunning: string;
     googleRating: number | null;
     googleRatingCount: number | null;
+    googlePlaceId: string | null;
   };
   const raw = await get<RawSiteSettings>(
     "/public/site-settings",
@@ -368,6 +371,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     yearsRunning: raw.yearsRunning,
     googleRating: raw.googleRating,
     googleRatingCount: raw.googleRatingCount,
+    googlePlaceId: raw.googlePlaceId,
   };
 }
 
@@ -648,7 +652,8 @@ async function post<T>(path: string, body: unknown): Promise<WriteResult<T>> {
     return {
       ok: false,
       errors: (data as { errors?: Record<string, string> }).errors,
-      message: (data as { error?: string }).error,
+      message: (data as { error?: string; message?: string }).error
+        ?? (data as { message?: string }).message,
     };
   } catch {
     return { ok: false, message: "Network error. Try again." };
@@ -656,27 +661,40 @@ async function post<T>(path: string, body: unknown): Promise<WriteResult<T>> {
 }
 
 export function createBooking(input: BookingInput): Promise<WriteResult<Booking>> {
-  // Real backend has this under /public/bookings (guest checkout, DI-013);
-  // the local route handler stand-in keeps the shorter /bookings path.
-  return post<Booking>(usingRemoteApi ? "/public/bookings" : "/bookings", input);
+  return postSameOrigin<Booking>("/bookings", input);
 }
 
 export function createStayBooking(
   input: StayBookingInput,
 ): Promise<WriteResult<StayBooking>> {
-  return post<StayBooking>(
-    usingRemoteApi ? "/public/stay-bookings" : "/stay-bookings",
-    input,
-  );
+  return postSameOrigin<StayBooking>("/stay-bookings", input);
 }
 
 export function createTourBooking(
   input: TourBookingInput,
 ): Promise<WriteResult<TourBooking>> {
-  return post<TourBooking>(
-    usingRemoteApi ? "/public/tour-bookings" : "/tour-bookings",
-    input,
-  );
+  return postSameOrigin<TourBooking>("/tour-bookings", input);
+}
+
+/** Booking writes use the Next BFF so its httpOnly session can be forwarded. */
+async function postSameOrigin<T>(path: string, body: unknown): Promise<WriteResult<T>> {
+  try {
+    const res = await fetch(`/api${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, data: data as T };
+    return {
+      ok: false,
+      errors: (data as { errors?: Record<string, string> }).errors,
+      message: (data as { error?: string; message?: string }).error
+        ?? (data as { message?: string }).message,
+    };
+  } catch {
+    return { ok: false, message: "Network error. Try again." };
+  }
 }
 
 // Real backend has these under /public/contact and /public/subscribe
@@ -827,6 +845,7 @@ export type MyReservation = {
   checkInDate: string | null;
   checkOutDate: string | null;
   serviceDate: string | null;
+  arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
   // The real backend (ReservationResponse) already returns these on this
   // exact endpoint - this type just never declared them. Not new data,
   // just finally typed: needed for a real "N guests" line on the trip

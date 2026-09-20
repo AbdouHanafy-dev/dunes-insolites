@@ -109,7 +109,7 @@ function RichTextGroup({ items }: { items: CmsBlock[] }) {
   if (sections.length === 0) return null;
 
   return (
-    <section className="section-sand">
+    <section className="section-sand cms-rich-text-section">
       <div className="wrap">
         <div className="prose">
           {sections.map((section, si) => (
@@ -176,7 +176,7 @@ function FaqGroup({ faqs }: { faqs: CmsBlock[] }) {
     .filter((f) => f.q);
   if (entries.length === 0) return null;
   return (
-    <section className="section-sand">
+    <section className="section-sand cms-faq-section">
       <div className="wrap">
         <div className="faq">
           {entries.map((f, i) => (

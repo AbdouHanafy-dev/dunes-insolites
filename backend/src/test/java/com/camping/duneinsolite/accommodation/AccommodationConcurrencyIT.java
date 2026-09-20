@@ -89,7 +89,7 @@ class AccommodationConcurrencyIT {
                 .tourType(stay).slug("suite").name("Dune Suite").capacity(4)
                 .unitPriceTtc(new BigDecimal("165.000")).tvaRate(BigDecimal.ZERO)
                 .maxUnits(1).active(true).build());
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder().userId(UUID.randomUUID())
                         .name("G").email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build()));
     }

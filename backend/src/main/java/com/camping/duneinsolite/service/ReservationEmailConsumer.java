@@ -5,7 +5,6 @@ import com.camping.duneinsolite.dto.message.NotificationMessage;
 import com.camping.duneinsolite.model.Reservation;
 import com.camping.duneinsolite.model.User;
 import com.camping.duneinsolite.model.enums.EmailType;
-import com.camping.duneinsolite.model.enums.ReservationType;
 import com.camping.duneinsolite.observability.CorrelationId;
 import com.camping.duneinsolite.observability.EmailMetrics;
 import com.camping.duneinsolite.repository.ReservationRepository;
@@ -85,8 +84,8 @@ public class ReservationEmailConsumer {
         User user = reservation.getUser();
         LocalDate date = reservation.getCheckInDate() != null
                 ? reservation.getCheckInDate() : reservation.getServiceDate();
-        java.math.BigDecimal total = reservation.getReservationType() == ReservationType.EXTRAS
-                ? reservation.getTotalExtrasAmount() : reservation.getTotalAmount();
+        java.math.BigDecimal total = com.camping.duneinsolite.money.Money.add(
+                reservation.getTotalAmount(), reservation.getTotalExtrasAmount());
         String currency = reservation.getCurrency() != null ? reservation.getCurrency().name() : "TND";
         return new RecipientView(user.getEmail(), user.getName(), date, total, currency);
     }

@@ -9,7 +9,6 @@ import { getStays as seedStays } from "@/lib/data/stays";
 import { canonicalStayPath } from "@/lib/legacySlugs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import StayCard from "@/components/StayCard";
 import AccommodationCard from "@/components/AccommodationCard";
 import StayReservationForm from "@/components/StayReservationForm";
@@ -103,7 +102,6 @@ export default async function StayDetail({ params, searchParams }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
 
       <section className="detail-hero">
         <div className="bg">

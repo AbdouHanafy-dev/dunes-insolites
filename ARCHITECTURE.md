@@ -1,12 +1,17 @@
 # Architecture
 
+> **Note d'état (20 septembre 2026) :** cette référence reste utile pour la
+> conception, mais plusieurs descriptions produit sont historiques. L'état
+> courant, les notes et priorités sont dans
+> [`docs/PROJECT-AUDIT-2026-09-20.md`](docs/PROJECT-AUDIT-2026-09-20.md).
+
 Reference for the Dunes Insolites platform: what the pieces are, why they are
 arranged this way, and where the known weaknesses are.
 
 Kept honest on purpose. A document that only describes the good parts is worse
 than no document, because it makes the debt invisible to whoever reads it next.
 
-**Last verified:** 28 August 2026, against the working tree (uncommitted:
+**Last fully verified:** 28 August 2026, against the working tree (uncommitted:
 `admin/` backoffice app, backend Pages CMS).
 
 ---

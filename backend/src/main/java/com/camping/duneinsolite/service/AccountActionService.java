@@ -18,6 +18,9 @@ public interface AccountActionService {
     /** Sends a 24-hour, one-use link so an admin-created driver chooses their own password. */
     void sendPasswordSetupInvitation(User user);
 
+    /** Sends a one-use setup link for an account created during guest checkout. */
+    void sendGuestPasswordSetupInvitation(User user);
+
     /** Redeems an EMAIL_VERIFY token and marks the account verified in Keycloak. */
     void verifyEmail(String token);
 

@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.model;
 
 import com.camping.duneinsolite.model.enums.Currency;
+import com.camping.duneinsolite.model.enums.ArrivalMode;
 import com.camping.duneinsolite.model.enums.ReservationStatus;
 import com.camping.duneinsolite.model.enums.ReservationType;
 import jakarta.persistence.*;
@@ -100,6 +101,12 @@ public class Reservation {
 
     @Column(name = "demande_special", columnDefinition = "TEXT")
     private String demandeSpecial;
+
+    // The guest only states whether transport is needed. For TOURS, staff
+    // later assign the actual chauffeur/vehicle from the driver directory.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "arrival_mode", length = 20)
+    private ArrivalMode arrivalMode;
 
     // Client's preferred language(s) for this booking (currently only
     // captured by the Tour public booking form, where staff assign a

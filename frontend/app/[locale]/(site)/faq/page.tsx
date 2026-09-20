@@ -8,7 +8,6 @@ import { getCmsPage } from "@/lib/api";
 import { Link } from "@/i18n/navigation";
 import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 
 const CMS_SLUG = "faq";
 
@@ -35,10 +34,23 @@ export async function generateMetadata({
   };
 }
 
-const QUESTION_KEYS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9"] as const;
+const BASE_QUESTION_KEYS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9"] as const;
+const RESEARCHED_QUESTION_KEYS = [
+  "q10", "q11", "q12", "q13", "q14", "q15",
+  "q16", "q17", "q18", "q19", "q20", "q21", "q22", "q23", "q24",
+] as const;
+const FAQ_SOURCES = [
+  ["UNESCO · Djerba", "https://whc.unesco.org/en/list/1640"],
+  ["Discover Tunisia · Tataouine", "https://www.discovertunisia.com/en/discover/around-tataouine"],
+  ["Discover Tunisia · Douz", "https://www.discovertunisia.com/en/discover/around-douz"],
+  ["Dunes Insolites · Official site", "https://www.dunes-insolites.com/"],
+  ["Dunes Insolites · About the camp", "https://www.dunes-insolites.com/presentation-campement-dunes-insolites/"],
+  ["France Diplomatie · Tunisie", "https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/tunisie/"],
+] as const;
 
 export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const normalizedLocale = locale.toLowerCase();
 
   const [t, tNav, cms] = await Promise.all([
     getTranslations("faqPage"),
@@ -59,10 +71,19 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
   // no such page has been published yet, so forgetting to fill it in never
   // blanks this live, indexed route.
   if (cms && cms.blocks.length > 0) {
+    const cmsFaqs = extractFaqs(cms.blocks);
+    const cmsQuestions = new Set(cmsFaqs.map((faq) => faq.q.trim().toLocaleLowerCase(normalizedLocale)));
+    const researchedFaqs = normalizedLocale === "fr" || normalizedLocale === "en"
+      ? RESEARCHED_QUESTION_KEYS
+          .map((key) => ({ q: t(key), a: t(`a${key.slice(1)}`) }))
+          .filter((faq) => !cmsQuestions.has(faq.q.trim().toLocaleLowerCase(normalizedLocale)))
+      : [];
+    const destinationFaqs = researchedFaqs.slice(0, 6);
+    const campFaqs = researchedFaqs.slice(6);
     const faqJsonLd = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: extractFaqs(cms.blocks).map((f) => ({
+      mainEntity: [...cmsFaqs, ...researchedFaqs].map((f) => ({
         "@type": "Question",
         name: f.q,
         acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -75,9 +96,51 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
-        <Breadcrumbs items={breadcrumbItems} />
         <PageHead eyebrow={t("eyebrow")} title={cms.title} lead="" image="/images/quad.jpg" />
-        <CmsBlocks blocks={cms.blocks} />
+        <div className="faq-cms">
+          <CmsBlocks blocks={cms.blocks} />
+        </div>
+        {researchedFaqs.length > 0 && (
+          <section className="section-sand faq-researched">
+            <div className="wrap">
+              {destinationFaqs.length > 0 && (
+                <Reveal className="faq-category">
+                  <h2>{t("catDestination")}</h2>
+                  <div className="faq">
+                    {destinationFaqs.map((item) => (
+                      <details key={item.q}>
+                        <summary>{item.q}</summary>
+                        <p>{item.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
+              {campFaqs.length > 0 && (
+                <Reveal className="faq-category">
+                  <h2>{t("catCamp")}</h2>
+                  <div className="faq">
+                    {campFaqs.map((item) => (
+                      <details key={item.q}>
+                        <summary>{item.q}</summary>
+                        <p>{item.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
+              <Reveal className="prose faq-sources">
+                <h2>{t("sourcesHeading")}</h2>
+                <p>{t("sourcesNote")}</p>
+                <ul>
+                  {FAQ_SOURCES.map(([label, href]) => (
+                    <li key={href}><a href={href} target="_blank" rel="noreferrer noopener">{label} ↗</a></li>
+                  ))}
+                </ul>
+              </Reveal>
+            </div>
+          </section>
+        )}
         <section className="section-sand">
           <div className="wrap">
             <Reveal className="prose">
@@ -92,7 +155,10 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
     );
   }
 
-  const faqs = QUESTION_KEYS.map((key) => ({
+  const questionKeys = normalizedLocale === "fr" || normalizedLocale === "en"
+    ? [...BASE_QUESTION_KEYS, ...RESEARCHED_QUESTION_KEYS]
+    : [...BASE_QUESTION_KEYS];
+  const faqs = questionKeys.map((key) => ({
     q: t(key),
     a: t(`a${key.slice(1)}`),
   }));
@@ -111,6 +177,10 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
     { heading: t("catBooking"), items: faqs.slice(0, 3) },
     { heading: t("catPractical"), items: faqs.slice(3, 6) },
     { heading: t("catAge"), items: faqs.slice(6, 9) },
+    ...(faqs.length > 9 ? [
+      { heading: t("catDestination"), items: faqs.slice(9, 15) },
+      { heading: t("catCamp"), items: faqs.slice(15, 24) },
+    ] : []),
   ];
 
   return (
@@ -120,22 +190,35 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
 
       <section className="section-sand">
         <div className="wrap">
           {groups.map((group) => (
-            <Reveal className="prose" key={group.heading}>
+            <Reveal className="faq-category" key={group.heading}>
               <h2>{group.heading}</h2>
-              {group.items.map((item) => (
-                <div key={item.q}>
-                  <h3>{item.q}</h3>
-                  <p>{item.a}</p>
-                </div>
-              ))}
+              <div className="faq">
+                {group.items.map((item) => (
+                  <details key={item.q}>
+                    <summary>{item.q}</summary>
+                    <p>{item.a}</p>
+                  </details>
+                ))}
+              </div>
             </Reveal>
           ))}
+
+          {faqs.length > 9 && (
+            <Reveal className="prose faq-sources">
+              <h2>{t("sourcesHeading")}</h2>
+              <p>{t("sourcesNote")}</p>
+              <ul>
+                {FAQ_SOURCES.map(([label, href]) => (
+                  <li key={href}><a href={href} target="_blank" rel="noreferrer noopener">{label} ↗</a></li>
+                ))}
+              </ul>
+            </Reveal>
+          )}
 
           <Reveal className="prose">
             <p>

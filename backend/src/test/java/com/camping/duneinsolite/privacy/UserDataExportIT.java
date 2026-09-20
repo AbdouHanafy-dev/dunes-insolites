@@ -95,7 +95,7 @@ class UserDataExportIT {
                 .displayOrder(0).active(true).build());
 
         ownerAEmail = "ownerA-" + UUID.randomUUID() + "@example.com";
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder()
                         .userId(UUID.randomUUID()).name(inv.getArgument(0))
                         .email(ownerAEmail).role(UserRole.CLIENT).build()));

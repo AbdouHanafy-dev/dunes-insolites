@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as api from "@/lib/api";
 import type { ActivityAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
@@ -34,6 +34,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const toast = useToast();
   const locale = useLocale();
   const t = useTranslations("bookingFlow");
+  const ta = useTranslations("auth");
   const STEPS = [t("stepAdventure"), t("stepDateTime"), t("stepYourDetails"), t("stepReview")] as const;
 
   // Deep link: /book?activity=quad-safari opens straight on the date step.
@@ -49,6 +50,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const idempotencyKeyRef = useRef("");
 
   // Availability is cached against the (activity, date) pair it was fetched
   // for, so a stale response can never be shown against a newer selection.
@@ -141,8 +144,13 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }
 
   async function submit() {
+    if (!acceptedTerms) {
+      setErrors({ acceptedTerms: ta("termsRequired") });
+      return;
+    }
     setSubmitting(true);
     setFormError("");
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
 
     const result = await api.createBooking({
       activitySlug: slug,
@@ -153,6 +161,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       email,
       phone,
       notes,
+      idempotencyKey: idempotencyKeyRef.current,
+      acceptedTerms,
     });
 
     if (!result.ok) {
@@ -382,6 +392,18 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 <span>€{total}</span>
               </div>
             </div>
+            <label className="ride-option" data-invalid={!!errors.acceptedTerms}>
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+              />
+              <span>
+                {ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>
+                {ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}
+              </span>
+            </label>
+            {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
             {formError && <div className="alert">{formError}</div>}
           </>
         )}

@@ -102,7 +102,7 @@ class AccommodationBookingIT {
                 .tourType(stay).slug("gold-yurt").name("Gold Yurt").capacity(2)
                 .unitPriceTtc(null).displayOrder(3).active(true).build());
 
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder()
                         .userId(UUID.randomUUID()).name(inv.getArgument(0))
                         .email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build()));

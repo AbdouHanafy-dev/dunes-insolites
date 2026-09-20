@@ -26,7 +26,7 @@ date interval       check-in INCLUSIVE, check-out EXCLUSIVE. Two stays overlap
 
 hold expiration     A public guest booking creates a PENDING reservation with
                     hold_expires_at = now + app.reservation.hold-duration-minutes
-                    (default 4320 = 72h — BUSINESS DECISION F-3). HoldExpiryJob
+                    (default 1440 = 24h). HoldExpiryJob
                     (@Scheduled, every 5 min) flips past-expiry PENDING holds to
                     EXPIRED. Availability already treats them as non-consuming,
                     so the job is housekeeping, not correctness. Confirming a
@@ -100,7 +100,7 @@ status change → identical behaviour. ddl-auto:validate passes.
 ## BUSINESS DECISIONS REQUIRED
 
 ```
-F-3  Hold duration. Default 4320 min (72h). Confirm the real window a guest's
+F-3  Hold duration. Default 1440 min (24h). Confirm the real window a guest's
      unpaid hold should reserve inventory before release.
 F-2b Per-tier max_units — the real number of Desert Tents / Rooms / Suites.
      NOT invented. Until set, each tier's availability is UNKNOWN and no

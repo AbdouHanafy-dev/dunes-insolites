@@ -97,7 +97,7 @@ class ReservationInvoiceIT {
                 .unitPriceTtc(new BigDecimal("165.000")).tvaRate(new BigDecimal("7"))
                 .displayOrder(0).active(true).build()).getId();
 
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder()
                         .userId(UUID.randomUUID()).name(inv.getArgument(0))
                         .email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build()));
@@ -121,7 +121,7 @@ class ReservationInvoiceIT {
 
     private void asAdmin() {
         SecurityContextHolder.getContext().setAuthentication(
-                new TestingAuthenticationToken("admin@test", null, "ROLE_ADMIN"));
+                new TestingAuthenticationToken(UUID.randomUUID().toString(), null, "ROLE_ADMIN"));
     }
 
     private InvoiceResponse confirmAndGetProforma(UUID resId) {
@@ -134,7 +134,15 @@ class ReservationInvoiceIT {
     }
 
     private UUID book() {
-        return UUID.fromString(publicBookingService.createStayBooking(req()).getId());
+        var previous = SecurityContextHolder.getContext().getAuthentication();
+        SecurityContextHolder.clearContext();
+        try {
+            return UUID.fromString(publicBookingService.createStayBooking(req()).getId());
+        } finally {
+            if (previous != null) {
+                SecurityContextHolder.getContext().setAuthentication(previous);
+            }
+        }
     }
 
     private InvoiceResponse latestInvoice(UUID resId) {

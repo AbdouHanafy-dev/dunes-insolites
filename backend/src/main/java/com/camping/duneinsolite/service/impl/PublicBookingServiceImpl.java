@@ -26,12 +26,16 @@ import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.SourceRepository;
 import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
+import com.camping.duneinsolite.repository.UserRepository;
+import com.camping.duneinsolite.security.CallerContext;
+import com.camping.duneinsolite.service.AccountActionService;
 import com.camping.duneinsolite.service.AccommodationAvailabilityService;
 import com.camping.duneinsolite.service.AccommodationPricingService;
 import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import com.camping.duneinsolite.service.PublicBookingService;
 import com.camping.duneinsolite.service.ReservationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +48,7 @@ import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PublicBookingServiceImpl implements PublicBookingService {
 
     // Every vitrine booking is attributed to this seeded Source
@@ -59,10 +64,13 @@ public class PublicBookingServiceImpl implements PublicBookingService {
     private final AccommodationAvailabilityService accommodationAvailabilityService;
     private final com.camping.duneinsolite.observability.AvailabilityMetrics availabilityMetrics;
     private final KeycloakUserSyncService keycloakUserSyncService;
+    private final AccountActionService accountActionService;
+    private final UserRepository userRepository;
+    private final CallerContext callerContext;
     private final ReservationService reservationService;
     private final Clock clock;
 
-    @Value("${app.reservation.hold-duration-minutes:4320}")
+    @Value("${app.reservation.hold-duration-minutes:1440}")
     private long holdDurationMinutes;
 
     private LocalDateTime holdExpiry() {
@@ -102,7 +110,9 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
         Extra extra = extraRepository.findBySlugAndIsActiveTrue(request.getActivitySlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + request.getActivitySlug()));
-        User user = findOrCreateUser(request.getName(), request.getEmail(), request.getPhone());
+        ResolvedBookingUser resolvedUser = resolveBookingUser(
+                request.getName(), request.getEmail(), request.getPhone());
+        User user = resolvedUser.user();
         Source source = vitrineSource();
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -123,6 +133,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setExtras(List.of(extraRequest));
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
+        inviteNewGuest(resolvedUser);
         availabilityMetrics.holdCreated();
         return toActivityResponse(reservation, request);
     }
@@ -175,16 +186,18 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                         .toList();
         boolean hasTransport = resolvedServiceOptions.stream()
                 .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
-        if ("TRANSPORT".equals(request.getArrivalMode()) && !hasTransport) {
-            throw new ReservationValidationException(
-                    "Please choose transportation to reach the meeting point.");
-        }
+        // TRANSPORT is a request for staff assignment, not a requirement for
+        // the guest to choose a priced vehicle. The admin assigns a chauffeur
+        // after reviewing the request. A catalogue transport option remains
+        // optional for flows that deliberately sell a specific pickup.
         if ("OWN_VEHICLE".equals(request.getArrivalMode()) && hasTransport) {
             throw new ReservationValidationException(
                     "Transportation can't be selected when joining with your own vehicle.");
         }
 
-        User user = findOrCreateUser(request.getName(), request.getEmail(), request.getPhone());
+        ResolvedBookingUser resolvedUser = resolveBookingUser(
+                request.getName(), request.getEmail(), request.getPhone());
+        User user = resolvedUser.user();
         Source source = vitrineSource();
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -198,6 +211,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), null));
+        reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
+                : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
         reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
         reservationRequest.setOtherLanguageRequested(
                 request.getOtherLanguageRequested() != null && !request.getOtherLanguageRequested().isBlank()
@@ -222,6 +237,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         if (!selectedExtras.isEmpty()) reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
+        inviteNewGuest(resolvedUser);
         availabilityMetrics.holdCreated();
         return toTourResponse(reservation, request, rideSlugs);
     }
@@ -258,7 +274,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setPhone(request.getPhone());
         response.setNotes(request.getNotes());
         response.setStatus("pending");
-        response.setTotal(reservation.getTotalAmount());
+        response.setTotal(com.camping.duneinsolite.money.Money.add(
+                reservation.getTotalAmount(), reservation.getTotalExtrasAmount()));
         response.setCreatedAt(reservation.getCreatedAt());
         return response;
     }
@@ -329,7 +346,9 @@ public class PublicBookingServiceImpl implements PublicBookingService {
             }
         }
 
-        User user = findOrCreateUser(request.getName(), request.getEmail(), request.getPhone());
+        ResolvedBookingUser resolvedUser = resolveBookingUser(
+                request.getName(), request.getEmail(), request.getPhone());
+        User user = resolvedUser.user();
         Source source = vitrineSource();
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -345,6 +364,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(),
                 accommodationNote(request.getAccommodationSlug(), request.getAccommodationQty())));
+        reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
+                : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
 
         TourTypeSelectionRequest selection = new TourTypeSelectionRequest();
         selection.setTourTypeId(tourType.getTourTypeId());
@@ -377,6 +398,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         if (!selectedExtras.isEmpty()) reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
+        inviteNewGuest(resolvedUser);
         availabilityMetrics.holdCreated();
         return toStayResponse(reservation, request, rideSlugs);
     }
@@ -397,10 +419,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setPhone(request.getPhone());
         response.setNotes(request.getNotes());
         response.setStatus("pending");
-        // Rides attached to a stay booking are priced in totalExtrasAmount
-        // but deliberately excluded from "total" here - API_CONTRACT.md
-        // already documents this as intentional, not a bug.
-        response.setTotal(reservation.getTotalAmount());
+        response.setTotal(com.camping.duneinsolite.money.Money.add(
+                reservation.getTotalAmount(), reservation.getTotalExtrasAmount()));
         response.setCreatedAt(reservation.getCreatedAt());
         return response;
     }
@@ -445,8 +465,41 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         return new ResolvedServiceOption(option, req);
     }
 
-    private User findOrCreateUser(String name, String email, String phone) {
-        return keycloakUserSyncService.findOrCreateGuestUser(name, email, phone);
+    private record ResolvedBookingUser(User user, boolean newlyCreated) {}
+
+    private ResolvedBookingUser resolveBookingUser(String name, String email, String phone) {
+        String normalizedEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
+        if (callerContext.isAuthenticatedUser()) {
+            User user = userRepository.findById(callerContext.requireUserId())
+                    .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+                            "Authenticated account not found."));
+            if (user.getRole() != com.camping.duneinsolite.model.enums.UserRole.CLIENT) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "Only client accounts can place public bookings.");
+            }
+            if (!user.getEmail().equalsIgnoreCase(normalizedEmail)) {
+                throw new ReservationValidationException(
+                        "Use the email address of your signed-in account.");
+            }
+            return new ResolvedBookingUser(user, false);
+        }
+
+        return new ResolvedBookingUser(
+                keycloakUserSyncService.createInvitedGuestUser(
+                        name.trim(), normalizedEmail, phone.trim()), true);
+    }
+
+    private void inviteNewGuest(ResolvedBookingUser resolvedUser) {
+        if (!resolvedUser.newlyCreated()) return;
+        try {
+            accountActionService.sendGuestPasswordSetupInvitation(resolvedUser.user());
+        } catch (RuntimeException invitationFailure) {
+            // The reservation is authoritative and must not become a 500 after
+            // it has been committed. The normal forgot-password path remains
+            // available if mail/token creation is temporarily unavailable.
+            log.error("Booking created but account invitation failed for user {}: {}",
+                    resolvedUser.user().getUserId(), invitationFailure.getMessage());
+        }
     }
 
     private Source vitrineSource() {

@@ -8,7 +8,6 @@ import CmsBlocks from "@/components/CmsBlocks";
 import { Link } from "@/i18n/navigation";
 import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import { getCmsPage } from "@/lib/api";
 import { GUIDE_SLUGS } from "@/lib/guides";
 
@@ -24,7 +23,11 @@ import { GUIDE_SLUGS } from "@/lib/guides";
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
 export function generateStaticParams() {
-  return GUIDE_SLUGS.flatMap((g) => routing.locales.map((locale) => ({ locale, slug: g.slug })));
+  return GUIDE_SLUGS.flatMap((guide) =>
+    routing.locales
+      .filter((locale) => !("locales" in guide) || guide.locales.includes(locale as "fr" | "en"))
+      .map((locale) => ({ locale, slug: guide.slug })),
+  );
 }
 
 // dynamicParams stays at its default (true): an admin-created article
@@ -53,7 +56,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const guide = findGuide(slug);
-  if (!guide) return { title: "Not found" };
+  if (!guide || ("locales" in guide && !guide.locales.includes(locale as "fr" | "en"))) {
+    return { title: "Not found" };
+  }
   const t = await getTranslations({ locale, namespace: guide.metaNamespace });
   return { title: t("title"), description: t("description"), alternates };
 }
@@ -79,7 +84,6 @@ export default async function GuideDetailPage({ params }: Props) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
-        <Breadcrumbs items={breadcrumbItems} />
         <PageHead eyebrow="Guide" title={cms.title} lead="" image="/images/gate.jpg" />
         <section className="section-sand">
           <div className="wrap">
@@ -92,7 +96,7 @@ export default async function GuideDetailPage({ params }: Props) {
   }
 
   const guide = findGuide(slug);
-  if (!guide) notFound();
+  if (!guide || ("locales" in guide && !guide.locales.includes(locale as "fr" | "en"))) notFound();
 
   const t = await getTranslations(guide.namespace);
 
@@ -103,7 +107,8 @@ export default async function GuideDetailPage({ params }: Props) {
   ];
   const breadcrumbLd = breadcrumbJsonLd(breadcrumbItems);
 
-  const isSahara = slug === "desert-sabria-tunisie";
+  const isSahara = guide.format === "sabria";
+  const isResearched = guide.format === "researched";
 
   return (
     <>
@@ -111,17 +116,34 @@ export default async function GuideDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <Breadcrumbs items={breadcrumbItems} />
       <PageHead
         eyebrow={t("eyebrow")}
         title={t("title")}
         lead={t("lead")}
-        image={isSahara ? "/images/gate.jpg" : "/images/camel.jpg"}
+        image={guide.image}
       />
 
       <section className="section-sand">
         <div className="wrap">
-          {isSahara ? (
+          {isResearched ? (
+            <Reveal className="prose researched-guide">
+              <h2>{t("contextHeading")}</h2>
+              <p>{t("contextP1")}</p>
+              <p>{t("contextP2")}</p>
+              <h2>{t("routeHeading")}</h2>
+              <p>{t("routeP1")}</p>
+              <p>{t("routeP2")}</p>
+              <h2>{t("practicalHeading")}</h2>
+              <p>{t("practicalP1")}</p>
+              <p>{t("practicalP2")}</p>
+              <h2>{t("sourcesHeading")}</h2>
+              <ul>
+                {guide.sources.map(([label, href]) => (
+                  <li key={href}><a href={href} target="_blank" rel="noreferrer noopener">{label} ↗</a></li>
+                ))}
+              </ul>
+            </Reveal>
+          ) : isSahara ? (
             <Reveal className="prose">
               <h2>{t("whereHeading")}</h2>
               <p>{t("whereP1")}</p>

@@ -1,10 +1,7 @@
 package com.camping.duneinsolite.dto.request.publicapi;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -26,16 +23,20 @@ import java.util.List;
 public class PublicTourBookingRequest {
 
     @NotBlank(message = "Tour is required")
+    @Size(max = 120)
     private String tourSlug;
 
     @NotNull(message = "Departure date is required")
+    @FutureOrPresent(message = "Departure date cannot be in the past")
     private LocalDate date;
 
     @NotNull(message = "Number of adults is required")
     @Min(value = 1, message = "At least one adult is required")
+    @Max(value = 12, message = "Number of adults cannot exceed 12")
     private Integer numberOfAdults;
 
     @Min(value = 0, message = "Number of children cannot be negative")
+    @Max(value = 11, message = "Number of children cannot exceed 11")
     private Integer numberOfChildren;
 
     // Extra add-on activities (ACTIVITY-category Extra slugs), same
@@ -60,18 +61,36 @@ public class PublicTourBookingRequest {
     private List<PublicServiceOptionSelectionRequest> serviceOptions;
 
     @NotBlank(message = "Name is required")
+    @Size(max = 120)
     private String name;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email is invalid")
+    @Size(max = 254)
     private String email;
 
     @NotBlank(message = "Phone is required")
+    @Size(max = 40)
     private String phone;
 
+    @Size(max = 2000)
     private String notes;
 
     // Optional idempotency key — one UUID per booking attempt, re-used on a
     // network retry so the retry returns the same reservation. See V7.
+    @NotBlank(message = "Idempotency key is required")
+    @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+            message = "Idempotency key must be a UUID")
     private String idempotencyKey;
+
+    @NotNull(message = "Terms acceptance is required")
+    @AssertTrue(message = "Terms and privacy policy must be accepted")
+    private Boolean acceptedTerms;
+
+    @AssertTrue(message = "Total party size cannot exceed 12")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isPartySizeValid() {
+        return numberOfAdults == null || numberOfChildren == null
+                || numberOfAdults + numberOfChildren <= 12;
+    }
 }

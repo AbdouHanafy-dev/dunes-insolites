@@ -3,87 +3,58 @@
 import Image from "next/image";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import { logout, type SiteSettingsData } from "@/lib/api";
 import { site } from "@/lib/site";
-import type { Activity, Stay } from "@/lib/types";
+import type { Activity, Stay, Tour } from "@/lib/types";
 
-/** Everything the mega-menu card needs. `Activity.cardImage` and
- *  `Stay.image` get normalized to `image` when each menu's item list is
- *  built below, so one render path covers both menus. */
-type MegaMenuItem = { slug: string; title: string; tagline: string; image: string };
-
-/** Already resolved — label text and menu type, whether the source was the
- *  admin's Navigation collection or the hardcoded nav + translations. See
- *  app/[locale]/layout.tsx and docs/cms.md. */
 type NavEntry = { label: string; href: string; menu?: "experiences" | "stays" };
+type PrimaryNavItem = {
+  label: string;
+  href: string;
+  items?: { label: string; detail: string; href: string; image: string }[];
+  allLabel?: string;
+};
 
 export default function Header({
   activities,
   stays,
+  tours,
   navItems,
   settings,
 }: {
   activities: Activity[];
   stays: Stay[];
+  tours: Tour[];
   navItems: NavEntry[];
   settings: SiteSettingsData;
 }) {
   const t = useTranslations("nav");
   const tAccount = useTranslations("account");
+  const tCircuits = useTranslations("circuitsSection");
   const pathname = usePathname();
   const router = useRouter();
-  const isLanding = pathname === "/";
 
-  // Client-only check: whether the httpOnly session cookie is set. Never
-  // reads the token itself (route handler strips it, see lib/session.ts) -
-  // this is purely to decide which links the header shows.
   const [loggedIn, setLoggedIn] = useState(false);
+  const [condensed, setCondensed] = useState(false);
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
+
   useEffect(() => {
     fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => setLoggedIn(!!d.session))
+      .then((response) => response.json())
+      .then((data) => setLoggedIn(!!data.session))
       .catch(() => setLoggedIn(false));
   }, [pathname]);
 
-  async function onLogout() {
-    await logout();
-    setLoggedIn(false);
-    router.push("/");
-    router.refresh();
-  }
-
-  // Two independent states. `scrolled` controls contrast (the landing hero is
-  // the only place the bar may go translucent). `condensed` collapses the
-  // utility row once you start reading, on every page.
-  const [scrolled, setScrolled] = useState(!isLanding);
-  const [condensed, setCondensed] = useState(false);
-
-  // The drawer remembers which route opened it, so any navigation closes it.
-  const [openAt, setOpenAt] = useState<string | null>(null);
-  const open = openAt === pathname;
-  const setOpen = (v: boolean) => setOpenAt(v ? pathname : null);
-
-  const [menu, setMenu] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(!isLanding || window.scrollY > window.innerHeight * 0.92);
-      setCondensed(window.scrollY > 60);
-    };
-    const raf = requestAnimationFrame(onScroll);
+    const onScroll = () => setCondensed(window.scrollY > 28);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [isLanding]);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -93,220 +64,149 @@ export default function Header({
   }, [open]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setOpenAt(null);
-      setMenu(null);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenAt(null);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
   }, []);
 
-  // Close the dropdown on a click anywhere outside it.
-  useEffect(() => {
-    if (!menu) return;
-    const onDown = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(null);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [menu]);
+  async function onLogout() {
+    await logout();
+    setLoggedIn(false);
+    setOpenAt(null);
+    router.push("/");
+    router.refresh();
+  }
 
-  useEffect(() => () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-  }, []);
-
-  const hoverOpen = (label: string) => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setMenu(label);
-  };
-  // Small grace period so the pointer can cross the gap into the panel.
-  const hoverClose = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setMenu(null), 160);
-  };
-
-  const isActive = (href: string) =>
-    href.startsWith("/#") ? false : pathname === href || pathname.startsWith(`${href}/`);
-
-  const waHref = `https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`;
-
-  const megaMenus: Record<
-    "experiences" | "stays",
-    { items: MegaMenuItem[]; hrefPrefix: string; seeAllHref: string; seeAllLabel: string }
-  > = {
-    experiences: {
-      items: activities.map((a) => ({
-        slug: a.slug,
-        title: a.title,
-        tagline: a.tagline,
-        image: a.cardImage,
+  const knownRoutes = new Set(navItems.map((item) => item.href));
+  const primaryNav: PrimaryNavItem[] = [
+    { label: t("theCamp"), href: "/about" },
+    {
+      label: t("circuits"),
+      href: "/circuits",
+      items: tours.map((tour) => ({
+        label: tour.title,
+        detail: tour.duration,
+        href: `/circuits/${tour.slug}`,
+        image: tour.coverImage || tour.gallery[0] || "/images/gate.jpg",
       })),
-      hrefPrefix: "/activities",
-      seeAllHref: "/activities",
-      seeAllLabel: t("seeAllExperiences"),
+      allLabel: tCircuits("seeAll"),
     },
-    stays: {
-      items: stays.map((s) => ({ slug: s.slug, title: s.title, tagline: s.tagline, image: s.image })),
-      hrefPrefix: "/camp",
-      seeAllHref: "/camp",
-      seeAllLabel: t("seeAllStays"),
+    {
+      label: t("accommodation"),
+      href: "/camp",
+      items: stays.map((stay) => ({
+        label: stay.title,
+        detail: stay.tagline,
+        href: `/camp/${stay.slug}`,
+        image: stay.image || stay.gallery[0] || "/images/under-hero.jpg",
+      })),
+      allLabel: t("seeAllStays"),
     },
-  };
+    {
+      label: t("activities"),
+      href: "/activities",
+      items: activities.map((activity) => ({
+        label: activity.title,
+        detail: activity.tagline,
+        href: `/activities/${activity.slug}`,
+        image: activity.cardImage || activity.heroImage || "/images/hero-combined.jpg",
+      })),
+      allLabel: t("seeAllExperiences"),
+    },
+    { label: t("articles"), href: "/guides" },
+    { label: t("faq"), href: "/faq" },
+  ].filter(
+    (item) =>
+      knownRoutes.size === 0 ||
+      knownRoutes.has(item.href) ||
+      item.href === "/circuits" ||
+      item.href === "/guides" ||
+      item.href === "/faq",
+  );
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const waHref = `https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`;
 
   return (
     <>
-      <header
-        className={`site-header${scrolled ? " scrolled" : ""}${condensed ? " condensed" : ""}${open ? " menu-open" : ""}`}
-        id="header"
-      >
-        {/* utility row — collapses away as soon as the page moves */}
-        <div className="header-utility">
-          <div className="u-group">
-            <a className="u-link" href={waHref} target="_blank" rel="noreferrer noopener">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.13a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.36c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.69 8.23-8.24 8.23z" />
-              </svg>
-              {settings.whatsapp}
-            </a>
-            <a className="u-link u-hide-sm" href={`mailto:${settings.email}`}>
-              {settings.email}
-            </a>
-          </div>
-
-          <div className="u-group">
-            <LanguageSwitcher panelAnchor="header" />
-            <span className="u-sep" aria-hidden="true" />
-            {loggedIn ? (
-              <>
-                <NotificationBell loggedIn={loggedIn} />
-                <Link className="u-link" href="/account">
-                  {tAccount("tabAccount")}
-                </Link>
-                <button type="button" className="u-link u-strong" onClick={onLogout} style={{ background: "none", border: 0, cursor: "pointer", font: "inherit" }}>
-                  {tAccount("logout")}
-                </button>
-              </>
-            ) : (
-              <>
-                <Link className="u-link" href="/login">
-                  {t("logIn")}
-                </Link>
-                <Link className="u-link u-strong" href="/signup">
-                  {t("signUp")}
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* main row */}
+      <header className={`site-header pro-header${condensed ? " condensed" : ""}${open ? " menu-open" : ""}`}>
         <div className="header-main">
-          <Link className="brand" href="/">
-            {/* Decorative: the name sits right beside it as real text, so
-                repeating it in alt would just make screen readers say it
-                twice. */}
-            <Image
-              className="brand-mark"
-              src="/logo-mark.png"
-              alt=""
-              width={40}
-              height={40}
-              preload
-            />
+          <Link className="brand" href="/" aria-label={site.name}>
+            <Image className="brand-mark" src="/logo-mark.png" alt="" width={42} height={42} preload />
             <span className="brand-text">
               <span className="bn">{site.name}</span>
-              <span className="bl">{site.brandLine}</span>
+              <span className="bl">Sabria · Sahara</span>
             </span>
           </Link>
 
-          <nav className="nav" ref={menuRef}>
-            {navItems.map((item) => {
-              // Captured as a local so the "which menu" type stays narrowed
-              // inside the .map() below — TS doesn't carry that narrowing
-              // through a property access into a nested closure.
-              const menuKey = item.menu;
-              if (!menuKey) {
-                return (
-                  <div key={item.href} className="nav-item">
-                    <Link href={item.href} data-active={isActive(item.href)}>
-                      {item.label}
+          <nav className="nav primary-nav" aria-label="Primary navigation">
+            {primaryNav.map((item) => (
+              <div className={`primary-item${item.items?.length ? " has-dropdown" : ""}`} key={item.href}>
+                <Link
+                  href={item.href}
+                  data-active={isActive(item.href)}
+                  aria-haspopup={item.items?.length ? "true" : undefined}
+                >
+                  {item.label}
+                  {item.items?.length ? <span className="nav-chevron" aria-hidden="true">⌄</span> : null}
+                </Link>
+
+                {item.items?.length ? (
+                  <div className="nav-dropdown">
+                    <div className="nav-dropdown-list">
+                      {item.items.map((entry) => (
+                        <Link href={entry.href} key={entry.href}>
+                          <span className="nav-dropdown-thumb" aria-hidden="true">
+                            <Image src={entry.image} alt="" fill sizes="82px" />
+                          </span>
+                          <span className="nav-dropdown-copy">
+                            <strong>{entry.label}</strong>
+                            <small>{entry.detail}</small>
+                          </span>
+                          <span className="nav-dropdown-arrow" aria-hidden="true">↗</span>
+                        </Link>
+                      ))}
+                    </div>
+                    <Link href={item.href} className="nav-dropdown-all">
+                      {item.allLabel} <span aria-hidden="true">→</span>
                     </Link>
                   </div>
-                );
-              }
-
-              const { items, hrefPrefix, seeAllHref, seeAllLabel } = megaMenus[menuKey];
-
-              return (
-                <div
-                  key={item.href}
-                  className="nav-item has-menu"
-                  onMouseEnter={() => hoverOpen(item.href)}
-                  onMouseLeave={hoverClose}
-                >
-                  <Link
-                    href={item.href}
-                    data-active={isActive(item.href)}
-                    aria-expanded={menu === item.href}
-                    aria-haspopup="true"
-                    onFocus={() => hoverOpen(item.href)}
-                    onClick={() => setMenu(null)}
-                  >
-                    {item.label}
-                    <span className="chev" aria-hidden="true" />
-                  </Link>
-
-                  {menu === item.href && (
-                    <div className="mega" onMouseEnter={() => hoverOpen(item.href)}>
-                      <div className="mega-grid">
-                        {items.map((i) => (
-                          <Link key={i.slug} href={`${hrefPrefix}/${i.slug}`} className="mega-card">
-                            <span className="thumb">
-                              <Image
-                                src={i.image}
-                                alt=""
-                                fill
-                                sizes="120px"
-                                style={{ objectFit: "cover" }}
-                              />
-                            </span>
-                            <span className="txt">
-                              <span className="t">{i.title}</span>
-                              <span className="d">{i.tagline}</span>
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                      <Link href={seeAllHref} className="mega-all" onClick={() => setMenu(null)}>
-                        {seeAllLabel}
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                ) : null}
+              </div>
+            ))}
           </nav>
 
-          <Link href="/book" className="header-cta">
-            {t("bookDirect")}
-          </Link>
-
-          {/* Grouped with the burger so the pair sits together at the right
-              edge — `.header-main`'s `space-between` would otherwise spread
-              a lone third item toward the middle of the row instead of
-              hugging the button next to it. */}
-          <div className="header-mobile-controls">
-            <div className="header-lang-mobile">
+          <div className="header-actions">
+            <div className="header-language">
               <LanguageSwitcher panelAnchor="header" />
             </div>
+
+            {loggedIn ? (
+              <>
+                <NotificationBell loggedIn />
+                <Link className="header-account" href="/account">
+                  {t("myAccount")}
+                </Link>
+              </>
+            ) : (
+              <Link className="header-account" href="/login">
+                {t("logIn")}
+              </Link>
+            )}
+
+            <Link href="/book" className="header-cta">
+              {t("bookDirect")}
+              <span aria-hidden="true">↗</span>
+            </Link>
 
             <button
               className="burger"
               aria-label={open ? t("closeMenu") : t("openMenu")}
               aria-expanded={open}
               aria-controls="mobile-drawer"
-              onClick={() => setOpen(!open)}
+              onClick={() => setOpenAt(open ? null : pathname)}
             >
               <span />
               <span />
@@ -316,68 +216,39 @@ export default function Header({
         </div>
       </header>
 
-      <div className="drawer" id="mobile-drawer" data-open={open} aria-hidden={!open}>
+      <div className="drawer pro-drawer" id="mobile-drawer" data-open={open} aria-hidden={!open}>
         <div className="drawer-scroll">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
-              {item.label}
-              <span className="nav-arrow" aria-hidden="true">
-                →
-              </span>
-            </Link>
-          ))}
+          <p className="drawer-label">{site.name} · Sabria</p>
+          <nav aria-label="Mobile navigation">
+            {primaryNav.map((item, index) => (
+              <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{item.label}</strong>
+                <span aria-hidden="true">↗</span>
+              </Link>
+            ))}
+          </nav>
 
-          <div className="drawer-auth">
+          <div className="drawer-tools">
+            <LanguageSwitcher />
             {loggedIn ? (
               <>
-                <Link href="/account" tabIndex={open ? 0 : -1}>
-                  {tAccount("tabAccount")}
-                </Link>
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  tabIndex={open ? 0 : -1}
-                  style={{ background: "none", border: 0, cursor: "pointer", font: "inherit", color: "inherit" }}
-                >
-                  {tAccount("logout")}
-                </button>
+                <Link href="/account" tabIndex={open ? 0 : -1}>{t("myAccount")}</Link>
+                <button type="button" onClick={onLogout} tabIndex={open ? 0 : -1}>{tAccount("logout")}</button>
               </>
             ) : (
-              <>
-                <Link href="/login" tabIndex={open ? 0 : -1}>
-                  {t("logIn")}
-                </Link>
-                <Link href="/signup" tabIndex={open ? 0 : -1}>
-                  {t("signUp")}
-                </Link>
-              </>
+              <Link href="/login" tabIndex={open ? 0 : -1}>{t("logIn")}</Link>
             )}
           </div>
 
-          <Link href="/book" className="header-cta drawer-cta" tabIndex={open ? 0 : -1}>
-            {t("bookDirect")}
-            <span className="drawer-cta-arrow" aria-hidden="true">
-              →
-            </span>
-          </Link>
-
-          <a
-            className="drawer-wa"
-            href={waHref}
-            target="_blank"
-            rel="noreferrer noopener"
-            tabIndex={open ? 0 : -1}
-          >
-            <span className="drawer-wa-icon" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.65-2.05-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35z" />
-                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.36c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.69 8.23-8.24 8.23z" />
-              </svg>
-            </span>
-            <span>
-              {t("whatsapp")} <strong>{settings.whatsapp}</strong>
-            </span>
-          </a>
+          <div className="drawer-contact">
+            <Link href="/book" className="drawer-book" tabIndex={open ? 0 : -1}>
+              {t("bookDirect")} <span aria-hidden="true">↗</span>
+            </Link>
+            <a href={waHref} target="_blank" rel="noreferrer noopener" tabIndex={open ? 0 : -1}>
+              WhatsApp · {settings.whatsapp}
+            </a>
+          </div>
         </div>
       </div>
     </>

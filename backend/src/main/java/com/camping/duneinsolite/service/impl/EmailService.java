@@ -244,6 +244,25 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendGuestAccountInvitationEmail(String to, String name, String setupLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject("Configurez votre compte — Dune Insolite");
+            helper.setText("Bonjour " + name + ",\n\n"
+                    + "Nous avons reçu votre demande de réservation et créé un espace client pour son suivi. "
+                    + "Choisissez votre mot de passe avec ce lien sécurisé à usage unique, valable 24 heures :\n"
+                    + setupLink + "\n\nSi vous n'êtes pas à l'origine de cette demande, contactez-nous.", false);
+            mailSender.send(message);
+            log.info("✅ Guest account invitation sent to: {}", maskEmail(to));
+        } catch (Exception e) {
+            log.error("❌ Failed to send guest account invitation to: {} — {}", maskEmail(to), e.getMessage());
+        }
+    }
+
     /**
      * The vitrine's contact form (ContactForm.tsx). Deliberately synchronous
      * (no @Async) and deliberately does not swallow the exception like every

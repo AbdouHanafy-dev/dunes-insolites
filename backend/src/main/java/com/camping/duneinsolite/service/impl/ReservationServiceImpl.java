@@ -220,6 +220,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .groupName(request.getGroupName())
                 .groupLeaderName(request.getGroupLeaderName())
                 .demandeSpecial(request.getDemandeSpecial())
+                .arrivalMode(request.getArrivalMode())
                 .preferredLanguages(resolveLanguages(request.getPreferredLanguageIds()))
                 .otherLanguageRequested(request.getOtherLanguageRequested())
                 .numberOfAdults(globalAdults)

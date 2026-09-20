@@ -1,5 +1,9 @@
 # API contract — what the frontend expects from Spring Boot
 
+> **Statut :** référence historique du contrat frontend. L'API Spring réelle et
+> `packages/api-types` sont désormais prioritaires. Voir aussi
+> [`../docs/PROJECT-AUDIT-2026-09-20.md`](../docs/PROJECT-AUDIT-2026-09-20.md).
+
 The frontend talks to the backend through exactly one file:
 [`lib/api.ts`](lib/api.ts). To switch from the built-in Next.js routes to your
 Spring Boot API, set one variable and nothing else changes:

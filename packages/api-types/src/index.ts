@@ -187,7 +187,10 @@ export type TourBooking = {
   createdAt: string;
 };
 
-export type TourBookingInput = Omit<TourBooking, "id" | "status" | "total" | "createdAt">;
+export type TourBookingInput = Omit<TourBooking, "id" | "status" | "total" | "createdAt"> & {
+  idempotencyKey: string;
+  acceptedTerms: boolean;
+};
 
 export type Accommodation = {
   slug: string;
@@ -279,7 +282,10 @@ export type Booking = {
   createdAt: string;
 };
 
-export type BookingInput = Omit<Booking, "id" | "status" | "total" | "createdAt">;
+export type BookingInput = Omit<Booking, "id" | "status" | "total" | "createdAt"> & {
+  idempotencyKey: string;
+  acceptedTerms: boolean;
+};
 
 /**
  * Reserving a nuitée, with any activities added on by `Activity.slug`.
@@ -332,7 +338,10 @@ export type StayBooking = {
 export type StayBookingInput = Omit<
   StayBooking,
   "id" | "status" | "total" | "createdAt"
->;
+> & {
+  idempotencyKey: string;
+  acceptedTerms: boolean;
+};
 
 /* ----------------------------------------------------------------- errors */
 

@@ -1,5 +1,10 @@
 # Espaces, workflow et architecture
 
+> **Mise à jour de lecture — 20 septembre 2026 :** ce document décrit bien la
+> structure générale, mais il précède le parcours public complet des circuits,
+> le choix `arrivalMode` et l'annuaire chauffeur permanent. En cas de conflit,
+> l'[audit courant](PROJECT-AUDIT-2026-09-20.md) fait foi.
+
 Vue d'ensemble pratique : qui utilise quoi, comment une réservation circule
 entre les espaces, et comment c'est câblé techniquement. Pour le détail
 complet de l'architecture (couches, décisions, dette), voir

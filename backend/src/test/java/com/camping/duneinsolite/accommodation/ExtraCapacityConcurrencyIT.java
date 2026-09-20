@@ -80,6 +80,7 @@ class ExtraCapacityConcurrencyIT {
     @Autowired SourceRepository sourceRepository;
     @Autowired InvoiceRepository invoiceRepository;
     @Autowired TransactionRepository transactionRepository;
+    @Autowired AccountActionTokenRepository accountActionTokenRepository;
 
     private UUID quadId;
     private final LocalDate date = LocalDate.now().plusDays(60);
@@ -95,7 +96,7 @@ class ExtraCapacityConcurrencyIT {
                 .build());
         quadId = quad.getExtraId();
 
-        Mockito.when(keycloakUserSyncService.findOrCreateGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder().userId(UUID.randomUUID())
                         .name("G").email("g" + UUID.randomUUID() + "@example.com").role(UserRole.CLIENT).build()));
     }
@@ -106,6 +107,7 @@ class ExtraCapacityConcurrencyIT {
         transactionRepository.deleteAll();
         invoiceRepository.deleteAll();
         reservationRepository.deleteAll(); // cascades to tourTypes / extras / participants
+        accountActionTokenRepository.deleteAll();
         userRepository.deleteAll();
         extraRepository.deleteAll();
     }

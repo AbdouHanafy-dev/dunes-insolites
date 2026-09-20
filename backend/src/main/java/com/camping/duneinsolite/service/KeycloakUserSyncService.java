@@ -167,9 +167,38 @@ public class KeycloakUserSyncService {
     // request to change the password is what's left to do that job.
     // ─────────────────────────────────────────────────────────────────────
 
+    /**
+     * Creates a guest account for checkout without ever disclosing a generated
+     * password. Existing addresses deliberately fail: knowing an email address
+     * is not authentication and must never attach a new reservation to that
+     * account. The booking flow sends a one-use setup link after the reservation
+     * succeeds.
+     */
     @Transactional
-    public User findOrCreateGuestUser(String name, String email, String phone) {
-        return userRepository.findByEmail(email).orElseGet(() -> createGuestUser(name, email, phone));
+    public User createInvitedGuestUser(String name, String email, String phone) {
+        if (userRepository.existsByEmail(email)) {
+            throw new com.camping.duneinsolite.exception.ConflictException(
+                    "An account already exists for this email. Please sign in to book.");
+        }
+
+        String unknownPassword = generateSecurePassword();
+        String keycloakUserId = createKeycloakUser(email, name, unknownPassword, true, false);
+        assignRole(keycloakUserId, UserRole.CLIENT.name());
+
+        User user = User.builder()
+                .userId(UUID.fromString(keycloakUserId))
+                .name(name)
+                .email(email)
+                .phone(phone)
+                .role(UserRole.CLIENT)
+                .loyaltyPoints(0)
+                .loyaltyTier(LoyaltyTier.BRONZE)
+                .termsAcceptedAt(LocalDateTime.now())
+                .build();
+        User saved = userRepository.save(user);
+        log.info("Guest booking created invited account for {} with id {}",
+                maskEmail(email), saved.getUserId());
+        return saved;
     }
 
     private User createGuestUser(String name, String email, String phone) {
@@ -438,8 +467,8 @@ public class KeycloakUserSyncService {
      * emailVerified is a parameter, not hardcoded: self-registration wants
      * it false (a real verify email follows - see AuthController /
      * AccountActionServiceImpl); guest checkout and admin-created accounts
-     * keep the previous unconditional true, since neither of those flows
-     * ever sends the guest/staff a link to click.
+     * use true because their one-use invitation link is a password-setup
+     * flow, not a separate email-verification flow.
      *
      * temporary is likewise a parameter, not hardcoded false the way it
      * used to be: false when the account holder chose the password

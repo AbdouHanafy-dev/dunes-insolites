@@ -49,15 +49,16 @@ consumer restart mid-batch) created **duplicate bell rows**.
 A client network retry of `POST /api/public/{bookings,stay-bookings}` created a
 **duplicate reservation and a duplicate inventory-consuming hold**.
 
-- Optional `idempotencyKey` on the public request DTOs → `ReservationRequest` →
+- Required `idempotencyKey` on the public request DTOs → `ReservationRequest` →
   `Reservation.idempotency_key` column + **partial unique index
   `ux_reservations_idempotency_key`** (V7).
 - `createReservation` short-circuits to the existing reservation when the key is
   known; `PublicBookingServiceImpl` short-circuits *before* any pre-check (so a
   retry succeeds even if the tier has since filled up) and catches the
   concurrent-race `DataIntegrityViolationException` to re-read by key.
-- Also hardened `KeycloakUserSyncService.findOrCreateGuestUser` against a
-  concurrent same-email race (catch the unique-email violation, re-read).
+- Guest checkout never reuses an existing account from an email alone: the
+  customer must sign in, while a new guest receives a one-use password setup
+  invitation after the reservation succeeds.
 - **Tests:** `PublicBookingIdempotencyIT` (4) — retry returns the same
   reservation (count stays 1); no key still creates each time; 8-thread
   concurrent double-submit → exactly one reservation; retry after the tier

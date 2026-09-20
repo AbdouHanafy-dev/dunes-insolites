@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { alexandria, inter } from "../fonts";
-import { getActivities, getStays, getNavigation, getSiteSettings, getReviews } from "@/lib/api";
+import { getActivities, getStays, getTours, getNavigation, getSiteSettings, getReviews } from "@/lib/api";
 import { averageRating } from "@/lib/data/reviews";
 import { site, nav as staticNav } from "@/lib/site";
 import { routing, isRtl } from "@/i18n/routing";
@@ -14,6 +14,7 @@ import Analytics from "@/components/Analytics";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { ToastProvider } from "@/components/Toast";
 import "../globals.css";
+import "../editorial-redesign.css";
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
 
@@ -85,9 +86,10 @@ export default async function LocaleLayout({ children, params }: Props) {
   // rendering just to read the current locale.
   setRequestLocale(locale);
 
-  const [activities, stays, cmsNav, messages, t, tNav, settings, reviews] = await Promise.all([
+  const [activities, stays, tours, cmsNav, messages, t, tNav, settings, reviews] = await Promise.all([
     getActivities(locale),
     getStays(locale),
+    getTours(locale),
     getNavigation(locale),
     getMessages(),
     getTranslations({ locale, namespace: "site" }),
@@ -217,7 +219,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
             />
-            <Header activities={activities} stays={stays} navItems={navItems} settings={settings} />
+            <Header activities={activities} stays={stays} tours={tours} navItems={navItems} settings={settings} />
             <main>{children}</main>
             <Footer settings={settings} />
             <WhatsAppButton whatsapp={settings.whatsapp} />
