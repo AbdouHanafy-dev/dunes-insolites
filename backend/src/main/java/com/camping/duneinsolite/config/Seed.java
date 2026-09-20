@@ -124,7 +124,8 @@ public class Seed implements CommandLineRunner {
 
     private void seedTourTypes() {
         String name = "Une Nuitee En Bivouac a Sabria Tunisie";
-        if (tourTypeRepository.existsByName(name)) return;
+        if (tourTypeRepository.existsByName(name)
+                || tourTypeRepository.existsBySlug("bivouac-desert-tunisie")) return;
 
         TourType tourType = tourTypeRepository.save(TourType.builder()
                 .name(name)
@@ -178,7 +179,8 @@ public class Seed implements CommandLineRunner {
     private void seedExcursionTataouineChenini() {
         String name = "Excursion d'une Journee : Djerba Vers Tataouine et Chenini a la Decouverte " +
                 "du Desert Tunisien et des Lieux de Star Wars";
-        if (tourRepository.existsByName(name)) return;
+        if (tourRepository.existsByName(name)
+                || tourRepository.existsBySlug("excursion-tataouine-chenini-desert-tunisien-star-wars")) return;
 
         tourRepository.save(Tour.builder()
                 .name(name)
@@ -212,7 +214,8 @@ public class Seed implements CommandLineRunner {
     // frontend/public/images/tours/{slug}/ with clean numbered filenames.
     private void seedTunisieOasisMontagneSahara() {
         String name = "Tunisie : 2 jours entre oasis de montagne et camp dans le desert du Sahara";
-        if (tourRepository.existsByName(name)) return;
+        if (tourRepository.existsByName(name)
+                || tourRepository.existsBySlug("tunisie-2-jours-oasis-montagne-sahara")) return;
 
         // GetYourGuide only ever showed a single "Adulte x1" rate (127 EUR,
         // discounted from 159 EUR) - no separate child/partner rate was
@@ -316,7 +319,8 @@ public class Seed implements CommandLineRunner {
 
     private void seedDepuisTunisCampSahara() {
         String name = "Depuis Tunis : 2 jours tout compris dans un camp du Sahara";
-        if (tourRepository.existsByName(name)) return;
+        if (tourRepository.existsByName(name)
+                || tourRepository.existsBySlug("depuis-tunis-2-jours-camp-sahara")) return;
 
         // Same real-content sourcing note as seedTunisieOasisMontagneSahara()
         // above. GetYourGuide only showed a single "Adulte x1" rate (192 EUR,
@@ -396,7 +400,7 @@ public class Seed implements CommandLineRunner {
 
     private void seedExtras() {
         String name = "30 min Quad";
-        if (extraRepository.existsByName(name)) return;
+        if (extraRepository.existsByName(name) || extraRepository.existsBySlug("quad-desert")) return;
 
         Extra extra = extraRepository.save(Extra.builder()
                 .name(name)

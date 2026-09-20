@@ -11,5 +11,6 @@ import java.util.UUID;
 public interface TourRepository extends JpaRepository<Tour, UUID> {
     List<Tour> findByIsActiveTrue();
     boolean existsByName(String name);
+    boolean existsBySlug(String slug);
     Optional<Tour> findBySlugAndIsActiveTrue(String slug);
 }

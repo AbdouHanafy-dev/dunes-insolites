@@ -15,6 +15,7 @@ import java.util.UUID;
 public interface ExtraRepository extends JpaRepository<Extra, UUID> {
     List<Extra> findByIsActiveTrue();
     boolean existsByName(String name);
+    boolean existsBySlug(String slug);
     Optional<Extra> findBySlugAndIsActiveTrue(String slug);
 
     /**
