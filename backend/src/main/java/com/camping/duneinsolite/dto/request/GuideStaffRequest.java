@@ -7,6 +7,9 @@ import java.util.UUID;
 
 @Data
 public class GuideStaffRequest {
+    // Preferred flow: select one permanent active guide profile. Legacy
+    // free-text fields remain accepted for older API clients/imports.
+    private UUID guideProfileId;
     @NotBlank(message = "First name is required")
     private String firstName;
     @NotBlank(message = "Last name is required")

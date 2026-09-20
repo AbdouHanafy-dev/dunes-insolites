@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getDriverProfiles, getReservationById, getSpokenLanguages } from "@/lib/api";
+import { getDriverProfiles, getGuideProfiles, getReservationById } from "@/lib/api";
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 
 export const metadata: Metadata = { title: "Réservation" };
@@ -12,9 +12,9 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   const session = await getSession();
   if (!session) return null;
 
-  const [reservation, languages, driverProfiles] = await Promise.all([
+  const [reservation, guideProfiles, driverProfiles] = await Promise.all([
     getReservationById(session.accessToken, id),
-    getSpokenLanguages(session.accessToken),
+    getGuideProfiles(session.accessToken),
     getDriverProfiles(session.accessToken),
   ]);
   if (!reservation) notFound();
@@ -60,8 +60,8 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         status={reservation.status}
         arrivalMode={reservation.arrivalMode}
         preferredLanguages={reservation.preferredLanguages}
-        allLanguages={languages}
         initialGuides={reservation.guides ?? []}
+        guideProfiles={guideProfiles}
         initialChauffeurs={reservation.chauffeurs ?? []}
         driverProfiles={driverProfiles}
       />

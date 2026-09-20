@@ -80,6 +80,8 @@ public class ReservationServiceImpl implements ReservationService {
     private final com.camping.duneinsolite.service.ReservationStateMachine stateMachine;
     private final com.camping.duneinsolite.service.ReservationInvoiceService reservationInvoiceService;
     private final SpokenLanguageRepository    spokenLanguageRepository;
+    private final GuideRepository              guideRepository;
+    private final com.camping.duneinsolite.service.GuideProfileService guideProfileService;
     private final ChauffeurRepository          chauffeurRepository;
     private final com.camping.duneinsolite.service.DriverProfileService driverProfileService;
 
@@ -1427,12 +1429,36 @@ public class ReservationServiceImpl implements ReservationService {
 
         if (request.getGuides() != null && !request.getGuides().isEmpty()) {
             request.getGuides().forEach(g -> {
-                Guide guide = Guide.builder()
-                        .firstName(g.getFirstName())
-                        .lastName(g.getLastName())
-                        .phoneNumber(g.getPhoneNumber())
-                        .languages(resolveLanguages(g.getLanguageIds()))
-                        .build();
+                Guide guide;
+                if (g.getGuideProfileId() != null) {
+                    GuideProfile profile = guideProfileService.lockActiveEntity(g.getGuideProfileId());
+                    if (reservation.getServiceDate() != null && guideRepository
+                            .existsByGuideProfile_GuideProfileIdAndReservation_ServiceDateAndReservation_StatusIn(
+                                    profile.getGuideProfileId(), reservation.getServiceDate(),
+                                    List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED, ReservationStatus.CHECKED_IN))) {
+                        throw new ReservationValidationException(
+                                "This guide is already assigned to another trip on " + reservation.getServiceDate());
+                    }
+                    guide = Guide.builder()
+                            .firstName(profile.getFirstName())
+                            .lastName(profile.getLastName())
+                            .phoneNumber(profile.getPhoneNumber())
+                            .languages(new java.util.HashSet<>(profile.getLanguages()))
+                            .guideProfile(profile)
+                            .build();
+                } else {
+                    if (g.getFirstName() == null || g.getFirstName().isBlank()
+                            || g.getLastName() == null || g.getLastName().isBlank()) {
+                        throw new ReservationValidationException(
+                                "Select a guide profile or provide the guide's first and last name");
+                    }
+                    guide = Guide.builder()
+                            .firstName(g.getFirstName())
+                            .lastName(g.getLastName())
+                            .phoneNumber(g.getPhoneNumber())
+                            .languages(resolveLanguages(g.getLanguageIds()))
+                            .build();
+                }
                 reservation.addGuide(guide);
             });
         }

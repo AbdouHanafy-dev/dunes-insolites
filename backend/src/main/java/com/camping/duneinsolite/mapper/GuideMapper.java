@@ -13,9 +13,11 @@ public interface GuideMapper {
     // lookup MapStruct can't do) - never set here.
     @Mapping(target = "reservation", ignore = true)
     @Mapping(target = "languages", ignore = true)
+    @Mapping(target = "guideProfile", ignore = true)
     Guide toEntity(GuideRequest request);
 
     @Mapping(source = "reservation.reservationId", target = "reservationId")
+    @Mapping(source = "guideProfile.guideProfileId", target = "guideProfileId")
     @Mapping(source = "reservation.user.name", target = "clientName")
     @Mapping(source = "reservation.serviceDate", target = "tourDate")
     GuideResponse toResponse(Guide guide);
@@ -23,5 +25,6 @@ public interface GuideMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "reservation", ignore = true)
     @Mapping(target = "languages", ignore = true)
+    @Mapping(target = "guideProfile", ignore = true)
     void updateEntity(GuideUpdateRequest request, @MappingTarget Guide guide);
 }

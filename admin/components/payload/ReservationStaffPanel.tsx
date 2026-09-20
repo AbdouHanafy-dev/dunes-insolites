@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
-import type { AdminDriverProfile, AdminReservationStaffMember, AdminSpokenLanguage } from "@/lib/api";
+import type {
+  AdminDriverProfile,
+  AdminGuideProfile,
+  AdminReservationStaffMember,
+  AdminSpokenLanguage,
+} from "@/lib/api";
 
 /**
- * Guides remain reservation-specific records. Chauffeurs are selected from
- * the permanent driver directory; the backend copies a snapshot into the
- * reservation assignment so later profile edits never rewrite history.
+ * Guides and chauffeurs are selected from permanent directories. The backend
+ * copies a snapshot into each reservation assignment so later profile edits
+ * never rewrite history.
  *
  * Guide and chauffeur are deliberately separate roles here: a guide
  * translates (Guide.languages, matched against `preferredLanguage`) and
@@ -22,8 +27,8 @@ export default function ReservationStaffPanel({
   status,
   arrivalMode,
   preferredLanguages,
-  allLanguages,
   initialGuides,
+  guideProfiles,
   initialChauffeurs,
   driverProfiles,
 }: {
@@ -32,8 +37,8 @@ export default function ReservationStaffPanel({
   status: string;
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
   preferredLanguages: AdminSpokenLanguage[];
-  allLanguages: AdminSpokenLanguage[];
   initialGuides: AdminReservationStaffMember[];
+  guideProfiles: AdminGuideProfile[];
   initialChauffeurs: AdminReservationStaffMember[];
   driverProfiles: AdminDriverProfile[];
 }) {
@@ -108,7 +113,7 @@ export default function ReservationStaffPanel({
         <GuideList
           items={guides}
           preferredLanguages={preferredLanguages}
-          allLanguages={allLanguages}
+          guideProfiles={guideProfiles}
           onAdd={(entry) => addStaff("guides", entry)}
           onRemove={(id) => removeStaff("guides", id)}
           disabled={!manageable || busy}
@@ -150,36 +155,27 @@ export default function ReservationStaffPanel({
 function GuideList({
   items,
   preferredLanguages,
-  allLanguages,
+  guideProfiles,
   onAdd,
   onRemove,
   disabled,
 }: {
   items: AdminReservationStaffMember[];
   preferredLanguages: AdminSpokenLanguage[];
-  allLanguages: AdminSpokenLanguage[];
+  guideProfiles: AdminGuideProfile[];
   onAdd: (entry: Record<string, unknown>) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
   disabled: boolean;
 }) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [languageIds, setLanguageIds] = useState<string[]>([]);
+  const activeGuides = guideProfiles.filter((guide) => guide.active);
+  const [guideProfileId, setGuideProfileId] = useState("");
   const preferredIds = new Set(preferredLanguages.map((l) => l.languageId));
-  const selectableLanguages = allLanguages.filter((l) => l.active || preferredIds.has(l.languageId));
-
-  function toggleLanguage(id: string) {
-    setLanguageIds((cur) => (cur.includes(id) ? cur.filter((l) => l !== id) : [...cur, id]));
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    await onAdd({ firstName, lastName, phoneNumber: phoneNumber || null, languageIds });
-    setFirstName("");
-    setLastName("");
-    setPhoneNumber("");
-    setLanguageIds([]);
+    if (!guideProfileId) return;
+    await onAdd({ guideProfileId });
+    setGuideProfileId("");
   }
 
   return (
@@ -225,45 +221,35 @@ function GuideList({
       )}
 
       {!disabled && (
-        <form onSubmit={submit} className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="flex flex-col gap-1">
-            <label className={labelClass}>Prénom</label>
-            <input required className={inputClass} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex flex-1 flex-col gap-1">
+            <label className={labelClass}>Guide de l’annuaire</label>
+            <select
+              required
+              className={inputClass}
+              value={guideProfileId}
+              onChange={(event) => setGuideProfileId(event.target.value)}
+            >
+              <option value="">Sélectionner un guide</option>
+              {activeGuides.map((guide) => {
+                const languageNames = guide.languages.map((language) => language.name).join(", ");
+                const speaksPreferred = guide.languages.some((language) => preferredIds.has(language.languageId));
+                return (
+                  <option key={guide.guideProfileId} value={guide.guideProfileId}>
+                    {guide.firstName} {guide.lastName}
+                    {languageNames ? ` — ${languageNames}` : " — aucune langue renseignée"}
+                    {speaksPreferred ? " ✓" : ""}
+                  </option>
+                );
+              })}
+            </select>
           </div>
-          <div className="flex flex-col gap-1">
-            <label className={labelClass}>Nom</label>
-            <input required className={inputClass} value={lastName} onChange={(e) => setLastName(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className={labelClass}>Téléphone</label>
-            <input className={inputClass} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className={labelClass}>Langues parlées</label>
-            {selectableLanguages.length === 0 ? (
-              <p className="text-[12px] text-navy-700/45">
-                Aucune langue configurée — gérez la liste sous Catalogue → Langues.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {selectableLanguages.map((lang) => (
-                  <label key={lang.languageId} className="flex items-center gap-1 text-[12px] text-navy-700/70">
-                    <input
-                      type="checkbox"
-                      checked={languageIds.includes(lang.languageId)}
-                      onChange={() => toggleLanguage(lang.languageId)}
-                    />
-                    {lang.name}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex items-end sm:col-span-4">
-            <button type="submit" className="btn btn-primary">
-              Affecter
-            </button>
-          </div>
+          <button type="submit" className="btn btn-primary" disabled={activeGuides.length === 0}>
+            Affecter
+          </button>
+          {activeGuides.length === 0 && (
+            <p className="text-xs text-amber-700">Créez d’abord un guide dans l’annuaire.</p>
+          )}
         </form>
       )}
     </div>

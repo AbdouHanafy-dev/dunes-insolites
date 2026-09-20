@@ -90,6 +90,7 @@ export function getSpokenLanguages(accessToken: string): Promise<AdminSpokenLang
 
 export type AdminReservationStaffMember = {
   guideId?: string;
+  guideProfileId?: string | null;
   chauffeurId?: string;
   firstName: string;
   lastName: string;
@@ -122,6 +123,20 @@ export type AdminDriverProfile = {
 
 export function getDriverProfiles(accessToken: string): Promise<AdminDriverProfile[]> {
   return authedGet<AdminDriverProfile[]>("/driver-profiles", accessToken, []);
+}
+
+export type AdminGuideProfile = {
+  guideProfileId: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phoneNumber: string | null;
+  languages: AdminSpokenLanguage[];
+  active: boolean;
+};
+
+export function getGuideProfiles(accessToken: string): Promise<AdminGuideProfile[]> {
+  return authedGet<AdminGuideProfile[]>("/guide-profiles", accessToken, []);
 }
 
 // Everything the reservation detail page needs — a superset of

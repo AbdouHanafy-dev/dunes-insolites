@@ -4,8 +4,12 @@ import com.camping.duneinsolite.model.Guide;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.UUID;
+import java.time.LocalDate;
+import com.camping.duneinsolite.model.enums.ReservationStatus;
 
 public interface GuideRepository extends JpaRepository<Guide, UUID> {
     List<Guide> findAllByReservation_ReservationId(UUID reservationId);
     void deleteAllByReservation_ReservationId(UUID reservationId);
+    boolean existsByGuideProfile_GuideProfileIdAndReservation_ServiceDateAndReservation_StatusIn(
+            UUID guideProfileId, LocalDate serviceDate, List<ReservationStatus> statuses);
 }

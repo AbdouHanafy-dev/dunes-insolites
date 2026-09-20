@@ -40,6 +40,12 @@ public class Guide {
     @Builder.Default
     private Set<SpokenLanguage> languages = new HashSet<>();
 
+    // Permanent directory entry used to create this assignment. Contact and
+    // language fields above remain snapshots for historical accuracy.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "guide_profile_id")
+    private GuideProfile guideProfile;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
