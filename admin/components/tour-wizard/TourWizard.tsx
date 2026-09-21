@@ -16,7 +16,21 @@ import TranslationsField, {
 } from "@/components/payload/TranslationsField";
 import type { AdminSpokenLanguage, AdminTour } from "@/lib/api";
 
-type ProgramStep = { label: string; title: string; description: string };
+type SegmentType = "ACTIVITY" | "TRANSFER";
+type ProgramStep = {
+  label: string;
+  title: string;
+  description: string;
+  segmentType: SegmentType;
+  optionalSegment: boolean;
+  durationMinutes: number | null;
+};
+
+type TourStatus = "DRAFT" | "IN_REVIEW" | "PUBLISHED" | "REJECTED";
+type GuideType = "NONE" | "TOUR_GUIDE" | "RECEPTION_STAFF" | "INSTRUCTOR" | "DRIVER";
+type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
+type MealFormat = "BUFFET" | "SET_MENU" | "ALA_CARTE" | "PICNIC";
+type Meal = { mealType: MealType; format: MealFormat };
 
 type TourForm = {
   name: string;
@@ -29,7 +43,23 @@ type TourForm = {
   highlights: string[];
   includedItems: string[];
   notIncludedItems: string[];
+  keywords: string[];
   programSteps: ProgramStep[];
+  guideType: GuideType;
+  foodIncluded: boolean;
+  meals: Meal[];
+  drinksIncluded: boolean;
+  dietaryRestrictions: string[];
+  transportIncluded: boolean;
+  transportModes: string[];
+  notSuitableFor: string[];
+  notAllowed: string[];
+  animalsAccepted: boolean;
+  petPolicyNote: string;
+  mustBring: string[];
+  goodToKnow: string;
+  emergencyPhone: string;
+  ticketInfo: string;
   meetingPoint: string;
   languageIds: string[];
   cancellationFreeCancellation: boolean;
@@ -43,6 +73,11 @@ type TourForm = {
   partnerChildPrice: number;
   tva: number;
   isActive: boolean;
+  insuranceConfirmed: boolean;
+  complianceConfirmed: boolean;
+  copyrightConfirmed: boolean;
+  status: TourStatus;
+  rejectionReason: string | null;
 };
 
 const EMPTY_FORM: TourForm = {
@@ -56,7 +91,23 @@ const EMPTY_FORM: TourForm = {
   highlights: [],
   includedItems: [],
   notIncludedItems: [],
+  keywords: [],
   programSteps: [],
+  guideType: "NONE",
+  foodIncluded: false,
+  meals: [],
+  drinksIncluded: false,
+  dietaryRestrictions: [],
+  transportIncluded: false,
+  transportModes: [],
+  notSuitableFor: [],
+  notAllowed: [],
+  animalsAccepted: false,
+  petPolicyNote: "",
+  mustBring: [],
+  goodToKnow: "",
+  emergencyPhone: "",
+  ticketInfo: "",
   meetingPoint: "",
   languageIds: [],
   cancellationFreeCancellation: false,
@@ -70,6 +121,11 @@ const EMPTY_FORM: TourForm = {
   partnerChildPrice: 0,
   tva: 13,
   isActive: true,
+  insuranceConfirmed: false,
+  complianceConfirmed: false,
+  copyrightConfirmed: false,
+  status: "DRAFT",
+  rejectionReason: null,
 };
 
 function fromInitialData(data?: AdminTour): TourForm {
@@ -86,11 +142,30 @@ function fromInitialData(data?: AdminTour): TourForm {
     highlights: data.highlights ?? [],
     includedItems: data.includedItems ?? [],
     notIncludedItems: data.notIncludedItems ?? [],
+    keywords: data.keywords ?? [],
     programSteps: (data.programSteps ?? []).map((s) => ({
       label: s.label ?? "",
       title: s.title ?? "",
       description: s.description ?? "",
+      segmentType: s.segmentType ?? "ACTIVITY",
+      optionalSegment: s.optionalSegment ?? false,
+      durationMinutes: s.durationMinutes ?? null,
     })),
+    guideType: data.guideType ?? "NONE",
+    foodIncluded: data.foodIncluded ?? false,
+    meals: data.meals ?? [],
+    drinksIncluded: data.drinksIncluded ?? false,
+    dietaryRestrictions: data.dietaryRestrictions ?? [],
+    transportIncluded: data.transportIncluded ?? false,
+    transportModes: data.transportModes ?? [],
+    notSuitableFor: data.notSuitableFor ?? [],
+    notAllowed: data.notAllowed ?? [],
+    animalsAccepted: data.animalsAccepted ?? false,
+    petPolicyNote: data.petPolicyNote ?? "",
+    mustBring: data.mustBring ?? [],
+    goodToKnow: data.goodToKnow ?? "",
+    emergencyPhone: data.emergencyPhone ?? "",
+    ticketInfo: data.ticketInfo ?? "",
     meetingPoint: data.meetingPoint ?? "",
     languageIds: (data.languages ?? []).map((l) => l.languageId),
     cancellationFreeCancellation: data.cancellationPolicy?.freeCancellation ?? false,
@@ -104,6 +179,11 @@ function fromInitialData(data?: AdminTour): TourForm {
     partnerChildPrice: data.partnerChildPrice,
     tva: data.tva,
     isActive: data.isActive,
+    insuranceConfirmed: data.insuranceConfirmed ?? false,
+    complianceConfirmed: data.complianceConfirmed ?? false,
+    copyrightConfirmed: data.copyrightConfirmed ?? false,
+    status: data.status ?? "DRAFT",
+    rejectionReason: data.rejectionReason ?? null,
   };
 }
 
@@ -119,7 +199,23 @@ function toRequestBody(form: TourForm) {
     highlights: form.highlights,
     includedItems: form.includedItems,
     notIncludedItems: form.notIncludedItems,
+    keywords: form.keywords,
     programSteps: form.programSteps,
+    guideType: form.guideType,
+    foodIncluded: form.foodIncluded,
+    meals: form.foodIncluded ? form.meals : [],
+    drinksIncluded: form.foodIncluded ? form.drinksIncluded : false,
+    dietaryRestrictions: form.foodIncluded ? form.dietaryRestrictions : [],
+    transportIncluded: form.transportIncluded,
+    transportModes: form.transportIncluded ? form.transportModes : [],
+    notSuitableFor: form.notSuitableFor,
+    notAllowed: form.notAllowed,
+    animalsAccepted: form.animalsAccepted,
+    petPolicyNote: form.petPolicyNote || null,
+    mustBring: form.mustBring,
+    goodToKnow: form.goodToKnow || null,
+    emergencyPhone: form.emergencyPhone || null,
+    ticketInfo: form.ticketInfo || null,
     meetingPoint: form.meetingPoint || null,
     languageIds: form.languageIds,
     cancellationPolicy: {
@@ -135,6 +231,9 @@ function toRequestBody(form: TourForm) {
     partnerChildPrice: form.partnerChildPrice,
     tva: form.tva,
     isActive: form.isActive,
+    insuranceConfirmed: form.insuranceConfirmed,
+    complianceConfirmed: form.complianceConfirmed,
+    copyrightConfirmed: form.copyrightConfirmed,
   };
 }
 
@@ -145,15 +244,45 @@ const GROUP_SIZE_OPTIONS = [
   { value: "PRIVATIF", label: "Privatif" },
 ];
 
+const SEGMENT_TYPE_OPTIONS = [
+  { value: "ACTIVITY", label: "Activité" },
+  { value: "TRANSFER", label: "Transfert" },
+];
+
+const GUIDE_TYPE_OPTIONS: { value: GuideType; label: string }[] = [
+  { value: "NONE", label: "Personne (autonome)" },
+  { value: "TOUR_GUIDE", label: "Guide touristique" },
+  { value: "RECEPTION_STAFF", label: "Personnel d'accueil" },
+  { value: "INSTRUCTOR", label: "Moniteur·rice" },
+  { value: "DRIVER", label: "Chauffeur·e" },
+];
+
+const MEAL_TYPE_OPTIONS = [
+  { value: "BREAKFAST", label: "Petit-déjeuner" },
+  { value: "LUNCH", label: "Déjeuner" },
+  { value: "DINNER", label: "Dîner" },
+  { value: "SNACK", label: "Collation" },
+];
+
+const MEAL_FORMAT_OPTIONS = [
+  { value: "BUFFET", label: "Buffet" },
+  { value: "SET_MENU", label: "Menu fixe" },
+  { value: "ALA_CARTE", label: "À la carte" },
+  { value: "PICNIC", label: "Pique-nique" },
+];
+
 const STEPS = [
   "Informations de base",
   "Photos",
   "Itinéraire",
+  "Mots-clés",
   "Points forts & inclusions",
+  "Guide, repas & transport",
+  "Infos supplémentaires",
   "Logistique",
   "Tarifs",
   "Traductions",
-  "Aperçu",
+  "Vérification",
 ] as const;
 
 export default function TourWizard({ id, initialData }: { id?: string; initialData?: AdminTour }) {
@@ -166,6 +295,8 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const [languages, setLanguages] = useState<AdminSpokenLanguage[]>([]);
 
   useEffect(() => {
@@ -194,7 +325,32 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     form.passengerChildPrice >= 0 &&
     form.partnerAdultPrice >= 0 &&
     form.partnerChildPrice >= 0;
+  const photosValid = form.photos.length + (form.coverPhotoUrl ? 1 : 0) >= 4 && form.copyrightConfirmed;
+  const itineraryValid = form.programSteps.length >= 1;
+  const keywordsValid = form.keywords.length >= 1;
+  const verificationValid = form.insuranceConfirmed && form.complianceConfirmed;
   const canSubmit = basicsValid && pricingValid;
+  const readyForReview =
+    basicsValid && pricingValid && photosValid && itineraryValid && keywordsValid && verificationValid;
+
+  function sectionValid(i: number): boolean {
+    switch (STEPS[i]) {
+      case "Informations de base":
+        return basicsValid;
+      case "Photos":
+        return photosValid;
+      case "Itinéraire":
+        return itineraryValid;
+      case "Mots-clés":
+        return keywordsValid;
+      case "Tarifs":
+        return pricingValid;
+      case "Vérification":
+        return readyForReview;
+      default:
+        return true;
+    }
+  }
 
   async function onSubmit() {
     if (!canSubmit) {
@@ -238,6 +394,52 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     router.refresh();
   }
 
+  async function callStatusAction(path: string, body?: unknown) {
+    if (!id) return;
+    setBusy(true);
+    const res = await fetch(`/api/proxy/tours/${id}/${path}`, {
+      method: "PATCH",
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.message ?? data.error ?? "Une erreur est survenue.");
+      return;
+    }
+    const updated: AdminTour = await res.json();
+    setForm((s) => ({ ...s, status: updated.status, rejectionReason: updated.rejectionReason, isActive: updated.isActive }));
+    return updated;
+  }
+
+  async function onSubmitForReview() {
+    if (!readyForReview) {
+      toast.error("Toutes les sections doivent être complètes avant l'envoi en vérification.");
+      return;
+    }
+    const updated = await callStatusAction("submit-for-review");
+    if (updated) toast.success("Circuit envoyé pour vérification.");
+  }
+
+  async function onApprove() {
+    const updated = await callStatusAction("approve");
+    if (updated) toast.success("Circuit approuvé et publié.");
+  }
+
+  async function onReject() {
+    if (!rejectReason.trim()) {
+      toast.error("Un motif de rejet est requis.");
+      return;
+    }
+    const updated = await callStatusAction("reject", { reason: rejectReason.trim() });
+    if (updated) {
+      toast.success("Circuit rejeté.");
+      setRejectOpen(false);
+      setRejectReason("");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <div>
@@ -266,6 +468,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             }`}
           >
             {i + 1}. {label}
+            {visited.has(i) && sectionValid(i) && <span className="ml-1 text-emerald-600">✓</span>}
           </button>
         ))}
       </div>
@@ -318,12 +521,26 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
         )}
 
         {step === 1 && (
-          <PhotoGalleryField
-            coverPhotoUrl={form.coverPhotoUrl}
-            onCoverChange={(url) => patch({ coverPhotoUrl: url })}
-            photos={form.photos}
-            onPhotosChange={(photos) => patch({ photos })}
-          />
+          <div className="flex flex-col gap-4">
+            <PhotoGalleryField
+              coverPhotoUrl={form.coverPhotoUrl}
+              onCoverChange={(url) => patch({ coverPhotoUrl: url })}
+              photos={form.photos}
+              onPhotosChange={(photos) => patch({ photos })}
+            />
+            <p className="text-[13px] text-navy-700/55">
+              {form.photos.length + (form.coverPhotoUrl ? 1 : 0)} / 4 photos minimum (couverture incluse)
+            </p>
+            <label className="flex items-center gap-2 text-sm text-navy-700/80">
+              <input
+                type="checkbox"
+                checked={form.copyrightConfirmed}
+                onChange={(e) => patch({ copyrightConfirmed: e.target.checked })}
+                className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+              />
+              Je confirme détenir les droits sur ces photos (droit à l&apos;image, pas de marque tierce).
+            </label>
+          </div>
         )}
 
         {step === 2 && (
@@ -339,12 +556,25 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 { type: "text", key: "label", label: "Repère", hint: 'ex. "Jour 1" ou "09h00"' },
                 { type: "text", key: "title", label: "Titre" },
                 { type: "textarea", key: "description", label: "Description" },
+                { type: "select", key: "segmentType", label: "Type", options: SEGMENT_TYPE_OPTIONS },
+                { type: "checkbox", key: "optionalSegment", label: "Optionnel (supplément possible)" },
+                { type: "number", key: "durationMinutes", label: "Durée (minutes)" },
               ]}
             />
           </div>
         )}
 
         {step === 3 && (
+          <Field label="Mots-clés" hint="Pour la recherche et le référencement — au moins un requis">
+            <StringListField
+              items={form.keywords}
+              onChange={(keywords) => patch({ keywords })}
+              placeholder="ex. désert, camping, coucher de soleil"
+            />
+          </Field>
+        )}
+
+        {step === 4 && (
           <div className="flex flex-col gap-6">
             <Field label="Points forts" hint="Ce qui rend ce circuit unique">
               <StringListField
@@ -370,7 +600,166 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
           </div>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
+          <div className="flex flex-col gap-6">
+            <Field label="Qui guide les clients ?">
+              <select
+                className={inputClass}
+                value={form.guideType}
+                onChange={(e) => patch({ guideType: e.target.value as GuideType })}
+              >
+                {GUIDE_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              {form.guideType === "TOUR_GUIDE" && (
+                <p className="mt-1 text-[13px] text-navy-700/45">
+                  Les langues parlées se définissent dans l&apos;étape Logistique.
+                </p>
+              )}
+            </Field>
+
+            <Field label="Repas inclus ?">
+              <label className="flex items-center gap-2 text-sm text-navy-700/80">
+                <input
+                  type="checkbox"
+                  checked={form.foodIncluded}
+                  onChange={(e) => patch({ foodIncluded: e.target.checked })}
+                  className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                />
+                Nourriture incluse
+              </label>
+              {form.foodIncluded && (
+                <div className="mt-3 flex flex-col gap-3">
+                  <RepeaterField
+                    itemLabel="Repas"
+                    items={form.meals as unknown as Record<string, unknown>[]}
+                    onChange={(items) => patch({ meals: items as unknown as Meal[] })}
+                    fields={[
+                      { type: "select", key: "mealType", label: "Type de repas", options: MEAL_TYPE_OPTIONS },
+                      { type: "select", key: "format", label: "Format", options: MEAL_FORMAT_OPTIONS },
+                    ]}
+                  />
+                  <label className="flex items-center gap-2 text-sm text-navy-700/80">
+                    <input
+                      type="checkbox"
+                      checked={form.drinksIncluded}
+                      onChange={(e) => patch({ drinksIncluded: e.target.checked })}
+                      className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                    />
+                    Boissons incluses
+                  </label>
+                  <Field label="Restrictions alimentaires">
+                    <StringListField
+                      items={form.dietaryRestrictions}
+                      onChange={(dietaryRestrictions) => patch({ dietaryRestrictions })}
+                      placeholder="ex. végétarien, sans gluten"
+                    />
+                  </Field>
+                </div>
+              )}
+            </Field>
+
+            <Field label="Transport fourni pendant l'activité ?" hint="Le transport aller-retour se définit à l'étape Logistique">
+              <label className="flex items-center gap-2 text-sm text-navy-700/80">
+                <input
+                  type="checkbox"
+                  checked={form.transportIncluded}
+                  onChange={(e) => patch({ transportIncluded: e.target.checked })}
+                  className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                />
+                Transport pendant l&apos;activité
+              </label>
+              {form.transportIncluded && (
+                <div className="mt-3">
+                  <StringListField
+                    items={form.transportModes}
+                    onChange={(transportModes) => patch({ transportModes })}
+                    placeholder="ex. vélo, bus, 4x4, chameau"
+                  />
+                </div>
+              )}
+            </Field>
+          </div>
+        )}
+
+        {step === 6 && (
+          <div className="flex flex-col gap-6">
+            <Field label="Non adapté pour" hint="ex. femmes enceintes, moins de 18 ans">
+              <StringListField
+                items={form.notSuitableFor}
+                onChange={(notSuitableFor) => patch({ notSuitableFor })}
+                placeholder="ex. femmes enceintes"
+              />
+            </Field>
+
+            <Field label="Non autorisé" hint="ex. tongs, appareil photo">
+              <StringListField
+                items={form.notAllowed}
+                onChange={(notAllowed) => patch({ notAllowed })}
+                placeholder="ex. tongs"
+              />
+            </Field>
+
+            <Field label="Animaux">
+              <label className="flex items-center gap-2 text-sm text-navy-700/80">
+                <input
+                  type="checkbox"
+                  checked={form.animalsAccepted}
+                  onChange={(e) => patch({ animalsAccepted: e.target.checked })}
+                  className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                />
+                Animaux acceptés
+              </label>
+              <div className="mt-2">
+                <input
+                  className={inputClass}
+                  placeholder="Précisions (optionnel)"
+                  value={form.petPolicyNote}
+                  onChange={(e) => patch({ petPolicyNote: e.target.value })}
+                />
+              </div>
+            </Field>
+
+            <Field label="À apporter" hint="ex. serviette, chaussures fermées">
+              <StringListField
+                items={form.mustBring}
+                onChange={(mustBring) => patch({ mustBring })}
+                placeholder="ex. serviette"
+              />
+            </Field>
+
+            <Field label="Bon à savoir" hint="max 1000 caractères">
+              <textarea
+                className={`${inputClass} min-h-24`}
+                maxLength={1000}
+                value={form.goodToKnow}
+                onChange={(e) => patch({ goodToKnow: e.target.value })}
+              />
+            </Field>
+
+            <Field label="Numéro d'urgence">
+              <input
+                className={inputClass}
+                value={form.emergencyPhone}
+                onChange={(e) => patch({ emergencyPhone: e.target.value })}
+                placeholder="+216 XX XXX XXX"
+              />
+            </Field>
+
+            <Field label="Informations à afficher sur le billet">
+              <textarea
+                className={`${inputClass} min-h-20`}
+                value={form.ticketInfo}
+                onChange={(e) => patch({ ticketInfo: e.target.value })}
+              />
+            </Field>
+          </div>
+        )}
+
+        {step === 7 && (
           <div className="flex flex-col gap-5">
             <Field label="Point de rendez-vous">
               <input
@@ -430,7 +819,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
           </div>
         )}
 
-        {step === 5 && (
+        {step === 8 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Prix adulte (passager)" required>
               <input
@@ -487,20 +876,68 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
           </div>
         )}
 
-        {step === 6 && (
+        {step === 9 && (
           <TranslationsField
             translations={form.translations}
             onChange={(translations) => patch({ translations })}
           />
         )}
 
-        {step === 7 && (
+        {step === 10 && (
           <div className="flex flex-col gap-5">
             {!canSubmit && (
               <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
                 Le nom du circuit est requis avant de pouvoir l&apos;enregistrer.
               </div>
             )}
+
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-medium text-navy-700/70">Statut :</span>
+              <StatusBadge status={form.status} />
+            </div>
+
+            {form.status === "REJECTED" && form.rejectionReason && (
+              <div className="rounded-lg bg-rose/8 px-3 py-2 text-[13px] text-rose">
+                Motif du rejet : {form.rejectionReason}
+              </div>
+            )}
+
+            <div className="rounded-xl border border-navy-700/10 p-4">
+              <p className="mb-2 text-[12px] font-bold uppercase tracking-wide text-navy-700/40">
+                Complétude
+              </p>
+              <ul className="flex flex-col gap-1 text-sm">
+                <ChecklistItem ok={basicsValid} label="Informations de base" />
+                <ChecklistItem ok={keywordsValid} label="Au moins un mot-clé" />
+                <ChecklistItem ok={itineraryValid} label="Au moins une étape d'itinéraire" />
+                <ChecklistItem ok={photosValid} label="Au moins 4 photos et droits confirmés" />
+                <ChecklistItem ok={pricingValid} label="Tarifs" />
+                <ChecklistItem ok={form.insuranceConfirmed} label="Assurance responsabilité civile confirmée" />
+                <ChecklistItem ok={form.complianceConfirmed} label="Conformité réglementaire confirmée" />
+              </ul>
+            </div>
+
+            <Field label="Vérifications finales">
+              <label className="flex items-center gap-2 text-sm text-navy-700/80">
+                <input
+                  type="checkbox"
+                  checked={form.insuranceConfirmed}
+                  onChange={(e) => patch({ insuranceConfirmed: e.target.checked })}
+                  className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                />
+                J&apos;atteste que ce circuit est couvert par une assurance responsabilité civile.
+              </label>
+              <label className="mt-2 flex items-center gap-2 text-sm text-navy-700/80">
+                <input
+                  type="checkbox"
+                  checked={form.complianceConfirmed}
+                  onChange={(e) => patch({ complianceConfirmed: e.target.checked })}
+                  className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                />
+                J&apos;atteste que ce circuit respecte la réglementation en vigueur.
+              </label>
+            </Field>
+
             <PreviewCard form={form} />
             {error && (
               <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-3 py-2.5 text-[13px] text-rose">
@@ -533,9 +970,32 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
               Suivant →
             </button>
           ) : (
-            <button type="button" onClick={onSubmit} disabled={busy} className="btn btn-primary">
-              {busy ? "Enregistrement…" : isEdit ? "Enregistrer" : "Publier le circuit"}
-            </button>
+            <>
+              <button type="button" onClick={onSubmit} disabled={busy} className="btn btn-secondary">
+                {busy ? "Enregistrement…" : "Enregistrer"}
+              </button>
+              {isEdit && (form.status === "DRAFT" || form.status === "REJECTED") && (
+                <button
+                  type="button"
+                  onClick={onSubmitForReview}
+                  disabled={busy || !readyForReview}
+                  className="btn btn-primary"
+                  title={readyForReview ? undefined : "Complétez toutes les sections requises d'abord."}
+                >
+                  Envoyer pour vérification
+                </button>
+              )}
+              {isEdit && form.status === "IN_REVIEW" && (
+                <>
+                  <button type="button" onClick={() => setRejectOpen(true)} disabled={busy} className="btn btn-danger-outline">
+                    Rejeter
+                  </button>
+                  <button type="button" onClick={onApprove} disabled={busy} className="btn btn-primary">
+                    Approuver
+                  </button>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -553,7 +1013,54 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
           </div>
         </Modal>
       )}
+
+      {rejectOpen && (
+        <Modal title="Rejeter ce circuit" onClose={() => setRejectOpen(false)}>
+          <Field label="Motif du rejet" required>
+            <textarea
+              className={`${inputClass} min-h-24`}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+          </Field>
+          <div className="mt-5 flex justify-end gap-2">
+            <button onClick={() => setRejectOpen(false)} className="btn btn-secondary">
+              Annuler
+            </button>
+            <button onClick={onReject} disabled={busy} className="btn btn-danger">
+              {busy ? "Envoi…" : "Rejeter"}
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
+  );
+}
+
+function StatusBadge({ status }: { status: TourStatus }) {
+  const styles: Record<TourStatus, string> = {
+    DRAFT: "bg-navy-700/8 text-navy-700/60",
+    IN_REVIEW: "bg-amber-50 text-amber-800",
+    PUBLISHED: "bg-emerald-50 text-emerald-700",
+    REJECTED: "bg-rose/8 text-rose",
+  };
+  const labels: Record<TourStatus, string> = {
+    DRAFT: "Brouillon",
+    IN_REVIEW: "En cours de vérification",
+    PUBLISHED: "Publié",
+    REJECTED: "Rejeté",
+  };
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-[12px] font-medium ${styles[status]}`}>{labels[status]}</span>
+  );
+}
+
+function ChecklistItem({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <li className="flex items-center gap-2">
+      <span className={ok ? "text-emerald-600" : "text-navy-700/30"}>{ok ? "✓" : "○"}</span>
+      <span className={ok ? "text-navy-700/80" : "text-navy-700/50"}>{label}</span>
+    </li>
   );
 }
 

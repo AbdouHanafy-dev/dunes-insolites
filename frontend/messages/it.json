@@ -452,7 +452,20 @@
     "stepConfirmTitle": "Verifichiamo la disponibilità",
     "stepConfirmBody": "Il nostro team locale ti risponde rapidamente.",
     "stepPrepareTitle": "Ricevi i dettagli",
-    "stepPrepareBody": "Punto d'incontro, trasporto e consigli pratici."
+    "stepPrepareBody": "Punto d'incontro, trasporto e consigli pratici.",
+    "restrictionsHeading": "Chi non può partecipare",
+    "notSuitableForHeading": "Non adatto a",
+    "notAllowedHeading": "Non consentito",
+    "petPolicyAccepted": "Animali ammessi",
+    "mustBringHeading": "Cosa portare",
+    "emergencyPhoneLabel": "Numero di emergenza",
+    "ticketInfoHeading": "Informazioni sul biglietto",
+    "guideLabel": "Guida",
+    "mealsLabel": "Pasti",
+    "drinksIncludedLabel": "Bevande incluse",
+    "transportDuringLabel": "Trasporto durante l'attività",
+    "optionalSegmentBadge": "facoltativo",
+    "transferBadge": "Trasferimento"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Data e viaggiatori",
@@ -555,6 +568,10 @@
   },
   "accommodationCard": {
     "exploreThisStay": "Scopri questo soggiorno ↗"
+  },
+  "tourCard": {
+    "fromPrice": "da {price} €",
+    "reviews": "{count, plural, =0 {Ancora nessuna recensione} one {# recensione} other {# recensioni}}"
   },
   "activitiesPage": {
     "eyebrow": "Scegli il tuo mezzo",

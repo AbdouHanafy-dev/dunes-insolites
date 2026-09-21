@@ -6,11 +6,13 @@ import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicTourResponse;
 import com.camping.duneinsolite.exception.ConflictException;
+import com.camping.duneinsolite.exception.ProductIncompleteException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourMapper;
 import com.camping.duneinsolite.mapper.publicapi.PublicTourMapper;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourTranslation;
+import com.camping.duneinsolite.model.enums.ProductStatus;
 import com.camping.duneinsolite.model.enums.ProductType;
 import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourRepository;
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +47,9 @@ public class TourServiceImpl implements TourService {
         if (tour.getIsActive() == null) {
             tour.setIsActive(true);
         }
+        // TourRequest has no status field - a new Tour always starts DRAFT
+        // regardless of the entity's field-initializer default.
+        tour.setStatus(ProductStatus.DRAFT);
         tour.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         syncTranslations(tour, request.getTranslations());
         return tourMapper.toResponse(tourRepository.save(tour));
@@ -116,6 +122,50 @@ public class TourServiceImpl implements TourService {
     public TourResponse deactivateTour(UUID tourId) {
         Tour tour = findById(tourId);
         tour.setIsActive(false);
+        return tourMapper.toResponse(tourRepository.save(tour));
+    }
+
+    @Override
+    public TourResponse submitForReview(UUID tourId) {
+        Tour tour = findById(tourId);
+        List<String> missing = new ArrayList<>();
+        if (tour.getName() == null || tour.getName().isBlank()) missing.add("name");
+        if (tour.getDescription() == null || tour.getDescription().isBlank()) missing.add("description");
+        if (tour.getKeywords() == null || tour.getKeywords().isEmpty()) missing.add("at least one keyword");
+        if (tour.getProgramSteps() == null || tour.getProgramSteps().isEmpty()) missing.add("at least one itinerary step");
+        int photoCount = (tour.getPhotos() == null ? 0 : tour.getPhotos().size())
+                + (tour.getCoverPhotoUrl() != null && !tour.getCoverPhotoUrl().isBlank() ? 1 : 0);
+        if (photoCount < 4) missing.add("at least 4 photos (cover + gallery)");
+        if (!Boolean.TRUE.equals(tour.getCopyrightConfirmed())) missing.add("copyright confirmation");
+        if (!Boolean.TRUE.equals(tour.getInsuranceConfirmed())) missing.add("insurance confirmation");
+        if (!Boolean.TRUE.equals(tour.getComplianceConfirmed())) missing.add("compliance confirmation");
+        if (!missing.isEmpty()) {
+            throw new ProductIncompleteException(missing);
+        }
+        tour.setStatus(ProductStatus.IN_REVIEW);
+        return tourMapper.toResponse(tourRepository.save(tour));
+    }
+
+    @Override
+    public TourResponse approveTour(UUID tourId) {
+        Tour tour = findById(tourId);
+        if (tour.getStatus() != ProductStatus.IN_REVIEW) {
+            throw new ConflictException("Tour is not awaiting review: " + tourId);
+        }
+        tour.setStatus(ProductStatus.PUBLISHED);
+        tour.setIsActive(true);
+        return tourMapper.toResponse(tourRepository.save(tour));
+    }
+
+    @Override
+    public TourResponse rejectTour(UUID tourId, String reason) {
+        Tour tour = findById(tourId);
+        if (tour.getStatus() != ProductStatus.IN_REVIEW) {
+            throw new ConflictException("Tour is not awaiting review: " + tourId);
+        }
+        tour.setStatus(ProductStatus.REJECTED);
+        tour.setIsActive(false);
+        tour.setRejectionReason(reason);
         return tourMapper.toResponse(tourRepository.save(tour));
     }
 

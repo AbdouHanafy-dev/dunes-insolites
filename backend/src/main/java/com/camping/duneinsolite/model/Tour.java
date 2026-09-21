@@ -2,6 +2,8 @@ package com.camping.duneinsolite.model;
 
 
 import com.camping.duneinsolite.model.enums.GroupSizeType;
+import com.camping.duneinsolite.model.enums.GuideType;
+import com.camping.duneinsolite.model.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -54,6 +56,29 @@ public class Tour {
     @Builder.Default
     private Boolean isActive = true;
 
+    // Admin wizard workflow, separate from isActive (the public-visibility
+    // flag). Only submitForReview/approve/reject move this - never settable
+    // directly via create/update, so a client can't self-publish.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private ProductStatus status = ProductStatus.DRAFT;
+
+    @Column(name = "insurance_confirmed", nullable = false)
+    @Builder.Default
+    private Boolean insuranceConfirmed = false;
+
+    @Column(name = "compliance_confirmed", nullable = false)
+    @Builder.Default
+    private Boolean complianceConfirmed = false;
+
+    @Column(name = "copyright_confirmed", nullable = false)
+    @Builder.Default
+    private Boolean copyrightConfirmed = false;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Column(name = "tva", nullable = false)
     @Builder.Default
     private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
@@ -81,6 +106,89 @@ public class Tour {
     @Column(name = "item", columnDefinition = "TEXT")
     @Builder.Default
     private List<String> notIncludedItems = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "tour_keywords", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "keyword", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> keywords = new ArrayList<>();
+
+    // Who guides the customers - TOUR_GUIDE's language(s) are the `languages`
+    // field below (not duplicated onto a second field).
+    @Enumerated(EnumType.STRING)
+    @Column(name = "guide_type", nullable = false)
+    @Builder.Default
+    private GuideType guideType = GuideType.NONE;
+
+    @Column(name = "food_included", nullable = false)
+    @Builder.Default
+    private Boolean foodIncluded = false;
+
+    @ElementCollection
+    @CollectionTable(name = "tour_meals", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Builder.Default
+    private List<Meal> meals = new ArrayList<>();
+
+    @Column(name = "drinks_included", nullable = false)
+    @Builder.Default
+    private Boolean drinksIncluded = false;
+
+    @ElementCollection
+    @CollectionTable(name = "tour_dietary_restrictions", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "restriction", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> dietaryRestrictions = new ArrayList<>();
+
+    @Column(name = "transport_included", nullable = false)
+    @Builder.Default
+    private Boolean transportIncluded = false;
+
+    @ElementCollection
+    @CollectionTable(name = "tour_transport_modes", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "mode", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> transportModes = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "tour_not_suitable_for", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "item", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> notSuitableFor = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "tour_not_allowed", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "item", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> notAllowed = new ArrayList<>();
+
+    @Column(name = "animals_accepted", nullable = false)
+    @Builder.Default
+    private Boolean animalsAccepted = false;
+
+    @Column(name = "pet_policy_note", columnDefinition = "TEXT")
+    private String petPolicyNote;
+
+    @ElementCollection
+    @CollectionTable(name = "tour_must_bring", joinColumns = @JoinColumn(name = "tour_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "item", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> mustBring = new ArrayList<>();
+
+    @Column(name = "good_to_know", columnDefinition = "TEXT")
+    private String goodToKnow;
+
+    @Column(name = "emergency_phone")
+    private String emergencyPhone;
+
+    @Column(name = "ticket_info", columnDefinition = "TEXT")
+    private String ticketInfo;
 
     @ElementCollection
     @CollectionTable(name = "tour_program_steps", joinColumns = @JoinColumn(name = "tour_id"))

@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.controller;
 
+import com.camping.duneinsolite.dto.request.RejectTourRequest;
 import com.camping.duneinsolite.dto.request.TourRequest;
 import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
@@ -64,5 +65,25 @@ public class TourController {
     @PreAuthorize("@perm.can('TOURS', 'EDIT')")
     public ResponseEntity<TourResponse> deactivateTour(@PathVariable UUID tourId) {
         return ResponseEntity.ok(tourService.deactivateTour(tourId));
+    }
+
+    @PatchMapping("/{tourId}/submit-for-review")
+    @PreAuthorize("@perm.can('TOURS', 'EDIT')")
+    public ResponseEntity<TourResponse> submitForReview(@PathVariable UUID tourId) {
+        return ResponseEntity.ok(tourService.submitForReview(tourId));
+    }
+
+    @PatchMapping("/{tourId}/approve")
+    @PreAuthorize("@perm.can('TOURS', 'FULL')")
+    public ResponseEntity<TourResponse> approveTour(@PathVariable UUID tourId) {
+        return ResponseEntity.ok(tourService.approveTour(tourId));
+    }
+
+    @PatchMapping("/{tourId}/reject")
+    @PreAuthorize("@perm.can('TOURS', 'FULL')")
+    public ResponseEntity<TourResponse> rejectTour(
+            @PathVariable UUID tourId,
+            @Valid @RequestBody RejectTourRequest request) {
+        return ResponseEntity.ok(tourService.rejectTour(tourId, request.getReason()));
     }
 }

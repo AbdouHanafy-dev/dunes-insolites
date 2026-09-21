@@ -469,9 +469,22 @@ export function getAllSources(accessToken: string): Promise<AdminSource[]> {
   return authedGet<AdminSource[]>("/sources", accessToken, []);
 }
 
-export type AdminTourProgramStep = { label: string | null; title: string | null; description: string | null };
+export type AdminTourSegmentType = "ACTIVITY" | "TRANSFER";
+export type AdminTourProgramStep = {
+  label: string | null;
+  title: string | null;
+  description: string | null;
+  segmentType: AdminTourSegmentType | null;
+  optionalSegment: boolean | null;
+  durationMinutes: number | null;
+};
 export type AdminTourPhoto = { url: string; caption: string | null };
 export type AdminTourCancellationPolicy = { freeCancellation: boolean | null; hoursBeforeDeadline: number | null };
+export type AdminTourStatus = "DRAFT" | "IN_REVIEW" | "PUBLISHED" | "REJECTED";
+export type AdminGuideType = "NONE" | "TOUR_GUIDE" | "RECEPTION_STAFF" | "INSTRUCTOR" | "DRIVER";
+export type AdminMealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
+export type AdminMealFormat = "BUFFET" | "SET_MENU" | "ALA_CARTE" | "PICNIC";
+export type AdminTourMeal = { mealType: AdminMealType; format: AdminMealFormat };
 
 // CatalogTranslationDto - shared shape with TourType/Extra's translations.
 export type AdminCatalogTranslation = {
@@ -505,7 +518,23 @@ export type AdminTour = {
   highlights: string[];
   includedItems: string[];
   notIncludedItems: string[];
+  keywords: string[];
   programSteps: AdminTourProgramStep[];
+  guideType: AdminGuideType;
+  foodIncluded: boolean;
+  meals: AdminTourMeal[];
+  drinksIncluded: boolean;
+  dietaryRestrictions: string[];
+  transportIncluded: boolean;
+  transportModes: string[];
+  notSuitableFor: string[];
+  notAllowed: string[];
+  animalsAccepted: boolean;
+  petPolicyNote: string | null;
+  mustBring: string[];
+  goodToKnow: string | null;
+  emergencyPhone: string | null;
+  ticketInfo: string | null;
   meetingPoint: string | null;
   groupSizeType: string | null;
   languages: AdminSpokenLanguage[];
@@ -514,6 +543,11 @@ export type AdminTour = {
   translations: AdminCatalogTranslation[];
   averageRating: number | null;
   reviewCount: number | null;
+  status: AdminTourStatus;
+  insuranceConfirmed: boolean;
+  complianceConfirmed: boolean;
+  copyrightConfirmed: boolean;
+  rejectionReason: string | null;
 };
 
 export function getAllTours(accessToken: string): Promise<AdminTour[]> {

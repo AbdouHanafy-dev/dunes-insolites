@@ -1701,6 +1701,34 @@ section.block {
   opacity: 1;
   transform: translateX(0);
 }
+.edit-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.edit-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.edit-card-rating .stars {
+  color: var(--accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+}
+.edit-card-rating-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.edit-card-price {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
 
 /* ---------- shared editorial microtype ----------
    The technical/index voice (§9 of the visual audit): monospace, small,
@@ -5193,6 +5221,11 @@ footer.site-footer .bar-social a:hover {
 .carousel-track .review-slide {
   flex: 0 0 auto;
   width: clamp(260px, 80vw, 340px);
+  scroll-snap-align: start;
+}
+.carousel-track .tour-card-slide {
+  flex: 0 0 auto;
+  width: clamp(280px, 85vw, 380px);
   scroll-snap-align: start;
 }
 .carousel-nav {

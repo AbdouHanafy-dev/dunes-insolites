@@ -1793,6 +1793,27 @@ footer.site-footer.pro-footer .bar a:hover {
   line-height: 1.65;
 }
 
+.tour-itinerary-badge {
+  display: inline-block;
+  margin-inline-start: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #e8dac8;
+  color: #7c422c;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.tour-itinerary-duration {
+  margin: 6px 0 0 !important;
+  color: rgba(39, 34, 30, 0.45) !important;
+  font-size: 12px !important;
+}
+
 .tour-inclusions {
   display: grid;
   grid-template-columns: 1fr 1fr;

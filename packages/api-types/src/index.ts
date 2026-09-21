@@ -143,6 +143,9 @@ export type Tour = {
     label: string | null;
     title: string | null;
     description: string | null;
+    segmentType: "ACTIVITY" | "TRANSFER" | null;
+    optionalSegment: boolean | null;
+    durationMinutes: number | null;
   }>;
   cancellationPolicy: {
     freeCancellation: boolean | null;
@@ -154,6 +157,26 @@ export type Tour = {
   passengerChildPrice: number;
   averageRating: number | null;
   reviewCount: number | null;
+
+  guideType: "NONE" | "TOUR_GUIDE" | "RECEPTION_STAFF" | "INSTRUCTOR" | "DRIVER" | null;
+  foodIncluded: boolean | null;
+  meals: Array<{
+    mealType: "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | null;
+    format: "BUFFET" | "SET_MENU" | "ALA_CARTE" | "PICNIC" | null;
+  }>;
+  drinksIncluded: boolean | null;
+  dietaryRestrictions: string[];
+  transportIncluded: boolean | null;
+  transportModes: string[];
+
+  notSuitableFor: string[];
+  notAllowed: string[];
+  animalsAccepted: boolean | null;
+  petPolicyNote: string | null;
+  mustBring: string[];
+  goodToKnow: string | null;
+  emergencyPhone: string | null;
+  ticketInfo: string | null;
 };
 
 /**

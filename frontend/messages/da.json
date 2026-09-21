@@ -452,7 +452,20 @@
     "stepConfirmTitle": "Vi tjekker ledigheden",
     "stepConfirmBody": "Vores lokale team vender hurtigt tilbage.",
     "stepPrepareTitle": "Modtag detaljerne",
-    "stepPrepareBody": "Mødested, transport og praktiske råd."
+    "stepPrepareBody": "Mødested, transport og praktiske råd.",
+    "restrictionsHeading": "Hvem kan ikke deltage",
+    "notSuitableForHeading": "Ikke egnet til",
+    "notAllowedHeading": "Ikke tilladt",
+    "petPolicyAccepted": "Dyr accepteret",
+    "mustBringHeading": "Hvad skal medbringes",
+    "emergencyPhoneLabel": "Nødnummer",
+    "ticketInfoHeading": "Billetinformation",
+    "guideLabel": "Guide",
+    "mealsLabel": "Måltider",
+    "drinksIncludedLabel": "Drikkevarer inkluderet",
+    "transportDuringLabel": "Transport under aktiviteten",
+    "optionalSegmentBadge": "valgfri",
+    "transferBadge": "Transfer"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Dato og rejsende",
@@ -555,6 +568,10 @@
   },
   "accommodationCard": {
     "exploreThisStay": "Udforsk dette ophold ↗"
+  },
+  "tourCard": {
+    "fromPrice": "fra {price} €",
+    "reviews": "{count, plural, =0 {Ingen anmeldelser endnu} one {# anmeldelse} other {# anmeldelser}}"
   },
   "activitiesPage": {
     "eyebrow": "Vælg dit køretøj",

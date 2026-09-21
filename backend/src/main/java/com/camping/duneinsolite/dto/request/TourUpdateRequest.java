@@ -2,9 +2,11 @@ package com.camping.duneinsolite.dto.request;
 
 import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.model.CancellationPolicy;
+import com.camping.duneinsolite.model.Meal;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.enums.GroupSizeType;
+import com.camping.duneinsolite.model.enums.GuideType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -26,7 +28,23 @@ public class TourUpdateRequest {
     private List<String> highlights;
     private List<String> includedItems;
     private List<String> notIncludedItems;
+    private List<String> keywords;
     private List<ProgramStep> programSteps;
+    private GuideType guideType;
+    private Boolean foodIncluded;
+    private List<Meal> meals;
+    private Boolean drinksIncluded;
+    private List<String> dietaryRestrictions;
+    private Boolean transportIncluded;
+    private List<String> transportModes;
+    private List<String> notSuitableFor;
+    private List<String> notAllowed;
+    private Boolean animalsAccepted;
+    private String petPolicyNote;
+    private List<String> mustBring;
+    private String goodToKnow;
+    private String emergencyPhone;
+    private String ticketInfo;
     private String meetingPoint;
     private String location;
     private GroupSizeType groupSizeType;
@@ -54,4 +72,9 @@ public class TourUpdateRequest {
     @DecimalMin(value = "0.0", inclusive = true, message = "TVA cannot be negative")
     @DecimalMax(value = "100.0", inclusive = true, message = "TVA cannot exceed 100%")
     private java.math.BigDecimal tva;
+
+    // No `status` field here on purpose - see TourRequest.
+    private Boolean insuranceConfirmed;
+    private Boolean complianceConfirmed;
+    private Boolean copyrightConfirmed;
 }

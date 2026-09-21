@@ -8,9 +8,11 @@ import { averageRating } from "@/lib/data/reviews";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import TourCard from "@/components/TourCard";
+import TourCardCarousel from "@/components/TourCardCarousel";
 import TourBookingFlow from "@/components/TourBookingFlow";
 import Reviews from "@/components/Reviews";
 import { site } from "@/lib/site";
+import { GUIDE_TYPE_LABELS, MEAL_TYPE_LABELS, MEAL_FORMAT_LABELS } from "@/lib/types";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -60,11 +62,25 @@ export default async function TourDetail({ params }: Props) {
   const suppliedMedia = Array.from(
     new Set([tour.coverImage, ...tour.gallery].filter((source): source is string => !!source)),
   );
+
+  const guideLabel = tour.guideType && tour.guideType !== "NONE" ? GUIDE_TYPE_LABELS[tour.guideType] : null;
+  const mealLines = (tour.meals ?? [])
+    .filter((m): m is { mealType: NonNullable<typeof m.mealType>; format: NonNullable<typeof m.format> } =>
+      !!m.mealType && !!m.format,
+    )
+    .map((m) => `${MEAL_TYPE_LABELS[m.mealType]} (${MEAL_FORMAT_LABELS[m.format]})`);
+  const hasRestrictions = tour.notSuitableFor.length > 0 || tour.notAllowed.length > 0 || !!tour.petPolicyNote;
+  const hasPracticalInfo =
+    !!tour.goodToKnow || tour.mustBring.length > 0 || !!tour.emergencyPhone || !!tour.ticketInfo;
   const media = suppliedMedia.length ? suppliedMedia.slice(0, 5) : ["/images/camp-hero-poster.jpg"];
 
+  // Product (not the more specific TouristTrip) per the GetYourGuide-style
+  // structured-data spec this page follows. aggregateRating is only emitted
+  // when `reviewCount` is real (from() above) — never fabricated, per the
+  // root CLAUDE.md rule against inventing ratings.
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "TouristTrip",
+    "@type": "Product",
     name: tour.title,
     description: tour.description,
     ...(tour.coverImage ? { image: `${site.url}${tour.coverImage}` } : {}),
@@ -74,12 +90,12 @@ export default async function TourDetail({ params }: Props) {
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
     },
-    ...(tourReviews.length
+    ...(reviewCount > 0 && rating
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
-            ratingValue: averageRating(tourReviews),
-            reviewCount: tourReviews.length,
+            ratingValue: rating,
+            reviewCount,
           },
         }
       : {}),
@@ -153,6 +169,9 @@ export default async function TourDetail({ params }: Props) {
             <div className="tour-essentials" aria-label={t("goodToKnow")}>
               <div><small>{t("duration")}</small><strong>{tour.duration}</strong></div>
               {tour.groupSize && <div><small>{t("groupSize")}</small><strong>{tour.groupSize}</strong></div>}
+              {guideLabel && (
+                <div><small>{t("guideLabel")}</small><strong>{guideLabel}</strong></div>
+              )}
               {tour.languages.length > 0 && (
                 <div><small>{t("goodToKnow")}</small><strong>{tour.languages.join(" · ")}</strong></div>
               )}
@@ -206,8 +225,21 @@ export default async function TourDetail({ params }: Props) {
                       <span className="tour-itinerary-number">{String(index + 1).padStart(2, "0")}</span>
                       <div>
                         {step.label && <small>{step.label}</small>}
-                        {step.title && <h3>{step.title}</h3>}
+                        {step.title && (
+                          <h3>
+                            {step.title}
+                            {step.segmentType === "TRANSFER" && (
+                              <span className="tour-itinerary-badge">{t("transferBadge")}</span>
+                            )}
+                            {step.optionalSegment && (
+                              <span className="tour-itinerary-badge">{t("optionalSegmentBadge")}</span>
+                            )}
+                          </h3>
+                        )}
                         {step.description && <p>{step.description}</p>}
+                        {step.durationMinutes != null && (
+                          <p className="tour-itinerary-duration">{step.durationMinutes} min</p>
+                        )}
                       </div>
                     </li>
                   ))}
@@ -215,14 +247,22 @@ export default async function TourDetail({ params }: Props) {
               </section>
             )}
 
-            {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
+            {(tour.included.length > 0 || tour.notIncluded.length > 0 || guideLabel || mealLines.length > 0 || tour.transportModes.length > 0) && (
               <section className="tour-section" id="included">
                 <h2>{t("whatsIncluded")}</h2>
                 <div className="tour-inclusions">
-                  {tour.included.length > 0 && (
+                  {(tour.included.length > 0 || guideLabel || mealLines.length > 0 || tour.transportModes.length > 0) && (
                     <div>
                       <h3>{t("whatsIncluded")}</h3>
-                      <ul>{tour.included.map((item) => <li key={item} data-kind="yes">{item}</li>)}</ul>
+                      <ul>
+                        {guideLabel && <li data-kind="yes">{t("guideLabel")}: {guideLabel}</li>}
+                        {mealLines.map((line) => <li key={line} data-kind="yes">{line}</li>)}
+                        {tour.drinksIncluded && <li data-kind="yes">{t("drinksIncludedLabel")}</li>}
+                        {tour.transportModes.map((mode) => (
+                          <li key={mode} data-kind="yes">{t("transportDuringLabel")}: {mode}</li>
+                        ))}
+                        {tour.included.map((item) => <li key={item} data-kind="yes">{item}</li>)}
+                      </ul>
                     </div>
                   )}
                   {tour.notIncluded.length > 0 && (
@@ -232,6 +272,33 @@ export default async function TourDetail({ params }: Props) {
                     </div>
                   )}
                 </div>
+              </section>
+            )}
+
+            {hasRestrictions && (
+              <section className="tour-section" id="restrictions">
+                <h2>{t("restrictionsHeading")}</h2>
+                <div className="tour-inclusions">
+                  {tour.notSuitableFor.length > 0 && (
+                    <div>
+                      <h3>{t("notSuitableForHeading")}</h3>
+                      <ul>{tour.notSuitableFor.map((item) => <li key={item} data-kind="no">{item}</li>)}</ul>
+                    </div>
+                  )}
+                  {tour.notAllowed.length > 0 && (
+                    <div>
+                      <h3>{t("notAllowedHeading")}</h3>
+                      <ul>{tour.notAllowed.map((item) => <li key={item} data-kind="no">{item}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+                {(tour.animalsAccepted || tour.petPolicyNote) && (
+                  <p>
+                    {tour.animalsAccepted && t("petPolicyAccepted")}
+                    {tour.animalsAccepted && tour.petPolicyNote ? " — " : ""}
+                    {tour.petPolicyNote}
+                  </p>
+                )}
               </section>
             )}
 
@@ -279,15 +346,34 @@ export default async function TourDetail({ params }: Props) {
 
             <section className="tour-section tour-planning">
               <h2>{t("goodToKnow")}</h2>
+              {tour.goodToKnow && <p>{tour.goodToKnow}</p>}
               <ul>
                 {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.join(", ") })}</li>}
                 {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
+                {tour.emergencyPhone && <li>{t("emergencyPhoneLabel")}: {tour.emergencyPhone}</li>}
               </ul>
               <p>
                 <Link href="/faq">{tLinks("faq")}</Link>
                 <Link href="/contact">{tLinks("planTrip")}</Link>
               </p>
             </section>
+
+            {hasPracticalInfo && (tour.mustBring.length > 0 || tour.ticketInfo) && (
+              <section className="tour-section">
+                {tour.mustBring.length > 0 && (
+                  <>
+                    <h2>{t("mustBringHeading")}</h2>
+                    <ul>{tour.mustBring.map((item) => <li key={item}>{item}</li>)}</ul>
+                  </>
+                )}
+                {tour.ticketInfo && (
+                  <>
+                    <h3>{t("ticketInfoHeading")}</h3>
+                    <p>{tour.ticketInfo}</p>
+                  </>
+                )}
+              </section>
+            )}
           </div>
 
           <aside className="tour-booking-card" id="reserve">
@@ -321,9 +407,9 @@ export default async function TourDetail({ params }: Props) {
           <div className="wrap">
             <p className="tour-section-kicker">{t("alsoWorthALook")}</p>
             <h2>{t("otherCircuits")}</h2>
-            <div className="cards cols-3">
+            <TourCardCarousel>
               {related.map((item) => <TourCard key={item.slug} tour={item} />)}
-            </div>
+            </TourCardCarousel>
           </div>
         </section>
       )}

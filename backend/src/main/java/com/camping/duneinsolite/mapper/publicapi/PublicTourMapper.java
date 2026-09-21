@@ -69,7 +69,38 @@ public class PublicTourMapper {
         response.setPassengerChildPrice(tour.getPassengerChildPrice());
         response.setAverageRating(tour.getAverageRating());
         response.setReviewCount(tour.getReviewCount());
+
+        response.setGuideType(tour.getGuideType());
+        response.setFoodIncluded(tour.getFoodIncluded());
+        response.setMeals(meals(tour.getMeals()));
+        response.setDrinksIncluded(tour.getDrinksIncluded());
+        response.setDietaryRestrictions(orEmpty(tour.getDietaryRestrictions()));
+        response.setTransportIncluded(tour.getTransportIncluded());
+        response.setTransportModes(orEmpty(tour.getTransportModes()));
+
+        response.setNotSuitableFor(orEmpty(tour.getNotSuitableFor()));
+        response.setNotAllowed(orEmpty(tour.getNotAllowed()));
+        response.setAnimalsAccepted(tour.getAnimalsAccepted());
+        response.setPetPolicyNote(tour.getPetPolicyNote());
+        response.setMustBring(orEmpty(tour.getMustBring()));
+        response.setGoodToKnow(tour.getGoodToKnow());
+        response.setEmergencyPhone(tour.getEmergencyPhone());
+        response.setTicketInfo(tour.getTicketInfo());
         return response;
+    }
+
+    private static List<String> orEmpty(List<String> list) {
+        return list == null ? List.of() : list;
+    }
+
+    private static List<PublicTourResponse.Meal> meals(List<com.camping.duneinsolite.model.Meal> meals) {
+        if (meals == null) return List.of();
+        return meals.stream().map(m -> {
+            PublicTourResponse.Meal dto = new PublicTourResponse.Meal();
+            dto.setMealType(m.getMealType() == null ? null : m.getMealType().name());
+            dto.setFormat(m.getFormat() == null ? null : m.getFormat().name());
+            return dto;
+        }).toList();
     }
 
     private static List<String> gallery(List<Photo> photos) {
@@ -83,6 +114,9 @@ public class PublicTourMapper {
             step.setLabel(s.getLabel());
             step.setTitle(s.getTitle());
             step.setDescription(s.getDescription());
+            step.setSegmentType(s.getSegmentType() == null ? null : s.getSegmentType().name());
+            step.setOptionalSegment(s.getOptionalSegment());
+            step.setDurationMinutes(s.getDurationMinutes());
             return step;
         }).toList();
     }
