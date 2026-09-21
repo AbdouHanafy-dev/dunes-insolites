@@ -1,0 +1,27 @@
+# Committed, shared by every local dev — NOT a personal/machine-specific
+# file despite the filename convention that usually implies one. Auto-merged
+# by plain `docker compose up`/`up -d` with no -f flags — this is Docker
+# Compose's own built-in convention, not a custom mechanism:
+# https://docs.docker.com/compose/multiple-compose-files/merge/
+#
+# Never applied to staging or the VPS: both always invoke Compose with
+# explicit -f flags (see docker-compose.staging.yml's own header comment),
+# which bypasses this file entirely. This file only ever affects a bare
+# local `docker compose up -d` run from this directory.
+#
+# Local dev only needs postgres/keycloak/rabbitmq — the backend runs via
+# `npm run backend:run` or an IDE, not in Docker, and the 3 Angular apps
+# build from ../routeinsolite, a real sibling repo that exists on
+# staging/vps hosts but not in this checkout. Gating these 4 behind a
+# profile nobody enables locally means a bare `docker compose up -d` just
+# starts what local dev actually needs, instead of failing on a missing
+# build context for services nothing local touches.
+services:
+  backend:
+    profiles: ["not-needed-locally"]
+  partner-app:
+    profiles: ["not-needed-locally"]
+  admin-app:
+    profiles: ["not-needed-locally"]
+  camping-app:
+    profiles: ["not-needed-locally"]

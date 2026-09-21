@@ -14,7 +14,11 @@
 //   node scripts/seed-accommodations.mjs
 // Not idempotent — (tour_type_id, slug) is unique; a rerun 409s per row (logged).
 
-const BACKEND = process.env.BACKEND ?? "http://127.0.0.1:8099/api";
+// Hardcoded, deliberately not overridable via env var — this script writes
+// catalog data via the admin API, and a stray BACKEND env var left set from
+// another session could silently target a remote environment instead of
+// this machine's own local backend.
+const BACKEND = "http://127.0.0.1:8080/api";
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "testadmin@dunes.local";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "AdminPass1!";
 const STAY_SLUG = "nuitee-campement-desert";

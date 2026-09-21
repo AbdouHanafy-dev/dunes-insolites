@@ -26,14 +26,28 @@ import com.camping.duneinsolite.repository.UserRepository;
 import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
+
+import javax.sql.DataSource;
 
 /**
  * Runs once every time the backend starts. Each seed step checks whether its
  * data already exists before inserting, so this is safe to leave running on
  * every restart/rebuild forever — it only ever does something the first time.
+ *
+ * On a genuinely empty <b>local</b> database (app.environment: local, set
+ * only by application-local.yml), the very first step restores
+ * seed-data/local-dev-dump.sql — the real catalog plus sample directory/CMS
+ * data — so `docker compose up -d postgres keycloak rabbitmq` followed by a
+ * single backend startup is enough on its own; no separate seed script or
+ * manual dump restore needed. See seedFromDump()'s own comment for exactly
+ * what that covers and why it's gated the way it is.
  *
  * Account credentials (SEED_ADMIN_EMAIL/PASSWORD, SEED_CAMPING_EMAIL/PASSWORD)
  * come from environment variables, never hardcoded here, so nothing sensitive
@@ -57,6 +71,15 @@ public class Seed implements CommandLineRunner {
     private final com.camping.duneinsolite.repository.GalleryImageRepository galleryImageRepository;
     private final com.camping.duneinsolite.repository.NavigationItemRepository navigationItemRepository;
     private final com.camping.duneinsolite.repository.SpokenLanguageRepository spokenLanguageRepository;
+    private final com.camping.duneinsolite.repository.GuideProfileRepository guideProfileRepository;
+    private final com.camping.duneinsolite.repository.DriverProfileRepository driverProfileRepository;
+    private final com.camping.duneinsolite.repository.ContentBlockRepository contentBlockRepository;
+    private final com.camping.duneinsolite.repository.NewsletterSubscriberRepository newsletterSubscriberRepository;
+    private final DataSource dataSource;
+    private final Keycloak keycloak;
+
+    @Value("${keycloak.realm}")
+    private String keycloakRealm;
 
     @Value("${seed.admin.email:}")
     private String adminEmail;
@@ -68,10 +91,20 @@ public class Seed implements CommandLineRunner {
     @Value("${seed.camping.password:}")
     private String campingPassword;
 
+    // Set only by application-local.yml (app.environment: local) - absent
+    // everywhere else, including staging/production. Gates seedFromDump()
+    // below so the dev/placeholder rows in local-dev-dump.sql can never
+    // land in a real deployment's database.
+    @Value("${app.environment:}")
+    private String appEnvironment;
+
     @Override
     public void run(String... args) {
+        seedFromDump();
+
         seedAccount(adminEmail, adminPassword, "Admin", UserRole.ADMIN);
         seedAccount(campingEmail, campingPassword, "Camping", UserRole.CAMPING);
+        seedClientAccount();
 
         seedSources();
         seedTourTypes();
@@ -79,6 +112,11 @@ public class Seed implements CommandLineRunner {
         seedExtras();
         seedGallery();
         seedCircuitsNavItem();
+
+        seedGuideProfiles();
+        seedDriverProfiles();
+        seedContentBlocks();
+        seedNewsletterSubscribers();
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -108,6 +146,74 @@ public class Seed implements CommandLineRunner {
         // is not.
         keycloakUserSyncService.registerUser(request, role);
         log.info("Seed: created {} account {}", label, email);
+    }
+
+    // A real CLIENT-role login for local dev/testing (booking flows, "espace
+    // client", etc.) — not sensitive enough to warrant the env-var indirection
+    // seedAccount() uses for ADMIN/CAMPING, same reasoning as the other
+    // dunes.local sample accounts below. Skipped identically outside local
+    // dev, via seedFromDump()'s own app.environment guard not applying here -
+    // this one is cheap/harmless enough to just always run, guarded only by
+    // existsByEmail like everything else in this file.
+    private void seedClientAccount() {
+        String email = "client@dunes.local";
+        if (userRepository.existsByEmail(email)) return;
+
+        RegisterRequest request = new RegisterRequest();
+        request.setName("Client Test");
+        request.setEmail(email);
+        request.setPassword("LocalClient123!");
+        request.setPhone("00000000");
+        request.setAcceptedTerms(true);
+
+        keycloakUserSyncService.registerUser(request, UserRole.CLIENT);
+        log.info("Seed: created Client account {}", email);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // LOCAL DEV DUMP — restores backend/src/main/resources/seed-data/
+    // local-dev-dump.sql, a data-only snapshot covering the real catalog
+    // (tour types/extras/accommodation types — created via the repo's
+    // seed-tourtypes.mjs/seed-extras.mjs/seed-accommodations.mjs scripts,
+    // real published content, not invented) plus the sample data below
+    // (guide_profiles/content_blocks/newsletter_subscribers).
+    //
+    // Gated twice, both required:
+    //   1. app.environment == "local" (set only by application-local.yml) —
+    //      never runs against staging/production, so the dev/placeholder
+    //      rows in the dump can never land in a real deployment.
+    //   2. tourTypeRepository.count() < 2 — the dump's own idempotency
+    //      guard. A real restore inserts fixed-UUID rows; running it twice
+    //      would violate primary-key constraints and crash startup, so
+    //      this only ever fires once, against a genuinely empty database,
+    //      same convention as every other guard in this file.
+    //
+    // Runs first, before the methods below - so their own existsBy* guards
+    // correctly recognize dump-restored rows and skip re-creating them.
+    // ─────────────────────────────────────────────────────────────
+
+    private void seedFromDump() {
+        if (!"local".equals(appEnvironment)) return;
+        if (tourTypeRepository.count() >= 2) return;
+
+        ClassPathResource dump = new ClassPathResource("seed-data/local-dev-dump.sql");
+        if (!dump.exists()) {
+            log.warn("Seed: seed-data/local-dev-dump.sql not found on classpath — skipping dump restore");
+            return;
+        }
+
+        // continueOnError: a handful of rows in the dump (the original
+        // "30 min Quad" extra, whose fixed id predates the dump - it was
+        // already inserted by V17__consolidate_services_into_extras.sql)
+        // legitimately collide with a Flyway baseline migration's own seed
+        // data. That specific INSERT fails harmlessly (the correct row is
+        // already there) while every other statement in the script still
+        // runs. Confirmed live: without this, that one collision aborted
+        // the whole restore before the real catalog data after it ever ran.
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(dump);
+        populator.setContinueOnError(true);
+        populator.execute(dataSource);
+        log.info("Seed: restored local-dev-dump.sql (real catalog + sample data)");
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -516,5 +622,138 @@ public class Seed implements CommandLineRunner {
                     .ifPresent(result::add);
         }
         return result;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // LOCAL DEV SAMPLE DATA — for LOCAL_DEV_SETUP.pdf's dump. Deliberately
+    // limited to standalone, non-published tables only:
+    //   - Skips reservations/invoices/transactions entirely. Those go
+    //     through ReservationServiceImpl's validation and state machine;
+    //     inserting rows directly here would bypass it and could produce
+    //     data that looks present but is logically wrong.
+    //   - Skips reviews entirely — never fabricate reviews (see CLAUDE.md).
+    //   - guides/chauffeurs (the per-reservation assignment tables) are
+    //     skipped for the same reason as reservations - both require a
+    //     real Reservation FK. guide_profiles/driver_profiles (the
+    //     permanent directory those assignments snapshot from) are safe
+    //     standalone data and are seeded below instead.
+    // Guarded like every method above: safe to leave running on every
+    // restart, only ever inserts once.
+    // ─────────────────────────────────────────────────────────────
+
+    private void seedGuideProfiles() {
+        record SampleGuide(String first, String last, String email, String phone, String[] languages) {}
+        List<SampleGuide> samples = List.of(
+                new SampleGuide("Amira", "Trabelsi", "amira.trabelsi@dunes.local", "+216 20 111 222",
+                        new String[]{"Français", "Anglais"}),
+                new SampleGuide("Youssef", "Bel Haj", "youssef.belhaj@dunes.local", "+216 20 333 444",
+                        new String[]{"Français", "Arabe"}),
+                new SampleGuide("Sami", "Karray", "sami.karray@dunes.local", "+216 20 555 666",
+                        new String[]{"Anglais", "Arabe"})
+        );
+
+        for (SampleGuide s : samples) {
+            if (guideProfileRepository.existsByEmailIgnoreCase(s.email())) continue;
+            guideProfileRepository.save(com.camping.duneinsolite.model.GuideProfile.builder()
+                    .firstName(s.first())
+                    .lastName(s.last())
+                    .email(s.email())
+                    .phoneNumber(s.phone())
+                    .languages(spokenLanguages(s.languages()))
+                    .active(true)
+                    .build());
+            log.info("Seed: created guide profile {} {}", s.first(), s.last());
+        }
+    }
+
+    // Creates a real CHAUFFEUR-role user for each driver (via the same
+    // admin-invite path the backoffice uses, sendTemporaryPassword=false so
+    // no welcome email is attempted - mail credentials are intentionally
+    // blank in local dev). DriverProfile.user is a mandatory 1:1, so the
+    // account has to exist first.
+    private void seedDriverProfiles() {
+        record SampleDriver(String first, String last, String email, String phone, String vehicle, int seats) {}
+        List<SampleDriver> samples = List.of(
+                new SampleDriver("Hedi", "Chaabane", "hedi.chaabane@dunes.local", "+216 20 777 888",
+                        "Toyota Land Cruiser", 6),
+                new SampleDriver("Karim", "Mejri", "karim.mejri@dunes.local", "+216 20 999 000",
+                        "Mercedes Sprinter", 12),
+                new SampleDriver("Nizar", "Ayari", "nizar.ayari@dunes.local", "+216 20 123 456",
+                        "Toyota Hilux", 4)
+        );
+
+        for (SampleDriver s : samples) {
+            if (driverProfileRepository.existsByUser_EmailIgnoreCase(s.email())) continue;
+
+            com.camping.duneinsolite.model.User user = keycloakUserSyncService.adminCreateInvitedDriver(
+                    s.first() + " " + s.last(), s.email(), s.phone());
+
+            // adminCreateInvitedDriver deliberately never discloses the
+            // Keycloak-generated password it sets (see its own comment) -
+            // correct for a real invited driver, useless for a local dev
+            // account nobody can then log in as. Local dev only: overwrite
+            // it with a known value right after creation, same reasoning as
+            // every other hardcoded dunes.local credential in this file.
+            CredentialRepresentation credential = new CredentialRepresentation();
+            credential.setType(CredentialRepresentation.PASSWORD);
+            credential.setValue("LocalChauffeur123!");
+            credential.setTemporary(false);
+            keycloak.realm(keycloakRealm).users().get(user.getUserId().toString()).resetPassword(credential);
+
+            driverProfileRepository.save(com.camping.duneinsolite.model.DriverProfile.builder()
+                    .user(user)
+                    .firstName(s.first())
+                    .lastName(s.last())
+                    .phoneNumber(s.phone())
+                    .vehicleModel(s.vehicle())
+                    .numberOfSeats(s.seats())
+                    .active(true)
+                    .build());
+            log.info("Seed: created driver profile {} {}", s.first(), s.last());
+        }
+    }
+
+    // Admin-facing only (ContentBlock.label javadoc: "never shown on the
+    // vitrine") - clearly labelled as dev/placeholder data, never rendered
+    // publicly, so this doesn't run into the anti-fabrication concern
+    // reviews do.
+    private void seedContentBlocks() {
+        if (contentBlockRepository.count() > 0) return;
+
+        record SampleBlock(String label, String type, String dataJson) {}
+        List<SampleBlock> samples = List.of(
+                new SampleBlock("Dev — Promo banner", "promo-banner",
+                        "{\"text\":\"Sample promo banner — local dev only\"}"),
+                new SampleBlock("Dev — Info banner", "info-banner",
+                        "{\"text\":\"Sample info banner — local dev only\"}"),
+                new SampleBlock("Dev — Seasonal notice", "seasonal-notice",
+                        "{\"text\":\"Sample seasonal notice — local dev only\"}")
+        );
+
+        for (SampleBlock s : samples) {
+            contentBlockRepository.save(com.camping.duneinsolite.model.ContentBlock.builder()
+                    .label(s.label())
+                    .type(s.type())
+                    .dataJson(s.dataJson())
+                    .locale(com.camping.duneinsolite.model.enums.PageLocale.FR)
+                    .companyType(com.camping.duneinsolite.model.enums.CompanyType.DUNES_INSOLITES)
+                    .build());
+        }
+        log.info("Seed: created {} content blocks", samples.size());
+    }
+
+    private void seedNewsletterSubscribers() {
+        List<String> emails = List.of(
+                "dev-subscriber1@dunes.local",
+                "dev-subscriber2@dunes.local",
+                "dev-subscriber3@dunes.local"
+        );
+        for (String email : emails) {
+            if (newsletterSubscriberRepository.existsByEmail(email)) continue;
+            newsletterSubscriberRepository.save(com.camping.duneinsolite.model.NewsletterSubscriber.builder()
+                    .email(email)
+                    .build());
+        }
+        log.info("Seed: created {} newsletter subscribers", emails.size());
     }
 }

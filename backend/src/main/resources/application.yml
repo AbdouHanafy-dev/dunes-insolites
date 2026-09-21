@@ -1,4 +1,14 @@
 spring:
+  config:
+    # Dev-machine environment override, loaded unconditionally when the
+    # matching file is present — no active profile or IDE run-config env vars
+    # required. Defaults to `local` (application-local.yml, gitignored — see
+    # LOCAL_DEV_SETUP.pdf) so zero-config local dev keeps working exactly as
+    # before. Set DEV_ENV to load a different file instead (e.g. `preprod` ->
+    # application-preprod.yml) once one exists — nothing else to change here.
+    # Absent on every real deployment, so `optional:` makes this a no-op
+    # everywhere else.
+    import: "optional:classpath:application-${DEV_ENV:local}.yml"
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://79.143.185.33:5433/duneinsolite}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}

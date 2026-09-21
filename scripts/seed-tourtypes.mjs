@@ -29,7 +29,11 @@
 //
 //   node scripts/seed-tourtypes.mjs
 
-const BACKEND = "http://127.0.0.1:8099/api";
+// Hardcoded, deliberately not overridable via env var — this script writes
+// catalog data via the admin API, and a stray BACKEND env var left set from
+// another session could silently target a remote environment instead of
+// this machine's own local backend.
+const BACKEND = "http://127.0.0.1:8080/api";
 const LOCALES = ["en", "de", "it", "da", "ar"];
 const LOCALE_ENUM = { en: "EN", de: "DE", it: "IT", da: "DA", ar: "AR" };
 

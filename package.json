@@ -21,6 +21,7 @@
     "backend:test:it": "node scripts/mvn.mjs verify",
     "backend:run": "node scripts/mvn.mjs spring-boot:run",
     "backend:package": "node scripts/mvn.mjs -q package -DskipTests",
+    "backend:db:seed-dump": "node scripts/restore-dev-dump.mjs",
     "test:frontend": "npm run test --workspace frontend",
     "test:admin": "npm run test --workspace admin",
     "test:web": "npm run test:frontend && npm run test:admin",
