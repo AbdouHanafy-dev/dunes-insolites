@@ -30,7 +30,11 @@ import urllib.error
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
-BACKEND = "http://127.0.0.1:8099/api"
+# Hardcoded, deliberately not overridable via env var — this script writes
+# nav data via the admin API, and a stray env var left set from another
+# session could silently target a remote environment instead of this
+# machine's own local backend.
+BACKEND = "http://127.0.0.1:8080/api"
 LOCALES = ["fr", "en", "de", "it", "da", "ar"]
 LOCALE_ENUM = {"fr": "FR", "en": "EN", "de": "DE", "it": "IT", "da": "DA", "ar": "AR"}
 
