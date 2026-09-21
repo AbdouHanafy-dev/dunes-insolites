@@ -989,7 +989,17 @@
       "4x4-Rundreisen"
     ],
     "ctaLabel": "Unsere Aktivitäten ansehen",
-    "ctaSecondaryLabel": "Kontaktieren Sie uns"
+    "ctaSecondaryLabel": "Kontaktieren Sie uns",
+    "searchLabel": "Suche",
+    "searchPlaceholder": "Rundreise suchen…",
+    "sortLabel": "Sortieren nach",
+    "sortDefault": "Relevanz",
+    "sortPriceAsc": "Preis: aufsteigend",
+    "sortPriceDesc": "Preis: absteigend",
+    "sortDurationAsc": "Dauer: kürzeste zuerst",
+    "sortDurationDesc": "Dauer: längste zuerst",
+    "noResults": "Keine Rundreise entspricht Ihrer Suche.",
+    "resetFilters": "Zurücksetzen"
   },
   "notifications": {
     "bellLabel": "Benachrichtigungen",

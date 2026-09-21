@@ -1029,7 +1029,17 @@
       "4x4 circuits"
     ],
     "ctaLabel": "See our activities",
-    "ctaSecondaryLabel": "Contact us"
+    "ctaSecondaryLabel": "Contact us",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search a circuit…",
+    "sortLabel": "Sort by",
+    "sortDefault": "Relevance",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "sortDurationAsc": "Duration: shortest first",
+    "sortDurationDesc": "Duration: longest first",
+    "noResults": "No circuit matches your search.",
+    "resetFilters": "Reset"
   },
   "notifications": {
     "bellLabel": "Notifications",

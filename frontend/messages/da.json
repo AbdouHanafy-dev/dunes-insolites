@@ -989,7 +989,17 @@
       "4x4-ture"
     ],
     "ctaLabel": "Se vores aktiviteter",
-    "ctaSecondaryLabel": "Kontakt os"
+    "ctaSecondaryLabel": "Kontakt os",
+    "searchLabel": "Søg",
+    "searchPlaceholder": "Søg efter en tur…",
+    "sortLabel": "Sortér efter",
+    "sortDefault": "Relevans",
+    "sortPriceAsc": "Pris: lav til høj",
+    "sortPriceDesc": "Pris: høj til lav",
+    "sortDurationAsc": "Varighed: korteste først",
+    "sortDurationDesc": "Varighed: længste først",
+    "noResults": "Ingen tur matcher din søgning.",
+    "resetFilters": "Nulstil"
   },
   "notifications": {
     "bellLabel": "Notifikationer",

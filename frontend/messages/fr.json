@@ -1029,7 +1029,17 @@
       "Circuits 4x4"
     ],
     "ctaLabel": "Voir nos activités",
-    "ctaSecondaryLabel": "Nous contacter"
+    "ctaSecondaryLabel": "Nous contacter",
+    "searchLabel": "Rechercher",
+    "searchPlaceholder": "Rechercher un circuit…",
+    "sortLabel": "Trier par",
+    "sortDefault": "Pertinence",
+    "sortPriceAsc": "Prix croissant",
+    "sortPriceDesc": "Prix décroissant",
+    "sortDurationAsc": "Durée croissante",
+    "sortDurationDesc": "Durée décroissante",
+    "noResults": "Aucun circuit ne correspond à votre recherche.",
+    "resetFilters": "Réinitialiser"
   },
   "notifications": {
     "bellLabel": "Notifications",

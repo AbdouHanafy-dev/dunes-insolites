@@ -989,7 +989,17 @@
       "Circuiti in 4x4"
     ],
     "ctaLabel": "Scopri le nostre attività",
-    "ctaSecondaryLabel": "Contattaci"
+    "ctaSecondaryLabel": "Contattaci",
+    "searchLabel": "Cerca",
+    "searchPlaceholder": "Cerca un circuito…",
+    "sortLabel": "Ordina per",
+    "sortDefault": "Rilevanza",
+    "sortPriceAsc": "Prezzo: dal più basso",
+    "sortPriceDesc": "Prezzo: dal più alto",
+    "sortDurationAsc": "Durata: dalla più breve",
+    "sortDurationDesc": "Durata: dalla più lunga",
+    "noResults": "Nessun circuito corrisponde alla tua ricerca.",
+    "resetFilters": "Reimposta"
   },
   "notifications": {
     "bellLabel": "Notifiche",

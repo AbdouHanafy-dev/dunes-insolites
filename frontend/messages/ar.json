@@ -989,7 +989,17 @@
       "رحلات بالدفع الرباعي"
     ],
     "ctaLabel": "شاهد أنشطتنا",
-    "ctaSecondaryLabel": "اتصل بنا"
+    "ctaSecondaryLabel": "اتصل بنا",
+    "searchLabel": "بحث",
+    "searchPlaceholder": "ابحث عن رحلة…",
+    "sortLabel": "ترتيب حسب",
+    "sortDefault": "الأكثر صلة",
+    "sortPriceAsc": "السعر: من الأقل إلى الأعلى",
+    "sortPriceDesc": "السعر: من الأعلى إلى الأقل",
+    "sortDurationAsc": "المدة: الأقصر أولاً",
+    "sortDurationDesc": "المدة: الأطول أولاً",
+    "noResults": "لا توجد رحلة مطابقة لبحثك.",
+    "resetFilters": "إعادة تعيين"
   },
   "notifications": {
     "bellLabel": "الإشعارات",
