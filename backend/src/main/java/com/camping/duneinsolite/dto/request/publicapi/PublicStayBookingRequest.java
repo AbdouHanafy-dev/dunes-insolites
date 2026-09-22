@@ -41,6 +41,18 @@ public class PublicStayBookingRequest {
             message = "Arrival mode must be OWN_VEHICLE or TRANSPORT")
     private String arrivalMode;
 
+    @jakarta.validation.constraints.Pattern(
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
+            message = "Departure city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+    private String departureCity;
+
+    // Optional return leg after the stay - same city catalog as
+    // departureCity. The guest may skip it; staff arrange the driver later.
+    @jakarta.validation.constraints.Pattern(
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
+            message = "Return city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+    private String returnCity;
+
     // "Getting There & Guide" step - guide (with support vehicle, or in the
     // guest's own vehicle) and/or transport/pickup, when the tour needs one
     // or the guest chose one.

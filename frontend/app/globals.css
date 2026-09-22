@@ -2419,6 +2419,10 @@ section.block {
 .date-picker-trigger[data-placeholder] {
   color: var(--muted);
 }
+.date-picker-icon {
+  flex: none;
+  opacity: 0.65;
+}
 .date-picker-trigger:hover {
   border-color: var(--accent);
 }
@@ -3188,6 +3192,21 @@ footer.site-footer .bar-social a:hover {
   padding: 190px 0 120px;
   min-height: 100vh;
 }
+/* /book reuses the circuit page's narrow-sidebar card at a much wider,
+   standalone width - the extra width alone left it visually tall since
+   every step is still a single stacked column. Trim spacing and text size
+   here only, rather than going wide+horizontal (tried and reverted - felt
+   crowded at this card's proportions). */
+.book-page .tour-booking-card { font-size: 13px; }
+.book-page .tour-booking-card .tour-book-step-heading { margin-bottom: 14px; }
+.book-page .tour-booking-card .reserve-form { gap: 12px; }
+.book-page .tour-booking-card .field label { font-size: 9px; }
+.book-page .tour-booking-card .tour-book-guests .guest-row { padding: 11px 16px; }
+.book-page .tour-booking-card .ride-option { padding: 9px 14px; }
+.book-page .tour-booking-card .picker { gap: 14px; margin-top: 20px; }
+.book-page .tour-booking-card .pick .thumb { aspect-ratio: 16/8; }
+.book-page .tour-booking-card .pick .meta { padding: 14px 16px 16px; }
+.book-page .tour-booking-card .pick .meta h3 { font-size: 1.05rem; }
 .stepper {
   display: flex;
   flex-wrap: wrap;

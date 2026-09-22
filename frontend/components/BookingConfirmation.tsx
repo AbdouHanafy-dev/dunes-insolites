@@ -115,7 +115,10 @@ export default function BookingConfirmation({ id }: { id: string }) {
           <div>
             <div className="k">{t("party")}</div>
             <div className="v">
-              {booking.partySize} {booking.partySize === 1 ? t("personSingular") : t("peoplePlural")}
+              {(() => {
+                const size = booking.numberOfAdults + booking.numberOfChildren;
+                return `${size} ${size === 1 ? t("personSingular") : t("peoplePlural")}`;
+              })()}
             </div>
           </div>
           <div>

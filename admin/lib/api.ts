@@ -53,6 +53,7 @@ export type AdminReservation = {
   checkOutDate: string | null;
   serviceDate: string | null;
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
+  departureCity: "TUNIS" | "SOUSSE" | "HAMMAMET" | "DJERBA" | "MAHDIA" | "MONASTIR" | null;
   totalAmount: number;
   currency: string;
   createdAt: string;
@@ -153,6 +154,7 @@ export type AdminReservationDetail = AdminReservation & {
   // one. otherLanguageRequested is free text when none of the catalog fit.
   preferredLanguages: AdminSpokenLanguage[];
   otherLanguageRequested: string | null;
+  paymentLink: string | null;
   guides: AdminReservationStaffMember[];
   chauffeurs: AdminReservationStaffMember[];
 };

@@ -2,6 +2,7 @@ package com.camping.duneinsolite.model;
 
 import com.camping.duneinsolite.model.enums.Currency;
 import com.camping.duneinsolite.model.enums.ArrivalMode;
+import com.camping.duneinsolite.model.enums.DepartureCity;
 import com.camping.duneinsolite.model.enums.ReservationStatus;
 import com.camping.duneinsolite.model.enums.ReservationType;
 import jakarta.persistence.*;
@@ -107,6 +108,21 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(name = "arrival_mode", length = 20)
     private ArrivalMode arrivalMode;
+
+    // Where the guest departs from for pickup — only meaningful for TOURS
+    // and HEBERGEMENT (an EXTRAS booking has no pickup routing). Null when
+    // not applicable or not yet provided.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "departure_city", length = 20)
+    private DepartureCity departureCity;
+
+    // Optional return leg after the stay/tour ends — same DepartureCity
+    // catalog as the outbound `departureCity`, reused rather than a second
+    // enum, since it is the same set of pickup/drop-off towns either way.
+    // The guest may skip this entirely; staff arrange the driver later.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "return_city", length = 20)
+    private DepartureCity returnCity;
 
     // Client's preferred language(s) for this booking (currently only
     // captured by the Tour public booking form, where staff assign a

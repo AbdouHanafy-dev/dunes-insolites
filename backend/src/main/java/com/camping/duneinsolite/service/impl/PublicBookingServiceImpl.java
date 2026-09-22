@@ -106,45 +106,90 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // that succeeded must return that booking even if the activity has since
         // filled up or the slug was deactivated.
         var replay = replayOf(request.getIdempotencyKey());
-        if (replay.isPresent()) return toActivityResponse(replay.get(), request);
+        if (replay.isPresent()) {
+            List<String> replayRides = request.getRideSlugs() == null ? List.of() : request.getRideSlugs();
+            return toActivityResponse(replay.get(), request, replayRides);
+        }
 
         Extra extra = extraRepository.findBySlugAndIsActiveTrue(request.getActivitySlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + request.getActivitySlug()));
+
+        if (request.getArrivalMode() != null
+                && !"OWN_VEHICLE".equals(request.getArrivalMode())
+                && !"TRANSPORT".equals(request.getArrivalMode())) {
+            throw new ReservationValidationException(
+                    "Please tell us how you'll join the activity.");
+        }
+
         ResolvedBookingUser resolvedUser = resolveBookingUser(
                 request.getName(), request.getEmail(), request.getPhone());
         User user = resolvedUser.user();
         Source source = vitrineSource();
+
+        int children = request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0;
+        int totalHeadcount = request.getNumberOfAdults() + children;
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setUserId(user.getUserId());
         reservationRequest.setSourceId(source.getSourceId());
         reservationRequest.setReservationType(ReservationType.EXTRAS);
         reservationRequest.setServiceDate(request.getDate());
-        reservationRequest.setNumberOfAdults(request.getPartySize());
-        reservationRequest.setNumberOfChildren(0);
+        reservationRequest.setNumberOfAdults(request.getNumberOfAdults());
+        reservationRequest.setNumberOfChildren(children);
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), timeSlotNote(request.getTimeSlot())));
+        reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
+                : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
+        reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null
+                : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
+        reservationRequest.setReturnCity(request.getReturnCity() == null ? null
+                : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
+        reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
+        reservationRequest.setOtherLanguageRequested(
+                request.getOtherLanguageRequested() != null && !request.getOtherLanguageRequested().isBlank()
+                        ? request.getOtherLanguageRequested().trim() : null);
 
         ReservationExtraRequest extraRequest = new ReservationExtraRequest();
         extraRequest.setExtraId(extra.getExtraId());
-        extraRequest.setQuantity(request.getPartySize());
+        // Quantity is the unit the extra is priced/held by (a seat/spot) -
+        // total headcount regardless of the adult/child split, since
+        // Extra.unitPrice doesn't differentiate by age (unlike TourType).
+        extraRequest.setQuantity(totalHeadcount);
         extraRequest.setActivityDate(request.getDate());
-        reservationRequest.setExtras(List.of(extraRequest));
+
+        List<String> rideSlugs = request.getRideSlugs() == null ? List.of() : request.getRideSlugs();
+        List<ReservationExtraRequest> selectedExtras = new java.util.ArrayList<>();
+        selectedExtras.add(extraRequest);
+        if (!rideSlugs.isEmpty()) {
+            selectedExtras.addAll(rideSlugs.stream()
+                    .filter(slug -> !slug.equals(request.getActivitySlug()))
+                    .map(slug -> resolveRide(slug, request.getDate()))
+                    .toList());
+        }
+        reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
         inviteNewGuest(resolvedUser);
         availabilityMetrics.holdCreated();
-        return toActivityResponse(reservation, request);
+        return toActivityResponse(reservation, request, rideSlugs);
     }
 
-    private PublicBookingResponse toActivityResponse(ReservationResponse reservation, PublicActivityBookingRequest request) {
+    private PublicBookingResponse toActivityResponse(
+            ReservationResponse reservation, PublicActivityBookingRequest request, List<String> rideSlugs) {
         PublicBookingResponse response = new PublicBookingResponse();
         response.setId(reservation.getReservationId().toString());
         response.setActivitySlug(request.getActivitySlug());
         response.setDate(request.getDate().toString());
         response.setTimeSlot(request.getTimeSlot());
-        response.setPartySize(request.getPartySize());
+        response.setNumberOfAdults(request.getNumberOfAdults());
+        response.setNumberOfChildren(request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0);
+        response.setRideSlugs(rideSlugs);
+        response.setArrivalMode(request.getArrivalMode());
+        response.setDepartureCity(request.getDepartureCity());
+        response.setReturnCity(request.getReturnCity());
+        response.setPreferredLanguageIds(request.getPreferredLanguageIds());
+        response.setOtherLanguageRequested(request.getOtherLanguageRequested());
         response.setName(request.getName());
         response.setEmail(request.getEmail());
         response.setPhone(request.getPhone());
@@ -213,6 +258,10 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), null));
         reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
                 : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
+        reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null
+                : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
+        reservationRequest.setReturnCity(request.getReturnCity() == null ? null
+                : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
         reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
         reservationRequest.setOtherLanguageRequested(
                 request.getOtherLanguageRequested() != null && !request.getOtherLanguageRequested().isBlank()
@@ -267,6 +316,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setNumberOfChildren(request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0);
         response.setRideSlugs(rideSlugs);
         response.setArrivalMode(request.getArrivalMode());
+        response.setDepartureCity(request.getDepartureCity());
+        response.setReturnCity(request.getReturnCity());
         response.setPreferredLanguageIds(request.getPreferredLanguageIds());
         response.setOtherLanguageRequested(request.getOtherLanguageRequested());
         response.setName(request.getName());
@@ -366,6 +417,10 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 accommodationNote(request.getAccommodationSlug(), request.getAccommodationQty())));
         reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
                 : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
+        reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null
+                : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
+        reservationRequest.setReturnCity(request.getReturnCity() == null ? null
+                : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
 
         TourTypeSelectionRequest selection = new TourTypeSelectionRequest();
         selection.setTourTypeId(tourType.getTourTypeId());
@@ -414,6 +469,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setPartySize(request.getPartySize());
         response.setRideSlugs(rideSlugs);
         response.setArrivalMode(request.getArrivalMode());
+        response.setDepartureCity(request.getDepartureCity());
+        response.setReturnCity(request.getReturnCity());
         response.setName(request.getName());
         response.setEmail(request.getEmail());
         response.setPhone(request.getPhone());

@@ -2,6 +2,7 @@ package com.camping.duneinsolite.dto.response;
 
 import com.camping.duneinsolite.model.enums.Currency;
 import com.camping.duneinsolite.model.enums.ArrivalMode;
+import com.camping.duneinsolite.model.enums.DepartureCity;
 import com.camping.duneinsolite.model.enums.ReservationStatus;
 import com.camping.duneinsolite.model.enums.ReservationType;
 import lombok.Data;
@@ -34,6 +35,8 @@ public class ReservationResponse {
     private String promoCode;
     private String demandeSpecial;
     private ArrivalMode arrivalMode;
+    private DepartureCity departureCity;
+    private DepartureCity returnCity;
     private Set<SpokenLanguageResponse> preferredLanguages;
     private String otherLanguageRequested;
     private String paymentLink;

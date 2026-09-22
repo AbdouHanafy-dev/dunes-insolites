@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getDriverProfiles, getGuideProfiles, getReservationById } from "@/lib/api";
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
+import ReservationStatusPanel from "@/components/payload/ReservationStatusPanel";
 
 export const metadata: Metadata = { title: "Réservation" };
 
@@ -44,6 +45,9 @@ export default async function ReservationDetailPage({ params }: { params: Promis
             value={reservation.arrivalMode === "TRANSPORT" ? "Véhicule et chauffeur demandés" : "Le client vient avec son véhicule"}
           />
         )}
+        {reservation.departureCity && (
+          <Field label="Ville de départ" value={DEPARTURE_CITY_LABELS[reservation.departureCity]} />
+        )}
         {reservation.groupName && <Field label="Groupe" value={reservation.groupName} />}
         {reservation.groupLeaderName && <Field label="Responsable groupe" value={reservation.groupLeaderName} />}
         {reservation.preferredLanguages.length > 0 && (
@@ -53,6 +57,12 @@ export default async function ReservationDetailPage({ params }: { params: Promis
           <Field label="Autre langue demandée" value={reservation.otherLanguageRequested} />
         )}
       </div>
+
+      <ReservationStatusPanel
+        reservationId={reservation.reservationId}
+        status={reservation.status}
+        paymentLink={reservation.paymentLink}
+      />
 
       <ReservationStaffPanel
         reservationId={reservation.reservationId}
@@ -68,6 +78,15 @@ export default async function ReservationDetailPage({ params }: { params: Promis
     </div>
   );
 }
+
+const DEPARTURE_CITY_LABELS: Record<string, string> = {
+  TUNIS: "Tunis",
+  SOUSSE: "Sousse",
+  HAMMAMET: "Hammamet",
+  DJERBA: "Djerba",
+  MAHDIA: "Mahdia",
+  MONASTIR: "Monastir",
+};
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
