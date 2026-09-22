@@ -580,7 +580,10 @@
     "removeFromWishlist": "Fjern fra ønskeliste",
     "bookedYesterday": "{count, plural, one {Booket # gang i går} other {Booket # gange i går}}",
     "share": "Del",
-    "linkCopied": "Link kopieret!"
+    "linkCopied": "Link kopieret!",
+    "wishlistAdded": "Føjet til ønskelisten",
+    "wishlistRemoved": "Fjernet fra ønskelisten",
+    "shareFailed": "Linket kunne ikke deles."
   },
   "activitiesPage": {
     "eyebrow": "Vælg dit køretøj",

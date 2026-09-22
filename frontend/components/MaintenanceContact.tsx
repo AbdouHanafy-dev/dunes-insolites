@@ -7,9 +7,8 @@ import { trackWhatsAppClick } from "@/lib/analytics";
  * Self-contained like MaintenanceCountdown/MaintenanceNotifyForm — no
  * next-intl context on this page. On request: people who want to book
  * while the site is gated behind the launch countdown shouldn't be stuck
- * with only an email form, so this reuses the same WhatsApp deep-link
- * pattern as WhatsAppButton.tsx (site.whatsapp, wa.me), plus a row of
- * social icons.
+ * with only an email form, so this provides a WhatsApp deep link using
+ * site.whatsapp and wa.me, plus a row of social icons.
  *
  * Only icons for platforms actually configured in lib/site.ts's
  * `site.social` are rendered (currently Instagram, Facebook, TikTok — no

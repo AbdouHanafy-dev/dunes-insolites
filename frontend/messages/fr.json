@@ -580,7 +580,10 @@
     "removeFromWishlist": "Retirer de mes favoris",
     "bookedYesterday": "{count, plural, one {Réservée # fois hier} other {Réservée # fois hier}}",
     "share": "Partager",
-    "linkCopied": "Lien copié !"
+    "linkCopied": "Lien copié !",
+    "wishlistAdded": "Ajouté à vos favoris",
+    "wishlistRemoved": "Retiré de vos favoris",
+    "shareFailed": "Impossible de partager ce lien."
   },
   "activitiesPage": {
     "eyebrow": "Choisissez votre monture",

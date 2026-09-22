@@ -580,7 +580,10 @@
     "removeFromWishlist": "Remove from wishlist",
     "bookedYesterday": "{count, plural, one {Booked # time yesterday} other {Booked # times yesterday}}",
     "share": "Share",
-    "linkCopied": "Link copied!"
+    "linkCopied": "Link copied!",
+    "wishlistAdded": "Added to your wishlist",
+    "wishlistRemoved": "Removed from your wishlist",
+    "shareFailed": "Unable to share this link."
   },
   "activitiesPage": {
     "eyebrow": "Choose your ride",

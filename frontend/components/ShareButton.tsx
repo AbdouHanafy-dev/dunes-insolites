@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/Toast";
 
 /** Native share sheet where available, clipboard-copy fallback elsewhere. */
 export default function ShareButton({ title }: { title: string }) {
   const t = useTranslations("tourCard");
+  const toast = useToast();
   const [copied, setCopied] = useState(false);
 
   async function share(e: React.MouseEvent) {
@@ -15,17 +17,21 @@ export default function ShareButton({ title }: { title: string }) {
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
-      } catch {
-        // User cancelled the share sheet - not an error.
+      } catch (error) {
+        // Closing the native share sheet is intentional, not an error.
+        if (error instanceof DOMException && error.name !== "AbortError") {
+          toast.error(t("shareFailed"));
+        }
       }
       return;
     }
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      toast.success(t("linkCopied"));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard blocked - nothing more we can do here.
+      toast.error(t("shareFailed"));
     }
   }
 

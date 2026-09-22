@@ -342,11 +342,8 @@ body:has(.auth-page) .site-header {
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  /* Above the header (40) and the WhatsApp float (45) — the header variant
-     renders as `position: fixed` via an inline style (see
-     LanguageSwitcher's `panelAnchor="header"`), measured to clear the
-     whole floating pill rather than just the button inside it, so it can
-     land anywhere near the top of the page. */
+  /* Above the header (40). The header variant renders as `position: fixed`
+     via an inline style (see LanguageSwitcher's `panelAnchor="header"`). */
   z-index: 50;
   min-width: 200px;
   margin: 0;
@@ -1235,8 +1232,7 @@ body:has(.auth-page) .site-header {
 }
 
 /* ---- experience preview, upper-right ----
-   Sits well above the WhatsApp float, which keeps the lower-right corner to
-   itself — a curated "here's something to do" card, not a repeat of SABRIA. */
+   A curated "here's something to do" card, not a repeat of SABRIA. */
 .hero-card {
   position: absolute;
   z-index: 10;
@@ -2844,10 +2840,6 @@ footer.site-footer .bar {
   flex-wrap: wrap;
   font-size: 0.82rem;
   opacity: 0.7;
-  /* The fixed WhatsApp button (.wa-float) always sits over the page's
-     bottom-right corner, right where this bar's last item lands — reserve
-     its footprint so the social links never run under it. */
-  padding-right: calc(120px + env(safe-area-inset-right, 0px));
 }
 footer.site-footer .bar-legal {
   display: flex;
@@ -3775,8 +3767,8 @@ footer.site-footer .bar-social a:hover {
 
 /* ---------- launch-page contact / follow ----------
    On request: a way to reach the business directly while the site is
-   gated (WhatsApp — the default way people book in Tunisia, same
-   wa.me pattern as WhatsAppButton.tsx) plus a row of social icons, styled
+   gated (WhatsApp — the default way people book in Tunisia, using a wa.me
+   deep link) plus a row of social icons, styled
    like the reference "coming soon" page's own footer but in this page's
    palette. Only platforms with a real URL in lib/site.ts's `site.social`
    get an icon. */
@@ -3836,10 +3828,9 @@ footer.site-footer .bar-social a:hover {
 }
 
 /* ---------- launch-page ambient music toggle ----------
-   On request: soft background music. Same floating-glass corner
-   language as .wa-float on the real site, but this page never renders
-   that button (no header/footer here — see maintenance/layout.tsx's own
-   comment), so the corner is free. */
+   On request: soft background music. Floating-glass corner treatment,
+   free real estate since this page has no header/footer (see
+   maintenance/layout.tsx's own comment). */
 .maint-music-toggle {
   position: fixed;
   right: calc(24px + env(safe-area-inset-right, 0px));
@@ -5602,83 +5593,6 @@ footer.site-footer .bar-social a:hover {
   }
   .cta-split-media {
     min-height: 260px;
-  }
-}
-
-/* ---------- WhatsApp float ----------
-   Dark glass to match the site's own chrome (header, cards) rather than
-   the stock WhatsApp-green pill, which reads as a bolted-on widget against
-   this warm, editorial palette. The brand green survives as a small icon
-   chip — enough to stay instantly recognizable at a glance. */
-.wa-float {
-  position: fixed;
-  /* A touch further off the corner than the hero card sits from the top —
-     enough that the two floating elements never read as one cluster. The
-     safe-area terms are 0px on any device without a notch/home-indicator
-     inset, so this is one rule for every device, not a mobile-only patch. */
-  right: calc(24px + env(safe-area-inset-right, 0px));
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  z-index: 45;
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  padding: 9px 20px 9px 9px;
-  border-radius: var(--radius-pill);
-  background: rgba(20, 14, 10, 0.55);
-  border: 1px solid rgba(245, 240, 232, 0.16);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  color: var(--paper);
-  font-family: var(--font-display), sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  /* Same shadow language as the hero card and header — one floating-glass
-     vocabulary across the page rather than a widget with its own rules. */
-  box-shadow: 0 18px 40px rgba(6, 10, 8, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-}
-.wa-float:hover {
-  transform: translateY(-2px);
-  border-color: rgba(245, 240, 232, 0.32);
-  box-shadow: 0 24px 48px rgba(6, 10, 8, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-.wa-float:focus-visible {
-  outline: 2px solid rgba(245, 240, 232, 0.8);
-  outline-offset: 3px;
-}
-.wa-float .icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #25d366;
-  color: #06301a;
-}
-.wa-float svg {
-  flex: none;
-}
-/* Login and signup are focused, single-action pages — the floating button
-   lands on top of the submit button there, so keep it out of the way. */
-body:has(.auth-page) .wa-float {
-  display: none;
-}
-/* The float's z-index (45) otherwise sits above the mobile drawer (39), so
-   it stayed visible and clickable floating over the open menu — which
-   already has its own WhatsApp line in the list. */
-body:has(.drawer[data-open="true"]) .wa-float {
-  display: none;
-}
-@media (max-width: 560px) {
-  .wa-float .wa-label {
-    display: none;
-  }
-  .wa-float {
-    padding: 9px;
   }
 }
 

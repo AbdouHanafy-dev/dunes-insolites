@@ -580,7 +580,10 @@
     "removeFromWishlist": "Von der Wunschliste entfernen",
     "bookedYesterday": "{count, plural, one {Gestern # Mal gebucht} other {Gestern # Mal gebucht}}",
     "share": "Teilen",
-    "linkCopied": "Link kopiert!"
+    "linkCopied": "Link kopiert!",
+    "wishlistAdded": "Zur Wunschliste hinzugefügt",
+    "wishlistRemoved": "Aus der Wunschliste entfernt",
+    "shareFailed": "Dieser Link konnte nicht geteilt werden."
   },
   "activitiesPage": {
     "eyebrow": "Wählen Sie Ihr Gefährt",

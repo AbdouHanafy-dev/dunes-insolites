@@ -580,7 +580,10 @@
     "removeFromWishlist": "Rimuovi dai preferiti",
     "bookedYesterday": "{count, plural, one {Prenotato # volta ieri} other {Prenotato # volte ieri}}",
     "share": "Condividi",
-    "linkCopied": "Link copiato!"
+    "linkCopied": "Link copiato!",
+    "wishlistAdded": "Aggiunto ai preferiti",
+    "wishlistRemoved": "Rimosso dai preferiti",
+    "shareFailed": "Impossibile condividere questo link."
   },
   "activitiesPage": {
     "eyebrow": "Scegli il tuo mezzo",

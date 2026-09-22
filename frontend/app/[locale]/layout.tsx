@@ -11,7 +11,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import Analytics from "@/components/Analytics";
-import WhatsAppButton from "@/components/WhatsAppButton";
 import { ToastProvider } from "@/components/Toast";
 import "../globals.css";
 import "../editorial-redesign.css";
@@ -222,7 +221,6 @@ export default async function LocaleLayout({ children, params }: Props) {
             <Header activities={activities} stays={stays} tours={tours} navItems={navItems} settings={settings} />
             <main>{children}</main>
             <Footer settings={settings} />
-            <WhatsAppButton whatsapp={settings.whatsapp} />
             <CookieConsent />
             <Analytics />
           </ToastProvider>

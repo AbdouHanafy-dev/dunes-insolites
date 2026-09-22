@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/Toast";
 
 const STORAGE_KEY = "wishlist";
 const CHANGE_EVENT = "wishlist:change";
@@ -54,6 +55,7 @@ export default function WishlistButton({
   variant?: "card" | "inline";
 }) {
   const t = useTranslations("tourCard");
+  const toast = useToast();
   const saved = useSyncExternalStore(
     subscribe,
     () => readWishlist().has(slug),
@@ -71,8 +73,13 @@ export default function WishlistButton({
         e.preventDefault();
         e.stopPropagation();
         const current = readWishlist();
-        if (current.has(slug)) current.delete(slug);
-        else current.add(slug);
+        if (current.has(slug)) {
+          current.delete(slug);
+          toast.success(t("wishlistRemoved"));
+        } else {
+          current.add(slug);
+          toast.success(t("wishlistAdded"));
+        }
         writeWishlist(current);
       }}
     >

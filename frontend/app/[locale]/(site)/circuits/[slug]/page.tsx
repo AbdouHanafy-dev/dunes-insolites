@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -13,6 +12,7 @@ import TourBookingFlow from "@/components/TourBookingFlow";
 import Reviews from "@/components/Reviews";
 import WishlistButton from "@/components/WishlistButton";
 import ShareButton from "@/components/ShareButton";
+import TourPhotoGallery from "@/components/TourPhotoGallery";
 import { site } from "@/lib/site";
 import { GUIDE_TYPE_LABELS, MEAL_TYPE_LABELS, MEAL_FORMAT_LABELS } from "@/lib/types";
 
@@ -75,7 +75,7 @@ export default async function TourDetail({ params }: Props) {
   const hasRestrictions = tour.notSuitableFor.length > 0 || tour.notAllowed.length > 0 || !!tour.petPolicyNote;
   const hasPracticalInfo =
     !!tour.goodToKnow || tour.mustBring.length > 0 || !!tour.emergencyPhone || !!tour.ticketInfo;
-  const media = suppliedMedia.length ? suppliedMedia.slice(0, 5) : ["/images/camp-hero-poster.jpg"];
+  const media = suppliedMedia.length ? suppliedMedia : ["/images/camp-hero-poster.jpg"];
 
   // Product (not the more specific TouristTrip) per the GetYourGuide-style
   // structured-data spec this page follows. aggregateRating is only emitted
@@ -135,32 +135,21 @@ export default async function TourDetail({ params }: Props) {
                   </a>
                 )}
                 <span className="tour-organizer">{t("organizerLabel", { name: site.name })}</span>
-                <WishlistButton slug={tour.slug} variant="inline" />
-                <ShareButton title={tour.title} />
+                <span className="tour-header-desktop-action">
+                  <WishlistButton slug={tour.slug} variant="inline" />
+                </span>
+                <span className="tour-header-desktop-action">
+                  <ShareButton title={tour.title} />
+                </span>
               </div>
             </div>
 
-            <section className={`tour-gallery media-count-${media.length}`} aria-label={tour.title}>
-              <div className="tour-media-primary">
-                <Image src={media[0]} alt={suppliedMedia.length ? tour.title : ""} fill sizes="(max-width: 900px) 100vw, 58vw" priority />
-              </div>
-              {media.length > 1 && (
-                <div className="tour-media-secondary">
-                  {media.slice(1).map((source, index) => {
-                    const isLast = index === media.slice(1).length - 1;
-                    const remaining = suppliedMedia.length - media.length;
-                    return (
-                      <div className="tour-media-cell" key={`${source}-${index}`}>
-                        <Image src={source} alt={`${tour.title} — ${index + 2}`} fill sizes="(max-width: 900px) 50vw, 20vw" />
-                        {isLast && remaining > 0 && (
-                          <span className="tour-gallery-viewall">{t("viewAllPhotos", { count: suppliedMedia.length })}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
+            <TourPhotoGallery
+              media={media}
+              suppliedMediaCount={suppliedMedia.length}
+              title={tour.title}
+              slug={tour.slug}
+            />
 
             <p className="tour-product-lead">{tour.description}</p>
 
@@ -410,6 +399,19 @@ export default async function TourDetail({ params }: Props) {
           </aside>
         </div>
       </section>
+
+      <div className="tour-mobile-booking-bar">
+        {tour.cancellationPolicy?.freeCancellation && (
+          <p>{t("freeCancellationNote")}</p>
+        )}
+        <div>
+          <span className="tour-mobile-booking-price">
+            <small>{t("fromPrice", { price: tour.priceFrom })}</small>
+            <strong>{t("perAdultLabel")}</strong>
+          </span>
+          <a href="#reserve">{t("ctaLabel")}</a>
+        </div>
+      </div>
 
       <Reviews tourSlug={slug} title={t("reviewsTitle", { tour: tour.title })} />
 

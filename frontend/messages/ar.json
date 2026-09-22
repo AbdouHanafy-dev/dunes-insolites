@@ -580,7 +580,10 @@
     "removeFromWishlist": "إزالة من المفضلة",
     "bookedYesterday": "{count, plural, one {حجزت مرة واحدة أمس} other {حجزت # مرة أمس}}",
     "share": "مشاركة",
-    "linkCopied": "تم نسخ الرابط!"
+    "linkCopied": "تم نسخ الرابط!",
+    "wishlistAdded": "تمت الإضافة إلى المفضلة",
+    "wishlistRemoved": "تمت الإزالة من المفضلة",
+    "shareFailed": "تعذرت مشاركة هذا الرابط."
   },
   "activitiesPage": {
     "eyebrow": "اختاروا وسيلتكم",
