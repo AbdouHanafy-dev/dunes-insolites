@@ -2523,6 +2523,23 @@ section.block {
   color: rgba(42, 21, 16, 0.2);
   cursor: not-allowed;
 }
+.date-range-picker {
+  position: relative;
+}
+.date-range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .date-range-fields {
+    grid-template-columns: 1fr;
+  }
+}
+.date-picker-grid button[data-in-range] {
+  background: rgba(160, 74, 47, 0.12);
+  border-radius: 0;
+}
 .star-rating-input {
   display: flex;
   align-items: center;

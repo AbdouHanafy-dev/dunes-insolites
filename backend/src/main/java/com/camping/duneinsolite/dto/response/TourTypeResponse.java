@@ -18,6 +18,7 @@ public class TourTypeResponse {
     private String slug;
     private String description;
     private String duration;
+    private Integer maxNights;
     private java.math.BigDecimal passengerAdultPrice;
     private java.math.BigDecimal passengerChildPrice;
     private java.math.BigDecimal partnerAdultPrice;

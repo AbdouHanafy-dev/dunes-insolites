@@ -112,6 +112,11 @@ export type Stay = {
   accommodations?: Accommodation[];
   /** Whether booking this stay requires picking a GUIDE-category service option. */
   guideRequired?: boolean;
+  /** Maximum nights bookable in one reservation. 1 (default) = fixed
+   *  single-night stay, the booking flow only asks for an arrival date.
+   *  Greater than 1 = the guest picks an arrival+departure range, capped
+   *  at this many nights. */
+  maxNights?: number;
 };
 
 /**
@@ -225,6 +230,9 @@ export type Accommodation = {
   priceFrom: number;
   sleeps: string;
   features: string[];
+  // Max bookable units of this tier for a given stay, when configured.
+  // Absent/undefined means inventory isn't configured - no ceiling to enforce.
+  maxUnits?: number;
 };
 
 export type GalleryItem = {
@@ -367,6 +375,11 @@ export type StayBooking = {
    *  `accommodationSlug`. */
   accommodationQty?: number;
   date: string;
+  /** How many nights this booking covers, computed client-side from the
+   *  guest's arrival/departure picks. Defaults to 1 (a fixed single-night
+   *  stay only ever asks for the arrival date). Validated against the
+   *  stay's own `maxNights`. */
+  nights?: number;
   partySize: number;
   rideSlugs: string[];
   /** How the guest reaches the experience; validated against selected transport options. */

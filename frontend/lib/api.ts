@@ -440,22 +440,27 @@ export type TierAvailability = {
 export type StayAvailability = {
   staySlug: string;
   date: string;
+  nights: number;
   accommodations: TierAvailability[];
 };
 
 /**
- * Truthful accommodation availability for one night (Phase 2). Advisory — the
- * booking call re-checks under a lock. Returns `null` when there's no backend
- * (local dev): the form then treats every tier as bookable, same as before.
+ * Truthful accommodation availability across [date, date + nights) (Phase 2).
+ * `nights` defaults to 1 server-side when omitted. Advisory — the booking
+ * call re-checks the same range under a lock. Returns `null` when there's no
+ * backend (local dev): the form then treats every tier as bookable, same as
+ * before.
  */
 export async function getStayAvailability(
   slug: string,
   date: string,
+  nights?: number,
   signal?: AbortSignal,
 ): Promise<StayAvailability | null> {
   if (!BASE) return null;
+  const nightsQuery = nights && nights > 1 ? `&nights=${nights}` : "";
   return get<StayAvailability | null>(
-    `/public/stays/${encodeURIComponent(slug)}/availability?date=${encodeURIComponent(date)}`,
+    `/public/stays/${encodeURIComponent(slug)}/availability?date=${encodeURIComponent(date)}${nightsQuery}`,
     { seed: null, empty: null },
     { signal },
   );

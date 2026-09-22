@@ -358,6 +358,10 @@ export type AdminTourType = {
   slug: string | null;
   description: string | null;
   duration: string | null;
+  // Maximum nights bookable in one reservation. 1 = fixed single-night stay
+  // (booking flow only asks for arrival date). >1 = guest picks an
+  // arrival+departure range, capped at this many nights.
+  maxNights: number;
   passengerAdultPrice: number;
   passengerChildPrice: number;
   partnerAdultPrice: number;
@@ -447,12 +451,35 @@ export type AdminAccommodationType = {
   tourTypeName: string;
   slug: string;
   name: string;
+  description: string | null;
+  imageUrl: string | null;
   capacity: number;
   maxUnits: number | null;
-  unitPriceTtc: number;
+  unitPriceTtc: number | null;
+  tvaRate: number | null;
   currency: string;
+  displayOrder: number;
   active: boolean;
   bookable: boolean;
+  features: string[];
+};
+
+// The tier (Desert Tent / Room / Dune Suite) create/update payload -
+// field-for-field match of AccommodationTypeRequest.
+export type AdminAccommodationTypeInput = {
+  tourTypeId: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  capacity: number;
+  maxUnits?: number | null;
+  unitPriceTtc?: number | null;
+  tvaRate?: number | null;
+  currency?: string;
+  displayOrder?: number;
+  active?: boolean;
+  features?: string[];
 };
 
 // tourTypeId filters to one nuitée's tiers (Desert Tent / Room / Dune

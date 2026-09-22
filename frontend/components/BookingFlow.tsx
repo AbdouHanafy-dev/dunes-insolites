@@ -1,24 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api";
-import type { ActivityAvailability, Language } from "@/lib/api";
+import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, StayAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
-import { formatDuration } from "@/lib/data/activities";
+import DateRangePicker from "@/components/DateRangePicker";
 import {
   DEPARTURE_CITIES,
   DEPARTURE_CITY_LABELS,
   MAX_PARTY_SIZE,
-  SLOT_LABELS,
   type Activity,
   type DepartureCity,
-  type TimeSlot,
+  type Stay,
+  type Tour,
 } from "@/lib/types";
+
+type Category = "circuit" | "accommodation";
 
 function todayISO(): string {
   const d = new Date();
@@ -36,55 +37,89 @@ function prettyDate(iso: string, locale: string): string {
   });
 }
 
+function nightsBetween(arrival: string, departure: string): number {
+  if (!arrival || !departure) return 0;
+  const a = new Date(`${arrival}T00:00:00`).getTime();
+  const b = new Date(`${departure}T00:00:00`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
+
 /**
- * Same "Date & travelers → Guide language → Vehicle → Extras → Review" wizard
- * as TourBookingFlow, with one step prepended (choose the activity) since
- * /book is the generic entry point across all activities rather than a
- * single activity's own detail page. Same backend shape too: arrivalMode,
- * departureCity, preferredLanguageIds and rideSlugs (other activities added
- * on top) all flow into the same Reservation pipeline as a Tour booking.
+ * /book's entry point: choose Circuits or Camp stays, see the matching
+ * results, then walk a wizard whose steps and backend call differ by
+ * category — but both funnel into the exact same public booking pipeline
+ * TourBookingFlow (api.createTourBooking) and StayReservationForm
+ * (api.createStayBooking) already use. Activities remain bookable only as
+ * an add-on inside either flow (rideSlugs), not as a third top-level
+ * category — dropped 22 Sep 2026 per explicit product decision.
  */
 export default function BookingFlow({ activities }: { activities: Activity[] }) {
-  const params = useSearchParams();
-  const toast = useToast();
-  const locale = useLocale();
   const t = useTranslations("tourBookingForm");
+  const ts = useTranslations("stayReservationForm");
   const tb = useTranslations("bookingFlow");
   const ta = useTranslations("authForm");
+  const toast = useToast();
+  const locale = useLocale();
+  const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
+    PER_DAY: ts("unitDay"),
+    PER_BOOKING: ts("unitBooking"),
+    PER_PERSON: ts("unitPerson"),
+    PER_VEHICLE: ts("unitVehicle"),
+  };
 
-  const STEPS = [
-    tb("stepAdventure"),
-    t("stepDateTravelers"),
-    t("stepGuide"),
-    t("stepVehicle"),
-    t("stepExtras"),
-    t("stepReview"),
-  ] as const;
+  const [category, setCategory] = useState<Category | "">("");
+  const [step, setStep] = useState(0);
 
-  // Deep link: /book?activity=quad-safari opens straight on the date step.
-  const preset = params.get("activity");
-  const presetSlug = preset && activities.some((a) => a.slug === preset) ? preset : "";
+  // ---------- results ----------
+  const [tours, setTours] = useState<Tour[]>([]);
+  const [stays, setStays] = useState<Stay[]>([]);
+  const [resultsLoaded, setResultsLoaded] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<Tour | null>(null);
+  const [selectedStay, setSelectedStay] = useState<Stay | null>(null);
+  const [stayDetailLoading, setStayDetailLoading] = useState(false);
 
-  const [step, setStep] = useState(presetSlug ? 1 : 0);
-  const [slug, setSlug] = useState<string>(presetSlug);
-  const [date, setDate] = useState("");
-  const [timeSlot, setTimeSlot] = useState<TimeSlot | "">("");
+  // ---------- accommodation tier (within the selected stay) ----------
+  const [accommodationSlug, setAccommodationSlug] = useState("");
+  const [accommodationQty, setAccommodationQty] = useState(1);
+
+  // ---------- dates + travelers (shared shape, category-specific meaning) ----------
+  const [date, setDate] = useState(""); // arrival, both categories
+  const [departureDate, setDepartureDate] = useState(""); // stay, multi-night only
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
+  // ---------- circuit-only: preferred guide language ----------
   const [languages, setLanguages] = useState<Language[]>([]);
   const [languagesLoaded, setLanguagesLoaded] = useState(false);
   const [preferredLanguageIds, setPreferredLanguageIds] = useState<string[]>([]);
   const [otherLanguageRequested, setOtherLanguageRequested] = useState("");
 
+  // ---------- shared: getting there ----------
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
   const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
-  // Optional return leg after the activity ends - same city list as
-  // departureCity, entirely skippable.
   const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
 
+  // ---------- stay-only: guide/transport catalogue ----------
+  const [guideOptions, setGuideOptions] = useState<ServiceOptionCatalogItem[]>([]);
+  const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
+  const [guideSlug, setGuideSlug] = useState("");
+  const [transportSlug, setTransportSlug] = useState("");
+  const [pickupHotelName, setPickupHotelName] = useState("");
+  const [pickupAirport, setPickupAirport] = useState("");
+  const [pickupFlightNumber, setPickupFlightNumber] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupArrivalTime, setPickupArrivalTime] = useState("");
+  const [pickupInstructions, setPickupInstructions] = useState("");
+  const [serviceAvailability, setServiceAvailability] = useState<{
+    forDate: string;
+    bySlug: Record<string, ServiceOptionAvailability | null>;
+  }>();
+  const [stayAvail, setStayAvail] = useState<{ forDate: string; data: StayAvailability | null }>();
+
+  // ---------- shared: extras (other activities) ----------
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
 
+  // ---------- shared: contact ----------
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -92,25 +127,32 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const idempotencyKeyRef = useRef("");
 
-  // Availability is cached against the (activity, date) pair it was fetched
-  // for, so a stale response can never be shown against a newer selection.
-  // Real capacity (quads, camel-ride seats...), not a per-time-slot mock -
-  // the backend has no time-slot concept at all (the camp confirms the
-  // hour on arrival), so `timeSlot` below is a plain preference, never
-  // checked against capacity.
-  const [fetched, setFetched] = useState<{ key: string; availability: ActivityAvailability | null }>({
-    key: "",
-    availability: null,
-  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
-  // Same pattern as TourBookingFlow/StayReservationForm: render success
-  // inline instead of navigating away — the reservation is PENDING, not
-  // confirmed, so there's nothing on a separate page a fresh fetch would
-  // show that isn't already known right here.
   const [booking, setBooking] = useState<{ id: string } | null>(null);
 
+  const min = todayISO();
+  const maxNights = selectedStay?.maxNights ?? 1;
+  const multiNight = maxNights > 1;
+
+  // Results, per chosen category.
+  useEffect(() => {
+    if (category === "circuit") {
+      let cancelled = false;
+      api.getTours(locale).then((items) => !cancelled && setTours(items))
+        .finally(() => !cancelled && setResultsLoaded(true));
+      return () => { cancelled = true; };
+    }
+    if (category === "accommodation") {
+      let cancelled = false;
+      api.getStays(locale).then((items) => !cancelled && setStays(items))
+        .finally(() => !cancelled && setResultsLoaded(true));
+      return () => { cancelled = true; };
+    }
+  }, [category, locale]);
+
+  // Circuit's preferred-language catalogue.
   useEffect(() => {
     let cancelled = false;
     api.getLanguages().then((items) => {
@@ -118,128 +160,216 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         setLanguages(items);
         setLanguagesLoaded(true);
       }
-    }).catch(() => {
-      if (!cancelled) setLanguagesLoaded(true);
-    });
-    return () => {
-      cancelled = true;
-    };
+    }).catch(() => !cancelled && setLanguagesLoaded(true));
+    return () => { cancelled = true; };
   }, []);
 
-  const activity = useMemo(() => activities.find((a) => a.slug === slug), [activities, slug]);
-  const min = todayISO();
-
-  const key = slug && date ? `${slug}|${date}` : "";
-  const availability = fetched.key === key ? fetched.availability : null;
-  const loadingAvailability = key !== "" && fetched.key !== key;
-  const unitsAvailable = availability?.unitsAvailable ?? null;
-  const soldOut = availability?.status === "UNAVAILABLE";
-
+  // Stay's guide/transport catalogue.
   useEffect(() => {
-    if (!key) return;
-    const [a, d] = key.split("|");
     let cancelled = false;
-    api
-      .getActivityAvailability(a, d)
-      .then((availability) => {
-        if (cancelled) return;
-        setFetched({ key, availability });
-        // Never let the guest counts hold a value they could not actually
-        // book once real capacity comes back lower than their pick.
-        const units = availability?.unitsAvailable ?? null;
-        if (units != null) {
-          setAdults((current) => (current > units ? Math.max(1, units) : current));
-          setChildren((current) => (current > units ? 0 : current));
-        }
-      })
-      .catch(() => !cancelled && setFetched({ key, availability: null }));
-    return () => {
-      cancelled = true;
-    };
-  }, [key]);
+    api.getServiceOptions("GUIDE").then((items) => !cancelled && setGuideOptions(items));
+    api.getServiceOptions("TRANSPORT").then((items) => !cancelled && setTransportOptions(items));
+    return () => { cancelled = true; };
+  }, []);
 
-  function toggleRide(rideSlug: string) {
-    setRideSlugs((cur) => (cur.includes(rideSlug) ? cur.filter((s) => s !== rideSlug) : [...cur, rideSlug]));
+  const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
+
+  // Stay tier + service-option availability for the chosen arrival date,
+  // across the full [date, date + nights) span for multi-night stays.
+  useEffect(() => {
+    if (category !== "accommodation" || !selectedStay || !date) return;
+    if (multiNight && !departureDate) return;
+    const ctrl = new AbortController();
+    api.getStayAvailability(selectedStay.slug, date, nights, ctrl.signal)
+      .then((data) => !ctrl.signal.aborted && setStayAvail({ forDate: date, data }))
+      .catch(() => {});
+    const options = [...guideOptions, ...transportOptions];
+    Promise.all(
+      options.map(async (o) => [o.slug, await api.getServiceOptionAvailability(o.slug, date, ctrl.signal)] as const),
+    ).then((entries) => {
+      if (!ctrl.signal.aborted) setServiceAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
+    }).catch(() => {});
+    return () => ctrl.abort();
+  }, [category, selectedStay, date, departureDate, multiNight, nights, guideOptions, transportOptions]);
+
+  const otherActivities = activities;
+  const selectedAccommodation = selectedStay?.accommodations?.find((a) => a.slug === accommodationSlug);
+  const partySize = adults + children;
+
+  const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
+  const selectedGuide = guideOptions.find((o) => o.slug === guideSlug);
+  const needsPickupDetails = !!selectedTransport?.requiresPickupLocation;
+  const pickupFields = new Set(selectedTransport?.pickupFields ?? []);
+  const requiredPickupFields = new Set(selectedTransport?.requiredPickupFields ?? []);
+  const availableGuideOptions = hasOwnVehicle === false
+    ? guideOptions.filter((o) => !o.requiresCustomerVehicle)
+    : guideOptions;
+
+  function optionQuantity(option: ServiceOptionCatalogItem): number {
+    if (option.pricingUnit === "PER_PERSON") return partySize;
+    if (option.pricingUnit === "PER_DAY") return nights;
+    return 1;
+  }
+  function optionAvailability(option: ServiceOptionCatalogItem) {
+    return serviceAvailability?.forDate === date ? serviceAvailability.bySlug[option.slug] : undefined;
+  }
+  function optionUnavailable(option: ServiceOptionCatalogItem): boolean {
+    const availability = optionAvailability(option);
+    return availability?.status === "UNAVAILABLE"
+      || (availability?.unitsAvailable != null && availability.unitsAvailable < optionQuantity(option));
+  }
+  function optionPrice(option: ServiceOptionCatalogItem): number | null {
+    return option.priceTtc == null ? null : option.priceTtc * optionQuantity(option);
+  }
+  const serviceTotal = [selectedGuide, selectedTransport].reduce(
+    (sum, option) => sum + (option ? optionPrice(option) ?? 0 : 0), 0,
+  );
+
+  function tierAvailability(slug: string) {
+    return stayAvail?.forDate === date ? stayAvail.data?.accommodations.find((a) => a.slug === slug) : undefined;
+  }
+  function tierSoldOut(slug: string): boolean {
+    return tierAvailability(slug)?.status === "UNAVAILABLE";
   }
 
+  // Cap the quantity stepper at whichever of the tier's configured inventory
+  // (maxUnits) and today's live free-unit count is the tighter bound; when
+  // neither is configured (inventory not set up in the backoffice yet), fall
+  // back to a sane UI ceiling rather than letting the stepper run unbounded.
+  const accommodationUnitsCap = (() => {
+    const caps = [selectedAccommodation?.maxUnits, tierAvailability(accommodationSlug)?.unitsAvailable ?? undefined]
+      .filter((n): n is number => typeof n === "number");
+    return caps.length > 0 ? Math.min(...caps) : 6;
+  })();
+
+  const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + a.priceFrom, 0);
+
+  const circuitTotal = selectedTour
+    ? selectedTour.passengerAdultPrice * adults + selectedTour.passengerChildPrice * children
+    : 0;
+  const stayNightly = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : (selectedStay?.priceFrom ?? 0) * partySize;
+  const stayTotal = stayNightly * nights;
+
+  function toggleRide(slug: string) {
+    setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
+  }
   function toggleLanguage(id: string) {
     setPreferredLanguageIds((cur) => (cur.includes(id) ? cur.filter((l) => l !== id) : [...cur, id]));
   }
 
-  // Display-only estimate — never submitted. createBooking sends slug, date,
-  // slot, guests, vehicle, extras and contact; the server computes the
-  // authoritative price.
-  const partySize = adults + children;
-  const total = activity ? activity.priceFrom * partySize : 0;
-  const chosenSlot: TimeSlot | "" = timeSlot;
-  const otherActivities = activities.filter((a) => a.slug !== slug);
-  const extrasTotal = otherActivities
-    .filter((a) => rideSlugs.includes(a.slug))
-    .reduce((sum, a) => sum + a.priceFrom, 0);
+  async function selectStay(stay: Stay) {
+    setStayDetailLoading(true);
+    const full = await api.getStay(stay.slug, locale);
+    setSelectedStay(full ?? stay);
+    setAccommodationSlug("");
+    setAccommodationQty(1);
+    setStayDetailLoading(false);
+  }
+
+  // Steps: 0 category, 1 results, then category-specific steps. For
+  // accommodation, the tier pick comes right after dates/travelers (step 3)
+  // — dates decide the nights count, which the tier's per-night price and
+  // its live availability both depend on, so it can't come before them.
+  const STEPS =
+    category === "circuit"
+      ? [tb("stepCategory"), tb("stepResults"), t("stepDateTravelers"), t("stepGuide"), t("stepVehicle"), t("stepExtras"), t("stepReview")]
+      : category === "accommodation"
+        ? [tb("stepCategory"), tb("stepResults"), ts("stepDateTravelers"), ts("stepAccommodation"), ts("stepVehicleGuide"), ts("stepExtras"), ts("stepReview")]
+        : [tb("stepCategory")];
+  const lastStep = STEPS.length - 1;
 
   const validateStep = useCallback((): boolean => {
     const e: Record<string, string> = {};
-    if (step === 0 && !slug) e.activitySlug = tb("errorPickAdventure");
+
+    if (step === 0 && !category) e.category = tb("errorPickCategory");
+
     if (step === 1) {
+      if (category === "circuit" && !selectedTour) e.result = tb("errorPickResult");
+      if (category === "accommodation" && !selectedStay) e.result = tb("errorPickResult");
+    }
+
+    if (category === "circuit" && step === 2) {
       if (!date) e.date = t("errorPickDate");
       else if (date < min) e.date = t("errorPastDate");
-      if (!chosenSlot) e.timeSlot = tb("errorPickTimeSlot");
       if (adults < 1) e.adults = t("errorAtLeastOneAdult");
-      if (soldOut) e.adults = tb("errorSoldOut", { activity: activity?.title ?? "" });
-      else if (unitsAvailable != null && unitsAvailable < partySize)
-        e.adults =
-          unitsAvailable === 1
-            ? tb("errorLimitedSpotsOne", { n: unitsAvailable })
-            : tb("errorLimitedSpotsOther", { n: unitsAvailable });
-      if (partySize < 1 || partySize > MAX_PARTY_SIZE)
-        e.adults = tb("errorPartySizeRange", { max: MAX_PARTY_SIZE });
     }
-    if (step === 2) {
-      if (preferredLanguageIds.length === 0 && !otherLanguageRequested.trim()) {
-        e.language = t("errorLanguageRequired");
-      }
+    if (category === "circuit" && step === 3) {
+      if (preferredLanguageIds.length === 0 && !otherLanguageRequested.trim()) e.language = t("errorLanguageRequired");
     }
-    if (step === 3) {
+    if (category === "circuit" && step === 4) {
       if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
     }
-    if (step === 5) {
+    if (category === "circuit" && step === lastStep) {
       if (!name.trim()) e.name = t("errorName");
       if (!email.trim()) e.email = t("errorEmail");
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = t("errorEmailInvalid");
       if (!phone.trim()) e.phone = t("errorPhone");
       if (!acceptedTerms) e.acceptedTerms = ta("termsRequired");
     }
+
+    if (category === "accommodation" && step === 2) {
+      if (!date) e.date = t("errorPickDate");
+      else if (date < min) e.date = t("errorPastDate");
+      if (multiNight) {
+        if (!departureDate) e.departureDate = ts("errorMaxNights", { max: maxNights });
+        else if (nights < 1 || nights > maxNights) e.departureDate = ts("errorMaxNights", { max: maxNights });
+      }
+      if (adults < 1) e.adults = t("errorAtLeastOneAdult");
+    }
+    if (category === "accommodation" && step === 3) {
+      const hasTiers = (selectedStay?.accommodations?.length ?? 0) > 0;
+      if (hasTiers && !accommodationSlug) e.accommodation = tb("errorPickResult");
+      else if (accommodationSlug && tierSoldOut(accommodationSlug)) e.accommodation = ts("errorSoldOut");
+    }
+    if (category === "accommodation" && step === 4) {
+      if (hasOwnVehicle === null) e.arrivalMode = ts("errorArrivalMode");
+      if (selectedStay?.guideRequired && !guideSlug) e.guide = ts("errorGuideRequired");
+      if (hasOwnVehicle === false && !transportSlug) e.transport = ts("errorTransportRequired");
+      if (needsPickupDetails && !pickupHotelName.trim() && !pickupAirport.trim() && !pickupAddress.trim() && !pickupInstructions.trim()) {
+        e.pickup = ts("errorPickup");
+      }
+      if (selectedGuide && optionUnavailable(selectedGuide)) e.guide = ts("errorGuideUnavailable");
+      if (selectedTransport && optionUnavailable(selectedTransport)) e.transport = ts("errorTransportUnavailable");
+    }
+    if (category === "accommodation" && step === lastStep) {
+      if (!name.trim()) e.name = t("errorName");
+      if (!email.trim()) e.email = t("errorEmail");
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = t("errorEmailInvalid");
+      if (!phone.trim()) e.phone = t("errorPhone");
+      if (!acceptedTerms) e.acceptedTerms = ta("termsRequired");
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    step, slug, date, min, chosenSlot, soldOut, unitsAvailable, activity, adults, partySize,
-    preferredLanguageIds, otherLanguageRequested, hasOwnVehicle, name, email, phone, acceptedTerms,
-    t, tb, ta,
+    step, category, selectedTour, selectedStay, accommodationSlug, date, min, adults, multiNight, departureDate,
+    nights, maxNights, preferredLanguageIds, otherLanguageRequested, hasOwnVehicle, name, email, phone,
+    acceptedTerms, guideSlug, transportSlug, needsPickupDetails, pickupHotelName, pickupAirport, pickupAddress,
+    pickupInstructions, selectedGuide, selectedTransport,
   ]);
 
   function next() {
     if (validateStep()) {
-      setStep((s) => Math.min(STEPS.length - 1, s + 1));
+      setStep((s) => Math.min(lastStep, s + 1));
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
-
   function back() {
     setErrors({});
     setStep((s) => Math.max(0, s - 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function submit() {
-    if (!validateStep()) return;
+  async function submitCircuit() {
+    if (!validateStep() || !selectedTour) return;
     setSubmitting(true);
     setFormError("");
     if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
 
-    const result = await api.createBooking({
-      activitySlug: slug,
+    const result = await api.createTourBooking({
+      tourSlug: selectedTour.slug,
       date,
-      timeSlot: chosenSlot as TimeSlot,
       numberOfAdults: adults,
       numberOfChildren: children,
       rideSlugs,
@@ -251,23 +381,78 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       name,
       email,
       phone,
-      notes,
+      notes: notes.trim() || undefined,
       idempotencyKey: idempotencyKeyRef.current,
       acceptedTerms,
     });
 
     if (!result.ok) {
       setErrors(result.errors ?? {});
-      setFormError(
-        result.errors ? tb("errorFormSteps") : (result.message ?? t("errorGeneric")),
-      );
+      setFormError(result.errors ? "" : (result.message ?? t("errorGeneric")));
       setSubmitting(false);
       return;
     }
-
-    toast.success(t("reservedConfirmation", { id: result.data.id }));
     setBooking(result.data);
     setSubmitting(false);
+    toast.success(t("reservedConfirmation", { id: result.data.id }));
+  }
+
+  async function submitStay() {
+    if (!validateStep() || !selectedStay) return;
+    setSubmitting(true);
+    setFormError("");
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
+
+    const serviceOptions = [
+      ...(selectedGuide ? [{ serviceOptionSlug: selectedGuide.slug, quantity: optionQuantity(selectedGuide) }] : []),
+      ...(transportSlug
+        ? [{
+            serviceOptionSlug: transportSlug,
+            quantity: selectedTransport ? optionQuantity(selectedTransport) : 1,
+            pickupHotelName: pickupHotelName.trim() || undefined,
+            pickupAirport: pickupAirport.trim() || undefined,
+            pickupFlightNumber: pickupFlightNumber.trim() || undefined,
+            pickupAddress: pickupAddress.trim() || undefined,
+            pickupArrivalTime: pickupArrivalTime.trim() || undefined,
+            pickupInstructions: pickupInstructions.trim() || undefined,
+          }]
+        : []),
+    ];
+
+    const result = await api.createStayBooking({
+      staySlug: selectedStay.slug,
+      accommodationSlug: accommodationSlug || undefined,
+      accommodationQty: accommodationSlug ? accommodationQty : undefined,
+      date,
+      nights,
+      partySize,
+      rideSlugs,
+      arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
+      departureCity: departureCity || undefined,
+      returnCity: returnCity || undefined,
+      serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
+      name,
+      email,
+      phone,
+      notes: notes.trim() || undefined,
+      idempotencyKey: idempotencyKeyRef.current,
+      acceptedTerms,
+    });
+
+    if (!result.ok) {
+      setErrors(result.errors ?? {});
+      setFormError(result.errors ? "" : (result.message ?? ts("errorGeneric")));
+      setSubmitting(false);
+      return;
+    }
+    setBooking(result.data);
+    setSubmitting(false);
+    toast.success(ts("reservedConfirmation", { id: result.data.id }));
+  }
+
+  function submit() {
+    if (category === "circuit") return submitCircuit();
+    if (category === "accommodation") return submitStay();
   }
 
   if (booking) {
@@ -276,8 +461,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <span className="tour-booking-success-icon" aria-hidden="true">✓</span>
         <div>
           <p className="tour-booking-success-kicker">{t("successPendingLabel")}</p>
-          <h3>{t("reservedConfirmation", { id: booking.id })}</h3>
-          <p>{t("reservedBody", { id: booking.id })}</p>
+          <h3>
+            {category === "circuit"
+              ? t("reservedConfirmation", { id: booking.id })
+              : ts("reservedConfirmation", { id: booking.id })}
+          </h3>
+          <p>{category === "circuit" ? t("reservedBody", { id: booking.id }) : ts("reservedBody")}</p>
         </div>
         <ol className="tour-booking-success-steps">
           <li>
@@ -309,18 +498,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   return (
     <div className="tour-book-flow">
-      <div
-        className="stepper"
-        aria-label={STEPS[step]}
-        style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}
-      >
+      <div className="stepper" aria-label={STEPS[step]} style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}>
         {STEPS.map((label, i) => (
-          <span
-            key={label}
-            className="s"
-            data-state={i === step ? "active" : i < step ? "done" : "todo"}
-            aria-current={i === step ? "step" : undefined}
-          >
+          <span key={label + i} className="s" data-state={i === step ? "active" : i < step ? "done" : "todo"} aria-current={i === step ? "step" : undefined}>
             <span className="step-dot" aria-hidden="true">{i < step ? "✓" : i + 1}</span>
             <span className="step-label">{label}</span>
           </span>
@@ -331,54 +511,135 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <span>0{step + 1}</span>
         <h3>{STEPS[step]}</h3>
         <strong className="tour-book-step-amount">
-          {step === 0 && (activity ? `€${activity.priceFrom}` : "")}
-          {step === 1 && `€${total}`}
-          {step === 2 && "€0"}
-          {step === 3 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
-          {step === 4 && `€${extrasTotal}`}
-          {step === 5 && `€${total + extrasTotal}`}
+          {step === 0 && ""}
+          {step === 1 && category === "circuit" && selectedTour && `€${selectedTour.priceFrom}`}
+          {step === 1 && category === "accommodation" && selectedStay && `€${selectedStay.priceFrom}`}
+          {category === "circuit" && step === 2 && `€${circuitTotal}`}
+          {category === "circuit" && step === 3 && "€0"}
+          {category === "circuit" && step === 4 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
+          {category === "circuit" && step === 5 && `€${extrasTotal}`}
+          {category === "circuit" && step === lastStep && `€${circuitTotal + extrasTotal}`}
+          {category === "accommodation" && step === 2 && `€${stayTotal}`}
+          {category === "accommodation" && step === 3 && `€${stayTotal}`}
+          {category === "accommodation" && step === 4 && (hasOwnVehicle === false ? ts("onRequest") : ts("ownVehicle"))}
+          {category === "accommodation" && step === 5 && `€${extrasTotal}`}
+          {category === "accommodation" && step === lastStep && `€${stayTotal + extrasTotal + serviceTotal}`}
         </strong>
       </div>
 
-      {/* ---------- 1. adventure ---------- */}
+      {/* ---------- 0. category ---------- */}
       {step === 0 && (
         <>
-          <p className="hint">{tb("adventureHint")}</p>
-          <div className="picker">
-            {activities.map((a) => (
-              <button
-                key={a.slug}
-                type="button"
-                className="pick"
-                aria-pressed={slug === a.slug}
-                onClick={() => setSlug(a.slug)}
-              >
-                <div className="thumb">
-                  <Image src={a.cardImage} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />
-                </div>
-                <div className="meta">
-                  <h3>{a.title}</h3>
-                  <p>{a.tagline}</p>
-                  <span className="price">
-                    {tb("fromPrice", { price: a.priceFrom, duration: formatDuration(a.durationMins) })}
-                  </span>
-                </div>
-              </button>
-            ))}
+          <p className="hint">{tb("categoryHint")}</p>
+          <div className="picker" style={{ gridTemplateColumns: "1fr 1fr" }}>
+            <button
+              type="button"
+              className="pick"
+              aria-pressed={category === "circuit"}
+              onClick={() => {
+                setCategory("circuit");
+                setSelectedTour(null);
+                setSelectedStay(null);
+                setResultsLoaded(false);
+              }}
+            >
+              <div className="meta">
+                <h3>{tb("circuitsLabel")}</h3>
+                <p>{tb("circuitsHint")}</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              className="pick"
+              aria-pressed={category === "accommodation"}
+              onClick={() => {
+                setCategory("accommodation");
+                setSelectedTour(null);
+                setSelectedStay(null);
+                setResultsLoaded(false);
+              }}
+            >
+              <div className="meta">
+                <h3>{tb("accommodationsLabel")}</h3>
+                <p>{tb("accommodationsHint")}</p>
+              </div>
+            </button>
           </div>
-          {errors.activitySlug && <div className="alert">{errors.activitySlug}</div>}
+          {errors.category && <div className="alert">{errors.category}</div>}
         </>
       )}
 
-      {/* ---------- 2. date + travelers ---------- */}
-      {step === 1 && (
+      {/* ---------- 1. results ---------- */}
+      {step === 1 && category === "circuit" && (
+        <>
+          <p className="hint">{tb("resultsHint")}</p>
+          {!resultsLoaded ? (
+            <p className="hint">{tb("resultsHint")}</p>
+          ) : (
+            <div className="picker">
+              {tours.map((tour) => (
+                <button
+                  key={tour.slug}
+                  type="button"
+                  className="pick"
+                  aria-pressed={selectedTour?.slug === tour.slug}
+                  onClick={() => setSelectedTour(tour)}
+                >
+                  <div className="thumb">
+                    {tour.coverImage && <Image src={tour.coverImage} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                  </div>
+                  <div className="meta">
+                    <h3>{tour.title}</h3>
+                    <p>{tour.duration}</p>
+                    <span className="price">{t("estimatedTotal")} €{tour.priceFrom}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+          {errors.result && <div className="alert">{errors.result}</div>}
+        </>
+      )}
+
+      {step === 1 && category === "accommodation" && (
+        <>
+          <p className="hint">{tb("resultsHint")}</p>
+          {!resultsLoaded ? (
+            <p className="hint">{tb("resultsHint")}</p>
+          ) : (
+            <div className="picker">
+              {stays.map((stay) => (
+                <button
+                  key={stay.slug}
+                  type="button"
+                  className="pick"
+                  aria-pressed={selectedStay?.slug === stay.slug}
+                  onClick={() => selectStay(stay)}
+                >
+                  <div className="thumb">
+                    {stay.image && <Image src={stay.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                  </div>
+                  <div className="meta">
+                    <h3>{stay.title}</h3>
+                    <p>{stay.tagline}</p>
+                    <span className="price">{ts("fromPrice", { price: stay.priceFrom })}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+          {stayDetailLoading && <p className="hint">{ts("checkingAvailability")}</p>}
+        </>
+      )}
+
+      {/* ---------- circuit: 2. date + travelers ---------- */}
+      {category === "circuit" && step === 2 && (
         <div className="reserve-form" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
           <div className="field" data-invalid={!!errors.date}>
-            <label htmlFor="tf-date">{t("dateLabel")}</label>
-            <DatePicker id="tf-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
+            <label htmlFor="bf-date">{t("dateLabel")}</label>
+            <DatePicker id="bf-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
             {errors.date && <span className="err">{errors.date}</span>}
           </div>
-
           <div className="tour-book-guests">
             <div className="guest-row field" data-invalid={!!errors.adults}>
               <div>
@@ -386,98 +647,25 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 {errors.adults && <span className="err">{errors.adults}</span>}
               </div>
               <div className="guest-stepper">
-                <button
-                  type="button"
-                  aria-label={`− ${t("adultsLabel")}`}
-                  onClick={() => setAdults((value) => Math.max(1, value - 1))}
-                  disabled={adults <= 1}
-                >
-                  −
-                </button>
+                <button type="button" aria-label={`− ${t("adultsLabel")}`} onClick={() => setAdults((v) => Math.max(1, v - 1))} disabled={adults <= 1}>−</button>
                 <output aria-live="polite">{adults}</output>
-                <button
-                  type="button"
-                  aria-label={`+ ${t("adultsLabel")}`}
-                  onClick={() =>
-                    setAdults((value) =>
-                      Math.min(
-                        unitsAvailable != null ? Math.min(MAX_PARTY_SIZE, unitsAvailable) : MAX_PARTY_SIZE,
-                        value + 1,
-                      ),
-                    )
-                  }
-                  disabled={adults >= (unitsAvailable != null ? Math.min(MAX_PARTY_SIZE, unitsAvailable) : MAX_PARTY_SIZE)}
-                >
-                  +
-                </button>
+                <button type="button" aria-label={`+ ${t("adultsLabel")}`} onClick={() => setAdults((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={adults >= MAX_PARTY_SIZE}>+</button>
               </div>
             </div>
-
             <div className="guest-row field">
               <label>{t("childrenLabel")}</label>
               <div className="guest-stepper">
-                <button
-                  type="button"
-                  aria-label={`− ${t("childrenLabel")}`}
-                  onClick={() => setChildren((value) => Math.max(0, value - 1))}
-                  disabled={children <= 0}
-                >
-                  −
-                </button>
+                <button type="button" aria-label={`− ${t("childrenLabel")}`} onClick={() => setChildren((v) => Math.max(0, v - 1))} disabled={children <= 0}>−</button>
                 <output aria-live="polite">{children}</output>
-                <button
-                  type="button"
-                  aria-label={`+ ${t("childrenLabel")}`}
-                  onClick={() =>
-                    setChildren((value) =>
-                      Math.min(
-                        unitsAvailable != null ? Math.min(MAX_PARTY_SIZE, unitsAvailable) : MAX_PARTY_SIZE,
-                        value + 1,
-                      ),
-                    )
-                  }
-                  disabled={children >= (unitsAvailable != null ? Math.min(MAX_PARTY_SIZE, unitsAvailable) : MAX_PARTY_SIZE)}
-                >
-                  +
-                </button>
+                <button type="button" aria-label={`+ ${t("childrenLabel")}`} onClick={() => setChildren((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={children >= MAX_PARTY_SIZE}>+</button>
               </div>
             </div>
-          </div>
-
-          <div className="field" data-invalid={!!errors.timeSlot}>
-            <label>{tb("preferredDeparture")}</label>
-            <div className="slots">
-              {(Object.keys(SLOT_LABELS) as TimeSlot[]).map((slotOption) => (
-                <button
-                  key={slotOption}
-                  type="button"
-                  className="slot"
-                  aria-pressed={chosenSlot === slotOption}
-                  onClick={() => setTimeSlot(slotOption)}
-                >
-                  <span className="t">{SLOT_LABELS[slotOption]}</span>
-                </button>
-              ))}
-            </div>
-            {!date && <p className="hint">{tb("pickDateForAvailability")}</p>}
-            {date && loadingAvailability && <p className="hint">{tb("checkingAvailability")}</p>}
-            {date && !loadingAvailability && soldOut && (
-              <p className="hint err">{tb("fullyBookedTryAnother")}</p>
-            )}
-            {date && !loadingAvailability && !soldOut && unitsAvailable != null && (
-              <p className="hint">
-                {unitsAvailable === 1
-                  ? tb("spotsAvailableOne", { n: unitsAvailable })
-                  : tb("spotsAvailableOther", { n: unitsAvailable })}
-              </p>
-            )}
-            {errors.timeSlot && <span className="err">{errors.timeSlot}</span>}
           </div>
         </div>
       )}
 
-      {/* ---------- 3. preferred guide/instructor language ---------- */}
-      {step === 2 && (
+      {/* ---------- circuit: 3. guide language ---------- */}
+      {category === "circuit" && step === 3 && (
         <div className="field" data-invalid={!!errors.language}>
           <label>{t("preferredLanguageLabel")}</label>
           <p className="hint">{t("preferredLanguageHint")}</p>
@@ -485,49 +673,30 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             <div className="ride-options">
               {languages.map((language) => (
                 <label key={language.id} className="ride-option">
-                  <input
-                    type="checkbox"
-                    checked={preferredLanguageIds.includes(language.id)}
-                    onChange={() => toggleLanguage(language.id)}
-                  />
+                  <input type="checkbox" checked={preferredLanguageIds.includes(language.id)} onChange={() => toggleLanguage(language.id)} />
                   <span>{language.name}</span>
                   <span className="ride-price">€0</span>
                 </label>
               ))}
             </div>
           )}
-          <input
-            className="tour-other-language"
-            placeholder={t("otherLanguagePlaceholder")}
-            value={otherLanguageRequested}
-            onChange={(e) => setOtherLanguageRequested(e.target.value)}
-          />
+          <input className="tour-other-language" placeholder={t("otherLanguagePlaceholder")} value={otherLanguageRequested} onChange={(e) => setOtherLanguageRequested(e.target.value)} />
           {errors.language && <span className="err">{errors.language}</span>}
         </div>
       )}
 
-      {/* ---------- 4. vehicle ---------- */}
-      {step === 3 && (
+      {/* ---------- circuit: 4. vehicle ---------- */}
+      {category === "circuit" && step === 4 && (
         <div className="field" data-invalid={!!errors.arrivalMode}>
           <label>{t("howWillYouArrive")}</label>
           <div className="ride-options">
             <label className="ride-option">
-              <input
-                type="radio"
-                name="hasOwnVehicle"
-                checked={hasOwnVehicle === true}
-                onChange={() => setHasOwnVehicle(true)}
-              />
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === true} onChange={() => setHasOwnVehicle(true)} />
               <span>{t("ownVehicle")}</span>
               <span className="ride-price">{t("ownVehicleHint")}</span>
             </label>
             <label className="ride-option">
-              <input
-                type="radio"
-                name="hasOwnVehicle"
-                checked={hasOwnVehicle === false}
-                onChange={() => setHasOwnVehicle(false)}
-              />
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => setHasOwnVehicle(false)} />
               <span>{t("needTransport")}</span>
               <span className="ride-price">{t("needTransportHint")}</span>
             </label>
@@ -542,60 +711,35 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               </div>
             </div>
           )}
-
           <div className="field" style={{ marginTop: 16 }}>
-            <label htmlFor="tf-departure-city">{t("departureCityLabel")}</label>
-            <select
-              id="tf-departure-city"
-              value={departureCity}
-              onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}
-            >
+            <label htmlFor="bf-departure-city">{t("departureCityLabel")}</label>
+            <select id="bf-departure-city" value={departureCity} onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}>
               <option value="">{t("departureCityPlaceholder")}</option>
-              {DEPARTURE_CITIES.map((city) => (
-                <option key={city} value={city}>
-                  {DEPARTURE_CITY_LABELS[city]}
-                </option>
-              ))}
+              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
             </select>
           </div>
-
           <div className="field" style={{ marginTop: 16 }}>
-            <label htmlFor="tf-return-city">{t("returnCityLabel")}</label>
+            <label htmlFor="bf-return-city">{t("returnCityLabel")}</label>
             <p className="hint">{t("returnCityHint")}</p>
-            <select
-              id="tf-return-city"
-              value={returnCity}
-              onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}
-            >
+            <select id="bf-return-city" value={returnCity} onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}>
               <option value="">{t("returnCityPlaceholder")}</option>
-              {DEPARTURE_CITIES.map((city) => (
-                <option key={city} value={city}>
-                  {DEPARTURE_CITY_LABELS[city]}
-                </option>
-              ))}
+              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
             </select>
           </div>
         </div>
       )}
 
-      {/* ---------- 5. extras (other activities) ---------- */}
-      {step === 4 && (
+      {/* ---------- circuit: 5. extras ---------- */}
+      {category === "circuit" && step === 5 && (
         <div className="field">
           <label>{t("addExtra")}</label>
           {otherActivities.length === 0 ? (
-            <div className="booking-empty-state">
-              <span aria-hidden="true">+</span>
-              <div><strong>{t("extrasUnavailable")}</strong></div>
-            </div>
+            <div className="booking-empty-state"><span aria-hidden="true">+</span><div><strong>{t("extrasUnavailable")}</strong></div></div>
           ) : (
             <div className="ride-options">
               {otherActivities.map((a) => (
                 <label key={a.slug} className="ride-option">
-                  <input
-                    type="checkbox"
-                    checked={rideSlugs.includes(a.slug)}
-                    onChange={() => toggleRide(a.slug)}
-                  />
+                  <input type="checkbox" checked={rideSlugs.includes(a.slug)} onChange={() => toggleRide(a.slug)} />
                   <span>{a.title}</span>
                   <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
                 </label>
@@ -606,133 +750,395 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         </div>
       )}
 
-      {/* ---------- 6. review & book (incl. contact details) ---------- */}
-      {step === 5 && (
+      {/* ---------- accommodation: 2. dates + travelers ---------- */}
+      {category === "accommodation" && step === 2 && (
+        <div className="reserve-form" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+          {!multiNight && (
+            <div className="field" data-invalid={!!errors.date}>
+              <label htmlFor="bf-arrival-date">{ts("arrivalDateLabel")}</label>
+              <DatePicker id="bf-arrival-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
+              {errors.date && <span className="err">{errors.date}</span>}
+            </div>
+          )}
+
+          {multiNight && (
+            <>
+              <DateRangePicker
+                arrivalId="bf-arrival-date"
+                departureId="bf-departure-date"
+                arrivalLabel={ts("arrivalDateLabel")}
+                departureLabel={ts("departureDateLabel")}
+                min={min}
+                maxNights={maxNights}
+                start={date}
+                end={departureDate}
+                onChange={(s, e) => {
+                  setDate(s);
+                  setDepartureDate(e);
+                }}
+                errorStart={errors.date}
+                errorEnd={errors.departureDate}
+              />
+              {date && departureDate && (
+                <p className="hint">{ts("nightsComputedHint", { nights })}</p>
+              )}
+            </>
+          )}
+
+          <div className="tour-book-guests">
+            <div className="guest-row field" data-invalid={!!errors.adults}>
+              <div>
+                <label>{ts("adults")}</label>
+                {errors.adults && <span className="err">{errors.adults}</span>}
+              </div>
+              <div className="guest-stepper">
+                <button type="button" aria-label={`− ${ts("adults")}`} onClick={() => setAdults((v) => Math.max(1, v - 1))} disabled={adults <= 1}>−</button>
+                <output aria-live="polite">{adults}</output>
+                <button type="button" aria-label={`+ ${ts("adults")}`} onClick={() => setAdults((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={adults >= MAX_PARTY_SIZE}>+</button>
+              </div>
+            </div>
+            <div className="guest-row field">
+              <label>{ts("children")}</label>
+              <div className="guest-stepper">
+                <button type="button" aria-label={`− ${ts("children")}`} onClick={() => setChildren((v) => Math.max(0, v - 1))} disabled={children <= 0}>−</button>
+                <output aria-live="polite">{children}</output>
+                <button type="button" aria-label={`+ ${ts("children")}`} onClick={() => setChildren((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={children >= MAX_PARTY_SIZE}>+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- accommodation: 3. accommodation type ---------- */}
+      {category === "accommodation" && step === 3 && (
+        <div className="field" data-invalid={!!errors.accommodation}>
+          {selectedStay && selectedStay.accommodations && selectedStay.accommodations.length > 0 ? (
+            <>
+              <label>{ts("chooseCamp")}</label>
+              <div className="ride-options">
+                {selectedStay.accommodations.map((a) => {
+                  const soldOut = tierSoldOut(a.slug);
+                  return (
+                    <label key={a.slug} className="ride-option" data-disabled={soldOut || undefined}>
+                      <input
+                        type="radio"
+                        name="accommodation"
+                        checked={accommodationSlug === a.slug}
+                        disabled={soldOut}
+                        onChange={() => {
+                          setAccommodationSlug(a.slug);
+                          setAccommodationQty(1);
+                        }}
+                      />
+                      <span>{a.title}</span>
+                      <span className="ride-price">
+                        {soldOut ? ts("soldOutForDate") : ts("fromPrice", { price: a.priceFrom })}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.accommodation && <span className="err">{errors.accommodation}</span>}
+              {selectedAccommodation && (
+                <div className="tour-book-guests" style={{ marginTop: 12 }}>
+                  <div className="guest-row field">
+                    <div>
+                      <label>{ts("howMany")}</label>
+                      <p className="hint" style={{ margin: 0 }}>{ts("exactRuleNote")}</p>
+                    </div>
+                    <div className="guest-stepper">
+                      <button type="button" onClick={() => setAccommodationQty((c) => Math.max(1, c - 1))} disabled={accommodationQty === 1} aria-label={ts("decrease")}>−</button>
+                      <output aria-live="polite">{accommodationQty}</output>
+                      <button
+                        type="button"
+                        onClick={() => setAccommodationQty((c) => Math.min(accommodationUnitsCap, c + 1))}
+                        disabled={accommodationQty >= accommodationUnitsCap}
+                        aria-label={ts("increase")}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="booking-empty-state">
+              <span aria-hidden="true">✓</span>
+              <div>
+                <strong>{ts("noAccommodationChoice")}</strong>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ---------- accommodation: 4. vehicle + guide ---------- */}
+      {category === "accommodation" && step === 4 && (
+        <div className="field" data-invalid={!!errors.arrivalMode}>
+          <label>{ts("howWillYouJoin")}</label>
+          <div className="ride-options">
+            <label className="ride-option">
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === true} onChange={() => { setHasOwnVehicle(true); setTransportSlug(""); }} />
+              <span>{ts("ownVehicle")}</span>
+              <span className="ride-price">{ts("ownVehicleHint")}</span>
+            </label>
+            <label className="ride-option">
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => { setHasOwnVehicle(false); if (selectedGuide?.requiresCustomerVehicle) setGuideSlug(""); }} />
+              <span>{ts("needTransport")}</span>
+              <span className="ride-price">{ts("needTransportHint")}</span>
+            </label>
+          </div>
+          {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
+
+          <div className="field" style={{ marginTop: 16 }}>
+            <label htmlFor="bf-s-departure-city">{ts("departureCityLabel")}</label>
+            <select id="bf-s-departure-city" value={departureCity} onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}>
+              <option value="">{ts("departureCityPlaceholder")}</option>
+              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
+            </select>
+          </div>
+          <div className="field" style={{ marginTop: 16 }}>
+            <label htmlFor="bf-s-return-city">{ts("returnCityLabel")}</label>
+            <p className="hint">{ts("returnCityHint")}</p>
+            <select id="bf-s-return-city" value={returnCity} onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}>
+              <option value="">{ts("returnCityPlaceholder")}</option>
+              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
+            </select>
+          </div>
+
+          {hasOwnVehicle === false && (
+            <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 16 }}>
+              <label>{ts("transportation")}</label>
+              {transportOptions.length === 0 ? (
+                <p className="hint">{ts("noTransportOptions")}</p>
+              ) : (
+                <div className="ride-options">
+                  {transportOptions.map((o) => {
+                    const availability = optionAvailability(o);
+                    const unavailable = optionUnavailable(o);
+                    return (
+                      <label key={o.slug} className="ride-option" data-disabled={unavailable || undefined}>
+                        <input type="radio" name="transport" checked={transportSlug === o.slug} disabled={unavailable} onChange={() => setTransportSlug(o.slug)} />
+                        <span className="service-option-copy">
+                          <strong>{o.name}</strong>
+                          {o.description && <small>{o.description}</small>}
+                        </span>
+                        <span className="ride-price">
+                          {unavailable ? ts("unavailable") : o.priceTtc == null ? ts("contactUsShort") : ts("pricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {errors.transport && <span className="err">{errors.transport}</span>}
+
+              {needsPickupDetails && (
+                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                  {pickupFields.has("HOTEL_NAME") && <input placeholder={ts("pickupHotelPlaceholder")} required={requiredPickupFields.has("HOTEL_NAME")} value={pickupHotelName} onChange={(e) => setPickupHotelName(e.target.value)} />}
+                  {pickupFields.has("AIRPORT") && <input placeholder={ts("pickupAirportPlaceholder")} required={requiredPickupFields.has("AIRPORT")} value={pickupAirport} onChange={(e) => setPickupAirport(e.target.value)} />}
+                  {pickupFields.has("FLIGHT_NUMBER") && <input placeholder={ts("pickupFlightPlaceholder")} required={requiredPickupFields.has("FLIGHT_NUMBER")} value={pickupFlightNumber} onChange={(e) => setPickupFlightNumber(e.target.value)} />}
+                  {pickupFields.has("ADDRESS") && <input placeholder={ts("pickupAddressPlaceholder")} required={requiredPickupFields.has("ADDRESS")} value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} />}
+                  {pickupFields.has("ARRIVAL_TIME") && <input placeholder={ts("pickupArrivalTimePlaceholder")} required={requiredPickupFields.has("ARRIVAL_TIME")} value={pickupArrivalTime} onChange={(e) => setPickupArrivalTime(e.target.value)} />}
+                  {pickupFields.has("INSTRUCTIONS") && <input placeholder={ts("pickupInstructionsPlaceholder")} required={requiredPickupFields.has("INSTRUCTIONS")} value={pickupInstructions} onChange={(e) => setPickupInstructions(e.target.value)} />}
+                  {errors.pickup && <span className="err">{errors.pickup}</span>}
+                </div>
+              )}
+            </div>
+          )}
+
+          {hasOwnVehicle !== null && (
+            <div className="field" data-invalid={!!errors.guide} style={{ marginTop: 16 }}>
+              <label>{ts("chooseYourGuide")}{!selectedStay?.guideRequired && ts("optionalSuffix")}</label>
+              {availableGuideOptions.length === 0 ? (
+                <p className="hint">{ts("noGuideOptions")}</p>
+              ) : (
+                <div className="ride-options">
+                  {!selectedStay?.guideRequired && (
+                    <label className="ride-option">
+                      <input type="radio" name="guide" checked={guideSlug === ""} onChange={() => setGuideSlug("")} />
+                      <span>{ts("noGuide")}</span>
+                    </label>
+                  )}
+                  {availableGuideOptions.map((o) => {
+                    const availability = optionAvailability(o);
+                    const unavailable = optionUnavailable(o);
+                    return (
+                      <label key={o.slug} className="ride-option" data-disabled={unavailable || undefined}>
+                        <input type="radio" name="guide" checked={guideSlug === o.slug} disabled={unavailable} onChange={() => setGuideSlug(o.slug)} />
+                        <span className="service-option-copy">
+                          <strong>{o.name}</strong>
+                          {o.description && <small>{o.description}</small>}
+                        </span>
+                        <span className="ride-price">
+                          {unavailable ? ts("unavailable") : o.priceTtc == null ? ts("contactUsShort") : ts("plusPricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {errors.guide && <span className="err">{errors.guide}</span>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ---------- accommodation: 5. extras ---------- */}
+      {category === "accommodation" && step === 5 && (
+        <div className="field">
+          <label>{ts("addRide")}</label>
+          <div className="ride-options">
+            {otherActivities.map((a) => (
+              <label key={a.slug} className="ride-option">
+                <input type="checkbox" checked={rideSlugs.includes(a.slug)} onChange={() => toggleRide(a.slug)} />
+                <span>{a.title}</span>
+                <span className="ride-price">{ts("fromPrice", { price: a.priceFrom })}</span>
+              </label>
+            ))}
+          </div>
+          <p className="hint">{ts("confirmOnSite")}</p>
+        </div>
+      )}
+
+      {/* ---------- circuit: review ---------- */}
+      {category === "circuit" && step === lastStep && (
         <div className="tour-review-step">
           <div className="reserve-form tour-review-details" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
             <div className="field" data-invalid={!!errors.name}>
-              <label htmlFor="tf-name">{t("fullName")}</label>
-              <input id="tf-name" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
+              <label htmlFor="bf-name">{t("fullName")}</label>
+              <input id="bf-name" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
               {errors.name && <span className="err">{errors.name}</span>}
             </div>
-
             <div className="field" data-invalid={!!errors.email}>
-              <label htmlFor="tf-email">{t("email")}</label>
-              <input
-                id="tf-email"
-                type="email"
-                value={email}
-                autoComplete="email"
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <label htmlFor="bf-email">{t("email")}</label>
+              <input id="bf-email" type="email" value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
               {errors.email && <span className="err">{errors.email}</span>}
             </div>
-
             <div className="field" data-invalid={!!errors.phone}>
-              <label htmlFor="tf-phone">{t("phone")}</label>
-              <input id="tf-phone" type="tel" value={phone} autoComplete="tel" onChange={(e) => setPhone(e.target.value)} />
+              <label htmlFor="bf-phone">{t("phone")}</label>
+              <input id="bf-phone" type="tel" value={phone} autoComplete="tel" onChange={(e) => setPhone(e.target.value)} />
               {errors.phone && <span className="err">{errors.phone}</span>}
             </div>
-
             <div className="field">
-              <label htmlFor="tf-notes">{t("notesLabel")}</label>
-              <input
-                id="tf-notes"
-                placeholder={t("notesPlaceholder")}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
+              <label htmlFor="bf-notes">{t("notesLabel")}</label>
+              <input id="bf-notes" placeholder={t("notesPlaceholder")} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
           </div>
 
           <p className="hint tour-review-hint">{t("reviewHint")}</p>
           <div className="summary tour-review-summary">
-            <div className="row">
-              <span className="k">{tb("adventureLabel")}</span>
-              <span>{activity?.title}</span>
-            </div>
-            <div className="row">
-              <span className="k">{t("dateLabelSummary")}</span>
-              <span>{prettyDate(date, locale)}</span>
-            </div>
-            <div className="row">
-              <span className="k">{tb("departureLabel")}</span>
-              <span>{chosenSlot ? SLOT_LABELS[chosenSlot] : "—"}</span>
-            </div>
+            <div className="row"><span className="k">{t("tripLabel")}</span><span>{selectedTour?.title}</span></div>
+            <div className="row"><span className="k">{t("dateLabelSummary")}</span><span>{prettyDate(date, locale)}</span></div>
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
-              <span>
-                {adults} {t("adultsLabel").toLowerCase()}
-                {children > 0 ? ` · ${children} ${t("childrenLabel").toLowerCase()}` : ""}
-              </span>
+              <span>{adults} {t("adultsLabel").toLowerCase()}{children > 0 ? ` · ${children} ${t("childrenLabel").toLowerCase()}` : ""}</span>
             </div>
-            <div className="row">
-              <span className="k">{t("reviewVehicleLabel")}</span>
-              <span>
-                {hasOwnVehicle
-                  ? t("ownVehicle")
-                  : t("needTransport")}
-              </span>
-            </div>
-            {departureCity && (
-              <div className="row">
-                <span className="k">{t("departureCityLabel")}</span>
-                <span>{DEPARTURE_CITY_LABELS[departureCity]}</span>
-              </div>
-            )}
-            {returnCity && (
-              <div className="row">
-                <span className="k">{t("returnCityLabel")}</span>
-                <span>{DEPARTURE_CITY_LABELS[returnCity]}</span>
-              </div>
-            )}
+            <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? t("ownVehicle") : t("needTransport")}</span></div>
+            {departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
+            {returnCity && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
             {rideSlugs.length > 0 && (
               <div className="row">
                 <span className="k">{t("reviewExtrasLabel")}</span>
-                <span>
-                  {otherActivities
-                    .filter((a) => rideSlugs.includes(a.slug))
-                    .map((a) => `${a.title} — €${a.priceFrom}`)
-                    .join(", ")}
-                </span>
+                <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title} — €${a.priceFrom}`).join(", ")}</span>
               </div>
             )}
-            {(email || phone) && (
-              <div className="row">
-                <span className="k">{t("contactLabel")}</span>
-                <span>
-                  {email} · {phone}
-                </span>
-              </div>
-            )}
+            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {phone}</span></div>}
             {(preferredLanguageIds.length > 0 || otherLanguageRequested.trim()) && (
               <div className="row">
                 <span className="k">{t("reviewLanguageLabel")}</span>
-                <span>
-                  {[
-                    ...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => l.name),
-                    ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : []),
-                  ].join(", ")}
-                </span>
+                <span>{[...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => l.name), ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : [])].join(", ")}</span>
               </div>
             )}
-            {notes && (
-              <div className="row">
-                <span className="k">{t("notesLabelSummary")}</span>
-                <span>{notes}</span>
-              </div>
-            )}
-            <div className="row total">
-              <span>{t("totalLabel")}</span>
-              <span>€{total + extrasTotal}</span>
-            </div>
+            {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
+            <div className="row total"><span>{t("totalLabel")}</span><span>€{circuitTotal + extrasTotal}</span></div>
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
             <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-            <span>
-              {ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>
-              {ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}
-            </span>
+            <span>{ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
+          </label>
+          {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
+          {formError && <div className="alert">{formError}</div>}
+        </div>
+      )}
+
+      {/* ---------- accommodation: review ---------- */}
+      {category === "accommodation" && step === lastStep && (
+        <div className="tour-review-step">
+          <div className="reserve-form tour-review-details" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+            <div className="field" data-invalid={!!errors.name}>
+              <label htmlFor="bf-s-name">{ts("fullName")}</label>
+              <input id="bf-s-name" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
+              {errors.name && <span className="err">{errors.name}</span>}
+            </div>
+            <div className="field" data-invalid={!!errors.email}>
+              <label htmlFor="bf-s-email">{ts("email")}</label>
+              <input id="bf-s-email" type="email" value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
+              {errors.email && <span className="err">{errors.email}</span>}
+            </div>
+            <div className="field" data-invalid={!!errors.phone}>
+              <label htmlFor="bf-s-phone">{ts("phone")}</label>
+              <input id="bf-s-phone" type="tel" value={phone} autoComplete="tel" onChange={(e) => setPhone(e.target.value)} />
+              {errors.phone && <span className="err">{errors.phone}</span>}
+            </div>
+            <div className="field">
+              <label htmlFor="bf-s-notes">{ts("anythingElse")}</label>
+              <input id="bf-s-notes" placeholder={ts("notesPlaceholder")} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="summary tour-review-summary">
+            <div className="row"><span className="k">{ts("campLabel")}</span><span>{selectedStay?.title}</span></div>
+            {selectedAccommodation && (
+              <div className="row">
+                <span className="k">{ts("accommodationLabel")}</span>
+                <span>{selectedAccommodation.title}{accommodationQty > 1 ? ` × ${accommodationQty}` : ""}</span>
+              </div>
+            )}
+            <div className="row"><span className="k">{ts("arrivalDateLabel")}</span><span>{prettyDate(date, locale)}</span></div>
+            {multiNight && departureDate && (
+              <div className="row"><span className="k">{ts("departureDateLabel")}</span><span>{prettyDate(departureDate, locale)}</span></div>
+            )}
+            {multiNight && (
+              <div className="row"><span className="k">{ts("nightsLabel")}</span><span>{nights}</span></div>
+            )}
+            <div className="row">
+              <span className="k">{t("travelersLabel")}</span>
+              <span>{adults} {ts("adults").toLowerCase()}{children > 0 ? ` · ${children} ${ts("children").toLowerCase()}` : ""}</span>
+            </div>
+            <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? ts("ownVehicle") : ts("needTransport")}</span></div>
+            {departureCity && <div className="row"><span className="k">{ts("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
+            {returnCity && <div className="row"><span className="k">{ts("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
+            {needsPickupDetails && [pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].some((v) => v.trim()) && (
+              <div className="row">
+                <span className="k">{t("pickupLabel")}</span>
+                <span>{[pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].filter((v) => v.trim()).join(" · ")}</span>
+              </div>
+            )}
+            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {phone}</span></div>}
+            {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
+
+            <div className="row">
+              <span>{selectedAccommodation?.title ?? selectedStay?.title ?? ts("stayFallbackLabel")}</span>
+              <span>€{stayTotal}</span>
+            </div>
+            {selectedGuide && (
+              <div className="row"><span>{selectedGuide.name}</span><span>{optionPrice(selectedGuide) == null ? ts("onRequest") : `${optionPrice(selectedGuide)} TND`}</span></div>
+            )}
+            {selectedTransport && (
+              <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `${optionPrice(selectedTransport)} TND`}</span></div>
+            )}
+            {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
+              <div className="row" key={a.slug}><span>{a.title}</span><span>{ts("fromPrice", { price: a.priceFrom })}</span></div>
+            ))}
+            <div className="row total"><span>{ts("stayTotal")}</span><span>€{stayTotal + extrasTotal}</span></div>
+            {serviceTotal > 0 && <div className="row total"><span>{ts("serviceOptionsLabel")}</span><span>{serviceTotal} TND</span></div>}
+          </div>
+
+          <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
+            <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+            <span>{ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
           </label>
           {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
           {formError && <div className="alert">{formError}</div>}
@@ -741,21 +1147,21 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
       <div className="book-actions">
         {step > 0 && (
-          <button type="button" className="btn-quiet" onClick={back} disabled={submitting}>
-            ← {t("back")}
-          </button>
+          <button type="button" className="btn-quiet" onClick={back} disabled={submitting}>← {t("back")}</button>
         )}
-        {step < STEPS.length - 1 ? (
-          <button type="button" className="btn-accent" onClick={next} disabled={!languagesLoaded}>
+        {step < lastStep ? (
+          <button type="button" className="btn-accent" onClick={next} disabled={category === "circuit" ? !languagesLoaded : false}>
             {t("continue")}
           </button>
         ) : (
           <button type="button" className="btn-accent" onClick={submit} disabled={submitting}>
-            {submitting ? t("reserving") : t("requestToBook")}
+            {category === "circuit"
+              ? (submitting ? t("reserving") : t("requestToBook"))
+              : (submitting ? ts("reserving") : ts("reserveThisStay"))}
           </button>
         )}
       </div>
-      <p className="note">{t("noChargeNote")}</p>
+      <p className="note">{category === "accommodation" ? ts("freeCancellation") : t("noChargeNote")}</p>
     </div>
   );
 }

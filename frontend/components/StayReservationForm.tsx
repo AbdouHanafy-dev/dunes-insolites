@@ -140,7 +140,7 @@ export default function StayReservationForm({
     const ctrl = new AbortController();
     const forDate = date;
     api
-      .getStayAvailability(stay.slug, forDate, ctrl.signal)
+      .getStayAvailability(stay.slug, forDate, undefined, ctrl.signal)
       .then((data) => {
         setAvail({ forDate, data, error: false });
         if (data?.accommodations.some((t) => t.status === "UNAVAILABLE")) {

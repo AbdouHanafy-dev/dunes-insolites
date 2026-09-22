@@ -2,38 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-
-function pad(n: number): string {
-  return n < 10 ? `0${n}` : `${n}`;
-}
-
-function toISO(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-function fromISO(iso: string): Date | null {
-  if (!iso) return null;
-  const [y, m, d] = iso.split("-").map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-}
-
-function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-function addMonths(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth() + n, 1);
-}
-
-// Monday-first 6x7 grid, including the leading/trailing days of the
-// adjacent months so every week row stays full.
-function buildGrid(monthStart: Date): Date[] {
-  const jsWeekday = monthStart.getDay(); // 0=Sun..6=Sat
-  const leading = (jsWeekday + 6) % 7; // days since Monday
-  const gridStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - leading);
-  return Array.from({ length: 42 }, (_, i) => new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i));
-}
+import { addMonths, buildGrid, fromISO, startOfMonth, toISO } from "@/lib/dateGrid";
 
 /**
  * A real month-grid calendar, replacing the native `<input type="date">` —

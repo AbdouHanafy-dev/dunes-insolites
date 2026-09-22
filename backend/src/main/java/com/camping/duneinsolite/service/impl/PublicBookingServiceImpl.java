@@ -227,7 +227,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 ? List.of()
                 : request.getServiceOptions().stream()
                         .map(sel -> resolveServiceOption(sel, request.getDate(),
-                                request.getNumberOfAdults() + orZero(request.getNumberOfChildren())))
+                                request.getNumberOfAdults() + orZero(request.getNumberOfChildren()), 1))
                         .toList();
         boolean hasTransport = resolvedServiceOptions.stream()
                 .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
@@ -342,6 +342,14 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         TourType tourType = tourTypeRepository.findBySlugAndIsActiveTrue(request.getStaySlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Stay not found: " + request.getStaySlug()));
 
+        int nights = request.getNights() != null ? request.getNights() : 1;
+        int maxNights = tourType.getMaxNights() != null ? tourType.getMaxNights() : 1;
+        if (nights > maxNights) {
+            throw new ReservationValidationException(
+                    "\"" + tourType.getName() + "\" can be booked for at most " + maxNights
+                            + (maxNights == 1 ? " night." : " nights."));
+        }
+
         if (request.getArrivalMode() != null
                 && !"OWN_VEHICLE".equals(request.getArrivalMode())
                 && !"TRANSPORT".equals(request.getArrivalMode())) {
@@ -355,7 +363,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         List<ResolvedServiceOption> resolvedServiceOptions = request.getServiceOptions() == null
                 ? List.of()
                 : request.getServiceOptions().stream()
-                        .map(sel -> resolveServiceOption(sel, request.getDate(), request.getPartySize()))
+                        .map(sel -> resolveServiceOption(sel, request.getDate(), request.getPartySize(), nights))
                         .toList();
         boolean hasTransport = resolvedServiceOptions.stream()
                 .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
@@ -383,14 +391,14 @@ public class PublicBookingServiceImpl implements PublicBookingService {
             // Reuses the pricing service's fail-closed rules (unpriced / inactive
             // / not enough beds) — throws before any side effect.
             accommodationPricingService.resolveById(
-                    accommodation.getId(), accommodationUnits, 1, request.getPartySize(), request.getDate());
+                    accommodation.getId(), accommodationUnits, nights, request.getPartySize(), request.getDate());
 
             // Phase 2 — advisory pre-check: reject an obviously sold-out tier
             // before creating a guest account. NOT authoritative (no lock) —
             // ReservationService re-checks under a row lock. It only reduces
             // wasted user creation for the common "clearly full" case.
             var pre = accommodationAvailabilityService.status(
-                    accommodation, request.getDate(), request.getDate().plusDays(1));
+                    accommodation, request.getDate(), request.getDate().plusDays(nights));
             if (pre.status() == AccommodationAvailabilityService.Status.UNAVAILABLE) {
                 throw new com.camping.duneinsolite.exception.AccommodationUnavailableException(
                         "\"" + accommodation.getName() + "\" is fully booked for that date.");
@@ -407,8 +415,10 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setSourceId(source.getSourceId());
         reservationRequest.setReservationType(ReservationType.HEBERGEMENT);
         reservationRequest.setCheckInDate(request.getDate());
-        // A nuitée is one night - the contract only carries a single date.
-        reservationRequest.setCheckOutDate(request.getDate().plusDays(1));
+        // Nights defaults to 1 for a fixed single-night stay (TourType.maxNights
+        // == 1); a multi-night stay carries the guest's real arrival+departure
+        // range via the client-computed `nights` count, validated above.
+        reservationRequest.setCheckOutDate(request.getDate().plusDays(nights));
         reservationRequest.setNumberOfAdults(request.getPartySize());
         reservationRequest.setNumberOfChildren(0);
         reservationRequest.setHoldExpiresAt(holdExpiry());
@@ -466,6 +476,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setAccommodationSlug(request.getAccommodationSlug());
         response.setAccommodationQty(request.getAccommodationQty());
         response.setDate(request.getDate().toString());
+        response.setNights(request.getNights() != null ? request.getNights() : 1);
         response.setPartySize(request.getPartySize());
         response.setRideSlugs(rideSlugs);
         response.setArrivalMode(request.getArrivalMode());
@@ -497,7 +508,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
     private ResolvedServiceOption resolveServiceOption(
             com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest sel,
             java.time.LocalDate date,
-            int partySize) {
+            int partySize,
+            int nights) {
         Extra option = extraRepository.findBySlugAndIsActiveTrue(sel.getServiceOptionSlug())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Service option not found: " + sel.getServiceOptionSlug()));
@@ -508,7 +520,12 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         req.setExtraId(option.getExtraId());
         int quantity = switch (option.getPricingUnit()) {
             case PER_PERSON -> Math.max(partySize, 1);
-            case PER_DAY, PER_BOOKING -> 1; // Public stays are exactly one night/day.
+            // A PER_DAY guide/transport option scales with how many nights
+            // the stay covers (a Tour always passes nights=1 - it has no
+            // multi-night concept). PER_BOOKING stays a flat one-off fee
+            // regardless of length.
+            case PER_DAY -> Math.max(nights, 1);
+            case PER_BOOKING -> 1;
             case PER_VEHICLE, PER_UNIT -> sel.getQuantity() != null ? Math.max(sel.getQuantity(), 1) : 1;
         };
         req.setQuantity(quantity);

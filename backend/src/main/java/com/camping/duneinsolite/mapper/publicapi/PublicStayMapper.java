@@ -65,6 +65,7 @@ public class PublicStayMapper {
         response.setItinerary(List.of());
         response.setAccommodations(bookableAccommodations(tourType));
         response.setGuideRequired(Boolean.TRUE.equals(tourType.getGuideRequired()));
+        response.setMaxNights(tourType.getMaxNights() == null ? 1 : tourType.getMaxNights());
         return response;
     }
 
@@ -85,6 +86,7 @@ public class PublicStayMapper {
                     dto.setSleeps("Jusqu'à " + a.getCapacity()
                             + (a.getCapacity() > 1 ? " personnes" : " personne"));
                     dto.setFeatures(List.copyOf(a.getFeatures()));
+                    dto.setMaxUnits(a.getMaxUnits());
                     return dto;
                 })
                 .toList();

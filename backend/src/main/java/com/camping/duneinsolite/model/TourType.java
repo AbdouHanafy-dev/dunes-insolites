@@ -37,6 +37,15 @@ public class TourType {
     @Column(name = "duration")
     private String duration;
 
+    // Maximum nights bookable in one reservation, when this TourType is used
+    // as a nuitée (Stay). 1 (default) = fixed single-night stay, the public
+    // booking flow only asks for an arrival date. >1 = the guest picks an
+    // arrival+departure range, capped at this many nights. Meaningless for a
+    // Circuit's own TourType usage (Tour is a separate entity).
+    @Column(name = "max_nights", nullable = false)
+    @Builder.Default
+    private Integer maxNights = 1;
+
     // Prices for direct passengers
     @Column(name = "passenger_adult_price", nullable = false)
     private java.math.BigDecimal passengerAdultPrice;
