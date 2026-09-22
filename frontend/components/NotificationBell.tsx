@@ -26,7 +26,13 @@ type Notification = {
  * EventSource pointed at the backend could never authenticate. See that
  * route's own comment for the full reasoning.
  */
-export default function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
+export default function NotificationBell({
+  loggedIn,
+  showLabel = false,
+}: {
+  loggedIn: boolean;
+  showLabel?: boolean;
+}) {
   const t = useTranslations("notifications");
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -130,6 +136,7 @@ export default function NotificationBell({ loggedIn }: { loggedIn: boolean }) {
           <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
+        {showLabel && <span>{t("title")}</span>}
         {unreadCount > 0 && <span className="notif-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>}
       </button>
 

@@ -14,6 +14,7 @@ import { locales } from "@/lib/site";
  */
 export default function LanguageSwitcher({
   panelAnchor = "self",
+  showName = false,
 }: {
   /**
    * "self" (default, used in the mobile drawer) opens the panel right under
@@ -23,6 +24,8 @@ export default function LanguageSwitcher({
    * the main nav row underneath it rather than clear of the header.
    */
   panelAnchor?: "self" | "header";
+  /** Show the active language name in wide menu-row variants. */
+  showName?: boolean;
 }) {
   const t = useTranslations("languageSwitcher");
   const activeLocale = useLocale();
@@ -86,6 +89,7 @@ export default function LanguageSwitcher({
         onClick={toggle}
       >
         <Flag code={active.code} className="flag" />
+        {showName && <span className="lang-active-name">{active.label}</span>}
         <span className="chev" aria-hidden="true" />
       </button>
 

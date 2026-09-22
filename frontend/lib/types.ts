@@ -37,7 +37,7 @@ export type {
 
 export { DEPARTURE_CITIES, MAX_PARTY_SIZE } from "@dunes/api-types";
 
-import type { DepartureCity, Review, TimeSlot } from "@dunes/api-types";
+import type { DepartureCity, Review, TimeSlot, Tour } from "@dunes/api-types";
 
 /* --------------------------------------------------------- presentation */
 
@@ -72,4 +72,27 @@ export const REVIEW_SOURCE_LABELS: Record<Review["source"], string> = {
   tripadvisor: "TripAdvisor",
   getyourguide: "GetYourGuide",
   google: "Google",
+};
+
+/** Who guides a Tour's customers — Tour["guideType"], never null when present. */
+export const GUIDE_TYPE_LABELS: Record<NonNullable<Tour["guideType"]>, string> = {
+  NONE: "Self-guided",
+  TOUR_GUIDE: "Tour guide",
+  RECEPTION_STAFF: "Reception staff",
+  INSTRUCTOR: "Instructor",
+  DRIVER: "Driver",
+};
+
+export const MEAL_TYPE_LABELS: Record<NonNullable<Tour["meals"][number]["mealType"]>, string> = {
+  BREAKFAST: "Breakfast",
+  LUNCH: "Lunch",
+  DINNER: "Dinner",
+  SNACK: "Snack",
+};
+
+export const MEAL_FORMAT_LABELS: Record<NonNullable<Tour["meals"][number]["format"]>, string> = {
+  BUFFET: "Buffet",
+  SET_MENU: "Set menu",
+  ALA_CARTE: "À la carte",
+  PICNIC: "Picnic",
 };

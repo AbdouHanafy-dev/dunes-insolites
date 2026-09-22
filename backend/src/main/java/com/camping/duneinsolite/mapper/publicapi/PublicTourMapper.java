@@ -22,8 +22,12 @@ import java.util.Optional;
 @Component
 public class PublicTourMapper {
 
-    /** @param locale e.g. "de"; null/"fr"/unknown all resolve to Tour's own (French) fields. */
-    public PublicTourResponse toResponse(Tour tour, String locale) {
+    /**
+     * @param locale e.g. "de"; null/"fr"/unknown all resolve to Tour's own (French) fields.
+     * @param bookedYesterdayCount real count from ReservationTourRepository - TourServiceImpl's
+     *                             job to compute, this mapper stays a plain stateless field-mapper.
+     */
+    public PublicTourResponse toResponse(Tour tour, String locale, long bookedYesterdayCount) {
         Optional<ContentLocale> contentLocale = PublicCatalogTranslation.parseLocale(locale);
         TourTranslation t = contentLocale
                 .flatMap(l -> PublicCatalogTranslation.find(tour.getTranslations(), l))
@@ -63,13 +67,51 @@ public class PublicTourMapper {
         response.setCancellationPolicy(cancellationPolicy(tour.getCancellationPolicy()));
         // Headline price is the direct-passenger adult rate - the price a
         // guest booking on the vitrine (not a partner) actually pays. Same
-        // convention as PublicStayMapper/PublicActivityMapper.
-        response.setPriceFrom(tour.getPassengerAdultPrice());
+        // convention as PublicStayMapper/PublicActivityMapper. A real sale
+        // price (admin-set, < the regular rate) becomes the headline price,
+        // with the regular rate exposed as the struck-through "was" price -
+        // never a fabricated discount.
+        boolean saleActive = tour.getSalePriceAdult() != null
+                && tour.getSalePriceAdult().compareTo(tour.getPassengerAdultPrice()) < 0;
+        response.setPriceFrom(saleActive ? tour.getSalePriceAdult() : tour.getPassengerAdultPrice());
+        response.setOriginalPriceFrom(saleActive ? tour.getPassengerAdultPrice() : null);
         response.setPassengerAdultPrice(tour.getPassengerAdultPrice());
         response.setPassengerChildPrice(tour.getPassengerChildPrice());
         response.setAverageRating(tour.getAverageRating());
         response.setReviewCount(tour.getReviewCount());
+        response.setBookedYesterdayCount(bookedYesterdayCount);
+
+        response.setGuideType(tour.getGuideType());
+        response.setFoodIncluded(tour.getFoodIncluded());
+        response.setMeals(meals(tour.getMeals()));
+        response.setDrinksIncluded(tour.getDrinksIncluded());
+        response.setDietaryRestrictions(orEmpty(tour.getDietaryRestrictions()));
+        response.setTransportIncluded(tour.getTransportIncluded());
+        response.setTransportModes(orEmpty(tour.getTransportModes()));
+
+        response.setNotSuitableFor(orEmpty(tour.getNotSuitableFor()));
+        response.setNotAllowed(orEmpty(tour.getNotAllowed()));
+        response.setAnimalsAccepted(tour.getAnimalsAccepted());
+        response.setPetPolicyNote(tour.getPetPolicyNote());
+        response.setMustBring(orEmpty(tour.getMustBring()));
+        response.setGoodToKnow(tour.getGoodToKnow());
+        response.setEmergencyPhone(tour.getEmergencyPhone());
+        response.setTicketInfo(tour.getTicketInfo());
         return response;
+    }
+
+    private static List<String> orEmpty(List<String> list) {
+        return list == null ? List.of() : list;
+    }
+
+    private static List<PublicTourResponse.Meal> meals(List<com.camping.duneinsolite.model.Meal> meals) {
+        if (meals == null) return List.of();
+        return meals.stream().map(m -> {
+            PublicTourResponse.Meal dto = new PublicTourResponse.Meal();
+            dto.setMealType(m.getMealType() == null ? null : m.getMealType().name());
+            dto.setFormat(m.getFormat() == null ? null : m.getFormat().name());
+            return dto;
+        }).toList();
     }
 
     private static List<String> gallery(List<Photo> photos) {
@@ -83,6 +125,9 @@ public class PublicTourMapper {
             step.setLabel(s.getLabel());
             step.setTitle(s.getTitle());
             step.setDescription(s.getDescription());
+            step.setSegmentType(s.getSegmentType() == null ? null : s.getSegmentType().name());
+            step.setOptionalSegment(s.getOptionalSegment());
+            step.setDurationMinutes(s.getDurationMinutes());
             return step;
         }).toList();
     }

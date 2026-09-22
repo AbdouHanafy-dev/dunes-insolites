@@ -15,6 +15,9 @@ public interface TourService {
     List<TourResponse> getAllTours();
     List<TourResponse> getActiveTours();
     TourResponse deactivateTour(UUID tourId);
+    TourResponse submitForReview(UUID tourId);
+    TourResponse approveTour(UUID tourId);
+    TourResponse rejectTour(UUID tourId, String reason);
     List<PublicTourResponse> getPublicTours(String locale);
     PublicTourResponse getPublicTourBySlug(String slug, String locale);
 }

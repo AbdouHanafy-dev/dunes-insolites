@@ -25,6 +25,11 @@
     "whatsapp": "WhatsApp",
     "myAccount": "Min konto"
   },
+  "mobileMenu": {
+    "profile": "Profil",
+    "help": "Hjælp",
+    "language": "Sprog"
+  },
   "footer": {
     "tagline": "Kameltrekking, quadsafari og sandboarding i Sahara ved solnedgang.",
     "adventures": "Eventyr",
@@ -489,7 +494,24 @@
     "stepConfirmTitle": "Vi tjekker ledigheden",
     "stepConfirmBody": "Vores lokale team vender hurtigt tilbage.",
     "stepPrepareTitle": "Modtag detaljerne",
-    "stepPrepareBody": "Mødested, transport og praktiske råd."
+    "stepPrepareBody": "Mødested, transport og praktiske råd.",
+    "restrictionsHeading": "Hvem kan ikke deltage",
+    "notSuitableForHeading": "Ikke egnet til",
+    "notAllowedHeading": "Ikke tilladt",
+    "petPolicyAccepted": "Dyr accepteret",
+    "mustBringHeading": "Hvad skal medbringes",
+    "emergencyPhoneLabel": "Nødnummer",
+    "ticketInfoHeading": "Billetinformation",
+    "guideLabel": "Guide",
+    "mealsLabel": "Måltider",
+    "drinksIncludedLabel": "Drikkevarer inkluderet",
+    "transportDuringLabel": "Transport under aktiviteten",
+    "optionalSegmentBadge": "valgfri",
+    "transferBadge": "Transfer",
+    "veryGoodRating": "Meget god bedømmelse",
+    "ratingReviewCount": "{count, plural, one {# anmeldelse} other {# anmeldelser}}",
+    "organizerLabel": "Aktivitetsarrangør: {name}",
+    "viewAllPhotos": "Se alle ({count})"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Dato og rejsende",
@@ -597,6 +619,18 @@
   },
   "accommodationCard": {
     "exploreThisStay": "Udforsk dette ophold ↗"
+  },
+  "tourCard": {
+    "fromPrice": "fra {price} €",
+    "reviews": "{count, plural, =0 {Ingen anmeldelser endnu} one {# anmeldelse} other {# anmeldelser}}",
+    "addToWishlist": "Føj til ønskeliste",
+    "removeFromWishlist": "Fjern fra ønskeliste",
+    "bookedYesterday": "{count, plural, one {Booket # gang i går} other {Booket # gange i går}}",
+    "share": "Del",
+    "linkCopied": "Link kopieret!",
+    "wishlistAdded": "Føjet til ønskelisten",
+    "wishlistRemoved": "Fjernet fra ønskelisten",
+    "shareFailed": "Linket kunne ikke deles."
   },
   "activitiesPage": {
     "eyebrow": "Vælg dit køretøj",
@@ -1014,7 +1048,17 @@
       "4x4-ture"
     ],
     "ctaLabel": "Se vores aktiviteter",
-    "ctaSecondaryLabel": "Kontakt os"
+    "ctaSecondaryLabel": "Kontakt os",
+    "searchLabel": "Søg",
+    "searchPlaceholder": "Søg efter en tur…",
+    "sortLabel": "Sortér efter",
+    "sortDefault": "Relevans",
+    "sortPriceAsc": "Pris: lav til høj",
+    "sortPriceDesc": "Pris: høj til lav",
+    "sortDurationAsc": "Varighed: korteste først",
+    "sortDurationDesc": "Varighed: længste først",
+    "noResults": "Ingen tur matcher din søgning.",
+    "resetFilters": "Nulstil"
   },
   "notifications": {
     "bellLabel": "Notifikationer",

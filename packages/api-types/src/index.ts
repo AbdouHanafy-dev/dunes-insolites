@@ -148,17 +148,47 @@ export type Tour = {
     label: string | null;
     title: string | null;
     description: string | null;
+    segmentType: "ACTIVITY" | "TRANSFER" | null;
+    optionalSegment: boolean | null;
+    durationMinutes: number | null;
   }>;
   cancellationPolicy: {
     freeCancellation: boolean | null;
     hoursBeforeDeadline: number | null;
   } | null;
-  /** Per adult, in the currency the endpoint was asked for. Same as `passengerAdultPrice`. */
+  /** Per adult, in the currency the endpoint was asked for. Same as `passengerAdultPrice`, or the
+   *  active sale price when one is running (see `originalPriceFrom`). */
   priceFrom: number;
+  /** Only set when a real sale is running (admin-set, lower than the regular rate) — the
+   *  struck-through "was" price. Null means no discount; never a fabricated one. */
+  originalPriceFrom: number | null;
   passengerAdultPrice: number;
   passengerChildPrice: number;
   averageRating: number | null;
   reviewCount: number | null;
+  /** Real count of confirmed/checked-in/completed bookings made yesterday (server-local
+   *  calendar day). 0 when none — never fabricated. */
+  bookedYesterdayCount: number;
+
+  guideType: "NONE" | "TOUR_GUIDE" | "RECEPTION_STAFF" | "INSTRUCTOR" | "DRIVER" | null;
+  foodIncluded: boolean | null;
+  meals: Array<{
+    mealType: "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | null;
+    format: "BUFFET" | "SET_MENU" | "ALA_CARTE" | "PICNIC" | null;
+  }>;
+  drinksIncluded: boolean | null;
+  dietaryRestrictions: string[];
+  transportIncluded: boolean | null;
+  transportModes: string[];
+
+  notSuitableFor: string[];
+  notAllowed: string[];
+  animalsAccepted: boolean | null;
+  petPolicyNote: string | null;
+  mustBring: string[];
+  goodToKnow: string | null;
+  emergencyPhone: string | null;
+  ticketInfo: string | null;
 };
 
 /**

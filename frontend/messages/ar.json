@@ -25,6 +25,11 @@
     "whatsapp": "واتساب",
     "myAccount": "حسابي"
   },
+  "mobileMenu": {
+    "profile": "الملف الشخصي",
+    "help": "المساعدة",
+    "language": "اللغة"
+  },
   "footer": {
     "tagline": "رحلات على ظهر الجمال، ورحلات السفاري بالدراجات الرباعية، والتزلج على الرمال عبر الصحراء الكبرى عند الغروب.",
     "adventures": "المغامرات",
@@ -489,7 +494,24 @@
     "stepConfirmTitle": "نتحقق من التوفر",
     "stepConfirmBody": "يرد عليك فريقنا المحلي بسرعة.",
     "stepPrepareTitle": "استلم التفاصيل",
-    "stepPrepareBody": "نقطة اللقاء والنقل والنصائح العملية."
+    "stepPrepareBody": "نقطة اللقاء والنقل والنصائح العملية.",
+    "restrictionsHeading": "من لا يمكنه المشاركة",
+    "notSuitableForHeading": "غير مناسب لـ",
+    "notAllowedHeading": "غير مسموح",
+    "petPolicyAccepted": "الحيوانات الأليفة مقبولة",
+    "mustBringHeading": "ما يجب إحضاره",
+    "emergencyPhoneLabel": "رقم الطوارئ",
+    "ticketInfoHeading": "معلومات التذكرة",
+    "guideLabel": "المرشد",
+    "mealsLabel": "الوجبات",
+    "drinksIncludedLabel": "المشروبات مشمولة",
+    "transportDuringLabel": "النقل أثناء النشاط",
+    "optionalSegmentBadge": "اختياري",
+    "transferBadge": "نقل",
+    "veryGoodRating": "تقييم ممتاز",
+    "ratingReviewCount": "{count, plural, one {تقييم واحد} other {# تقييم}}",
+    "organizerLabel": "منظم النشاط: {name}",
+    "viewAllPhotos": "عرض الكل ({count})"
   },
   "tourBookingForm": {
     "stepDateTravelers": "التاريخ والمسافرون",
@@ -597,6 +619,18 @@
   },
   "accommodationCard": {
     "exploreThisStay": "اكتشف هذه الإقامة ←"
+  },
+  "tourCard": {
+    "fromPrice": "ابتداءً من {price} €",
+    "reviews": "{count, plural, =0 {لا توجد تقييمات بعد} one {تقييم واحد} two {تقييمان} few {# تقييمات} many {# تقييمًا} other {# تقييم}}",
+    "addToWishlist": "أضف إلى المفضلة",
+    "removeFromWishlist": "إزالة من المفضلة",
+    "bookedYesterday": "{count, plural, one {حجزت مرة واحدة أمس} other {حجزت # مرة أمس}}",
+    "share": "مشاركة",
+    "linkCopied": "تم نسخ الرابط!",
+    "wishlistAdded": "تمت الإضافة إلى المفضلة",
+    "wishlistRemoved": "تمت الإزالة من المفضلة",
+    "shareFailed": "تعذرت مشاركة هذا الرابط."
   },
   "activitiesPage": {
     "eyebrow": "اختاروا وسيلتكم",
@@ -1014,7 +1048,17 @@
       "رحلات بالدفع الرباعي"
     ],
     "ctaLabel": "شاهد أنشطتنا",
-    "ctaSecondaryLabel": "اتصل بنا"
+    "ctaSecondaryLabel": "اتصل بنا",
+    "searchLabel": "بحث",
+    "searchPlaceholder": "ابحث عن رحلة…",
+    "sortLabel": "ترتيب حسب",
+    "sortDefault": "الأكثر صلة",
+    "sortPriceAsc": "السعر: من الأقل إلى الأعلى",
+    "sortPriceDesc": "السعر: من الأعلى إلى الأقل",
+    "sortDurationAsc": "المدة: الأقصر أولاً",
+    "sortDurationDesc": "المدة: الأطول أولاً",
+    "noResults": "لا توجد رحلة مطابقة لبحثك.",
+    "resetFilters": "إعادة تعيين"
   },
   "notifications": {
     "bellLabel": "الإشعارات",

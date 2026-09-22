@@ -25,6 +25,11 @@
     "whatsapp": "WhatsApp",
     "myAccount": "Mein Konto"
   },
+  "mobileMenu": {
+    "profile": "Profil",
+    "help": "Hilfe",
+    "language": "Sprache"
+  },
   "footer": {
     "tagline": "Kamelritte, Quad-Safaris und Sandboarding in der Sahara bei Sonnenuntergang.",
     "adventures": "Abenteuer",
@@ -489,7 +494,24 @@
     "stepConfirmTitle": "Wir prüfen die Verfügbarkeit",
     "stepConfirmBody": "Unser lokales Team antwortet Ihnen schnell.",
     "stepPrepareTitle": "Details erhalten",
-    "stepPrepareBody": "Treffpunkt, Transport und praktische Hinweise."
+    "stepPrepareBody": "Treffpunkt, Transport und praktische Hinweise.",
+    "restrictionsHeading": "Wer nicht teilnehmen kann",
+    "notSuitableForHeading": "Nicht geeignet für",
+    "notAllowedHeading": "Nicht erlaubt",
+    "petPolicyAccepted": "Tiere erlaubt",
+    "mustBringHeading": "Was mitzubringen ist",
+    "emergencyPhoneLabel": "Notrufnummer",
+    "ticketInfoHeading": "Ticketinformationen",
+    "guideLabel": "Guide",
+    "mealsLabel": "Mahlzeiten",
+    "drinksIncludedLabel": "Getränke inbegriffen",
+    "transportDuringLabel": "Transport während der Aktivität",
+    "optionalSegmentBadge": "optional",
+    "transferBadge": "Transfer",
+    "veryGoodRating": "Sehr gute Bewertung",
+    "ratingReviewCount": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
+    "organizerLabel": "Veranstalter: {name}",
+    "viewAllPhotos": "Alle ansehen ({count})"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Datum und Reisende",
@@ -597,6 +619,18 @@
   },
   "accommodationCard": {
     "exploreThisStay": "Diese Übernachtung entdecken ↗"
+  },
+  "tourCard": {
+    "fromPrice": "ab {price} €",
+    "reviews": "{count, plural, =0 {Noch keine Bewertungen} one {# Bewertung} other {# Bewertungen}}",
+    "addToWishlist": "Zur Wunschliste hinzufügen",
+    "removeFromWishlist": "Von der Wunschliste entfernen",
+    "bookedYesterday": "{count, plural, one {Gestern # Mal gebucht} other {Gestern # Mal gebucht}}",
+    "share": "Teilen",
+    "linkCopied": "Link kopiert!",
+    "wishlistAdded": "Zur Wunschliste hinzugefügt",
+    "wishlistRemoved": "Aus der Wunschliste entfernt",
+    "shareFailed": "Dieser Link konnte nicht geteilt werden."
   },
   "activitiesPage": {
     "eyebrow": "Wählen Sie Ihr Gefährt",
@@ -1014,7 +1048,17 @@
       "4x4-Rundreisen"
     ],
     "ctaLabel": "Unsere Aktivitäten ansehen",
-    "ctaSecondaryLabel": "Kontaktieren Sie uns"
+    "ctaSecondaryLabel": "Kontaktieren Sie uns",
+    "searchLabel": "Suche",
+    "searchPlaceholder": "Rundreise suchen…",
+    "sortLabel": "Sortieren nach",
+    "sortDefault": "Relevanz",
+    "sortPriceAsc": "Preis: aufsteigend",
+    "sortPriceDesc": "Preis: absteigend",
+    "sortDurationAsc": "Dauer: kürzeste zuerst",
+    "sortDurationDesc": "Dauer: längste zuerst",
+    "noResults": "Keine Rundreise entspricht Ihrer Suche.",
+    "resetFilters": "Zurücksetzen"
   },
   "notifications": {
     "bellLabel": "Benachrichtigungen",

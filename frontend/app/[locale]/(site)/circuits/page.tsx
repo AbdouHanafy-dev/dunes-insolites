@@ -1,11 +1,58 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { getTours } from "@/lib/api";
+import type { Tour } from "@/lib/types";
 import TourCard from "@/components/TourCard";
+import CircuitsFilterBar, { type CircuitsSort } from "@/components/CircuitsFilterBar";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+
+/** Leading integer in a duration string ("7 Jours / 6 Nuits" -> 7). Tours
+ *  without a parseable duration always sort after ones that have one,
+ *  regardless of direction, rather than landing at an arbitrary spot. */
+function durationDays(duration: string): number | null {
+  const match = duration.match(/\d+/);
+  return match ? Number(match[0]) : null;
+}
+
+function applyFilters(tours: Tour[], q: string | undefined, sort: string | undefined): Tour[] {
+  let result = tours;
+
+  const needle = q?.trim().toLowerCase();
+  if (needle) {
+    result = result.filter((tour) =>
+      [tour.title, tour.description, tour.location ?? ""].some((field) =>
+        field.toLowerCase().includes(needle),
+      ),
+    );
+  }
+
+  if (sort) {
+    const sorted = [...result];
+    const byPrice = (a: Tour, b: Tour) => a.priceFrom - b.priceFrom;
+    const byDuration = (a: Tour, b: Tour) => {
+      const da = durationDays(a.duration);
+      const db = durationDays(b.duration);
+      if (da === null && db === null) return 0;
+      if (da === null) return 1;
+      if (db === null) return -1;
+      return da - db;
+    };
+    const comparators: Record<CircuitsSort, (a: Tour, b: Tour) => number> = {
+      price_asc: byPrice,
+      price_desc: (a, b) => byPrice(b, a),
+      duration_asc: byDuration,
+      duration_desc: (a, b) => byDuration(b, a),
+    };
+    const comparator = comparators[sort as CircuitsSort];
+    if (comparator) sorted.sort(comparator);
+    result = sorted;
+  }
+
+  return result;
+}
 
 /**
  * Route Insolite's multi-day circuits, published on the Dunes vitrine.
@@ -31,11 +78,16 @@ export async function generateMetadata({
 
 export default async function CircuitsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
   const { locale } = await params;
-  const [tours, t] = await Promise.all([getTours(locale), getTranslations("circuitsPage")]);
+  const { q, sort } = await searchParams;
+  const [allTours, t] = await Promise.all([getTours(locale), getTranslations("circuitsPage")]);
+  const tours = applyFilters(allTours, q, sort);
+  const isFiltered = !!q || !!sort;
 
   return (
     <>
@@ -43,6 +95,9 @@ export default async function CircuitsPage({
 
       <section className="block activities" style={{ paddingTop: 110 }}>
         <div className="wrap">
+          {allTours.length > 0 && (
+            <CircuitsFilterBar resultCount={tours.length} />
+          )}
           {tours.length > 0 ? (
             <div className="cards">
               {tours.map((tour, i) => (
@@ -53,7 +108,7 @@ export default async function CircuitsPage({
             </div>
           ) : (
             <Reveal>
-              <p className="lead">{t("noneYet")}</p>
+              <p className="lead">{isFiltered ? t("noResults") : t("noneYet")}</p>
             </Reveal>
           )}
         </div>
