@@ -242,7 +242,6 @@ export default function Header({
       <div className="drawer pro-drawer" id="mobile-drawer" data-open={open} aria-hidden={!open}>
         <div className="drawer-scroll">
           <section className="drawer-section">
-            <h2>{tMenu("explore", { place: "Sabria" })}</h2>
             <nav className="drawer-menu-list" aria-label="Mobile navigation">
               {primaryNav.filter((item) => item.href !== "/faq").map((item) => (
                 <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>

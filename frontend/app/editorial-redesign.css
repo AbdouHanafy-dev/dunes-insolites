@@ -1074,9 +1074,12 @@ footer.site-footer .brand img { border-radius: 50%; }
 }
 
 .site-header.menu-open .brand {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
 }
+
+.site-header.menu-open .brand-text .bn,
+.site-header.menu-open .brand-text .bl { color: var(--journal-paper); }
 
 .site-header.menu-open .burger { color: var(--journal-paper); }
 .site-header.menu-open .burger span { width: 22px; height: 2px; }
@@ -1093,6 +1096,8 @@ footer.site-footer .brand img { border-radius: 50%; }
   padding: 26px 18px 12px;
   border-bottom: 1px solid var(--journal-rule);
 }
+
+.drawer-section:first-child { padding-top: 14px; }
 
 .drawer-section:last-child { border-bottom: 0; }
 
