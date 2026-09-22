@@ -218,7 +218,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
             />
-            <Header activities={activities} stays={stays} tours={tours} navItems={navItems} settings={settings} />
+            <Header activities={activities} stays={stays} tours={tours} navItems={navItems} />
             <main>{children}</main>
             <Footer settings={settings} />
             <CookieConsent />

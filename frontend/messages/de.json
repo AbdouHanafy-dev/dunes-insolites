@@ -25,6 +25,12 @@
     "whatsapp": "WhatsApp",
     "myAccount": "Mein Konto"
   },
+  "mobileMenu": {
+    "explore": "Entdecken: {place}",
+    "profile": "Profil",
+    "help": "Hilfe",
+    "language": "Sprache"
+  },
   "footer": {
     "tagline": "Kamelritte, Quad-Safaris und Sandboarding in der Sahara bei Sonnenuntergang.",
     "adventures": "Abenteuer",

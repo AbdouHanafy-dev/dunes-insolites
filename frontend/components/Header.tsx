@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
-import { logout, type SiteSettingsData } from "@/lib/api";
+import { logout } from "@/lib/api";
 import { site } from "@/lib/site";
 import type { Activity, Stay, Tour } from "@/lib/types";
 
@@ -18,22 +18,47 @@ type PrimaryNavItem = {
   allLabel?: string;
 };
 
+function DrawerIcon({ href }: { href: string }) {
+  const common = {
+    width: 20,
+    height: 20,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    "aria-hidden": true,
+  } as const;
+
+  if (href === "/circuits") return <svg {...common}><path d="m4 6 5-2 6 2 5-2v14l-5 2-6-2-5 2V6Z" /><path d="M9 4v14M15 6v14" /></svg>;
+  if (href === "/camp") return <svg {...common}><path d="M3 18h18M5 18v-7h14v7M7 11V7h4v4M13 11V5h4v6" /><path d="M8 14h2M14 14h2" /></svg>;
+  if (href === "/activities") return <svg {...common}><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" /></svg>;
+  if (href === "/guides") return <svg {...common}><path d="M6 3h9l3 3v15H6V3Z" /><path d="M15 3v4h4M9 11h6M9 15h6" /></svg>;
+  if (href === "/faq") return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M9.8 9a2.3 2.3 0 1 1 3.1 2.2c-.9.4-.9 1-.9 1.8M12 17h.01" /></svg>;
+  if (href === "/contact") return <svg {...common}><path d="M4 5h16v11H8l-4 4V5Z" /><path d="M8 9h8M8 12h5" /></svg>;
+  if (href === "/safety") return <svg {...common}><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg>;
+  if (href === "/book") return <svg {...common}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg>;
+  return <svg {...common}><path d="M3 11 12 3l9 8" /><path d="M5 10v11h14V10M9 21v-6h6v6" /></svg>;
+}
+
+function MenuChevron() {
+  return <svg className="drawer-row-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m9 18 6-6-6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
 export default function Header({
   activities,
   stays,
   tours,
   navItems,
-  settings,
 }: {
   activities: Activity[];
   stays: Stay[];
   tours: Tour[];
   navItems: NavEntry[];
-  settings: SiteSettingsData;
 }) {
   const t = useTranslations("nav");
   const tAccount = useTranslations("account");
   const tCircuits = useTranslations("circuitsSection");
+  const tMenu = useTranslations("mobileMenu");
   const pathname = usePathname();
   const router = useRouter();
 
@@ -127,8 +152,6 @@ export default function Header({
   );
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const waHref = `https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`;
-
   return (
     <>
       <header className={`site-header pro-header${condensed ? " condensed" : ""}${open ? " menu-open" : ""}`}>
@@ -218,37 +241,59 @@ export default function Header({
 
       <div className="drawer pro-drawer" id="mobile-drawer" data-open={open} aria-hidden={!open}>
         <div className="drawer-scroll">
-          <p className="drawer-label">{site.name} · Sabria</p>
-          <nav aria-label="Mobile navigation">
-            {primaryNav.map((item, index) => (
-              <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{item.label}</strong>
-                <span aria-hidden="true">↗</span>
+          <section className="drawer-section">
+            <h2>{tMenu("explore", { place: "Sabria" })}</h2>
+            <nav className="drawer-menu-list" aria-label="Mobile navigation">
+              {primaryNav.filter((item) => item.href !== "/faq").map((item) => (
+                <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
+                  <DrawerIcon href={item.href} />
+                  <span>{item.label}</span>
+                  <MenuChevron />
+                </Link>
+              ))}
+              <Link href="/book" tabIndex={open ? 0 : -1}>
+                <DrawerIcon href="/book" />
+                <span>{t("bookDirect")}</span>
+                <MenuChevron />
               </Link>
-            ))}
-          </nav>
+            </nav>
+          </section>
 
-          <div className="drawer-tools">
-            <LanguageSwitcher />
-            {loggedIn ? (
-              <>
-                <Link href="/account" tabIndex={open ? 0 : -1}>{t("myAccount")}</Link>
-                <button type="button" onClick={onLogout} tabIndex={open ? 0 : -1}>{tAccount("logout")}</button>
-              </>
-            ) : (
-              <Link href="/login" tabIndex={open ? 0 : -1}>{t("logIn")}</Link>
-            )}
-          </div>
+          <section className="drawer-section">
+            <h2>{tMenu("profile")}</h2>
+            <div className="drawer-menu-list">
+              <Link href={loggedIn ? "/account" : "/login"} tabIndex={open ? 0 : -1}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                <span>{loggedIn ? t("myAccount") : t("logIn")}</span>
+                <MenuChevron />
+              </Link>
+              {loggedIn && <NotificationBell loggedIn showLabel />}
+              <div className="drawer-language-row">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z" /></svg>
+                <span>{tMenu("language")}</span>
+                <LanguageSwitcher showName />
+              </div>
+              {loggedIn && (
+                <button type="button" className="drawer-logout" onClick={onLogout} tabIndex={open ? 0 : -1}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9" /></svg>
+                  <span>{tAccount("logout")}</span>
+                </button>
+              )}
+            </div>
+          </section>
 
-          <div className="drawer-contact">
-            <Link href="/book" className="drawer-book" tabIndex={open ? 0 : -1}>
-              {t("bookDirect")} <span aria-hidden="true">↗</span>
-            </Link>
-            <a href={waHref} target="_blank" rel="noreferrer noopener" tabIndex={open ? 0 : -1}>
-              WhatsApp · {settings.whatsapp}
-            </a>
-          </div>
+          <section className="drawer-section">
+            <h2>{tMenu("help")}</h2>
+            <nav className="drawer-menu-list" aria-label={tMenu("help")}>
+              {[{ href: "/faq", label: t("faq") }, { href: "/contact", label: t("contact") }, { href: "/safety", label: t("safety") }].map((item) => (
+                <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1}>
+                  <DrawerIcon href={item.href} />
+                  <span>{item.label}</span>
+                  <MenuChevron />
+                </Link>
+              ))}
+            </nav>
+          </section>
         </div>
       </div>
     </>

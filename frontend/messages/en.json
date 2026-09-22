@@ -25,6 +25,12 @@
     "whatsapp": "WhatsApp",
     "myAccount": "My account"
   },
+  "mobileMenu": {
+    "explore": "Explore: {place}",
+    "profile": "Profile",
+    "help": "Help",
+    "language": "Language"
+  },
   "footer": {
     "tagline": "Camel treks, quad safaris, and sandboarding across the Sahara at sunset.",
     "adventures": "Adventures",

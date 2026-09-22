@@ -25,6 +25,12 @@
     "whatsapp": "WhatsApp",
     "myAccount": "Il mio account"
   },
+  "mobileMenu": {
+    "explore": "Esplora: {place}",
+    "profile": "Profilo",
+    "help": "Aiuto",
+    "language": "Lingua"
+  },
   "footer": {
     "tagline": "Trekking in cammello, safari in quad e sandboarding nel Sahara al tramonto.",
     "adventures": "Avventure",
