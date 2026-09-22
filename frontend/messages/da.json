@@ -465,7 +465,11 @@
     "drinksIncludedLabel": "Drikkevarer inkluderet",
     "transportDuringLabel": "Transport under aktiviteten",
     "optionalSegmentBadge": "valgfri",
-    "transferBadge": "Transfer"
+    "transferBadge": "Transfer",
+    "veryGoodRating": "Meget god bedømmelse",
+    "ratingReviewCount": "{count, plural, one {# anmeldelse} other {# anmeldelser}}",
+    "organizerLabel": "Aktivitetsarrangør: {name}",
+    "viewAllPhotos": "Se alle ({count})"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Dato og rejsende",

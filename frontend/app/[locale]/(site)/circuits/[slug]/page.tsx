@@ -118,61 +118,62 @@ export default async function TourDetail({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(breadcrumbItems)) }}
       />
 
-      <div className="tour-product-head wrap">
-        <div className="tour-product-title">
-          <div>
-            {tour.location && <p className="tour-location">{tour.location}</p>}
-            <h1>{tour.title}</h1>
-          </div>
-          <div className="tour-header-actions">
-            {rating && (
-              <a className="tour-rating" href="#reviews">
-                <strong>★ {rating}</strong>
-                <span>{reviewCount ? `(${reviewCount})` : ""}</span>
-              </a>
-            )}
-            <WishlistButton slug={tour.slug} variant="inline" />
-            <ShareButton title={tour.title} />
-          </div>
-        </div>
-        <p className="tour-product-lead">{tour.description}</p>
-      </div>
-
-      <section className={`tour-media wrap media-count-${media.length}`} aria-label={tour.title}>
-        <div className="tour-media-primary">
-          <Image src={media[0]} alt={suppliedMedia.length ? tour.title : ""} fill sizes="(max-width: 800px) 100vw, 68vw" priority />
-        </div>
-        {media.length > 1 && (
-          <div className="tour-media-secondary">
-            {media.slice(1).map((source, index) => (
-              <div className="tour-media-cell" key={`${source}-${index}`}>
-                <Image src={source} alt={`${tour.title} — ${index + 2}`} fill sizes="(max-width: 800px) 50vw, 22vw" />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <nav className="tour-subnav" aria-label={tour.title}>
-        <div className="wrap">
-          <div>
-            <a href="#overview">{t("theTrip")}</a>
-            <a href="#how-it-works">{t("howItWorks")}</a>
-            {tour.itinerary.length > 0 && <a href="#itinerary">{t("itineraryHeading")}</a>}
-            {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
-              <a href="#included">{t("whatsIncluded")}</a>
-            )}
-            {tour.meetingPoint && <a href="#meeting">{t("meetingPointHeading")}</a>}
-          </div>
-          <a className="tour-subnav-book" href="#reserve">
-            {t("fromPrice", { price: tour.priceFrom })} · {t("ctaLabel")}
-          </a>
-        </div>
-      </nav>
-
       <section className="tour-product-content">
         <div className="wrap tour-product-grid">
           <div className="tour-product-main">
+            <div className="tour-hero-head">
+              {tour.location && <p className="tour-location">{tour.location}</p>}
+              <h1>{tour.title}</h1>
+              <div className="tour-header-actions">
+                {rating && Number(rating) >= 4.5 && (
+                  <span className="tour-rating-badge">{t("veryGoodRating")}</span>
+                )}
+                {rating && (
+                  <a className="tour-rating" href="#reviews">
+                    <strong>★ {rating}</strong>
+                    <span>{reviewCount ? t("ratingReviewCount", { count: reviewCount }) : ""}</span>
+                  </a>
+                )}
+                <span className="tour-organizer">{t("organizerLabel", { name: site.name })}</span>
+                <WishlistButton slug={tour.slug} variant="inline" />
+                <ShareButton title={tour.title} />
+              </div>
+            </div>
+
+            <section className={`tour-gallery media-count-${media.length}`} aria-label={tour.title}>
+              <div className="tour-media-primary">
+                <Image src={media[0]} alt={suppliedMedia.length ? tour.title : ""} fill sizes="(max-width: 900px) 100vw, 58vw" priority />
+              </div>
+              {media.length > 1 && (
+                <div className="tour-media-secondary">
+                  {media.slice(1).map((source, index) => {
+                    const isLast = index === media.slice(1).length - 1;
+                    const remaining = suppliedMedia.length - media.length;
+                    return (
+                      <div className="tour-media-cell" key={`${source}-${index}`}>
+                        <Image src={source} alt={`${tour.title} — ${index + 2}`} fill sizes="(max-width: 900px) 50vw, 20vw" />
+                        {isLast && remaining > 0 && (
+                          <span className="tour-gallery-viewall">{t("viewAllPhotos", { count: suppliedMedia.length })}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <p className="tour-product-lead">{tour.description}</p>
+
+            <nav className="tour-subnav" aria-label={tour.title}>
+              <a href="#overview">{t("theTrip")}</a>
+              <a href="#how-it-works">{t("howItWorks")}</a>
+              {tour.itinerary.length > 0 && <a href="#itinerary">{t("itineraryHeading")}</a>}
+              {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
+                <a href="#included">{t("whatsIncluded")}</a>
+              )}
+              {tour.meetingPoint && <a href="#meeting">{t("meetingPointHeading")}</a>}
+            </nav>
+
             <div className="tour-essentials" aria-label={t("goodToKnow")}>
               <div><small>{t("duration")}</small><strong>{tour.duration}</strong></div>
               {tour.groupSize && <div><small>{t("groupSize")}</small><strong>{tour.groupSize}</strong></div>}

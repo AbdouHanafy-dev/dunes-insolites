@@ -465,7 +465,11 @@
     "drinksIncludedLabel": "المشروبات مشمولة",
     "transportDuringLabel": "النقل أثناء النشاط",
     "optionalSegmentBadge": "اختياري",
-    "transferBadge": "نقل"
+    "transferBadge": "نقل",
+    "veryGoodRating": "تقييم ممتاز",
+    "ratingReviewCount": "{count, plural, one {تقييم واحد} other {# تقييم}}",
+    "organizerLabel": "منظم النشاط: {name}",
+    "viewAllPhotos": "عرض الكل ({count})"
   },
   "tourBookingForm": {
     "stepDateTravelers": "التاريخ والمسافرون",

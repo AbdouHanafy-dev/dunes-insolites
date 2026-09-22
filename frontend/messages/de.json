@@ -465,7 +465,11 @@
     "drinksIncludedLabel": "Getränke inbegriffen",
     "transportDuringLabel": "Transport während der Aktivität",
     "optionalSegmentBadge": "optional",
-    "transferBadge": "Transfer"
+    "transferBadge": "Transfer",
+    "veryGoodRating": "Sehr gute Bewertung",
+    "ratingReviewCount": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
+    "organizerLabel": "Veranstalter: {name}",
+    "viewAllPhotos": "Alle ansehen ({count})"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Datum und Reisende",
