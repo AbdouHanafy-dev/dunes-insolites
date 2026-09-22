@@ -1541,11 +1541,6 @@ footer.site-footer.pro-footer .bar a:hover {
 .tour-rating strong { font-size: 14px; }
 .tour-rating span { color: rgba(39, 34, 30, 0.55); font-size: 13px; text-decoration: underline; text-underline-offset: 2px; }
 
-.tour-organizer {
-  color: rgba(39, 34, 30, 0.6);
-  font-size: 13px;
-}
-
 /* Compact gallery, contained to the left column (not full page width) —
    one large image + up to 4 thumbnails, "Voir tout" overlay on the last. */
 .tour-gallery {
@@ -2400,7 +2395,6 @@ footer.site-footer.pro-footer .bar a:hover {
     margin-top: 10px;
   }
   .tour-header-actions .tour-rating-badge,
-  .tour-header-actions .tour-organizer,
   .tour-header-desktop-action { display: none; }
   .tour-rating {
     justify-content: center;
@@ -2575,6 +2569,12 @@ footer.site-footer.pro-footer .bar a:hover {
     box-shadow: 0 -12px 30px rgba(22, 41, 70, 0.12);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    transition: opacity 0.2s ease, transform 0.25s ease;
+  }
+  .tour-mobile-booking-bar[data-hidden="true"] {
+    opacity: 0;
+    transform: translateY(110%);
+    pointer-events: none;
   }
   .tour-mobile-booking-bar > p {
     margin: 0 0 5px;

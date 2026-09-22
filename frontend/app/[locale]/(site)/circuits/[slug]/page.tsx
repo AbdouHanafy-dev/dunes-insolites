@@ -13,6 +13,7 @@ import Reviews from "@/components/Reviews";
 import WishlistButton from "@/components/WishlistButton";
 import ShareButton from "@/components/ShareButton";
 import TourPhotoGallery from "@/components/TourPhotoGallery";
+import TourMobileBookingBar from "@/components/TourMobileBookingBar";
 import { site } from "@/lib/site";
 import { GUIDE_TYPE_LABELS, MEAL_TYPE_LABELS, MEAL_FORMAT_LABELS } from "@/lib/types";
 
@@ -134,7 +135,6 @@ export default async function TourDetail({ params }: Props) {
                     <span>{reviewCount ? t("ratingReviewCount", { count: reviewCount }) : ""}</span>
                   </a>
                 )}
-                <span className="tour-organizer">{t("organizerLabel", { name: site.name })}</span>
                 <span className="tour-header-desktop-action">
                   <WishlistButton slug={tour.slug} variant="inline" />
                 </span>
@@ -400,18 +400,12 @@ export default async function TourDetail({ params }: Props) {
         </div>
       </section>
 
-      <div className="tour-mobile-booking-bar">
-        {tour.cancellationPolicy?.freeCancellation && (
-          <p>{t("freeCancellationNote")}</p>
-        )}
-        <div>
-          <span className="tour-mobile-booking-price">
-            <small>{t("fromPrice", { price: tour.priceFrom })}</small>
-            <strong>{t("perAdultLabel")}</strong>
-          </span>
-          <a href="#reserve">{t("ctaLabel")}</a>
-        </div>
-      </div>
+      <TourMobileBookingBar
+        priceLabel={t("fromPrice", { price: tour.priceFrom })}
+        unitLabel={t("perAdultLabel")}
+        actionLabel={t("ctaLabel")}
+        cancellationLabel={tour.cancellationPolicy?.freeCancellation ? t("freeCancellationNote") : undefined}
+      />
 
       <Reviews tourSlug={slug} title={t("reviewsTitle", { tour: tour.title })} />
 
