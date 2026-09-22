@@ -571,7 +571,10 @@
   },
   "tourCard": {
     "fromPrice": "from €{price}",
-    "reviews": "{count, plural, =0 {No reviews yet} one {# review} other {# reviews}}"
+    "reviews": "{count, plural, =0 {No reviews yet} one {# review} other {# reviews}}",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist",
+    "bookedYesterday": "{count, plural, one {Booked # time yesterday} other {Booked # times yesterday}}"
   },
   "activitiesPage": {
     "eyebrow": "Choose your ride",

@@ -151,12 +151,19 @@ export type Tour = {
     freeCancellation: boolean | null;
     hoursBeforeDeadline: number | null;
   } | null;
-  /** Per adult, in the currency the endpoint was asked for. Same as `passengerAdultPrice`. */
+  /** Per adult, in the currency the endpoint was asked for. Same as `passengerAdultPrice`, or the
+   *  active sale price when one is running (see `originalPriceFrom`). */
   priceFrom: number;
+  /** Only set when a real sale is running (admin-set, lower than the regular rate) — the
+   *  struck-through "was" price. Null means no discount; never a fabricated one. */
+  originalPriceFrom: number | null;
   passengerAdultPrice: number;
   passengerChildPrice: number;
   averageRating: number | null;
   reviewCount: number | null;
+  /** Real count of confirmed/checked-in/completed bookings made yesterday (server-local
+   *  calendar day). 0 when none — never fabricated. */
+  bookedYesterdayCount: number;
 
   guideType: "NONE" | "TOUR_GUIDE" | "RECEPTION_STAFF" | "INSTRUCTOR" | "DRIVER" | null;
   foodIncluded: boolean | null;

@@ -1942,6 +1942,14 @@ footer.site-footer.pro-footer .bar a:hover {
 
 .tour-booking-price small { color: rgba(39, 34, 30, 0.5); font-size: 9px; text-transform: uppercase; }
 
+.tour-booking-price .tour-price-original {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: rgba(39, 34, 30, 0.4) !important;
+  text-decoration: line-through;
+}
+.tour-booking-price .tour-price-discounted { color: #c0392b; }
+
 .tour-booking-promises {
   display: flex;
   flex-direction: column;

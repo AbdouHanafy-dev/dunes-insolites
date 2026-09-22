@@ -43,6 +43,14 @@ public class Tour {
     @Column(name = "passenger_adult_price", nullable = false)
     private java.math.BigDecimal passengerAdultPrice;
 
+    // Public sale price for the direct-passenger adult rate only - the one
+    // rate shown on cards/listings. Nullable: no sale running. When set,
+    // it's what a guest actually pays; passengerAdultPrice becomes the
+    // struck-through "was" price. Never confused with UserProductRemise,
+    // which is a private per-user discount, not a public sale.
+    @Column(name = "sale_price_adult")
+    private java.math.BigDecimal salePriceAdult;
+
     @Column(name = "passenger_child_price", nullable = false)
     private java.math.BigDecimal passengerChildPrice;
 

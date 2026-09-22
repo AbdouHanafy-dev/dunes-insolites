@@ -1782,11 +1782,61 @@ section.block {
   color: var(--muted);
 }
 .edit-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-family: var(--font-display), sans-serif;
   font-weight: 600;
   font-size: 0.85rem;
   color: var(--ink);
   white-space: nowrap;
+}
+.edit-card-price-original {
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.edit-card-price-discounted {
+  color: #c0392b;
+}
+
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.wishlist-btn:hover {
+  transform: scale(1.08);
+}
+.wishlist-btn[aria-pressed="true"] {
+  color: #c0392b;
+}
+
+.edit-card-badge {
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 10px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(39, 34, 30, 0.85);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* ---------- shared editorial microtype ----------

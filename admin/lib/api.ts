@@ -505,6 +505,7 @@ export type AdminTour = {
   description: string | null;
   duration: string | null;
   passengerAdultPrice: number;
+  salePriceAdult: number | null;
   passengerChildPrice: number;
   partnerAdultPrice: number;
   partnerChildPrice: number;

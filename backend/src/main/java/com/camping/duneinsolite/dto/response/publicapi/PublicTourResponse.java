@@ -31,10 +31,16 @@ public class PublicTourResponse {
     private List<ItineraryStep> itinerary;
     private CancellationPolicy cancellationPolicy;
     private BigDecimal priceFrom;
+    // Only set when a real sale is running (salePriceAdult < passengerAdultPrice)
+    // - the "was" price to render struck-through. Null means no discount.
+    private BigDecimal originalPriceFrom;
     private BigDecimal passengerAdultPrice;
     private BigDecimal passengerChildPrice;
     private Double averageRating;
     private Integer reviewCount;
+    // Real count of CONFIRMED/CHECKED_IN/COMPLETED bookings created
+    // yesterday (server-local calendar day) - never fabricated, 0 when none.
+    private long bookedYesterdayCount;
 
     private GuideType guideType;
     private Boolean foodIncluded;

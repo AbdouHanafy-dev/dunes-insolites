@@ -22,6 +22,7 @@ public class TourResponse {
     private String description;
     private String duration;
     private java.math.BigDecimal passengerAdultPrice;
+    private java.math.BigDecimal salePriceAdult;
     private java.math.BigDecimal passengerChildPrice;
     private java.math.BigDecimal partnerAdultPrice;
     private java.math.BigDecimal partnerChildPrice;

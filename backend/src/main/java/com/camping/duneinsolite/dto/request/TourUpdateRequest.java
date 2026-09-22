@@ -57,6 +57,9 @@ public class TourUpdateRequest {
     @NotNull(message = "Passenger adult price is required")
     private java.math.BigDecimal passengerAdultPrice;
 
+    @DecimalMin(value = "0.0", inclusive = false, message = "Sale price must be positive")
+    private java.math.BigDecimal salePriceAdult;
+
     @NotNull(message = "Passenger child price is required")
     private java.math.BigDecimal passengerChildPrice;
 

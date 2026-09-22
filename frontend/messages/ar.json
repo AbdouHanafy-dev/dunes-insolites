@@ -571,7 +571,10 @@
   },
   "tourCard": {
     "fromPrice": "ابتداءً من {price} €",
-    "reviews": "{count, plural, =0 {لا توجد تقييمات بعد} one {تقييم واحد} two {تقييمان} few {# تقييمات} many {# تقييمًا} other {# تقييم}}"
+    "reviews": "{count, plural, =0 {لا توجد تقييمات بعد} one {تقييم واحد} two {تقييمان} few {# تقييمات} many {# تقييمًا} other {# تقييم}}",
+    "addToWishlist": "أضف إلى المفضلة",
+    "removeFromWishlist": "إزالة من المفضلة",
+    "bookedYesterday": "{count, plural, one {حجزت مرة واحدة أمس} other {حجزت # مرة أمس}}"
   },
   "activitiesPage": {
     "eyebrow": "اختاروا وسيلتكم",

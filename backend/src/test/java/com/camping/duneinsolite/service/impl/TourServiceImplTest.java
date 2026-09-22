@@ -10,6 +10,7 @@ import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
 import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.enums.ProductStatus;
+import com.camping.duneinsolite.repository.ReservationTourRepository;
 import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.UserProductRemiseRepository;
@@ -55,6 +56,7 @@ class TourServiceImplTest {
         PublicTourMapper publicTourMapper = mock(PublicTourMapper.class);
         UserProductRemiseRepository remiseRepository = mock(UserProductRemiseRepository.class);
         ReviewRepository reviewRepository = mock(ReviewRepository.class);
+        ReservationTourRepository reservationTourRepository = mock(ReservationTourRepository.class);
         spokenLanguageResolver = mock(SpokenLanguageResolver.class);
 
         // Reproduces the real mapper's overwrite-with-null behavior.
@@ -70,7 +72,7 @@ class TourServiceImplTest {
 
         when(repository.save(any(Tour.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        service = new TourServiceImpl(repository, mapper, publicTourMapper, remiseRepository, reviewRepository, spokenLanguageResolver);
+        service = new TourServiceImpl(repository, mapper, publicTourMapper, remiseRepository, reviewRepository, reservationTourRepository, spokenLanguageResolver);
     }
 
     @Test
@@ -194,5 +196,52 @@ class TourServiceImplTest {
         service.createTour(request);
 
         assertThat(mapped.getStatus()).isEqualTo(ProductStatus.DRAFT);
+    }
+
+    @Test
+    void createTourRejectsSalePriceNotLowerThanRegular() {
+        TourRequest request = new TourRequest();
+        request.setName("Discounted tour");
+        request.setPassengerAdultPrice(new java.math.BigDecimal("100"));
+        request.setPassengerChildPrice(new java.math.BigDecimal("50"));
+        request.setPartnerAdultPrice(new java.math.BigDecimal("80"));
+        request.setPartnerChildPrice(new java.math.BigDecimal("40"));
+        request.setTva(new java.math.BigDecimal("13"));
+
+        when(repository.existsByName("Discounted tour")).thenReturn(false);
+        Tour mapped = Tour.builder()
+                .name("Discounted tour")
+                .passengerAdultPrice(new java.math.BigDecimal("100"))
+                .salePriceAdult(new java.math.BigDecimal("100")) // not actually lower
+                .build();
+        when(mapper.toEntity(request)).thenReturn(mapped);
+        when(spokenLanguageResolver.resolve(null)).thenReturn(java.util.Set.of());
+
+        assertThatThrownBy(() -> service.createTour(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.InvalidPriceException.class);
+    }
+
+    @Test
+    void createTourAcceptsValidSalePrice() {
+        TourRequest request = new TourRequest();
+        request.setName("Discounted tour");
+        request.setPassengerAdultPrice(new java.math.BigDecimal("100"));
+        request.setPassengerChildPrice(new java.math.BigDecimal("50"));
+        request.setPartnerAdultPrice(new java.math.BigDecimal("80"));
+        request.setPartnerChildPrice(new java.math.BigDecimal("40"));
+        request.setTva(new java.math.BigDecimal("13"));
+
+        when(repository.existsByName("Discounted tour")).thenReturn(false);
+        Tour mapped = Tour.builder()
+                .name("Discounted tour")
+                .passengerAdultPrice(new java.math.BigDecimal("100"))
+                .salePriceAdult(new java.math.BigDecimal("80"))
+                .build();
+        when(mapper.toEntity(request)).thenReturn(mapped);
+        when(spokenLanguageResolver.resolve(null)).thenReturn(java.util.Set.of());
+
+        service.createTour(request);
+
+        assertThat(mapped.getSalePriceAdult()).isEqualByComparingTo("80");
     }
 }

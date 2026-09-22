@@ -6,6 +6,7 @@ import com.camping.duneinsolite.dto.request.TourUpdateRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicTourResponse;
 import com.camping.duneinsolite.exception.ConflictException;
+import com.camping.duneinsolite.exception.InvalidPriceException;
 import com.camping.duneinsolite.exception.ProductIncompleteException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.mapper.TourMapper;
@@ -14,6 +15,7 @@ import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourTranslation;
 import com.camping.duneinsolite.model.enums.ProductStatus;
 import com.camping.duneinsolite.model.enums.ProductType;
+import com.camping.duneinsolite.repository.ReservationTourRepository;
 import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.UserProductRemiseRepository;
@@ -36,6 +38,7 @@ public class TourServiceImpl implements TourService {
     private final PublicTourMapper publicTourMapper;
     private final UserProductRemiseRepository userProductRemiseRepository;
     private final ReviewRepository reviewRepository;
+    private final ReservationTourRepository reservationTourRepository;
     private final SpokenLanguageResolver spokenLanguageResolver;
 
     @Override
@@ -52,6 +55,7 @@ public class TourServiceImpl implements TourService {
         tour.setStatus(ProductStatus.DRAFT);
         tour.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         syncTranslations(tour, request.getTranslations());
+        validateSalePrice(tour);
         return tourMapper.toResponse(tourRepository.save(tour));
     }
 
@@ -76,7 +80,16 @@ public class TourServiceImpl implements TourService {
             tour.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));
         }
         syncTranslations(tour, request.getTranslations());
+        validateSalePrice(tour);
         return tourMapper.toResponse(tourRepository.save(tour));
+    }
+
+    private void validateSalePrice(Tour tour) {
+        if (tour.getSalePriceAdult() == null) return;
+        if (tour.getSalePriceAdult().compareTo(tour.getPassengerAdultPrice()) >= 0) {
+            throw new InvalidPriceException(
+                    "Sale price must be lower than the regular passenger adult price");
+        }
     }
 
     // Replaces the whole translation set on every save rather than diffing -
@@ -201,7 +214,7 @@ public class TourServiceImpl implements TourService {
     public List<PublicTourResponse> getPublicTours(String locale) {
         return tourRepository.findByIsActiveTrue().stream()
                 .filter(tour -> tour.getSlug() != null && !tour.getSlug().isBlank())
-                .map(tour -> publicTourMapper.toResponse(tour, locale))
+                .map(tour -> publicTourMapper.toResponse(tour, locale, bookedYesterday(tour.getTourId())))
                 .toList();
     }
 
@@ -210,6 +223,24 @@ public class TourServiceImpl implements TourService {
     public PublicTourResponse getPublicTourBySlug(String slug, String locale) {
         Tour tour = tourRepository.findBySlugAndIsActiveTrue(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + slug));
-        return publicTourMapper.toResponse(tour, locale);
+        return publicTourMapper.toResponse(tour, locale, bookedYesterday(tour.getTourId()));
+    }
+
+    // "Yesterday" as the server-local calendar day, matching the label the
+    // badge actually shows ("Réservée N fois hier") rather than a rolling
+    // 24h window. PENDING excluded - see ReservationTourRepository's own
+    // comment.
+    private long bookedYesterday(UUID tourId) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDateTime since = today.minusDays(1).atStartOfDay();
+        java.time.LocalDateTime until = today.atStartOfDay();
+        return reservationTourRepository.countBookings(
+                tourId,
+                List.of(
+                        com.camping.duneinsolite.model.enums.ReservationStatus.CONFIRMED,
+                        com.camping.duneinsolite.model.enums.ReservationStatus.CHECKED_IN,
+                        com.camping.duneinsolite.model.enums.ReservationStatus.COMPLETED),
+                since,
+                until);
     }
 }

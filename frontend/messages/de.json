@@ -571,7 +571,10 @@
   },
   "tourCard": {
     "fromPrice": "ab {price} €",
-    "reviews": "{count, plural, =0 {Noch keine Bewertungen} one {# Bewertung} other {# Bewertungen}}"
+    "reviews": "{count, plural, =0 {Noch keine Bewertungen} one {# Bewertung} other {# Bewertungen}}",
+    "addToWishlist": "Zur Wunschliste hinzufügen",
+    "removeFromWishlist": "Von der Wunschliste entfernen",
+    "bookedYesterday": "{count, plural, one {Gestern # Mal gebucht} other {Gestern # Mal gebucht}}"
   },
   "activitiesPage": {
     "eyebrow": "Wählen Sie Ihr Gefährt",

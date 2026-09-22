@@ -68,6 +68,7 @@ type TourForm = {
   photos: TourPhoto[];
   translations: Record<string, CatalogTranslationForm>;
   passengerAdultPrice: number;
+  salePriceAdult: number | null;
   passengerChildPrice: number;
   partnerAdultPrice: number;
   partnerChildPrice: number;
@@ -116,6 +117,7 @@ const EMPTY_FORM: TourForm = {
   photos: [],
   translations: {},
   passengerAdultPrice: 0,
+  salePriceAdult: null,
   passengerChildPrice: 0,
   partnerAdultPrice: 0,
   partnerChildPrice: 0,
@@ -174,6 +176,7 @@ function fromInitialData(data?: AdminTour): TourForm {
     photos: data.photos ?? [],
     translations: translationsToRecord(data.translations),
     passengerAdultPrice: data.passengerAdultPrice,
+    salePriceAdult: data.salePriceAdult ?? null,
     passengerChildPrice: data.passengerChildPrice,
     partnerAdultPrice: data.partnerAdultPrice,
     partnerChildPrice: data.partnerChildPrice,
@@ -226,6 +229,7 @@ function toRequestBody(form: TourForm) {
     photos: form.photos,
     translations: translationsToArray(form.translations),
     passengerAdultPrice: form.passengerAdultPrice,
+    salePriceAdult: form.salePriceAdult,
     passengerChildPrice: form.passengerChildPrice,
     partnerAdultPrice: form.partnerAdultPrice,
     partnerChildPrice: form.partnerChildPrice,
@@ -320,11 +324,13 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   }
 
   const basicsValid = form.name.trim().length > 0;
+  const salePriceValid = form.salePriceAdult == null || form.salePriceAdult < form.passengerAdultPrice;
   const pricingValid =
     form.passengerAdultPrice >= 0 &&
     form.passengerChildPrice >= 0 &&
     form.partnerAdultPrice >= 0 &&
-    form.partnerChildPrice >= 0;
+    form.partnerChildPrice >= 0 &&
+    salePriceValid;
   const photosValid = form.photos.length + (form.coverPhotoUrl ? 1 : 0) >= 4 && form.copyrightConfirmed;
   const itineraryValid = form.programSteps.length >= 1;
   const keywordsValid = form.keywords.length >= 1;
@@ -829,6 +835,22 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 onChange={(e) => patch({ passengerAdultPrice: e.target.valueAsNumber })}
               />
             </Field>
+            <Field
+              label="Prix promotionnel adulte"
+              hint="optionnel — doit être inférieur au prix normal pour afficher une réduction"
+            >
+              <input
+                type="number"
+                className={inputClass}
+                value={form.salePriceAdult ?? ""}
+                onChange={(e) => patch({ salePriceAdult: e.target.valueAsNumber || null })}
+              />
+              {form.salePriceAdult != null && !salePriceValid && (
+                <p className="mt-1 text-[12px] text-rose">
+                  Le prix promotionnel doit être inférieur au prix adulte normal.
+                </p>
+              )}
+            </Field>
             <Field label="Prix enfant (passager)" required>
               <input
                 type="number"
@@ -1130,7 +1152,14 @@ function PreviewCard({ form }: { form: TourForm }) {
         <div className="mt-4 grid grid-cols-2 gap-3 border-t border-navy-700/8 pt-4 text-sm">
           <div>
             <span className="text-navy-700/50">Adulte : </span>
-            <span className="font-semibold">{form.passengerAdultPrice} TND</span>
+            {form.salePriceAdult != null && form.salePriceAdult < form.passengerAdultPrice ? (
+              <>
+                <span className="text-navy-700/40 line-through">{form.passengerAdultPrice} TND</span>{" "}
+                <span className="font-semibold text-rose">{form.salePriceAdult} TND</span>
+              </>
+            ) : (
+              <span className="font-semibold">{form.passengerAdultPrice} TND</span>
+            )}
           </div>
           <div>
             <span className="text-navy-700/50">Enfant : </span>

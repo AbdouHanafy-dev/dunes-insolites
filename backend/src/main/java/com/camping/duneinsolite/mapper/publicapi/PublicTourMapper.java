@@ -22,8 +22,12 @@ import java.util.Optional;
 @Component
 public class PublicTourMapper {
 
-    /** @param locale e.g. "de"; null/"fr"/unknown all resolve to Tour's own (French) fields. */
-    public PublicTourResponse toResponse(Tour tour, String locale) {
+    /**
+     * @param locale e.g. "de"; null/"fr"/unknown all resolve to Tour's own (French) fields.
+     * @param bookedYesterdayCount real count from ReservationTourRepository - TourServiceImpl's
+     *                             job to compute, this mapper stays a plain stateless field-mapper.
+     */
+    public PublicTourResponse toResponse(Tour tour, String locale, long bookedYesterdayCount) {
         Optional<ContentLocale> contentLocale = PublicCatalogTranslation.parseLocale(locale);
         TourTranslation t = contentLocale
                 .flatMap(l -> PublicCatalogTranslation.find(tour.getTranslations(), l))
@@ -63,12 +67,19 @@ public class PublicTourMapper {
         response.setCancellationPolicy(cancellationPolicy(tour.getCancellationPolicy()));
         // Headline price is the direct-passenger adult rate - the price a
         // guest booking on the vitrine (not a partner) actually pays. Same
-        // convention as PublicStayMapper/PublicActivityMapper.
-        response.setPriceFrom(tour.getPassengerAdultPrice());
+        // convention as PublicStayMapper/PublicActivityMapper. A real sale
+        // price (admin-set, < the regular rate) becomes the headline price,
+        // with the regular rate exposed as the struck-through "was" price -
+        // never a fabricated discount.
+        boolean saleActive = tour.getSalePriceAdult() != null
+                && tour.getSalePriceAdult().compareTo(tour.getPassengerAdultPrice()) < 0;
+        response.setPriceFrom(saleActive ? tour.getSalePriceAdult() : tour.getPassengerAdultPrice());
+        response.setOriginalPriceFrom(saleActive ? tour.getPassengerAdultPrice() : null);
         response.setPassengerAdultPrice(tour.getPassengerAdultPrice());
         response.setPassengerChildPrice(tour.getPassengerChildPrice());
         response.setAverageRating(tour.getAverageRating());
         response.setReviewCount(tour.getReviewCount());
+        response.setBookedYesterdayCount(bookedYesterdayCount);
 
         response.setGuideType(tour.getGuideType());
         response.setFoodIncluded(tour.getFoodIncluded());

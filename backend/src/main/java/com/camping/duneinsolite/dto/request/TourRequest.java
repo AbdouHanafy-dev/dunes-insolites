@@ -59,6 +59,12 @@ public class TourRequest {
     @NotNull(message = "Passenger adult price is required")
     private java.math.BigDecimal passengerAdultPrice;
 
+    // Optional - a real public sale price for the adult rate. Validated
+    // against passengerAdultPrice in the service layer (needs both values
+    // together, which @Valid on a single field can't express).
+    @DecimalMin(value = "0.0", inclusive = false, message = "Sale price must be positive")
+    private java.math.BigDecimal salePriceAdult;
+
     @NotNull(message = "Passenger child price is required")
     private java.math.BigDecimal passengerChildPrice;
 

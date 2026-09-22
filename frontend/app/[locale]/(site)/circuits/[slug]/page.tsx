@@ -69,6 +69,7 @@ export default async function TourDetail({ params }: Props) {
       !!m.mealType && !!m.format,
     )
     .map((m) => `${MEAL_TYPE_LABELS[m.mealType]} (${MEAL_FORMAT_LABELS[m.format]})`);
+  const hasDiscount = tour.originalPriceFrom != null && tour.originalPriceFrom > tour.priceFrom;
   const hasRestrictions = tour.notSuitableFor.length > 0 || tour.notAllowed.length > 0 || !!tour.petPolicyNote;
   const hasPracticalInfo =
     !!tour.goodToKnow || tour.mustBring.length > 0 || !!tour.emergencyPhone || !!tour.ticketInfo;
@@ -382,7 +383,10 @@ export default async function TourDetail({ params }: Props) {
               <h2>{tour.title}</h2>
             </div>
             <div className="tour-booking-price">
-              <span>{t("fromPrice", { price: tour.priceFrom })}</span>
+              {hasDiscount && <span className="tour-price-original">{tour.originalPriceFrom} €</span>}
+              <span className={hasDiscount ? "tour-price-discounted" : undefined}>
+                {t("fromPrice", { price: tour.priceFrom })}
+              </span>
               <small>{t("perAdultLabel")}</small>
             </div>
             <ul className="tour-booking-promises">
