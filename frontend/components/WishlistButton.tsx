@@ -44,20 +44,29 @@ function subscribe(onChange: () => void) {
  * and every WishlistButton on the page re-renders in sync when any one of
  * them is toggled.
  */
-export default function WishlistButton({ slug }: { slug: string }) {
+export default function WishlistButton({
+  slug,
+  variant = "card",
+}: {
+  slug: string;
+  /** "card" = absolute-positioned corner heart (grid/carousel cards).
+   *  "inline" = static button with a text label (detail-page header row). */
+  variant?: "card" | "inline";
+}) {
   const t = useTranslations("tourCard");
   const saved = useSyncExternalStore(
     subscribe,
     () => readWishlist().has(slug),
     () => false,
   );
+  const label = saved ? t("removeFromWishlist") : t("addToWishlist");
 
   return (
     <button
       type="button"
-      className="wishlist-btn"
+      className={variant === "inline" ? "wishlist-btn-inline" : "wishlist-btn"}
       aria-pressed={saved}
-      aria-label={saved ? t("removeFromWishlist") : t("addToWishlist")}
+      aria-label={label}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -70,6 +79,7 @@ export default function WishlistButton({ slug }: { slug: string }) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
         <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
       </svg>
+      {variant === "inline" && <span>{label}</span>}
     </button>
   );
 }

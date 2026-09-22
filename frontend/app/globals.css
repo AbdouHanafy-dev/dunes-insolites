@@ -1824,6 +1824,29 @@ section.block {
   color: #c0392b;
 }
 
+.wishlist-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink, #27221e);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wishlist-btn-inline[aria-pressed="true"] {
+  color: #c0392b;
+}
+.wishlist-btn-inline:hover {
+  opacity: 0.75;
+}
+
 .edit-card-badge {
   position: absolute;
   top: 10px;

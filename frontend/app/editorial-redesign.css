@@ -1533,11 +1533,17 @@ footer.site-footer.pro-footer .bar a:hover {
   line-height: 1.65;
 }
 
+.tour-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 8px;
+}
+
 .tour-rating {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  padding-bottom: 8px;
   color: #7c422c;
   white-space: nowrap;
 }
@@ -1693,12 +1699,20 @@ footer.site-footer.pro-footer .bar a:hover {
 .tour-booking-benefits article p { margin: 0; color: rgba(255, 250, 243, 0.65); font-size: 12px; line-height: 1.55; }
 
 .tour-section {
-  padding: 56px 0;
+  padding: 38px 0;
   border-bottom: 1px solid rgba(39, 34, 30, 0.13);
   scroll-margin-top: 142px;
 }
 
-.tour-section h2,
+.tour-section h2 {
+  margin: 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
 .tour-related h2 {
   margin: 0;
   font-family: var(--font-display), sans-serif;
@@ -1745,28 +1759,44 @@ footer.site-footer.pro-footer .bar a:hover {
 }
 
 .tour-itinerary ol {
-  margin: 34px 0 0;
+  position: relative;
+  margin: 24px 0 0;
   padding: 0;
   list-style: none;
 }
 
 .tour-itinerary li {
+  position: relative;
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 22px;
-  padding: 26px 0;
-  border-top: 1px solid rgba(39, 34, 30, 0.12);
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 16px;
+  padding: 0 0 22px;
+}
+.tour-itinerary li:last-child { padding-bottom: 0; }
+
+/* Connecting line behind the dots, GYG-style compact timeline */
+.tour-itinerary li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  inset-inline-start: 9px;
+  width: 1px;
+  height: calc(100% - 4px);
+  background: rgba(39, 34, 30, 0.15);
 }
 
 .tour-itinerary-number {
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
   border-radius: 50%;
   background: #e8dac8;
   color: #7c422c;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 800;
 }
 
@@ -1779,9 +1809,9 @@ footer.site-footer.pro-footer .bar a:hover {
 }
 
 .tour-itinerary li h3 {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   font-family: var(--font-display), sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -1817,24 +1847,23 @@ footer.site-footer.pro-footer .bar a:hover {
 .tour-inclusions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 28px;
+  gap: 28px;
+  margin-top: 20px;
 }
 
 .tour-inclusions > div {
-  padding: 26px;
-  border: 1px solid rgba(39, 34, 30, 0.12);
-  background: #fffdf9;
+  padding: 0;
 }
 
 .tour-inclusions h3 {
-  margin: 0 0 18px;
+  margin: 0 0 12px;
   font-family: var(--font-display), sans-serif;
-  font-size: 17px;
+  font-size: 14px;
+  font-weight: 650;
 }
 
-.tour-inclusions ul { display: flex; flex-direction: column; gap: 11px; margin: 0; padding: 0; list-style: none; }
-.tour-inclusions li { position: relative; padding-inline-start: 25px; color: rgba(39, 34, 30, 0.72); font-size: 13px; line-height: 1.45; }
+.tour-inclusions ul { display: flex; flex-direction: column; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.tour-inclusions li { position: relative; padding-inline-start: 24px; color: rgba(39, 34, 30, 0.72); font-size: 13px; line-height: 1.45; }
 .tour-inclusions li::before { position: absolute; left: 0; top: 0; font-weight: 800; }
 .tour-inclusions li[data-kind="yes"]::before { content: "✓"; color: #32705f; }
 .tour-inclusions li[data-kind="no"]::before { content: "×"; color: #9a4d3a; }

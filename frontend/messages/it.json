@@ -574,7 +574,9 @@
     "reviews": "{count, plural, =0 {Ancora nessuna recensione} one {# recensione} other {# recensioni}}",
     "addToWishlist": "Aggiungi ai preferiti",
     "removeFromWishlist": "Rimuovi dai preferiti",
-    "bookedYesterday": "{count, plural, one {Prenotato # volta ieri} other {Prenotato # volte ieri}}"
+    "bookedYesterday": "{count, plural, one {Prenotato # volta ieri} other {Prenotato # volte ieri}}",
+    "share": "Condividi",
+    "linkCopied": "Link copiato!"
   },
   "activitiesPage": {
     "eyebrow": "Scegli il tuo mezzo",

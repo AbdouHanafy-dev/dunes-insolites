@@ -574,7 +574,9 @@
     "reviews": "{count, plural, =0 {Pas encore d'avis} one {# avis} other {# avis}}",
     "addToWishlist": "Ajouter à mes favoris",
     "removeFromWishlist": "Retirer de mes favoris",
-    "bookedYesterday": "{count, plural, one {Réservée # fois hier} other {Réservée # fois hier}}"
+    "bookedYesterday": "{count, plural, one {Réservée # fois hier} other {Réservée # fois hier}}",
+    "share": "Partager",
+    "linkCopied": "Lien copié !"
   },
   "activitiesPage": {
     "eyebrow": "Choisissez votre monture",

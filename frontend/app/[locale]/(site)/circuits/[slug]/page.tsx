@@ -11,6 +11,8 @@ import TourCard from "@/components/TourCard";
 import TourCardCarousel from "@/components/TourCardCarousel";
 import TourBookingFlow from "@/components/TourBookingFlow";
 import Reviews from "@/components/Reviews";
+import WishlistButton from "@/components/WishlistButton";
+import ShareButton from "@/components/ShareButton";
 import { site } from "@/lib/site";
 import { GUIDE_TYPE_LABELS, MEAL_TYPE_LABELS, MEAL_FORMAT_LABELS } from "@/lib/types";
 
@@ -122,12 +124,16 @@ export default async function TourDetail({ params }: Props) {
             {tour.location && <p className="tour-location">{tour.location}</p>}
             <h1>{tour.title}</h1>
           </div>
-          {rating && (
-            <a className="tour-rating" href="#reviews">
-              <strong>★ {rating}</strong>
-              <span>{reviewCount ? `(${reviewCount})` : ""}</span>
-            </a>
-          )}
+          <div className="tour-header-actions">
+            {rating && (
+              <a className="tour-rating" href="#reviews">
+                <strong>★ {rating}</strong>
+                <span>{reviewCount ? `(${reviewCount})` : ""}</span>
+              </a>
+            )}
+            <WishlistButton slug={tour.slug} variant="inline" />
+            <ShareButton title={tour.title} />
+          </div>
         </div>
         <p className="tour-product-lead">{tour.description}</p>
       </div>

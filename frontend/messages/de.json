@@ -574,7 +574,9 @@
     "reviews": "{count, plural, =0 {Noch keine Bewertungen} one {# Bewertung} other {# Bewertungen}}",
     "addToWishlist": "Zur Wunschliste hinzufügen",
     "removeFromWishlist": "Von der Wunschliste entfernen",
-    "bookedYesterday": "{count, plural, one {Gestern # Mal gebucht} other {Gestern # Mal gebucht}}"
+    "bookedYesterday": "{count, plural, one {Gestern # Mal gebucht} other {Gestern # Mal gebucht}}",
+    "share": "Teilen",
+    "linkCopied": "Link kopiert!"
   },
   "activitiesPage": {
     "eyebrow": "Wählen Sie Ihr Gefährt",
