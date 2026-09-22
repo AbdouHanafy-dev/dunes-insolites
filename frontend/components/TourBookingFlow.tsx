@@ -8,6 +8,7 @@ import type { Language } from "@/lib/api";
 import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import { localizedLanguageName } from "@/lib/languageFlags";
 
 function todayISO(): string {
   const d = new Date();
@@ -304,7 +305,7 @@ export default function TourBookingFlow({
               {languages.map((language) => (
                   <label key={language.id} className="ride-option">
                     <input type="checkbox" checked={preferredLanguageIds.includes(language.id)} onChange={() => toggleLanguage(language.id)} />
-                    <span>{language.name}</span>
+                    <span>{localizedLanguageName(locale, language.name)}</span>
                     <span className="ride-price">€0</span>
                   </label>
               ))}
@@ -520,7 +521,7 @@ export default function TourBookingFlow({
                 <span className="k">{t("reviewLanguageLabel")}</span>
                 <span>
                   {[
-                    ...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => l.name),
+                    ...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => localizedLanguageName(locale, l.name)),
                     ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : []),
                   ].join(", ")}
                 </span>

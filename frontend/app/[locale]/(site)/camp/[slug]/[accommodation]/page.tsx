@@ -7,6 +7,7 @@ import { getStay } from "@/lib/api";
 import { getStays } from "@/lib/data/stays";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { localeHref, localeAlternates } from "@/i18n/routing";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 type Props = { params: Promise<{ locale: string; slug: string; accommodation: string }> };
 
@@ -31,7 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${accommodation.title} at ${stay.title}`,
     description: accommodation.description,
     alternates: localeAlternates(locale, (l) => localeHref(l, `/camp/${stay.slug}/${accommodation.slug}`)),
-    openGraph: { images: [{ url: accommodation.image, width: 1200, height: 630, alt: accommodation.title }] },
+    openGraph: isDisplayableImageSrc(accommodation.image)
+      ? { images: [{ url: accommodation.image, width: 1200, height: 630, alt: accommodation.title }] }
+      : undefined,
   };
 }
 
@@ -59,7 +62,9 @@ export default async function AccommodationDetail({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <section className="accommodation-hero">
-        <Image src={accommodation.image} alt={accommodation.title} fill sizes="100vw" preload style={{ objectFit: "cover" }} />
+        {isDisplayableImageSrc(accommodation.image) && (
+          <Image src={accommodation.image} alt={accommodation.title} fill sizes="100vw" preload style={{ objectFit: "cover" }} />
+        )}
         <div className="wrap">
           <Link href={`/camp/${stay.slug}`} className="back-link">{t("backTo", { stay: stay.title })}</Link>
           <p className="kicker">{t("kicker")}</p>

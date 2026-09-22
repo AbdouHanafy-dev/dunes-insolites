@@ -40,17 +40,22 @@ export default function DateRangePicker({
 }) {
   const locale = useLocale();
   const t = useTranslations("datePicker");
-  const [open, setOpen] = useState(false);
+  // Which trigger opened the popover — the two fields sit side by side, so
+  // the popover must anchor under whichever one was actually clicked rather
+  // than always the container's left edge (that was the bug: clicking
+  // departure still opened the calendar under arrival, looking "stuck").
+  const [openFrom, setOpenFrom] = useState<"start" | "end" | null>(null);
+  const open = openFrom !== null;
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(fromISO(start) ?? fromISO(min ?? "") ?? new Date()));
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     function onPointerDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpenFrom(null);
     }
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") setOpenFrom(null);
     }
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -60,9 +65,9 @@ export default function DateRangePicker({
     };
   }, [open]);
 
-  function openPopover() {
+  function openPopover(field: "start" | "end") {
     setViewMonth(startOfMonth(fromISO(start) ?? fromISO(min ?? "") ?? new Date()));
-    setOpen(true);
+    setOpenFrom(field);
   }
 
   const maxEnd = start ? addDaysISO(start, maxNights) : "";
@@ -79,7 +84,7 @@ export default function DateRangePicker({
       return;
     }
     onChange(start, maxEnd && iso > maxEnd ? maxEnd : iso);
-    setOpen(false);
+    setOpenFrom(null);
   }
 
   const grid = buildGrid(viewMonth);
@@ -109,9 +114,9 @@ export default function DateRangePicker({
             className="date-picker-trigger"
             data-invalid={errorStart || undefined}
             data-placeholder={!start || undefined}
-            onClick={openPopover}
+            onClick={() => openPopover("start")}
             aria-haspopup="dialog"
-            aria-expanded={open}
+            aria-expanded={openFrom === "start"}
           >
             <span>{arrivalDisplay}</span>
             <CalendarIcon />
@@ -126,9 +131,9 @@ export default function DateRangePicker({
             className="date-picker-trigger"
             data-invalid={errorEnd || undefined}
             data-placeholder={!end || undefined}
-            onClick={openPopover}
+            onClick={() => openPopover("end")}
             aria-haspopup="dialog"
-            aria-expanded={open}
+            aria-expanded={openFrom === "end"}
           >
             <span>{departureDisplay}</span>
             <CalendarIcon />
@@ -138,7 +143,12 @@ export default function DateRangePicker({
       </div>
 
       {open && (
-        <div className="date-picker-popover date-range-popover" role="dialog" aria-label={arrivalLabel}>
+        <div
+          className="date-picker-popover date-range-popover"
+          data-align={openFrom === "end" ? "end" : "start"}
+          role="dialog"
+          aria-label={arrivalLabel}
+        >
           <div className="date-picker-header">
             <button type="button" onClick={() => setViewMonth((m) => addMonths(m, -1))} aria-label={t("previousMonth")}>‹</button>
             <strong>{monthLabel}</strong>

@@ -9,6 +9,13 @@ import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, Sta
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import DateRangePicker from "@/components/DateRangePicker";
+import ListSelect from "@/components/ListSelect";
+import { isoForLanguage, localizedLanguageName } from "@/lib/languageFlags";
+import CountryFlag from "@/components/CountryFlag";
+import PhoneInput from "@/components/PhoneInput";
+import { getCountryCallingCode, type Country } from "react-phone-number-input";
+import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import {
   DEPARTURE_CITIES,
   DEPARTURE_CITY_LABELS,
@@ -99,10 +106,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
   const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
 
-  // ---------- stay-only: guide/transport catalogue ----------
-  const [guideOptions, setGuideOptions] = useState<ServiceOptionCatalogItem[]>([]);
+  // ---------- stay-only: transport catalogue ----------
   const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
-  const [guideSlug, setGuideSlug] = useState("");
   const [transportSlug, setTransportSlug] = useState("");
   const [pickupHotelName, setPickupHotelName] = useState("");
   const [pickupAirport, setPickupAirport] = useState("");
@@ -122,6 +127,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   // ---------- shared: contact ----------
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState<Country>(() => (DEFAULT_COUNTRY_BY_LOCALE[locale] ?? "TN") as Country);
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -164,10 +170,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     return () => { cancelled = true; };
   }, []);
 
-  // Stay's guide/transport catalogue.
+  // Stay's transport catalogue.
   useEffect(() => {
     let cancelled = false;
-    api.getServiceOptions("GUIDE").then((items) => !cancelled && setGuideOptions(items));
     api.getServiceOptions("TRANSPORT").then((items) => !cancelled && setTransportOptions(items));
     return () => { cancelled = true; };
   }, []);
@@ -183,27 +188,22 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     api.getStayAvailability(selectedStay.slug, date, nights, ctrl.signal)
       .then((data) => !ctrl.signal.aborted && setStayAvail({ forDate: date, data }))
       .catch(() => {});
-    const options = [...guideOptions, ...transportOptions];
     Promise.all(
-      options.map(async (o) => [o.slug, await api.getServiceOptionAvailability(o.slug, date, ctrl.signal)] as const),
+      transportOptions.map(async (o) => [o.slug, await api.getServiceOptionAvailability(o.slug, date, ctrl.signal)] as const),
     ).then((entries) => {
       if (!ctrl.signal.aborted) setServiceAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
     }).catch(() => {});
     return () => ctrl.abort();
-  }, [category, selectedStay, date, departureDate, multiNight, nights, guideOptions, transportOptions]);
+  }, [category, selectedStay, date, departureDate, multiNight, nights, transportOptions]);
 
   const otherActivities = activities;
   const selectedAccommodation = selectedStay?.accommodations?.find((a) => a.slug === accommodationSlug);
   const partySize = adults + children;
 
   const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
-  const selectedGuide = guideOptions.find((o) => o.slug === guideSlug);
   const needsPickupDetails = !!selectedTransport?.requiresPickupLocation;
   const pickupFields = new Set(selectedTransport?.pickupFields ?? []);
   const requiredPickupFields = new Set(selectedTransport?.requiredPickupFields ?? []);
-  const availableGuideOptions = hasOwnVehicle === false
-    ? guideOptions.filter((o) => !o.requiresCustomerVehicle)
-    : guideOptions;
 
   function optionQuantity(option: ServiceOptionCatalogItem): number {
     if (option.pricingUnit === "PER_PERSON") return partySize;
@@ -221,9 +221,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   function optionPrice(option: ServiceOptionCatalogItem): number | null {
     return option.priceTtc == null ? null : option.priceTtc * optionQuantity(option);
   }
-  const serviceTotal = [selectedGuide, selectedTransport].reduce(
-    (sum, option) => sum + (option ? optionPrice(option) ?? 0 : 0), 0,
-  );
+  const serviceTotal = selectedTransport ? optionPrice(selectedTransport) ?? 0 : 0;
 
   function tierAvailability(slug: string) {
     return stayAvail?.forDate === date ? stayAvail.data?.accommodations.find((a) => a.slug === slug) : undefined;
@@ -232,14 +230,17 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     return tierAvailability(slug)?.status === "UNAVAILABLE";
   }
 
-  // Cap the quantity stepper at whichever of the tier's configured inventory
-  // (maxUnits) and today's live free-unit count is the tighter bound; when
-  // neither is configured (inventory not set up in the backoffice yet), fall
-  // back to a sane UI ceiling rather than letting the stepper run unbounded.
-  const accommodationUnitsCap = (() => {
-    const caps = [selectedAccommodation?.maxUnits, tierAvailability(accommodationSlug)?.unitsAvailable ?? undefined]
-      .filter((n): n is number => typeof n === "number");
-    return caps.length > 0 ? Math.min(...caps) : 6;
+  // "From €X" for the dates/travelers and accommodation-type steps, before a
+  // tier is actually chosen — the lowest per-night price among this stay's
+  // tiers that aren't sold out for the picked dates (or, before dates are
+  // picked, among all of them). Falls back to the stay's own base price when
+  // it has no tiers at all (e.g. the bivouac).
+  const stayFromPrice = (() => {
+    const tierPrices = (selectedStay?.accommodations ?? [])
+      .filter((a) => !tierSoldOut(a.slug))
+      .map((a) => a.priceFrom);
+    if (tierPrices.length > 0) return Math.min(...tierPrices);
+    return selectedStay?.priceFrom ?? 0;
   })();
 
   const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + a.priceFrom, 0);
@@ -255,6 +256,15 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }
   function toggleLanguage(id: string) {
     setPreferredLanguageIds((cur) => (cur.includes(id) ? cur.filter((l) => l !== id) : [...cur, id]));
+  }
+  function composePhone(): string {
+    let dial = "";
+    try {
+      dial = `+${getCountryCallingCode(phoneCountry)}`;
+    } catch {
+      dial = "";
+    }
+    return `${dial} ${phone.trim()}`.trim();
   }
 
   async function selectStay(stay: Stay) {
@@ -323,12 +333,10 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     }
     if (category === "accommodation" && step === 4) {
       if (hasOwnVehicle === null) e.arrivalMode = ts("errorArrivalMode");
-      if (selectedStay?.guideRequired && !guideSlug) e.guide = ts("errorGuideRequired");
       if (hasOwnVehicle === false && !transportSlug) e.transport = ts("errorTransportRequired");
       if (needsPickupDetails && !pickupHotelName.trim() && !pickupAirport.trim() && !pickupAddress.trim() && !pickupInstructions.trim()) {
         e.pickup = ts("errorPickup");
       }
-      if (selectedGuide && optionUnavailable(selectedGuide)) e.guide = ts("errorGuideUnavailable");
       if (selectedTransport && optionUnavailable(selectedTransport)) e.transport = ts("errorTransportUnavailable");
     }
     if (category === "accommodation" && step === lastStep) {
@@ -345,8 +353,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }, [
     step, category, selectedTour, selectedStay, accommodationSlug, date, min, adults, multiNight, departureDate,
     nights, maxNights, preferredLanguageIds, otherLanguageRequested, hasOwnVehicle, name, email, phone,
-    acceptedTerms, guideSlug, transportSlug, needsPickupDetails, pickupHotelName, pickupAirport, pickupAddress,
-    pickupInstructions, selectedGuide, selectedTransport,
+    acceptedTerms, transportSlug, needsPickupDetails, pickupHotelName, pickupAirport, pickupAddress,
+    pickupInstructions, selectedTransport,
   ]);
 
   function next() {
@@ -380,7 +388,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       otherLanguageRequested: otherLanguageRequested.trim() || undefined,
       name,
       email,
-      phone,
+      phone: composePhone(),
       notes: notes.trim() || undefined,
       idempotencyKey: idempotencyKeyRef.current,
       acceptedTerms,
@@ -403,21 +411,18 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     setFormError("");
     if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
 
-    const serviceOptions = [
-      ...(selectedGuide ? [{ serviceOptionSlug: selectedGuide.slug, quantity: optionQuantity(selectedGuide) }] : []),
-      ...(transportSlug
-        ? [{
-            serviceOptionSlug: transportSlug,
-            quantity: selectedTransport ? optionQuantity(selectedTransport) : 1,
-            pickupHotelName: pickupHotelName.trim() || undefined,
-            pickupAirport: pickupAirport.trim() || undefined,
-            pickupFlightNumber: pickupFlightNumber.trim() || undefined,
-            pickupAddress: pickupAddress.trim() || undefined,
-            pickupArrivalTime: pickupArrivalTime.trim() || undefined,
-            pickupInstructions: pickupInstructions.trim() || undefined,
-          }]
-        : []),
-    ];
+    const serviceOptions = transportSlug
+      ? [{
+          serviceOptionSlug: transportSlug,
+          quantity: selectedTransport ? optionQuantity(selectedTransport) : 1,
+          pickupHotelName: pickupHotelName.trim() || undefined,
+          pickupAirport: pickupAirport.trim() || undefined,
+          pickupFlightNumber: pickupFlightNumber.trim() || undefined,
+          pickupAddress: pickupAddress.trim() || undefined,
+          pickupArrivalTime: pickupArrivalTime.trim() || undefined,
+          pickupInstructions: pickupInstructions.trim() || undefined,
+        }]
+      : [];
 
     const result = await api.createStayBooking({
       staySlug: selectedStay.slug,
@@ -433,7 +438,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,
       email,
-      phone,
+      phone: composePhone(),
       notes: notes.trim() || undefined,
       idempotencyKey: idempotencyKeyRef.current,
       acceptedTerms,
@@ -519,8 +524,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           {category === "circuit" && step === 4 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
           {category === "circuit" && step === 5 && `€${extrasTotal}`}
           {category === "circuit" && step === lastStep && `€${circuitTotal + extrasTotal}`}
-          {category === "accommodation" && step === 2 && `€${stayTotal}`}
-          {category === "accommodation" && step === 3 && `€${stayTotal}`}
+          {category === "accommodation" && step === 2 && ts("fromPrice", { price: stayFromPrice })}
+          {category === "accommodation" && step === 3 && (selectedAccommodation ? `€${stayTotal}` : ts("fromPrice", { price: stayFromPrice }))}
           {category === "accommodation" && step === 4 && (hasOwnVehicle === false ? ts("onRequest") : ts("ownVehicle"))}
           {category === "accommodation" && step === 5 && `€${extrasTotal}`}
           {category === "accommodation" && step === lastStep && `€${stayTotal + extrasTotal + serviceTotal}`}
@@ -586,7 +591,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                   onClick={() => setSelectedTour(tour)}
                 >
                   <div className="thumb">
-                    {tour.coverImage && <Image src={tour.coverImage} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                    {isDisplayableImageSrc(tour.coverImage) && <Image src={tour.coverImage} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
                   </div>
                   <div className="meta">
                     <h3>{tour.title}</h3>
@@ -617,7 +622,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                   onClick={() => selectStay(stay)}
                 >
                   <div className="thumb">
-                    {stay.image && <Image src={stay.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                    {isDisplayableImageSrc(stay.image) && <Image src={stay.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
                   </div>
                   <div className="meta">
                     <h3>{stay.title}</h3>
@@ -670,14 +675,24 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <label>{t("preferredLanguageLabel")}</label>
           <p className="hint">{t("preferredLanguageHint")}</p>
           {languages.length > 0 && (
-            <div className="ride-options">
-              {languages.map((language) => (
-                <label key={language.id} className="ride-option">
-                  <input type="checkbox" checked={preferredLanguageIds.includes(language.id)} onChange={() => toggleLanguage(language.id)} />
-                  <span>{language.name}</span>
-                  <span className="ride-price">€0</span>
-                </label>
-              ))}
+            <div className="language-list">
+              {languages.map((language) => {
+                const selected = preferredLanguageIds.includes(language.id);
+                const iso = isoForLanguage(language.name);
+                return (
+                  <button
+                    key={language.id}
+                    type="button"
+                    className="language-chip"
+                    aria-pressed={selected}
+                    onClick={() => toggleLanguage(language.id)}
+                  >
+                    {iso ? <CountryFlag iso={iso} className="language-flag" /> : <span className="language-flag" aria-hidden="true">🌐</span>}
+                    <span className="language-name">{localizedLanguageName(locale, language.name)}</span>
+                    {selected && <span className="language-check" aria-hidden="true">✓</span>}
+                  </button>
+                );
+              })}
             </div>
           )}
           <input className="tour-other-language" placeholder={t("otherLanguagePlaceholder")} value={otherLanguageRequested} onChange={(e) => setOtherLanguageRequested(e.target.value)} />
@@ -713,18 +728,26 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           )}
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-departure-city">{t("departureCityLabel")}</label>
-            <select id="bf-departure-city" value={departureCity} onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}>
-              <option value="">{t("departureCityPlaceholder")}</option>
-              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
-            </select>
+            <ListSelect
+              id="bf-departure-city"
+              value={departureCity}
+              onChange={setDepartureCity}
+              options={DEPARTURE_CITIES}
+              labels={DEPARTURE_CITY_LABELS}
+              placeholder={t("departureCityPlaceholder")}
+            />
           </div>
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-return-city">{t("returnCityLabel")}</label>
             <p className="hint">{t("returnCityHint")}</p>
-            <select id="bf-return-city" value={returnCity} onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}>
-              <option value="">{t("returnCityPlaceholder")}</option>
-              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
-            </select>
+            <ListSelect
+              id="bf-return-city"
+              value={returnCity}
+              onChange={setReturnCity}
+              options={DEPARTURE_CITIES}
+              labels={DEPARTURE_CITY_LABELS}
+              placeholder={t("returnCityPlaceholder")}
+            />
           </div>
         </div>
       )}
@@ -811,56 +834,40 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
       {/* ---------- accommodation: 3. accommodation type ---------- */}
       {category === "accommodation" && step === 3 && (
-        <div className="field" data-invalid={!!errors.accommodation}>
+        <>
           {selectedStay && selectedStay.accommodations && selectedStay.accommodations.length > 0 ? (
             <>
-              <label>{ts("chooseCamp")}</label>
-              <div className="ride-options">
+              <p className="hint">{ts("chooseCamp")}</p>
+              <div className="picker">
                 {selectedStay.accommodations.map((a) => {
                   const soldOut = tierSoldOut(a.slug);
                   return (
-                    <label key={a.slug} className="ride-option" data-disabled={soldOut || undefined}>
-                      <input
-                        type="radio"
-                        name="accommodation"
-                        checked={accommodationSlug === a.slug}
-                        disabled={soldOut}
-                        onChange={() => {
-                          setAccommodationSlug(a.slug);
-                          setAccommodationQty(1);
-                        }}
-                      />
-                      <span>{a.title}</span>
-                      <span className="ride-price">
-                        {soldOut ? ts("soldOutForDate") : ts("fromPrice", { price: a.priceFrom })}
-                      </span>
-                    </label>
+                    <button
+                      key={a.slug}
+                      type="button"
+                      className="pick"
+                      aria-pressed={accommodationSlug === a.slug}
+                      disabled={soldOut}
+                      onClick={() => {
+                        setAccommodationSlug(a.slug);
+                        setAccommodationQty(1);
+                      }}
+                    >
+                      <div className="thumb">
+                        {isDisplayableImageSrc(a.image) && <Image src={a.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                      </div>
+                      <div className="meta">
+                        <h3>{a.title}</h3>
+                        {(a.tagline || a.description) && <p>{a.tagline || a.description}</p>}
+                        <span className="price">
+                          {soldOut ? ts("soldOutForDate") : ts("fromPrice", { price: a.priceFrom })}
+                        </span>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
-              {errors.accommodation && <span className="err">{errors.accommodation}</span>}
-              {selectedAccommodation && (
-                <div className="tour-book-guests" style={{ marginTop: 12 }}>
-                  <div className="guest-row field">
-                    <div>
-                      <label>{ts("howMany")}</label>
-                      <p className="hint" style={{ margin: 0 }}>{ts("exactRuleNote")}</p>
-                    </div>
-                    <div className="guest-stepper">
-                      <button type="button" onClick={() => setAccommodationQty((c) => Math.max(1, c - 1))} disabled={accommodationQty === 1} aria-label={ts("decrease")}>−</button>
-                      <output aria-live="polite">{accommodationQty}</output>
-                      <button
-                        type="button"
-                        onClick={() => setAccommodationQty((c) => Math.min(accommodationUnitsCap, c + 1))}
-                        disabled={accommodationQty >= accommodationUnitsCap}
-                        aria-label={ts("increase")}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {errors.accommodation && <div className="alert">{errors.accommodation}</div>}
             </>
           ) : (
             <div className="booking-empty-state">
@@ -870,7 +877,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               </div>
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* ---------- accommodation: 4. vehicle + guide ---------- */}
@@ -884,7 +891,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               <span className="ride-price">{ts("ownVehicleHint")}</span>
             </label>
             <label className="ride-option">
-              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => { setHasOwnVehicle(false); if (selectedGuide?.requiresCustomerVehicle) setGuideSlug(""); }} />
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => setHasOwnVehicle(false)} />
               <span>{ts("needTransport")}</span>
               <span className="ride-price">{ts("needTransportHint")}</span>
             </label>
@@ -893,18 +900,26 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-s-departure-city">{ts("departureCityLabel")}</label>
-            <select id="bf-s-departure-city" value={departureCity} onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}>
-              <option value="">{ts("departureCityPlaceholder")}</option>
-              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
-            </select>
+            <ListSelect
+              id="bf-s-departure-city"
+              value={departureCity}
+              onChange={setDepartureCity}
+              options={DEPARTURE_CITIES}
+              labels={DEPARTURE_CITY_LABELS}
+              placeholder={ts("departureCityPlaceholder")}
+            />
           </div>
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-s-return-city">{ts("returnCityLabel")}</label>
             <p className="hint">{ts("returnCityHint")}</p>
-            <select id="bf-s-return-city" value={returnCity} onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}>
-              <option value="">{ts("returnCityPlaceholder")}</option>
-              {DEPARTURE_CITIES.map((city) => (<option key={city} value={city}>{DEPARTURE_CITY_LABELS[city]}</option>))}
-            </select>
+            <ListSelect
+              id="bf-s-return-city"
+              value={returnCity}
+              onChange={setReturnCity}
+              options={DEPARTURE_CITIES}
+              labels={DEPARTURE_CITY_LABELS}
+              placeholder={ts("returnCityPlaceholder")}
+            />
           </div>
 
           {hasOwnVehicle === false && (
@@ -948,44 +963,10 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             </div>
           )}
 
-          {hasOwnVehicle !== null && (
-            <div className="field" data-invalid={!!errors.guide} style={{ marginTop: 16 }}>
-              <label>{ts("chooseYourGuide")}{!selectedStay?.guideRequired && ts("optionalSuffix")}</label>
-              {availableGuideOptions.length === 0 ? (
-                <p className="hint">{ts("noGuideOptions")}</p>
-              ) : (
-                <div className="ride-options">
-                  {!selectedStay?.guideRequired && (
-                    <label className="ride-option">
-                      <input type="radio" name="guide" checked={guideSlug === ""} onChange={() => setGuideSlug("")} />
-                      <span>{ts("noGuide")}</span>
-                    </label>
-                  )}
-                  {availableGuideOptions.map((o) => {
-                    const availability = optionAvailability(o);
-                    const unavailable = optionUnavailable(o);
-                    return (
-                      <label key={o.slug} className="ride-option" data-disabled={unavailable || undefined}>
-                        <input type="radio" name="guide" checked={guideSlug === o.slug} disabled={unavailable} onChange={() => setGuideSlug(o.slug)} />
-                        <span className="service-option-copy">
-                          <strong>{o.name}</strong>
-                          {o.description && <small>{o.description}</small>}
-                        </span>
-                        <span className="ride-price">
-                          {unavailable ? ts("unavailable") : o.priceTtc == null ? ts("contactUsShort") : ts("plusPricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-              {errors.guide && <span className="err">{errors.guide}</span>}
-            </div>
-          )}
         </div>
       )}
 
-      {/* ---------- accommodation: 5. extras ---------- */}
+      {/* ---------- accommodation: 5. activities ---------- */}
       {category === "accommodation" && step === 5 && (
         <div className="field">
           <label>{ts("addRide")}</label>
@@ -1018,7 +999,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             </div>
             <div className="field" data-invalid={!!errors.phone}>
               <label htmlFor="bf-phone">{t("phone")}</label>
-              <input id="bf-phone" type="tel" value={phone} autoComplete="tel" onChange={(e) => setPhone(e.target.value)} />
+              <PhoneInput id="bf-phone" country={phoneCountry} onCountryChange={setPhoneCountry} value={phone} onChange={setPhone} invalid={!!errors.phone} searchPlaceholder={tb("phoneSearchPlaceholder")} />
               {errors.phone && <span className="err">{errors.phone}</span>}
             </div>
             <div className="field">
@@ -1044,11 +1025,11 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title} — €${a.priceFrom}`).join(", ")}</span>
               </div>
             )}
-            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {phone}</span></div>}
+            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {composePhone()}</span></div>}
             {(preferredLanguageIds.length > 0 || otherLanguageRequested.trim()) && (
               <div className="row">
                 <span className="k">{t("reviewLanguageLabel")}</span>
-                <span>{[...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => l.name), ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : [])].join(", ")}</span>
+                <span>{[...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => localizedLanguageName(locale, l.name)), ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : [])].join(", ")}</span>
               </div>
             )}
             {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
@@ -1079,7 +1060,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             </div>
             <div className="field" data-invalid={!!errors.phone}>
               <label htmlFor="bf-s-phone">{ts("phone")}</label>
-              <input id="bf-s-phone" type="tel" value={phone} autoComplete="tel" onChange={(e) => setPhone(e.target.value)} />
+              <PhoneInput id="bf-s-phone" country={phoneCountry} onCountryChange={setPhoneCountry} value={phone} onChange={setPhone} invalid={!!errors.phone} searchPlaceholder={tb("phoneSearchPlaceholder")} />
               {errors.phone && <span className="err">{errors.phone}</span>}
             </div>
             <div className="field">
@@ -1116,16 +1097,13 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 <span>{[pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].filter((v) => v.trim()).join(" · ")}</span>
               </div>
             )}
-            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {phone}</span></div>}
+            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {composePhone()}</span></div>}
             {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
 
             <div className="row">
               <span>{selectedAccommodation?.title ?? selectedStay?.title ?? ts("stayFallbackLabel")}</span>
               <span>€{stayTotal}</span>
             </div>
-            {selectedGuide && (
-              <div className="row"><span>{selectedGuide.name}</span><span>{optionPrice(selectedGuide) == null ? ts("onRequest") : `${optionPrice(selectedGuide)} TND`}</span></div>
-            )}
             {selectedTransport && (
               <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `${optionPrice(selectedTransport)} TND`}</span></div>
             )}

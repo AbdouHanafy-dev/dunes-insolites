@@ -11,6 +11,7 @@ import TourCard from "@/components/TourCard";
 import TourBookingFlow from "@/components/TourBookingFlow";
 import Reviews from "@/components/Reviews";
 import { site } from "@/lib/site";
+import { localizedLanguageName } from "@/lib/languageFlags";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -154,7 +155,7 @@ export default async function TourDetail({ params }: Props) {
               <div><small>{t("duration")}</small><strong>{tour.duration}</strong></div>
               {tour.groupSize && <div><small>{t("groupSize")}</small><strong>{tour.groupSize}</strong></div>}
               {tour.languages.length > 0 && (
-                <div><small>{t("goodToKnow")}</small><strong>{tour.languages.join(" · ")}</strong></div>
+                <div><small>{t("goodToKnow")}</small><strong>{tour.languages.map((l) => localizedLanguageName(locale, l)).join(" · ")}</strong></div>
               )}
               {tour.cancellationPolicy?.freeCancellation && (
                 <div><small>{t("goodToKnow")}</small><strong>{t("freeCancellationNote")}</strong></div>
@@ -280,7 +281,7 @@ export default async function TourDetail({ params }: Props) {
             <section className="tour-section tour-planning">
               <h2>{t("goodToKnow")}</h2>
               <ul>
-                {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.join(", ") })}</li>}
+                {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.map((l) => localizedLanguageName(locale, l)).join(", ") })}</li>}
                 {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
               </ul>
               <p>

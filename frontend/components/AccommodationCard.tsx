@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import type { Accommodation } from "@/lib/types";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 /**
  * Redesigned (visual identity pass, 14 Sep 2026 — audit §6/§8): index label
@@ -26,14 +27,16 @@ export default async function AccommodationCard({
   return (
     <article className="accommodation-card">
       <div className="accommodation-image">
-        <Image src={accommodation.image} alt={accommodation.title} fill sizes="(max-width: 700px) 100vw, 33vw" />
+        {isDisplayableImageSrc(accommodation.image) && (
+          <Image src={accommodation.image} alt={accommodation.title} fill sizes="(max-width: 700px) 100vw, 33vw" />
+        )}
       </div>
       <div className="accommodation-copy">
         {index != null && (
           <span className="idx-label">{String(index).padStart(2, "0")} / {accommodation.title}</span>
         )}
         <h3>{accommodation.title}</h3>
-        <p>{accommodation.tagline}</p>
+        <p>{accommodation.tagline || accommodation.description}</p>
         {accommodation.features.length > 0 && (
           <ul className="accommodation-features">
             {accommodation.features.slice(0, 3).map((f) => (
