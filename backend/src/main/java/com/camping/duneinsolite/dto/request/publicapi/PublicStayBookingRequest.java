@@ -29,6 +29,13 @@ public class PublicStayBookingRequest {
     @FutureOrPresent(message = "Date cannot be in the past")
     private LocalDate date;
 
+    // How many nights this booking covers, computed client-side from the
+    // guest's arrival/departure picks. Null/omitted = 1 (a fixed
+    // single-night stay only ever asks for the arrival date). Validated
+    // against the stay's own TourType.maxNights in the service.
+    @Min(value = 1, message = "Nights must be at least 1")
+    private Integer nights;
+
     @NotNull(message = "Party size is required")
     @Min(value = 1, message = "Party size must be at least 1")
     @Max(value = 12, message = "Party size cannot exceed 12")
@@ -40,6 +47,18 @@ public class PublicStayBookingRequest {
             regexp = "OWN_VEHICLE|TRANSPORT",
             message = "Arrival mode must be OWN_VEHICLE or TRANSPORT")
     private String arrivalMode;
+
+    @jakarta.validation.constraints.Pattern(
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
+            message = "Departure city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+    private String departureCity;
+
+    // Optional return leg after the stay - same city catalog as
+    // departureCity. The guest may skip it; staff arrange the driver later.
+    @jakarta.validation.constraints.Pattern(
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
+            message = "Return city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+    private String returnCity;
 
     // "Getting There & Guide" step - guide (with support vehicle, or in the
     // guest's own vehicle) and/or transport/pickup, when the tour needs one

@@ -5,9 +5,10 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { Language } from "@/lib/api";
-import { MAX_PARTY_SIZE, type Activity } from "@/lib/types";
+import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import { localizedLanguageName } from "@/lib/languageFlags";
 
 function todayISO(): string {
   const d = new Date();
@@ -45,7 +46,7 @@ export default function TourBookingFlow({
   childPrice: number;
 }) {
   const t = useTranslations("tourBookingForm");
-  const ta = useTranslations("auth");
+  const ta = useTranslations("authForm");
   const toast = useToast();
   const locale = useLocale();
   const [step, setStep] = useState(0);
@@ -55,6 +56,10 @@ export default function TourBookingFlow({
 
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
+  const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
+  // Optional return leg after the tour ends - same city list as
+  // departureCity, entirely skippable.
+  const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
@@ -165,6 +170,8 @@ export default function TourBookingFlow({
       numberOfChildren: children,
       rideSlugs,
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
+      departureCity: departureCity || undefined,
+      returnCity: returnCity || undefined,
       preferredLanguageIds: preferredLanguageIds.length > 0 ? preferredLanguageIds : undefined,
       otherLanguageRequested: otherLanguageRequested.trim() || undefined,
       name,
@@ -194,7 +201,7 @@ export default function TourBookingFlow({
         <div>
           <p className="tour-booking-success-kicker">{t("successPendingLabel")}</p>
           <h3>{t("reservedConfirmation", { id: booking.id })}</h3>
-          <p>{t("reservedBody")}</p>
+          <p>{t("reservedBody", { id: booking.id })}</p>
         </div>
         <ol className="tour-booking-success-steps">
           <li>
@@ -298,7 +305,7 @@ export default function TourBookingFlow({
               {languages.map((language) => (
                   <label key={language.id} className="ride-option">
                     <input type="checkbox" checked={preferredLanguageIds.includes(language.id)} onChange={() => toggleLanguage(language.id)} />
-                    <span>{language.name}</span>
+                    <span>{localizedLanguageName(locale, language.name)}</span>
                     <span className="ride-price">€0</span>
                   </label>
               ))}
@@ -350,6 +357,39 @@ export default function TourBookingFlow({
               </div>
             </div>
           )}
+
+          <div className="field" style={{ marginTop: 16 }}>
+            <label htmlFor="tf-departure-city">{t("departureCityLabel")}</label>
+            <select
+              id="tf-departure-city"
+              value={departureCity}
+              onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}
+            >
+              <option value="">{t("departureCityPlaceholder")}</option>
+              {DEPARTURE_CITIES.map((city) => (
+                <option key={city} value={city}>
+                  {DEPARTURE_CITY_LABELS[city]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field" style={{ marginTop: 16 }}>
+            <label htmlFor="tf-return-city">{t("returnCityLabel")}</label>
+            <p className="hint">{t("returnCityHint")}</p>
+            <select
+              id="tf-return-city"
+              value={returnCity}
+              onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}
+            >
+              <option value="">{t("returnCityPlaceholder")}</option>
+              {DEPARTURE_CITIES.map((city) => (
+                <option key={city} value={city}>
+                  {DEPARTURE_CITY_LABELS[city]}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
@@ -445,6 +485,18 @@ export default function TourBookingFlow({
                   : t("needTransport")}
               </span>
             </div>
+            {departureCity && (
+              <div className="row">
+                <span className="k">{t("departureCityLabel")}</span>
+                <span>{DEPARTURE_CITY_LABELS[departureCity]}</span>
+              </div>
+            )}
+            {returnCity && (
+              <div className="row">
+                <span className="k">{t("returnCityLabel")}</span>
+                <span>{DEPARTURE_CITY_LABELS[returnCity]}</span>
+              </div>
+            )}
             {rideSlugs.length > 0 && (
               <div className="row">
                 <span className="k">{t("reviewExtrasLabel")}</span>
@@ -469,7 +521,7 @@ export default function TourBookingFlow({
                 <span className="k">{t("reviewLanguageLabel")}</span>
                 <span>
                   {[
-                    ...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => l.name),
+                    ...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => localizedLanguageName(locale, l.name)),
                     ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : []),
                   ].join(", ")}
                 </span>

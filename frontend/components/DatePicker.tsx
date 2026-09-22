@@ -2,38 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-
-function pad(n: number): string {
-  return n < 10 ? `0${n}` : `${n}`;
-}
-
-function toISO(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-function fromISO(iso: string): Date | null {
-  if (!iso) return null;
-  const [y, m, d] = iso.split("-").map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-}
-
-function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
-}
-
-function addMonths(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth() + n, 1);
-}
-
-// Monday-first 6x7 grid, including the leading/trailing days of the
-// adjacent months so every week row stays full.
-function buildGrid(monthStart: Date): Date[] {
-  const jsWeekday = monthStart.getDay(); // 0=Sun..6=Sat
-  const leading = (jsWeekday + 6) % 7; // days since Monday
-  const gridStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - leading);
-  return Array.from({ length: 42 }, (_, i) => new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i));
-}
+import { addMonths, buildGrid, fromISO, startOfMonth, toISO } from "@/lib/dateGrid";
 
 /**
  * A real month-grid calendar, replacing the native `<input type="date">` —
@@ -116,7 +85,20 @@ export default function DatePicker({
         aria-expanded={open}
       >
         <span>{displayLabel}</span>
-        <span aria-hidden="true">📅</span>
+        {/* Bootstrap Icons "calendar3" (MIT), inlined as static path data -
+            no icon font/library at runtime, same self-contained approach
+            as the rest of this component. */}
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          className="date-picker-icon bi bi-calendar3"
+        >
+          <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2M1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857z" />
+          <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+        </svg>
       </button>
 
       {open && (

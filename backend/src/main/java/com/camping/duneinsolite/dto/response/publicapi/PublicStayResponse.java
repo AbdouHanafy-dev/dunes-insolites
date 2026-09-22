@@ -36,6 +36,10 @@ public class PublicStayResponse {
     // Whether this stay requires the guest to pick a GUIDE-category
     // service option before booking (TourType.guideRequired).
     private boolean guideRequired;
+    // Maximum nights bookable in one reservation (TourType.maxNights). 1 =
+    // fixed single-night stay, the booking flow only asks for an arrival
+    // date. >1 = the guest picks an arrival+departure range, capped here.
+    private Integer maxNights;
 
     @Data
     public static class ItineraryStep {
@@ -55,5 +59,8 @@ public class PublicStayResponse {
         private java.math.BigDecimal priceFrom;
         private String sleeps;
         private List<String> features;
+        // AccommodationType.maxUnits - null means inventory isn't configured
+        // (no ceiling to enforce, same UNKNOWN semantics as availability).
+        private Integer maxUnits;
     }
 }

@@ -35,11 +35,12 @@ public class PublicAvailabilityService {
     private final ExtraAvailabilityService extraAvailabilityService;
 
     @Transactional(readOnly = true)
-    public PublicAvailabilityResponse forStay(String staySlug, LocalDate date) {
+    public PublicAvailabilityResponse forStay(String staySlug, LocalDate date, Integer nights) {
         TourType stay = tourTypeRepository.findBySlugAndIsActiveTrue(staySlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Stay not found: " + staySlug));
+        int resolvedNights = nights == null ? 1 : Math.max(1, nights);
         LocalDate checkIn = date;
-        LocalDate checkOut = date.plusDays(1);
+        LocalDate checkOut = date.plusDays(resolvedNights);
 
         List<PublicAvailabilityResponse.TierAvailability> tiers = accommodationTypeRepository
                 .findByTourType_TourTypeIdOrderByDisplayOrderAsc(stay.getTourTypeId())
@@ -52,7 +53,7 @@ public class PublicAvailabilityService {
                 })
                 .toList();
 
-        return new PublicAvailabilityResponse(staySlug, date, tiers);
+        return new PublicAvailabilityResponse(staySlug, date, resolvedNights, tiers);
     }
 
     @Transactional(readOnly = true)

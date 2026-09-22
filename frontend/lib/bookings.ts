@@ -32,7 +32,7 @@ function seatsTaken(activitySlug: string, date: string, slot: TimeSlot): number 
       b.timeSlot === slot &&
       b.status !== "cancelled"
     ) {
-      taken += b.partySize;
+      taken += b.numberOfAdults + b.numberOfChildren;
     }
   }
   return taken;
@@ -76,10 +76,12 @@ export function validateBooking(input: Partial<BookingInput>): ValidationResult 
   else if (activity && !activity.slots.includes(input.timeSlot))
     errors.timeSlot = "That slot is not offered for this adventure.";
 
-  const size = Number(input.partySize);
-  if (!size || Number.isNaN(size)) errors.partySize = "How many of you?";
+  const adults = Number(input.numberOfAdults);
+  const children = Number(input.numberOfChildren) || 0;
+  const size = adults + children;
+  if (!adults || Number.isNaN(adults)) errors.numberOfAdults = "How many of you?";
   else if (size < 1 || size > MAX_PARTY_SIZE)
-    errors.partySize = `Party size must be between 1 and ${MAX_PARTY_SIZE}.`;
+    errors.numberOfAdults = `Party size must be between 1 and ${MAX_PARTY_SIZE}.`;
 
   if (!input.name?.trim()) errors.name = "We need a name for the booking.";
   if (!input.email?.trim()) errors.email = "We need an email for the confirmation.";
@@ -92,7 +94,7 @@ export function validateBooking(input: Partial<BookingInput>): ValidationResult 
     );
     if (!slot || !slot.available) errors.timeSlot = "That slot is full. Try another.";
     else if (slot.seatsLeft < size)
-      errors.partySize = `Only ${slot.seatsLeft} seat${slot.seatsLeft === 1 ? "" : "s"} left in that slot.`;
+      errors.numberOfAdults = `Only ${slot.seatsLeft} seat${slot.seatsLeft === 1 ? "" : "s"} left in that slot.`;
   }
 
   return Object.keys(errors).length ? { ok: false, errors } : { ok: true };
@@ -112,7 +114,7 @@ export function createBooking(input: BookingInput): Booking {
     ...input,
     id: makeId(),
     status: "pending",
-    total: activity.priceFrom * input.partySize,
+    total: activity.priceFrom * (input.numberOfAdults + input.numberOfChildren),
     createdAt: new Date().toISOString(),
   };
   store.set(booking.id, booking);

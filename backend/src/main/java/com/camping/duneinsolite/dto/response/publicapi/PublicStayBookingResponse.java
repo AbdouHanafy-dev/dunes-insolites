@@ -16,9 +16,12 @@ public class PublicStayBookingResponse {
     private String accommodationSlug;
     private Integer accommodationQty;
     private String date;
+    private Integer nights;
     private Integer partySize;
     private List<String> rideSlugs;
     private String arrivalMode;
+    private String departureCity;
+    private String returnCity;
     private String name;
     private String email;
     private String phone;

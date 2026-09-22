@@ -2,6 +2,7 @@ package com.camping.duneinsolite.dto.request;
 
 import com.camping.duneinsolite.model.enums.Currency;
 import com.camping.duneinsolite.model.enums.ArrivalMode;
+import com.camping.duneinsolite.model.enums.DepartureCity;
 import com.camping.duneinsolite.model.enums.ReservationType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -48,6 +49,9 @@ public class ReservationRequest {
     private String promoCode;
     private String demandeSpecial;
     private ArrivalMode arrivalMode;
+    private DepartureCity departureCity;
+    // Optional return leg after the stay/tour, same DepartureCity catalog.
+    private DepartureCity returnCity;
 
     // Client's preferred language(s) — SpokenLanguage ids — so staff can
     // pick a Guide who speaks one. Free-text fallback if not in the catalog.

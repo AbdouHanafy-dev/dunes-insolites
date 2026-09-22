@@ -48,6 +48,18 @@ public class PublicTourBookingRequest {
             message = "Arrival mode must be OWN_VEHICLE or TRANSPORT")
     private String arrivalMode;
 
+    @jakarta.validation.constraints.Pattern(
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
+            message = "Departure city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+    private String departureCity;
+
+    // Optional return leg after the tour - same city catalog as
+    // departureCity. The guest may skip it; staff arrange the driver later.
+    @jakarta.validation.constraints.Pattern(
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
+            message = "Return city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+    private String returnCity;
+
     // The guest's preferred language(s), from the admin-managed catalog
     // (GET /api/public/languages), so staff can assign a Guide who actually
     // speaks one (Guide.languages). A guest may pick several, or none of the

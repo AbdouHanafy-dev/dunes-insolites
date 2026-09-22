@@ -17,7 +17,8 @@ export async function POST(req: Request) {
 
   const input: Partial<BookingInput> = {
     ...body,
-    partySize: Number(body.partySize),
+    numberOfAdults: Number(body.numberOfAdults),
+    numberOfChildren: Number(body.numberOfChildren) || 0,
     name: body.name?.trim(),
     email: body.email?.trim(),
     phone: body.phone?.trim(),

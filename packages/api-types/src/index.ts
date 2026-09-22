@@ -112,6 +112,11 @@ export type Stay = {
   accommodations?: Accommodation[];
   /** Whether booking this stay requires picking a GUIDE-category service option. */
   guideRequired?: boolean;
+  /** Maximum nights bookable in one reservation. 1 (default) = fixed
+   *  single-night stay, the booking flow only asks for an arrival date.
+   *  Greater than 1 = the guest picks an arrival+departure range, capped
+   *  at this many nights. */
+  maxNights?: number;
 };
 
 /**
@@ -187,6 +192,24 @@ export type Tour = {
 };
 
 /**
+ * Cities the guest can depart from for pickup — TOURS and HEBERGEMENT
+ * (stay) reservations only, never a standalone EXTRAS activity booking
+ * (the camp confirms the activity hour on arrival, no pickup routing).
+ * One shared definition, both sides enforce it (client dropdown, server
+ * validation), same rule as MAX_PARTY_SIZE above — see this file's own
+ * header comment on what belongs in this contract.
+ */
+export const DEPARTURE_CITIES = [
+  "TUNIS",
+  "SOUSSE",
+  "HAMMAMET",
+  "DJERBA",
+  "MAHDIA",
+  "MONASTIR",
+] as const;
+export type DepartureCity = (typeof DEPARTURE_CITIES)[number];
+
+/**
  * Booking a Tour — one departure date, adults/children, contact details,
  * and (since 19 Sep 2026) the same "Getting There & Guide" + extras step
  * `StayBookingInput` already has: a circuit's own price covers the route
@@ -201,6 +224,12 @@ export type TourBooking = {
   rideSlugs: string[];
   /** How the guest reaches the meeting point; validated against selected transport options. */
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
+  /** Where the guest departs from for pickup. Optional — not every guest arranges pickup through the site. */
+  departureCity?: DepartureCity;
+  /** Optional return leg after the tour ends — same city catalog as
+   *  `departureCity`, reused rather than a second field set. The guest may
+   *  skip this; staff arrange the driver later. */
+  returnCity?: DepartureCity;
   serviceOptions?: ServiceOptionSelection[];
   /** SpokenLanguage ids the guest prefers, from the admin-managed catalog
    *  (see Language / getLanguages), so staff can assign a Guide who speaks
@@ -231,6 +260,9 @@ export type Accommodation = {
   priceFrom: number;
   sleeps: string;
   features: string[];
+  // Max bookable units of this tier for a given stay, when configured.
+  // Absent/undefined means inventory isn't configured - no ceiling to enforce.
+  maxUnits?: number;
 };
 
 export type GalleryItem = {
@@ -301,7 +333,29 @@ export type Booking = {
   /** ISO date, YYYY-MM-DD. */
   date: string;
   timeSlot: TimeSlot;
-  partySize: number;
+  /** Same adults/children split as `TourBooking`, for one consistent
+   *  booking shape across the site, even though Extra pricing (unlike
+   *  Tour) doesn't differentiate by age — kept for headcount accuracy. */
+  numberOfAdults: number;
+  numberOfChildren: number;
+  /** Other ACTIVITY-category Extra slugs added on top of this one, same
+   *  convention as `TourBooking.rideSlugs`. */
+  rideSlugs: string[];
+  /** How the guest reaches the activity; same "Getting There" step as a
+   *  Tour/Stay booking — a standalone activity guest may not already be
+   *  at the camp. */
+  arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
+  /** Where the guest departs from for pickup. Optional — not every guest arranges pickup through the site. */
+  departureCity?: DepartureCity;
+  /** Optional return leg after the activity ends — same city catalog as
+   *  `departureCity`, reused rather than a second field set. The guest may
+   *  skip this; staff arrange the driver later. */
+  returnCity?: DepartureCity;
+  /** SpokenLanguage ids the guest prefers, from the admin-managed catalog,
+   *  so staff can assign an instructor/guide who speaks one. */
+  preferredLanguageIds?: string[];
+  /** Free-text fallback when the guest's language isn't in the catalog. */
+  otherLanguageRequested?: string;
   name: string;
   email: string;
   phone: string;
@@ -351,10 +405,21 @@ export type StayBooking = {
    *  `accommodationSlug`. */
   accommodationQty?: number;
   date: string;
+  /** How many nights this booking covers, computed client-side from the
+   *  guest's arrival/departure picks. Defaults to 1 (a fixed single-night
+   *  stay only ever asks for the arrival date). Validated against the
+   *  stay's own `maxNights`. */
+  nights?: number;
   partySize: number;
   rideSlugs: string[];
   /** How the guest reaches the experience; validated against selected transport options. */
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
+  /** Where the guest departs from for pickup. Optional — not every guest arranges pickup through the site. */
+  departureCity?: DepartureCity;
+  /** Optional return leg after the stay ends — same city catalog as
+   *  `departureCity`, reused rather than a second field set. The guest may
+   *  skip this; staff arrange the driver later. */
+  returnCity?: DepartureCity;
   serviceOptions?: ServiceOptionSelection[];
   name: string;
   email: string;

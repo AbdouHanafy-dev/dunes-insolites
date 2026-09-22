@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
-import { MAX_PARTY_SIZE, type Accommodation, type Activity, type Stay } from "@/lib/types";
+import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 
@@ -39,7 +39,7 @@ export default function StayReservationForm({
   initialAccommodationSlug?: string;
 }) {
   const t = useTranslations("stayReservationForm");
-  const ta = useTranslations("auth");
+  const ta = useTranslations("authForm");
   const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
     PER_DAY: t("unitDay"),
     PER_BOOKING: t("unitBooking"),
@@ -58,6 +58,10 @@ export default function StayReservationForm({
   // two separate selections (never both a customer-vehicle guide AND a
   // transport option), matching the backend's own mutual-exclusion rule.
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
+  const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
+  // Optional return leg after the stay ends - same city list as
+  // departureCity, entirely skippable.
+  const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
   const [guideOptions, setGuideOptions] = useState<ServiceOptionCatalogItem[]>([]);
   const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
   const [guideSlug, setGuideSlug] = useState("");
@@ -136,7 +140,7 @@ export default function StayReservationForm({
     const ctrl = new AbortController();
     const forDate = date;
     api
-      .getStayAvailability(stay.slug, forDate, ctrl.signal)
+      .getStayAvailability(stay.slug, forDate, undefined, ctrl.signal)
       .then((data) => {
         setAvail({ forDate, data, error: false });
         if (data?.accommodations.some((t) => t.status === "UNAVAILABLE")) {
@@ -297,6 +301,8 @@ export default function StayReservationForm({
       partySize,
       rideSlugs,
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
+      departureCity: departureCity || undefined,
+      returnCity: returnCity || undefined,
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,
       email,
@@ -474,6 +480,39 @@ export default function StayReservationForm({
           </label>
         </div>
         {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
+
+        <div className="field" style={{ marginTop: 12 }}>
+          <label htmlFor="sf-departure-city">{t("departureCityLabel")}</label>
+          <select
+            id="sf-departure-city"
+            value={departureCity}
+            onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}
+          >
+            <option value="">{t("departureCityPlaceholder")}</option>
+            {DEPARTURE_CITIES.map((city) => (
+              <option key={city} value={city}>
+                {DEPARTURE_CITY_LABELS[city]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="field" style={{ marginTop: 12 }}>
+          <label htmlFor="sf-return-city">{t("returnCityLabel")}</label>
+          <p className="hint">{t("returnCityHint")}</p>
+          <select
+            id="sf-return-city"
+            value={returnCity}
+            onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}
+          >
+            <option value="">{t("returnCityPlaceholder")}</option>
+            {DEPARTURE_CITIES.map((city) => (
+              <option key={city} value={city}>
+                {DEPARTURE_CITY_LABELS[city]}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {hasOwnVehicle === false && (
           <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 12 }}>

@@ -116,7 +116,7 @@ class ExtraCapacityConcurrencyIT {
         PublicActivityBookingRequest r = new PublicActivityBookingRequest();
         r.setActivitySlug(extraRepository.findById(quadId).orElseThrow().getSlug());
         r.setDate(date);
-        r.setPartySize(quantity);
+        r.setNumberOfAdults(quantity);
         r.setName("Guest");
         r.setEmail("g@example.com");
         r.setPhone("+21650000000");

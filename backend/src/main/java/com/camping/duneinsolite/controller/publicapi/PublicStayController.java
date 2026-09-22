@@ -45,14 +45,17 @@ public class PublicStayController {
     }
 
     /**
-     * Truthful accommodation availability for one night. Advisory — the booking
-     * endpoint re-checks under a lock. Per active+priced tier: AVAILABLE /
-     * UNAVAILABLE / UNKNOWN (UNKNOWN = unit inventory not configured yet).
+     * Truthful accommodation availability across [date, date + nights).
+     * {@code nights} defaults to 1 (single-night stays). Advisory — the
+     * booking endpoint re-checks the same range under a lock. Per
+     * active+priced tier: AVAILABLE / UNAVAILABLE / UNKNOWN (UNKNOWN = unit
+     * inventory not configured yet).
      */
     @GetMapping("/{slug}/availability")
     public ResponseEntity<PublicAvailabilityResponse> getAvailability(
             @PathVariable String slug,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(publicAvailabilityService.forStay(slug, date));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Integer nights) {
+        return ResponseEntity.ok(publicAvailabilityService.forStay(slug, date, nights));
     }
 }

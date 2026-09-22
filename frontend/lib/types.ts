@@ -18,6 +18,7 @@ export type {
   Booking,
   BookingInput,
   BookingStatus,
+  DepartureCity,
   Difficulty,
   GalleryItem,
   Review,
@@ -34,9 +35,9 @@ export type {
   TourBookingInput,
 } from "@dunes/api-types";
 
-export { MAX_PARTY_SIZE } from "@dunes/api-types";
+export { DEPARTURE_CITIES, MAX_PARTY_SIZE } from "@dunes/api-types";
 
-import type { Review, TimeSlot, Tour } from "@dunes/api-types";
+import type { DepartureCity, Review, TimeSlot, Tour } from "@dunes/api-types";
 
 /* --------------------------------------------------------- presentation */
 
@@ -48,6 +49,18 @@ import type { Review, TimeSlot, Tour } from "@dunes/api-types";
 export const SLOT_LABELS: Record<TimeSlot, string> = {
   morning: "Morning · 08:00",
   "golden-hour": "Golden hour · 16:30",
+};
+
+/** Display form of each DEPARTURE_CITIES value — same city names in every
+ *  locale this site serves, so this isn't translated per-locale like other
+ *  labels here. */
+export const DEPARTURE_CITY_LABELS: Record<DepartureCity, string> = {
+  TUNIS: "Tunis",
+  SOUSSE: "Sousse",
+  HAMMAMET: "Hammamet",
+  DJERBA: "Djerba",
+  MAHDIA: "Mahdia",
+  MONASTIR: "Monastir",
 };
 
 /** How each review platform is credited in the UI. */

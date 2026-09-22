@@ -8,6 +8,7 @@ import TranslationsField, {
   translationsToArray,
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
+import AccommodationTiersManager from "@/components/crud/AccommodationTiersManager";
 import type { AdminTourType } from "@/lib/api";
 
 const BASE_PATH = "/catalogue/hebergements";
@@ -36,6 +37,13 @@ const fields: FieldDef[] = [
   { type: "text", key: "name", label: "Nom", required: true },
   { type: "text", key: "slug", label: "Slug (URL)" },
   { type: "text", key: "duration", label: "Durée", hint: 'ex. "1 Nuitée"' },
+  {
+    type: "number",
+    key: "maxNights",
+    label: "Nombre de nuits maximum",
+    hint: "1 = séjour fixe (date d'arrivée uniquement) ; plus de 1 = le client choisit une plage arrivée/départ",
+    required: true,
+  },
   { type: "text", key: "location", label: "Lieu" },
   { type: "textarea", key: "description", label: "Description" },
   { type: "number", key: "passengerAdultPrice", label: "Prix adulte (passager)", required: true },
@@ -55,6 +63,7 @@ const emptyForm = {
   name: "",
   slug: "",
   duration: "",
+  maxNights: 1,
   location: "",
   description: "",
   passengerAdultPrice: 0,
@@ -100,6 +109,17 @@ export function HebergementsList({ initialItems }: { initialItems: AdminTourType
 }
 
 export function HebergementEditor({ id, initialData }: { id?: string; initialData?: AdminTourType }) {
+  function extraSection(form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) {
+    return (
+      <div className="flex flex-col gap-8">
+        {translationsSection(form, patch)}
+        <div className="border-t border-navy-700/8 pt-6">
+          <AccommodationTiersManager tourTypeId={id} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <CollectionEditor
       collectionLabel="Hébergements"
@@ -109,7 +129,7 @@ export function HebergementEditor({ id, initialData }: { id?: string; initialDat
       initialData={tourTypeForm(initialData)}
       fields={fields}
       toRequestBody={tourTypeRequest}
-      extraSection={translationsSection}
+      extraSection={extraSection}
     />
   );
 }

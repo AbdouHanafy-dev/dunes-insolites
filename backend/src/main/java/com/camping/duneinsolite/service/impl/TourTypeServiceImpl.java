@@ -53,6 +53,12 @@ public class TourTypeServiceImpl implements TourTypeService {
         if (tourType.getGuideRequired() == null) {
             tourType.setGuideRequired(false);
         }
+        // Same NOT NULL default as isActive/guideRequired above - a caller
+        // that omits maxNights gets the fixed-single-night default (1)
+        // rather than a 500 on tour_types.max_nights's NOT NULL constraint.
+        if (tourType.getMaxNights() == null) {
+            tourType.setMaxNights(1);
+        }
         syncTranslations(tourType, request.getTranslations());
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));
     }
@@ -79,12 +85,16 @@ public class TourTypeServiceImpl implements TourTypeService {
         TourType tourType = findById(tourTypeId);
         Boolean previousIsActive = tourType.getIsActive();
         Boolean previousGuideRequired = tourType.getGuideRequired();
+        Integer previousMaxNights = tourType.getMaxNights();
         tourTypeMapper.updateEntity(request, tourType);
         if (tourType.getIsActive() == null) {
             tourType.setIsActive(previousIsActive);
         }
         if (tourType.getGuideRequired() == null) {
             tourType.setGuideRequired(previousGuideRequired);
+        }
+        if (tourType.getMaxNights() == null) {
+            tourType.setMaxNights(previousMaxNights);
         }
         if (request.getLanguageIds() != null) {
             tourType.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));

@@ -2575,6 +2575,10 @@ section.block {
 .date-picker-trigger[data-placeholder] {
   color: var(--muted);
 }
+.date-picker-icon {
+  flex: none;
+  opacity: 0.65;
+}
 .date-picker-trigger:hover {
   border-color: var(--accent);
 }
@@ -2674,6 +2678,209 @@ section.block {
 .date-picker-grid button:disabled {
   color: rgba(42, 21, 16, 0.2);
   cursor: not-allowed;
+}
+.date-range-picker {
+  position: relative;
+}
+.date-range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .date-range-fields {
+    grid-template-columns: 1fr;
+  }
+}
+.date-picker-grid button[data-in-range] {
+  background: rgba(160, 74, 47, 0.12);
+  border-radius: 0;
+}
+.date-range-popover[data-align="end"] {
+  left: auto;
+  right: 0;
+}
+.list-select {
+  position: relative;
+}
+.list-select-popover {
+  width: 100%;
+  min-width: 240px;
+  padding: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.list-select-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  text-align: start;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.list-select-option:hover {
+  background: rgba(160, 74, 47, 0.1);
+}
+.list-select-option[data-selected] {
+  background: rgba(160, 74, 47, 0.14);
+  color: var(--accent);
+  font-weight: 600;
+}
+.list-select-pin {
+  flex: none;
+  opacity: 0.55;
+}
+.list-select-option[data-selected] .list-select-pin {
+  opacity: 1;
+}
+.list-select-check {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--accent);
+}
+.language-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.language-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(42, 21, 16, 0.14);
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.language-chip:hover {
+  border-color: var(--accent);
+}
+.language-chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: rgba(160, 74, 47, 0.1);
+  box-shadow: 0 0 0 2px rgba(160, 74, 47, 0.18);
+}
+.language-flag {
+  flex: none;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.language-name {
+  flex: 1;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.language-check {
+  color: var(--accent);
+  font-weight: 700;
+}
+.phone-input {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(42, 21, 16, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.phone-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(160, 74, 47, 0.16);
+}
+.phone-input[data-invalid] {
+  border-color: #a8371a;
+}
+.phone-input-country {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: none;
+  border-inline-end: 1px solid rgba(42, 21, 16, 0.14);
+  background: none;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 12px 0 0 12px;
+}
+.phone-input-country:hover {
+  color: var(--accent);
+}
+.phone-input-number {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  padding: 14px 16px 14px 10px;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.phone-input-number:focus {
+  outline: none;
+}
+.phone-input-popover {
+  top: calc(100% + 8px);
+  left: 0;
+  max-height: none;
+  overflow: visible;
+}
+.phone-input-dial {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.flag-icon {
+  width: 22px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex: none;
+  box-shadow: 0 0 0 1px rgba(42, 21, 16, 0.12);
+}
+.phone-input-flag {
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex: none;
+  box-shadow: 0 0 0 1px rgba(42, 21, 16, 0.12);
+}
+.phone-input-search {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(42, 21, 16, 0.16);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+}
+.phone-input-search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.phone-input-options {
+  max-height: 260px;
+  overflow-y: auto;
+}
+.phone-input-options .list-select-option {
+  gap: 10px;
 }
 .star-rating-input {
   display: flex;
@@ -3340,6 +3547,21 @@ footer.site-footer .bar-social a:hover {
   padding: 190px 0 120px;
   min-height: 100vh;
 }
+/* /book reuses the circuit page's narrow-sidebar card at a much wider,
+   standalone width - the extra width alone left it visually tall since
+   every step is still a single stacked column. Trim spacing and text size
+   here only, rather than going wide+horizontal (tried and reverted - felt
+   crowded at this card's proportions). */
+.book-page .tour-booking-card { font-size: 13px; }
+.book-page .tour-booking-card .tour-book-step-heading { margin-bottom: 14px; }
+.book-page .tour-booking-card .reserve-form { gap: 12px; }
+.book-page .tour-booking-card .field label { font-size: 9px; }
+.book-page .tour-booking-card .tour-book-guests .guest-row { padding: 11px 16px; }
+.book-page .tour-booking-card .ride-option { padding: 9px 14px; }
+.book-page .tour-booking-card .picker { gap: 14px; margin-top: 20px; }
+.book-page .tour-booking-card .pick .thumb { aspect-ratio: 16/8; }
+.book-page .tour-booking-card .pick .meta { padding: 14px 16px 16px; }
+.book-page .tour-booking-card .pick .meta h3 { font-size: 1.05rem; }
 .stepper {
   display: flex;
   flex-wrap: wrap;
@@ -3421,6 +3643,12 @@ footer.site-footer .bar-social a:hover {
 .pick[aria-pressed="true"] {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(160, 74, 47, 0.35);
+}
+.pick:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 .pick .thumb {
   position: relative;

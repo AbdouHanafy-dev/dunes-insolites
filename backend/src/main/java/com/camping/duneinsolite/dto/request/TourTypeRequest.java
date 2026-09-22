@@ -23,6 +23,13 @@ public class TourTypeRequest {
     private String description;
     private String duration;
 
+    // How many nights a guest can book in one reservation. 1 (default) =
+    // fixed single-night stay, guest only picks an arrival date. >1 = guest
+    // picks an arrival+departure range, capped at this many nights. Only
+    // meaningful for a nuitée (TourType used as a Stay); ignored elsewhere.
+    @Min(value = 1, message = "Maximum nights must be at least 1")
+    private Integer maxNights;
+
     private String aboutText;
     private List<String> highlights;
     private List<String> includedItems;

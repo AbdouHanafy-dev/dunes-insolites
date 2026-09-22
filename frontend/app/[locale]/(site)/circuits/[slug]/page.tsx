@@ -15,6 +15,7 @@ import ShareButton from "@/components/ShareButton";
 import TourPhotoGallery from "@/components/TourPhotoGallery";
 import TourMobileBookingBar from "@/components/TourMobileBookingBar";
 import { site } from "@/lib/site";
+import { localizedLanguageName } from "@/lib/languageFlags";
 import { GUIDE_TYPE_LABELS, MEAL_TYPE_LABELS, MEAL_FORMAT_LABELS } from "@/lib/types";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
@@ -170,7 +171,7 @@ export default async function TourDetail({ params }: Props) {
                 <div><small>{t("guideLabel")}</small><strong>{guideLabel}</strong></div>
               )}
               {tour.languages.length > 0 && (
-                <div><small>{t("goodToKnow")}</small><strong>{tour.languages.join(" · ")}</strong></div>
+                <div><small>{t("goodToKnow")}</small><strong>{tour.languages.map((l) => localizedLanguageName(locale, l)).join(" · ")}</strong></div>
               )}
               {tour.cancellationPolicy?.freeCancellation && (
                 <div><small>{t("goodToKnow")}</small><strong>{t("freeCancellationNote")}</strong></div>
@@ -345,7 +346,7 @@ export default async function TourDetail({ params }: Props) {
               <h2>{t("goodToKnow")}</h2>
               {tour.goodToKnow && <p>{tour.goodToKnow}</p>}
               <ul>
-                {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.join(", ") })}</li>}
+                {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.map((l) => localizedLanguageName(locale, l)).join(", ") })}</li>}
                 {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
                 {tour.emergencyPhone && <li>{t("emergencyPhoneLabel")}: {tour.emergencyPhone}</li>}
               </ul>

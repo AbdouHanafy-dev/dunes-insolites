@@ -15,6 +15,8 @@ public class PublicTourBookingResponse {
     private Integer numberOfChildren;
     private List<String> rideSlugs;
     private String arrivalMode;
+    private String departureCity;
+    private String returnCity;
     private List<String> preferredLanguageIds;
     private String otherLanguageRequested;
     private String name;
