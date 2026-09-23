@@ -53,9 +53,10 @@ Docker.
 ## Documentation
 
 - [Index de la documentation](docs/README.md)
+- [État du projet (23 sept. 2026)](docs/PROJECT-STATE-2026-09-23.md) — existant, manques, décisions
 - [Audit courant](docs/PROJECT-AUDIT-2026-09-20.md)
 - [Architecture détaillée](ARCHITECTURE.md)
-- [Questions métier ouvertes](docs/OPEN-QUESTIONS.md)
+- Questions métier ouvertes : voir la section 4 de l'état du projet
 - [Runbooks](docs/runbooks/)
 
 Les anciens PDF, roadmaps et rapports datés sont des archives de décision, pas

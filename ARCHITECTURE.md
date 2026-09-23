@@ -465,6 +465,12 @@ FACTURE   →  001/2026, 002/2026, …
 
 ## 10. The admin backoffice
 
+> **Updated 23 Sep 2026:** this section describes the backoffice as first built.
+> Since then it gained a reservations table (search / sort / pagination), a
+> reservation page with status, payment and edit panels, payment rules in
+> Paramètres, and localized reservation emails. What exists and what is missing
+> is in [`docs/PROJECT-STATE-2026-09-23.md`](docs/PROJECT-STATE-2026-09-23.md).
+
 Next.js 16 · App Router · Tailwind v4 · new this session, replaces the
 Angular `admin-app` from `routeinsolite` for the `ADMIN` role only.
 
