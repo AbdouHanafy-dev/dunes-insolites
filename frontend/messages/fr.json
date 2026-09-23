@@ -367,6 +367,7 @@
   },
   "stayReservationForm": {
     "chooseCamp": "Choisissez votre camp",
+    "viewDetails": "Voir les détails",
     "soldOutForDate": "Complet pour cette date",
     "fromPrice": "à partir de {price} €",
     "leftFromPriceOne": "{units} restante · à partir de {price} €",
@@ -454,7 +455,21 @@
     "dateLabel": "Date",
     "partySizeLabel": "Nombre de personnes",
     "campLabel": "Camp",
-    "accommodationLabel": "Hébergement"
+    "accommodationLabel": "Hébergement",
+    "back": "Retour",
+    "continue": "Continuer",
+    "reviewHint": "Rien n'est débité maintenant. Nous confirmons la disponibilité et vous recontactons avant de prendre le paiement.",
+    "travelersLabel": "Voyageurs",
+    "contactLabel": "Contact",
+    "notesLabelSummary": "Remarques",
+    "totalLabel": "Total",
+    "reviewGuideLabel": "Guide",
+    "reviewVehicleLabel": "Arrivée",
+    "reviewExtrasLabel": "Activités",
+    "pickupLabel": "Prise en charge",
+    "errorPickDate": "Choisissez une date.",
+    "errorPastDate": "Choisissez aujourd'hui ou une date future.",
+    "extrasUnavailable": "Aucune activité supplémentaire n'est proposée pour le moment."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Circuits",
@@ -526,6 +541,7 @@
     "accommodationPrice": "{price} € par unité",
     "accommodationQuantity": "Nombre d’unités",
     "accommodationUnavailable": "Aucun hébergement réservable n’est encore configuré pour ce circuit.",
+    "viewDetails": "Voir les détails",
     "errorAccommodationRequired": "Choisissez un hébergement pour la nuit au camp de Sabria.",
     "accommodationLabel": "Hébergement",
     "errorLanguageRequired": "Choisissez au moins une langue préférée ou indiquez une autre langue.",
@@ -628,7 +644,8 @@
     "otherLanguagePlaceholder": "Autre langue non listée ? Précisez ici (optionnel)"
   },
   "accommodationCard": {
-    "exploreThisStay": "Découvrir ce séjour ↗"
+    "exploreThisStay": "Découvrir ce séjour ↗",
+    "fromPrice": "à partir de {price} €"
   },
   "tourCard": {
     "fromPrice": "à partir de {price} €",
@@ -704,6 +721,9 @@
   "stayDetail": {
     "checkIn": "Arrivée {time}",
     "checkOut": "Départ {time}",
+    "checkInLabel": "Arrivée",
+    "checkOutLabel": "Départ",
+    "directBooking": "Réservation directe",
     "experienceEyebrow": "Une nuit désertique, pensée avec soin",
     "theExperience": "L'expérience",
     "chooseHowEyebrow": "Choisissez votre façon de dormir",

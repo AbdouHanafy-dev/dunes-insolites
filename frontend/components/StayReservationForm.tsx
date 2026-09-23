@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
@@ -18,6 +18,16 @@ function todayISO(): string {
   const d = new Date();
   const off = d.getTimezoneOffset();
   return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
+}
+
+function prettyDate(iso: string, locale: string): string {
+  if (!iso) return "—";
+  return new Date(`${iso}T00:00:00`).toLocaleDateString(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 /**
@@ -40,6 +50,8 @@ export default function StayReservationForm({
 }) {
   const t = useTranslations("stayReservationForm");
   const ta = useTranslations("authForm");
+  const locale = useLocale();
+  const [step, setStep] = useState(0);
   const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
     PER_DAY: t("unitDay"),
     PER_BOOKING: t("unitBooking"),
@@ -277,6 +289,63 @@ export default function StayReservationForm({
     (sum, option) => sum + (option ? optionPrice(option) ?? 0 : 0),
     0,
   );
+  const extrasTotal = activities
+    .filter((activity) => rideSlugs.includes(activity.slug))
+    .reduce((sum, activity) => sum + activity.priceFrom, 0);
+
+  const visibleSteps = [
+    { id: 0, label: t("stepDateTravelers") },
+    { id: 1, label: t("stepAccommodation") },
+    { id: 2, label: t("stepVehicleGuide") },
+    { id: 3, label: t("stepExtras") },
+    { id: 4, label: t("stepReview") },
+  ];
+
+  function validateStep(): boolean {
+    const e: Record<string, string> = {};
+    if (step === 0) {
+      if (!date) e.date = t("errorPickDate");
+      else if (date < min) e.date = t("errorPastDate");
+    }
+    if (step === 1) {
+      const soldOutSelection = selectedAccommodations.find(({ accommodation }) => tierSoldOut(accommodation.slug));
+      if (soldOutSelection) e.accommodationSlug = t("errorSoldOut");
+    }
+    if (step === 2) {
+      if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
+      if (stay.guideRequired && !guideSlug) e.guide = t("errorGuideRequired");
+      if (hasOwnVehicle === false && !transportSlug) e.transport = t("errorTransportRequired");
+      if (
+        needsPickupDetails &&
+        !pickupHotelName.trim() &&
+        !pickupAirport.trim() &&
+        !pickupAddress.trim() &&
+        !pickupInstructions.trim()
+      ) {
+        e.pickup = t("errorPickup");
+      }
+      if (selectedGuide && optionUnavailable(selectedGuide)) e.guide = t("errorGuideUnavailable");
+      if (selectedTransport && optionUnavailable(selectedTransport)) e.transport = t("errorTransportUnavailable");
+    }
+    if (step === 4) {
+      if (!name.trim()) e.name = t("errorName");
+      if (!email.trim()) e.email = t("errorEmail");
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = t("errorEmailInvalid");
+      if (!phone.trim()) e.phone = t("errorPhone");
+      if (!acceptedTerms) e.acceptedTerms = ta("termsRequired");
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function next() {
+    if (validateStep()) setStep((s) => Math.min(visibleSteps.length - 1, s + 1));
+  }
+
+  function back() {
+    setErrors({});
+    setStep((s) => Math.max(0, s - 1));
+  }
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
@@ -308,8 +377,7 @@ export default function StayReservationForm({
     });
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit() {
     setErrors({});
     setFormError("");
 
@@ -425,16 +493,52 @@ export default function StayReservationForm({
       .filter((a) => rideSlugs.includes(a.slug))
       .map((a) => a.title);
     return (
-      <div className="alert ok" style={{ marginTop: 0 }}>
-        <strong>{t("reservedConfirmation", { id: booking.id })}</strong> {t("reservedBody")}
-        {rideNames.length > 0 && t("reservedWithRides", { rides: rideNames.join(", ") })}
+      <div className="tour-booking-success" role="status">
+        <span className="tour-booking-success-icon" aria-hidden="true">✓</span>
+        <div>
+          <p className="tour-booking-success-kicker">{t("reservedConfirmation", { id: booking.id })}</p>
+          <h3>{t("reservedConfirmation", { id: booking.id })}</h3>
+          <p>
+            {t("reservedBody")}
+            {rideNames.length > 0 && t("reservedWithRides", { rides: rideNames.join(", ") })}
+          </p>
+        </div>
       </div>
     );
   }
 
+  const activeStepPosition = step;
+  const activeStep = visibleSteps[activeStepPosition] ?? visibleSteps[0];
+
   return (
-    <form onSubmit={onSubmit} className="reserve-form">
-      {accommodations && accommodations.length > 0 && (
+    <div className="tour-book-flow">
+      <div className="stepper" aria-label={activeStep.label}>
+        {visibleSteps.map((item, i) => (
+          <span
+            key={item.id}
+            className="s"
+            data-state={i === activeStepPosition ? "active" : i < activeStepPosition ? "done" : "todo"}
+            aria-current={i === activeStepPosition ? "step" : undefined}
+          >
+            <span className="step-dot" aria-hidden="true">{i < activeStepPosition ? "✓" : i + 1}</span>
+            <span className="step-label">{item.label}</span>
+          </span>
+        ))}
+      </div>
+
+      <div className="tour-book-step-heading">
+        <span>0{activeStepPosition + 1}</span>
+        <h3>{activeStep.label}</h3>
+        <strong className="tour-book-step-amount">
+          {step === 0 && `€${total}`}
+          {step === 1 && `€${total}`}
+          {step === 2 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
+          {step === 3 && `€${extrasTotal}`}
+          {step === 4 && `€${total + extrasTotal + serviceTotal}`}
+        </strong>
+      </div>
+
+      {step === 1 && accommodations && accommodations.length > 0 && (
         <div className="field" data-invalid={!!errors.accommodationSlug}>
           <label>{t("chooseCamp")}</label>
           <div className="ride-options">
@@ -466,6 +570,16 @@ export default function StayReservationForm({
                           : t("fromPrice", { price: a.priceFrom })}
                     </span>
                   </label>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "0 16px 12px" }}>
+                    <Link
+                      href={`/camp/${stay.slug}/${a.slug}`}
+                      target="_blank"
+                      className="pick-details-link"
+                      style={{ position: "static" }}
+                    >
+                      {t("viewDetails")}
+                    </Link>
+                  </div>
                   {checked && (
                     <div className="guest-picker" style={{ marginTop: 6, marginBottom: 10 }}>
                       <div className="guest-row">
@@ -503,41 +617,53 @@ export default function StayReservationForm({
         </div>
       )}
 
-      <div className="field" data-invalid={!!errors.date}>
-        <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
-        <DatePicker id="s-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
-        {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
-        {availabilityFor &&
-          availabilityFor.accommodations.length > 0 &&
-          availabilityFor.accommodations.every((a) => a.status === "UNAVAILABLE") && (
-            <p className="hint">{t("everyCampBooked")}</p>
-          )}
-        {errors.date && <span className="err">{errors.date}</span>}
-      </div>
-
-      <div className="field" data-invalid={!!errors.partySize}>
-        <label>{t("whosComing")}</label>
-        <div className="guest-picker">
-          <div className="guest-row">
-            <div><strong>{t("adults")}</strong><span>{t("adultsAge")}</span></div>
-            <div className="guest-stepper">
-              <button type="button" onClick={() => changeGuests("adults", -1)} disabled={adults === 1} aria-label={t("decrease")}>−</button>
-              <output aria-label={`${adults} ${t("adults")}`}>{adults}</output>
-              <button type="button" onClick={() => changeGuests("adults", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
-            </div>
+      {step === 0 && (
+        <div className="reserve-form" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+          <div className="field" data-invalid={!!errors.date}>
+            <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
+            <DatePicker id="s-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
+            {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
+            {availabilityFor &&
+              availabilityFor.accommodations.length > 0 &&
+              availabilityFor.accommodations.every((a) => a.status === "UNAVAILABLE") && (
+                <p className="hint">{t("everyCampBooked")}</p>
+              )}
+            {errors.date && <span className="err">{errors.date}</span>}
           </div>
-          <div className="guest-row">
-            <div><strong>{t("children")}</strong><span>{t("childrenAge")}</span></div>
-            <div className="guest-stepper">
-              <button type="button" onClick={() => changeGuests("children", -1)} disabled={children === 0} aria-label={t("decrease")}>−</button>
-              <output aria-label={`${children} ${t("children")}`}>{children}</output>
-              <button type="button" onClick={() => changeGuests("children", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
+
+          <div className="field" data-invalid={!!errors.partySize}>
+            <label>{t("whosComing")}</label>
+            <div className="guest-picker">
+              <div className="guest-row">
+                <div><strong>{t("adults")}</strong><span>{t("adultsAge")}</span></div>
+                <div className="guest-stepper">
+                  <button type="button" onClick={() => changeGuests("adults", -1)} disabled={adults === 1} aria-label={t("decrease")}>−</button>
+                  <output aria-label={`${adults} ${t("adults")}`}>{adults}</output>
+                  <button type="button" onClick={() => changeGuests("adults", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
+                </div>
+              </div>
+              <div className="guest-row">
+                <div><strong>{t("children")}</strong><span>{t("childrenAge")}</span></div>
+                <div className="guest-stepper">
+                  <button type="button" onClick={() => changeGuests("children", -1)} disabled={children === 0} aria-label={t("decrease")}>−</button>
+                  <output aria-label={`${children} ${t("children")}`}>{children}</output>
+                  <button type="button" onClick={() => changeGuests("children", 1)} disabled={partySize === MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
+                </div>
+              </div>
             </div>
+            {errors.partySize && <span className="err">{errors.partySize}</span>}
           </div>
         </div>
-        {errors.partySize && <span className="err">{errors.partySize}</span>}
-      </div>
+      )}
 
+      {step === 1 && (!accommodations || accommodations.length === 0) && (
+        <div className="booking-empty-state">
+          <span aria-hidden="true">✓</span>
+          <div><strong>{t("noAccommodationChoice")}</strong></div>
+        </div>
+      )}
+
+      {step === 2 && (
       <div className="field" data-invalid={!!errors.arrivalMode}>
         <label>{t("howWillYouJoin")}</label>
         <div className="ride-options">
@@ -750,130 +876,189 @@ export default function StayReservationForm({
           </div>
         )}
       </div>
+      )}
 
+      {step === 3 && (
       <div className="field" data-invalid={!!errors.rideSlugs}>
         <label>{t("addRide")}</label>
-        <div className="ride-options">
-          {activities.map((a) => (
-            <label key={a.slug} className="ride-option">
-              <input
-                type="checkbox"
-                checked={rideSlugs.includes(a.slug)}
-                onChange={() => toggleRide(a.slug)}
-              />
-              <span>{a.title}</span>
-              <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
-            </label>
-          ))}
-        </div>
+        {activities.length === 0 ? (
+          <div className="booking-empty-state">
+            <span aria-hidden="true">+</span>
+            <div><strong>{t("extrasUnavailable")}</strong></div>
+          </div>
+        ) : (
+          <div className="ride-options">
+            {activities.map((a) => (
+              <label key={a.slug} className="ride-option">
+                <input
+                  type="checkbox"
+                  checked={rideSlugs.includes(a.slug)}
+                  onChange={() => toggleRide(a.slug)}
+                />
+                <span>{a.title}</span>
+                <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
+              </label>
+            ))}
+          </div>
+        )}
         <p className="hint">{t("confirmOnSite")}</p>
         {errors.rideSlugs && <span className="err">{errors.rideSlugs}</span>}
       </div>
+      )}
 
-      <div className="field" data-invalid={!!errors.name}>
-        <label htmlFor="s-name">{t("fullName")}</label>
-        <input
-          id="s-name"
-          value={name}
-          autoComplete="name"
-          onChange={(e) => setName(e.target.value)}
-        />
-        {errors.name && <span className="err">{errors.name}</span>}
-      </div>
-
-      <div className="field" data-invalid={!!errors.email}>
-        <label htmlFor="s-email">{t("email")}</label>
-        <input
-          id="s-email"
-          type="email"
-          value={email}
-          autoComplete="email"
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        {errors.email && <span className="err">{errors.email}</span>}
-      </div>
-
-      <div className="field" data-invalid={!!errors.phone}>
-        <label htmlFor="s-phone">{t("phone")}</label>
-        <input
-          id="s-phone"
-          type="tel"
-          value={phone}
-          autoComplete="tel"
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        {errors.phone && <span className="err">{errors.phone}</span>}
-      </div>
-
-      <div className="field">
-        <label htmlFor="s-notes">{t("anythingElse")}</label>
-        <input
-          id="s-notes"
-          placeholder={t("notesPlaceholder")}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </div>
-
-      <div className="summary">
-        {selectedAccommodations.length > 0 ? (
-          selectedAccommodations.map(({ accommodation, qty }) => (
-            <div className="row" key={accommodation.slug}>
-              <span>{qty} × {accommodation.title}</span>
-              <span>€{accommodation.priceFrom * qty}</span>
+      {step === 4 && (
+        <div className="tour-review-step">
+          <div className="reserve-form tour-review-details" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+            <div className="field" data-invalid={!!errors.name}>
+              <label htmlFor="s-name">{t("fullName")}</label>
+              <input
+                id="s-name"
+                value={name}
+                autoComplete="name"
+                onChange={(e) => setName(e.target.value)}
+              />
+              {errors.name && <span className="err">{errors.name}</span>}
             </div>
-          ))
-        ) : (
-          <div className="row">
-            <span>{t("stayFallbackLabel")}</span>
-            <span>€{total}</span>
+
+            <div className="field" data-invalid={!!errors.email}>
+              <label htmlFor="s-email">{t("email")}</label>
+              <input
+                id="s-email"
+                type="email"
+                value={email}
+                autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {errors.email && <span className="err">{errors.email}</span>}
+            </div>
+
+            <div className="field" data-invalid={!!errors.phone}>
+              <label htmlFor="s-phone">{t("phone")}</label>
+              <input
+                id="s-phone"
+                type="tel"
+                value={phone}
+                autoComplete="tel"
+                onChange={(e) => setPhone(e.target.value)}
+              />
+              {errors.phone && <span className="err">{errors.phone}</span>}
+            </div>
+
+            <div className="field">
+              <label htmlFor="s-notes">{t("anythingElse")}</label>
+              <input
+                id="s-notes"
+                placeholder={t("notesPlaceholder")}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
           </div>
-        )}
-        {selectedGuide && (
-          <div className="row">
-            <span>{selectedGuide.name}</span>
-            <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `${optionPrice(selectedGuide)} TND`}</span>
+
+          <p className="hint tour-review-hint">{t("reviewHint")}</p>
+          <div className="summary tour-review-summary">
+            <div className="row"><span className="k">{t("campLabel")}</span><span>{stay.title}</span></div>
+            <div className="row"><span className="k">{t("arrivalDateLabel")}</span><span>{prettyDate(date, locale)}</span></div>
+            <div className="row">
+              <span className="k">{t("travelersLabel")}</span>
+              <span>{adults} {t("adults").toLowerCase()}{children > 0 ? ` · ${children} ${t("children").toLowerCase()}` : ""}</span>
+            </div>
+            <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? t("ownVehicle") : t("needTransport")}</span></div>
+            {departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
+            {returnCity && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
+            {selectedGuide && <div className="row"><span className="k">{t("reviewGuideLabel")}</span><span>{selectedGuide.name}</span></div>}
+            {needsPickupDetails && [pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].some((v) => v.trim()) && (
+              <div className="row">
+                <span className="k">{t("pickupLabel")}</span>
+                <span>{[pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].filter((v) => v.trim()).join(" · ")}</span>
+              </div>
+            )}
+            {rideSlugs.length > 0 && (
+              <div className="row">
+                <span className="k">{t("reviewExtrasLabel")}</span>
+                <span>
+                  {activities
+                    .filter((a) => rideSlugs.includes(a.slug))
+                    .map((a) => `${a.title} — €${a.priceFrom}`)
+                    .join(", ")}
+                </span>
+              </div>
+            )}
+            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {phone}</span></div>}
+            {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
+
+            {selectedAccommodations.length > 0 ? (
+              selectedAccommodations.map(({ accommodation, qty }) => (
+                <div className="row" key={accommodation.slug}>
+                  <span>{qty} × {accommodation.title}</span>
+                  <span>€{accommodation.priceFrom * qty}</span>
+                </div>
+              ))
+            ) : (
+              <div className="row">
+                <span>{t("stayFallbackLabel")}</span>
+                <span>€{total}</span>
+              </div>
+            )}
+            {selectedGuide && (
+              <div className="row">
+                <span>{selectedGuide.name}</span>
+                <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `${optionPrice(selectedGuide)} TND`}</span>
+              </div>
+            )}
+            {selectedTransport && (
+              <div className="row">
+                <span>{selectedTransport.name}</span>
+                <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `${optionPrice(selectedTransport)} TND`}</span>
+              </div>
+            )}
+            {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
+              <div className="row" key={activity.slug}>
+                <span>{activity.title}</span>
+                <span>{t("fromPrice", { price: activity.priceFrom })}</span>
+              </div>
+            ))}
+            <div className="row total">
+              <span>{t("stayTotal")}</span>
+              <span>€{total}</span>
+            </div>
+            {serviceTotal > 0 && (
+              <div className="row total">
+                <span>{t("serviceOptionsLabel")}</span>
+                <span>{serviceTotal} TND</span>
+              </div>
+            )}
           </div>
-        )}
-        {selectedTransport && (
-          <div className="row">
-            <span>{selectedTransport.name}</span>
-            <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `${optionPrice(selectedTransport)} TND`}</span>
-          </div>
-        )}
-        {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
-          <div className="row" key={activity.slug}>
-            <span>{activity.title}</span>
-            <span>{t("fromPrice", { price: activity.priceFrom })}</span>
-          </div>
-        ))}
-        <div className="row total">
-          <span>{t("stayTotal")}</span>
-          <span>€{total}</span>
+
+          <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
+            <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+            <span>
+              {ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>
+              {ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}
+            </span>
+          </label>
+          {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
+          {formError && <div className="alert">{formError}</div>}
         </div>
-        {serviceTotal > 0 && (
-          <div className="row total">
-            <span>{t("serviceOptionsLabel")}</span>
-            <span>{serviceTotal} TND</span>
-          </div>
+      )}
+
+      <div className="book-actions">
+        {step > 0 && (
+          <button type="button" className="btn-quiet" onClick={back} disabled={submitting}>
+            ← {t("back")}
+          </button>
+        )}
+        {step < visibleSteps.length - 1 ? (
+          <button type="button" className="btn-accent" onClick={next}>
+            {t("continue")}
+          </button>
+        ) : (
+          <button type="button" className="btn-accent" onClick={submit} disabled={submitting}>
+            {submitting ? t("reserving") : t("reserveThisStay")}
+          </button>
         )}
       </div>
-
-      <label className="ride-option" data-invalid={!!errors.acceptedTerms}>
-        <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-        <span>
-          {ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>
-          {ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}
-        </span>
-      </label>
-      {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
-
-      {formError && <div className="alert">{formError}</div>}
-
-      <button type="submit" className="btn-accent" disabled={submitting}>
-        {submitting ? t("reserving") : t("reserveThisStay")}
-      </button>
       <p className="note">{t("freeCancellation")}</p>
-    </form>
+    </div>
   );
 }

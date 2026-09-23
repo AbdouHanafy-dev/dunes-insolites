@@ -367,6 +367,7 @@
   },
   "stayReservationForm": {
     "chooseCamp": "Vælg din lejr",
+    "viewDetails": "Se detaljer",
     "soldOutForDate": "Udsolgt på den dato",
     "fromPrice": "fra {price} €",
     "leftFromPriceOne": "{units} tilbage · fra {price} €",
@@ -454,7 +455,21 @@
     "dateLabel": "Dato",
     "partySizeLabel": "Antal personer",
     "campLabel": "Lejr",
-    "accommodationLabel": "Indkvartering"
+    "accommodationLabel": "Indkvartering",
+    "back": "Tilbage",
+    "continue": "Fortsæt",
+    "reviewHint": "Der trækkes ikke noget nu. Vi bekræfter ledigheden og kontakter dig, før betalingen gennemføres.",
+    "travelersLabel": "Rejsende",
+    "contactLabel": "Kontakt",
+    "notesLabelSummary": "Bemærkninger",
+    "totalLabel": "I alt",
+    "reviewGuideLabel": "Guide",
+    "reviewVehicleLabel": "Ankomst",
+    "reviewExtrasLabel": "Aktiviteter",
+    "pickupLabel": "Afhentning",
+    "errorPickDate": "Vælg en dato.",
+    "errorPastDate": "Vælg i dag eller en fremtidig dato.",
+    "extrasUnavailable": "Der tilbydes ingen ekstra aktiviteter i øjeblikket."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Ture",
@@ -526,6 +541,7 @@
     "accommodationPrice": "{price} € pr. enhed",
     "accommodationQuantity": "Antal enheder",
     "accommodationUnavailable": "Der er endnu ikke konfigureret en indkvartering, som kan bookes til denne rundrejse.",
+    "viewDetails": "Se detaljer",
     "errorAccommodationRequired": "Vælg en indkvartering til natten i Sabria-lejren.",
     "accommodationLabel": "Indkvartering",
     "errorLanguageRequired": "Vælg mindst ét foretrukket sprog, eller angiv et andet sprog.",
@@ -628,7 +644,8 @@
     "otherLanguagePlaceholder": "Andet sprog, der ikke er angivet? Angiv her (valgfrit)"
   },
   "accommodationCard": {
-    "exploreThisStay": "Udforsk dette ophold ↗"
+    "exploreThisStay": "Udforsk dette ophold ↗",
+    "fromPrice": "fra {price} €"
   },
   "tourCard": {
     "fromPrice": "fra {price} €",
@@ -704,6 +721,9 @@
   "stayDetail": {
     "checkIn": "Ankomst {time}",
     "checkOut": "Afrejse {time}",
+    "checkInLabel": "Ankomst",
+    "checkOutLabel": "Afrejse",
+    "directBooking": "Direkte booking",
     "experienceEyebrow": "En gennemtænkt tilrettelagt ørkennat",
     "theExperience": "Oplevelsen",
     "chooseHowEyebrow": "Vælg hvordan du sover",

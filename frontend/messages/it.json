@@ -367,6 +367,7 @@
   },
   "stayReservationForm": {
     "chooseCamp": "Scegliete il vostro campo",
+    "viewDetails": "Vedi dettagli",
     "soldOutForDate": "Al completo per questa data",
     "fromPrice": "a partire da {price} €",
     "leftFromPriceOne": "{units} rimasta · a partire da {price} €",
@@ -454,7 +455,21 @@
     "dateLabel": "Data",
     "partySizeLabel": "Numero di persone",
     "campLabel": "Campo",
-    "accommodationLabel": "Alloggio"
+    "accommodationLabel": "Alloggio",
+    "back": "Indietro",
+    "continue": "Continua",
+    "reviewHint": "Non viene addebitato nulla ora. Confermiamo la disponibilità e vi ricontattiamo prima di procedere al pagamento.",
+    "travelersLabel": "Viaggiatori",
+    "contactLabel": "Contatto",
+    "notesLabelSummary": "Note",
+    "totalLabel": "Totale",
+    "reviewGuideLabel": "Guida",
+    "reviewVehicleLabel": "Arrivo",
+    "reviewExtrasLabel": "Attività",
+    "pickupLabel": "Ritiro",
+    "errorPickDate": "Scegliete una data.",
+    "errorPastDate": "Scegliete oggi o una data futura.",
+    "extrasUnavailable": "Al momento non sono proposte attività aggiuntive."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Circuiti",
@@ -526,6 +541,7 @@
     "accommodationPrice": "{price} € per unità",
     "accommodationQuantity": "Numero di unità",
     "accommodationUnavailable": "Non è ancora configurato alcun alloggio prenotabile per questo circuito.",
+    "viewDetails": "Vedi dettagli",
     "errorAccommodationRequired": "Scegliete un alloggio per la notte al campo di Sabria.",
     "accommodationLabel": "Alloggio",
     "errorLanguageRequired": "Seleziona almeno una lingua preferita o indica un'altra lingua.",
@@ -628,7 +644,8 @@
     "otherLanguagePlaceholder": "Un'altra lingua non elencata? Specificala qui (opzionale)"
   },
   "accommodationCard": {
-    "exploreThisStay": "Scopri questo soggiorno ↗"
+    "exploreThisStay": "Scopri questo soggiorno ↗",
+    "fromPrice": "da {price} €"
   },
   "tourCard": {
     "fromPrice": "da {price} €",
@@ -704,6 +721,9 @@
   "stayDetail": {
     "checkIn": "Arrivo {time}",
     "checkOut": "Partenza {time}",
+    "checkInLabel": "Arrivo",
+    "checkOutLabel": "Partenza",
+    "directBooking": "Prenotazione diretta",
     "experienceEyebrow": "Una notte nel deserto, pensata nei dettagli",
     "theExperience": "L'esperienza",
     "chooseHowEyebrow": "Scegliete come dormire",

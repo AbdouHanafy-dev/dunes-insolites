@@ -36,7 +36,6 @@ export default async function AccommodationCard({
           <span className="idx-label">{String(index).padStart(2, "0")} / {accommodation.title}</span>
         )}
         <h3>{accommodation.title}</h3>
-        <p>{accommodation.tagline || accommodation.description}</p>
         {accommodation.features.length > 0 && (
           <ul className="accommodation-features">
             {accommodation.features.slice(0, 3).map((f) => (
@@ -45,7 +44,7 @@ export default async function AccommodationCard({
           </ul>
         )}
         <div className="accommodation-meta">
-          <span>From €{accommodation.priceFrom}</span>
+          <span>{t("fromPrice", { price: accommodation.priceFrom })}</span>
           <span aria-hidden="true">·</span>
           <span>{accommodation.sleeps}</span>
         </div>
@@ -56,7 +55,6 @@ export default async function AccommodationCard({
           rel="noopener noreferrer"
         >
           {t("exploreThisStay")}
-          <span aria-hidden="true">→</span>
         </Link>
       </div>
     </article>
