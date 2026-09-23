@@ -71,7 +71,8 @@ export function createStayBooking(input: StayBookingInput): StayBooking {
         const accommodation = stay.accommodations?.find((item) => item.slug === selection.accommodationSlug);
         return sum + (accommodation ? accommodation.priceFrom * selection.quantity : 0);
       }, 0)
-    : stay.priceFrom * input.partySize;
+    : ((stay.adultPrice ?? stay.priceFrom) * (input.partySize - (input.children ?? 0))
+        + (stay.childPrice ?? stay.adultPrice ?? stay.priceFrom) * (input.children ?? 0)) * (input.nights ?? 1);
   const booking: StayBooking = {
     ...input,
     id: makeId(),

@@ -97,6 +97,10 @@ export type Stay = {
   image: string;
   gallery: string[];
   priceFrom: number;
+  /** The stay's own per-person nightly rates, set in the back office. They price
+   *  the booking when the stay has no accommodation types (e.g. the bivouac). */
+  adultPrice?: number;
+  childPrice?: number;
   groupSize: string;
   included: string[];
   notIncluded: string[];
@@ -429,6 +433,9 @@ export type StayBooking = {
    *  stay's own `maxNights`. */
   nights?: number;
   partySize: number;
+  /** How many of `partySize` are children, priced at the stay's child rate.
+   *  Omitted = 0. At least one adult must remain. */
+  children?: number;
   rideSlugs: string[];
   /** How the guest reaches the experience; validated against selected transport options. */
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT";

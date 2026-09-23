@@ -112,7 +112,7 @@ export default function PricingRulesPanel({
                   <td className="px-4 py-2">{r.ruleType === "DATE" ? "Date" : "Période"}</td>
                   <td className="px-4 py-2">{r.startDate}</td>
                   <td className="px-4 py-2">{r.endDate}</td>
-                  <td className="px-4 py-2">{r.priceTtc} TND</td>
+                  <td className="px-4 py-2">{r.priceTtc} €</td>
                   <td className="px-4 py-2 text-right">
                     <button type="button" className="text-rose hover:underline" onClick={() => remove(r.id)}>
                       Supprimer

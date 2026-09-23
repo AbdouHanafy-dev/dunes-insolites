@@ -55,6 +55,8 @@ public class PublicStayMapper {
         // Headline price is the direct-passenger adult rate - the price a
         // guest booking on the vitrine (not a partner) actually pays.
         response.setPriceFrom(tourType.getPassengerAdultPrice());
+        response.setAdultPrice(tourType.getPassengerAdultPrice());
+        response.setChildPrice(tourType.getPassengerChildPrice());
         response.setGroupSize(PublicCatalogText.groupSize(tourType.getGroupSizeType()));
         response.setIncluded(included);
         response.setNotIncluded(notIncluded);

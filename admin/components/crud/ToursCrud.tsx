@@ -10,7 +10,7 @@ const API_PATH = "tours";
 const columns: ColumnDef<AdminTour>[] = [
   { key: "name", label: "Nom" },
   { key: "duration", label: "Durée" },
-  { key: "passengerAdultPrice", label: "Prix adulte", render: (item) => `${item.passengerAdultPrice} TND` },
+  { key: "passengerAdultPrice", label: "Prix adulte", render: (item) => `${item.passengerAdultPrice} €` },
   {
     key: "isActive",
     label: "Statut",

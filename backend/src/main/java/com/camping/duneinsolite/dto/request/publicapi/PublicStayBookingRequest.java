@@ -43,6 +43,12 @@ public class PublicStayBookingRequest {
     @Max(value = 12, message = "Party size cannot exceed 12")
     private Integer partySize;
 
+    // How many of partySize are children (priced at the stay's child rate).
+    // Null/omitted = 0, so existing callers keep pricing everyone as adults.
+    // At least one adult must remain.
+    @Min(value = 0, message = "Children cannot be negative")
+    private Integer children;
+
     private List<String> rideSlugs;
 
     @jakarta.validation.constraints.Pattern(

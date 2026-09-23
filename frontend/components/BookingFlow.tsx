@@ -298,8 +298,16 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const circuitAccommodationTotal = circuitHasCampStay && selectedAccommodation
     ? selectedAccommodation.priceFrom * accommodationQty
     : 0;
-  const stayNightly = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : (selectedStay?.priceFrom ?? 0) * partySize;
+  // No tier chosen (stay without accommodation types): the stay's own adult and
+  // child rates from the back office, per person, per night.
+  const stayAdultRate = selectedStay?.adultPrice ?? selectedStay?.priceFrom ?? 0;
+  const stayChildRate = selectedStay?.childPrice ?? stayAdultRate;
+  const stayNightly = selectedAccommodation
+    ? selectedAccommodation.priceFrom * accommodationQty
+    : stayAdultRate * adults + stayChildRate * children;
   const stayTotal = stayNightly * nights;
+  const stayHasTiers = (selectedStay?.accommodations?.length ?? 0) > 0;
+  const nightsSuffix = nights > 1 ? ` · ${ts("summaryNights", { nights })}` : "";
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
@@ -502,6 +510,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       date,
       nights,
       partySize,
+      children: children > 0 ? children : undefined,
       rideSlugs,
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: departureCity || undefined,
@@ -598,8 +607,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           {category === "circuit" && step === circuitVehicleStep && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
           {category === "circuit" && step === circuitExtrasStep && `€${extrasTotal}`}
           {category === "circuit" && step === lastStep && `€${circuitTotal + circuitAccommodationTotal + extrasTotal}`}
-          {category === "accommodation" && step === 2 && ts("fromPrice", { price: stayFromPrice })}
-          {category === "accommodation" && step === 3 && (selectedAccommodation ? `€${stayTotal}` : ts("fromPrice", { price: stayFromPrice }))}
+          {category === "accommodation" && step === 2 && (stayHasTiers ? ts("fromPrice", { price: stayFromPrice }) : `€${stayTotal}`)}
+          {category === "accommodation" && step === 3 && (selectedAccommodation || !stayHasTiers ? `€${stayTotal}` : ts("fromPrice", { price: stayFromPrice }))}
           {category === "accommodation" && step === 4 && (hasOwnVehicle === false ? ts("onRequest") : ts("ownVehicle"))}
           {category === "accommodation" && step === 5 && `€${extrasTotal}`}
           {category === "accommodation" && step === lastStep && `€${stayTotal + extrasTotal + serviceTotal}`}
@@ -1291,18 +1300,32 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {composePhone()}</span></div>}
             {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
 
-            <div className="row">
-              <span>{selectedAccommodation?.title ?? selectedStay?.title ?? ts("stayFallbackLabel")}</span>
-              <span>€{stayTotal}</span>
-            </div>
+            {selectedAccommodation ? (
+              <div className="row">
+                <span>{accommodationQty} × {selectedAccommodation.title}{nightsSuffix}</span>
+                <span>€{stayTotal}</span>
+              </div>
+            ) : (
+              <>
+                <div className="row">
+                  <span>{ts("summaryAdults", { count: adults, price: stayAdultRate })}{nightsSuffix}</span>
+                  <span>€{stayAdultRate * adults * nights}</span>
+                </div>
+                {children > 0 && (
+                  <div className="row">
+                    <span>{ts("summaryChildren", { count: children, price: stayChildRate })}{nightsSuffix}</span>
+                    <span>€{stayChildRate * children * nights}</span>
+                  </div>
+                )}
+              </>
+            )}
             {selectedTransport && (
-              <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `${optionPrice(selectedTransport)} TND`}</span></div>
+              <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `€${optionPrice(selectedTransport)}`}</span></div>
             )}
             {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
-              <div className="row" key={a.slug}><span>{a.title}</span><span>{ts("fromPrice", { price: a.priceFrom })}</span></div>
+              <div className="row" key={a.slug}><span>{a.title}</span><span>€{a.priceFrom}</span></div>
             ))}
-            <div className="row total"><span>{ts("stayTotal")}</span><span>€{stayTotal + extrasTotal}</span></div>
-            {serviceTotal > 0 && <div className="row total"><span>{ts("serviceOptionsLabel")}</span><span>{serviceTotal} TND</span></div>}
+            <div className="row total"><span>{ts("grandTotal")}</span><span>€{stayTotal + extrasTotal + serviceTotal}</span></div>
           </div>
 
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>

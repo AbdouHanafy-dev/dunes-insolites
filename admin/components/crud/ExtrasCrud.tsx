@@ -17,7 +17,7 @@ const API_PATH = "extras";
 const columns: ColumnDef<AdminExtra>[] = [
   { key: "name", label: "Nom" },
   { key: "duration", label: "Durée" },
-  { key: "unitPrice", label: "Prix unitaire", render: (item) => `${item.unitPrice} TND` },
+  { key: "unitPrice", label: "Prix unitaire", render: (item) => `${item.unitPrice} €` },
   {
     key: "isActive",
     label: "Statut",

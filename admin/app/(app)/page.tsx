@@ -29,7 +29,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Revenu total"
-            value={`${(stats.totalRevenue ?? 0).toLocaleString("fr-FR")} TND`}
+            value={`${(stats.totalRevenue ?? 0).toLocaleString("fr-FR")} €`}
             growth={stats.revenueGrowth}
             accent="gold"
           />

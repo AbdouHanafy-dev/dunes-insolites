@@ -1172,16 +1172,16 @@ function PreviewCard({ form }: { form: TourForm }) {
             <span className="text-navy-700/50">Adulte : </span>
             {form.salePriceAdult != null && form.salePriceAdult < form.passengerAdultPrice ? (
               <>
-                <span className="text-navy-700/40 line-through">{form.passengerAdultPrice} TND</span>{" "}
-                <span className="font-semibold text-rose">{form.salePriceAdult} TND</span>
+                <span className="text-navy-700/40 line-through">{form.passengerAdultPrice} €</span>{" "}
+                <span className="font-semibold text-rose">{form.salePriceAdult} €</span>
               </>
             ) : (
-              <span className="font-semibold">{form.passengerAdultPrice} TND</span>
+              <span className="font-semibold">{form.passengerAdultPrice} €</span>
             )}
           </div>
           <div>
             <span className="text-navy-700/50">Enfant : </span>
-            <span className="font-semibold">{form.passengerChildPrice} TND</span>
+            <span className="font-semibold">{form.passengerChildPrice} €</span>
           </div>
         </div>
       </div>

@@ -18,6 +18,7 @@ public class PublicStayBookingResponse {
     private String date;
     private Integer nights;
     private Integer partySize;
+    private Integer children;
     private List<String> rideSlugs;
     private String arrivalMode;
     private String departureCity;

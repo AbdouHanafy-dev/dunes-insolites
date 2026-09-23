@@ -59,6 +59,17 @@ export default async function StayDetail({ params, searchParams }: Props) {
     getTranslations("nav"),
   ]);
 
+  // Price shown follows how the stay is sold: with accommodation types the guest
+  // pays per tier (so "from" the cheapest one); without, the stay's own
+  // per-person rates from the back office.
+  const tierPrices = (stay.accommodations ?? []).map((a) => a.priceFrom);
+  const hasTiers = tierPrices.length > 0;
+  const lowestTierPrice = hasTiers ? Math.min(...tierPrices) : stay.priceFrom;
+  const adultRate = stay.adultPrice ?? stay.priceFrom;
+  const childRate = stay.childPrice ?? adultRate;
+  const sameRate = adultRate === childRate;
+  const maxNights = stay.maxNights ?? 1;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -67,7 +78,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
     image: `${site.url}${stay.image}`,
     offers: {
       "@type": "Offer",
-      price: stay.priceFrom,
+      price: hasTiers ? lowestTierPrice : adultRate,
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
     },
@@ -122,7 +133,13 @@ export default async function StayDetail({ params, searchParams }: Props) {
           <h1>{stay.title}</h1>
           <p className="tagline">{stay.tagline}</p>
           <div className="facts">
-            <span className="fact">From €{stay.priceFrom}</span>
+            <span className="fact">
+              {hasTiers
+                ? t("fromTierPrice", { price: lowestTierPrice })
+                : sameRate
+                  ? t("perPersonRateSingle", { price: adultRate })
+                  : t("perPersonRates", { adult: adultRate, child: childRate })}
+            </span>
             <span className="fact">{t("checkIn", { time: stay.arrivalTime })}</span>
             <span className="fact">{t("checkOut", { time: stay.departureTime })}</span>
             <span className="fact">{stay.groupSize}</span>
@@ -253,10 +270,18 @@ export default async function StayDetail({ params, searchParams }: Props) {
 
             <aside className="book-panel" id="reserve">
               <div className="price">
-                <span className="v">€{stay.priceFrom}</span>
-                <span className="u">{t("perPersonPerNight")}</span>
+                <span className="v">€{hasTiers ? lowestTierPrice : adultRate}</span>
+                <span className="u">
+                  {hasTiers ? t("perNight") : sameRate ? t("perPersonPerNight") : t("perAdultPerNight")}
+                </span>
               </div>
               <div className="rows">
+                {!hasTiers && !sameRate && (
+                  <div className="row">
+                    <span className="k">{t("perChildPerNight")}</span>
+                    <span className="v">€{childRate}</span>
+                  </div>
+                )}
                 <div className="row">
                   <span className="k">{t("groupSize")}</span>
                   <span className="v">{stay.groupSize}</span>
@@ -267,7 +292,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
                 </div>
                 <div className="row">
                   <span className="k">{t("stayLabel")}</span>
-                  <span className="v">{t("oneNight")}</span>
+                  <span className="v">{maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight")}</span>
                 </div>
               </div>
               <StayReservationForm

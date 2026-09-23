@@ -475,6 +475,44 @@ class PublicBookingServiceImplTest {
     }
 
     @Test
+    void stayBookingSplitsThePartyIntoAdultsAndChildrenForPerPersonPricing() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId)
+                        .hasAccommodationTypes(false).maxNights(10).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+        PublicStayBookingRequest request = baseRequest();
+        request.setPartySize(4);
+        request.setChildren(1);
+        request.setNights(3);
+
+        service.createStayBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        ReservationRequest built = captor.getValue();
+        assertThat(built.getNumberOfAdults()).isEqualTo(3);
+        assertThat(built.getNumberOfChildren()).isEqualTo(1);
+        assertThat(built.getCheckOutDate()).isEqualTo(LocalDate.of(2026, 9, 23));
+        assertThat(built.getTourTypes().get(0).getNumberOfAdults()).isEqualTo(3);
+        assertThat(built.getTourTypes().get(0).getNumberOfChildren()).isEqualTo(1);
+    }
+
+    @Test
+    void stayBookingNeedsAtLeastOneAdult() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        PublicStayBookingRequest request = baseRequest();
+        request.setPartySize(2);
+        request.setChildren(2);
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("At least one adult");
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+    }
+
+    @Test
     void stayWithoutAccommodationTypesRejectsATierSelectionBeforeCreatingAUser() {
         when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
                 .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId)

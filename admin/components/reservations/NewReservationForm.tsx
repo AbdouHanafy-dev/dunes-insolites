@@ -603,7 +603,7 @@ export default function NewReservationForm({
                 >
                   {extras.map((ex) => (
                     <option key={ex.extraId} value={ex.extraId}>
-                      {ex.name} ({ex.unitPrice} TND)
+                      {ex.name} ({ex.unitPrice} €)
                     </option>
                   ))}
                 </select>

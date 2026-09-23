@@ -22,6 +22,11 @@ public class PublicStayResponse {
     private String image;
     private List<String> gallery;
     private java.math.BigDecimal priceFrom;
+    // The stay's own per-person nightly rates, straight from the back office
+    // (TourType.passengerAdultPrice / passengerChildPrice). They price the
+    // booking when the stay has no accommodation types.
+    private java.math.BigDecimal adultPrice;
+    private java.math.BigDecimal childPrice;
     private String groupSize;
     private List<String> included;
     private List<String> notIncluded;

@@ -17,7 +17,7 @@ const API_PATH = "tour-types";
 const columns: ColumnDef<AdminTourType>[] = [
   { key: "name", label: "Nom" },
   { key: "duration", label: "Durée" },
-  { key: "passengerAdultPrice", label: "Prix adulte", render: (item) => `${item.passengerAdultPrice} TND` },
+  { key: "passengerAdultPrice", label: "Prix adulte", render: (item) => `${item.passengerAdultPrice} €` },
   {
     key: "isActive",
     label: "Statut",

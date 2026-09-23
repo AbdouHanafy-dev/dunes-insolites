@@ -181,7 +181,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
                 <tr key={t.id}>
                   <td className="px-4 py-2.5 text-gray-700">{t.name}</td>
                   <td className="px-4 py-2.5 text-gray-700">
-                    {t.unitPriceTtc != null ? `${t.unitPriceTtc} ${t.currency}` : "Non configuré"}
+                    {t.unitPriceTtc != null ? `${t.unitPriceTtc} €` : "Non configuré"}
                   </td>
                   <td className="px-4 py-2.5 text-gray-700">{t.capacity}</td>
                   <td className="px-4 py-2.5 text-gray-700">{t.maxUnits ?? "—"}</td>

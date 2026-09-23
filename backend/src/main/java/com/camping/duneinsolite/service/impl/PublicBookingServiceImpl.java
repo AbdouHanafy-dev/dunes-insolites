@@ -412,6 +412,14 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                             + (maxNights == 1 ? " night." : " nights."));
         }
 
+        // partySize is the whole party; children is the subset priced at the
+        // stay's child rate. At least one adult must travel.
+        int children = request.getChildren() != null ? request.getChildren() : 0;
+        if (children >= request.getPartySize()) {
+            throw new ReservationValidationException("At least one adult is required.");
+        }
+        int adults = request.getPartySize() - children;
+
         if (request.getArrivalMode() != null
                 && !"OWN_VEHICLE".equals(request.getArrivalMode())
                 && !"TRANSPORT".equals(request.getArrivalMode())) {
@@ -491,8 +499,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // == 1); a multi-night stay carries the guest's real arrival+departure
         // range via the client-computed `nights` count, validated above.
         reservationRequest.setCheckOutDate(request.getDate().plusDays(nights));
-        reservationRequest.setNumberOfAdults(request.getPartySize());
-        reservationRequest.setNumberOfChildren(0);
+        reservationRequest.setNumberOfAdults(adults);
+        reservationRequest.setNumberOfChildren(children);
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(),
@@ -506,8 +514,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
         TourTypeSelectionRequest selection = new TourTypeSelectionRequest();
         selection.setTourTypeId(tourType.getTourTypeId());
-        selection.setNumberOfAdults(request.getPartySize());
-        selection.setNumberOfChildren(0);
+        selection.setNumberOfAdults(adults);
+        selection.setNumberOfChildren(children);
         selection.setActivityDate(request.getDate());
 
         // Phase 1: ReservationService re-resolves the price and snapshots it
@@ -554,6 +562,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setDate(request.getDate().toString());
         response.setNights(request.getNights() != null ? request.getNights() : 1);
         response.setPartySize(request.getPartySize());
+        response.setChildren(request.getChildren() != null ? request.getChildren() : 0);
         response.setRideSlugs(rideSlugs);
         response.setArrivalMode(request.getArrivalMode());
         response.setDepartureCity(request.getDepartureCity());

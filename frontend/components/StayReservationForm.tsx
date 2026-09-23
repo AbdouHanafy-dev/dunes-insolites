@@ -8,11 +8,19 @@ import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } fro
 import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import DateRangePicker from "@/components/DateRangePicker";
 
 type ServiceAvailabilityState = {
   forDate: string;
   bySlug: Record<string, api.ServiceOptionAvailability | null>;
 };
+
+function nightsBetween(arrival: string, departure: string): number {
+  if (!arrival || !departure) return 0;
+  const a = new Date(`${arrival}T00:00:00`).getTime();
+  const b = new Date(`${departure}T00:00:00`).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
 
 function todayISO(): string {
   const d = new Date();
@@ -55,6 +63,7 @@ export default function StayReservationForm({
   const draftKey = `booking-draft:${stay.slug}`;
   type BookingDraft = {
     date?: string;
+    departureDate?: string;
     adults?: number;
     children?: number;
     accommodationSelections?: Record<string, number>;
@@ -76,6 +85,12 @@ export default function StayReservationForm({
   const initialDraft = typeof window !== "undefined" ? readDraft() : null;
 
   const [date, setDate] = useState(initialDraft?.date ?? "");
+  // Only used when the back office lets this stay run several nights
+  // (Stay.maxNights > 1): the guest then picks arrival AND departure.
+  const [departureDate, setDepartureDate] = useState(initialDraft?.departureDate ?? "");
+  const maxNights = stay.maxNights ?? 1;
+  const multiNight = maxNights > 1;
+  const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
   const [adults, setAdults] = useState(initialDraft?.adults ?? 1);
   const [children, setChildren] = useState(initialDraft?.children ?? 0);
   // slug -> quantity. A guest may pick several tiers at once (e.g. 2 Suites +
@@ -129,6 +144,7 @@ export default function StayReservationForm({
     try {
       const draft: BookingDraft = {
         date,
+        departureDate,
         adults,
         children,
         accommodationSelections,
@@ -144,7 +160,7 @@ export default function StayReservationForm({
       // Best-effort only — a private window or blocked storage just means
       // the draft won't survive the round trip, not a broken form.
     }
-  }, [date, adults, children, accommodationSelections, rideSlugs, hasOwnVehicle, departureCity, returnCity, guideSlug, transportSlug, draftKey]);
+  }, [date, departureDate, adults, children, accommodationSelections, rideSlugs, hasOwnVehicle, departureCity, returnCity, guideSlug, transportSlug, draftKey]);
 
   const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
   const selectedGuide = guideOptions.find((o) => o.slug === guideSlug);
@@ -200,10 +216,11 @@ export default function StayReservationForm({
   // (no backend / dev) leaves every tier bookable, as before.
   useEffect(() => {
     if (!date) return;
+    if (multiNight && !departureDate) return;
     const ctrl = new AbortController();
     const forDate = date;
     api
-      .getStayAvailability(stay.slug, forDate, undefined, ctrl.signal)
+      .getStayAvailability(stay.slug, forDate, nights, ctrl.signal)
       .then((data) => {
         setAvail({ forDate, data, error: false });
         if (data?.accommodations.some((t) => t.status === "UNAVAILABLE")) {
@@ -219,7 +236,7 @@ export default function StayReservationForm({
         if (!ctrl.signal.aborted) setAvail({ forDate, data: null, error: true });
       });
     return () => ctrl.abort();
-  }, [date, stay.slug]);
+  }, [date, departureDate, multiNight, nights, stay.slug]);
 
   function tierAvailability(slug: string): TierAvailability | undefined {
     return availabilityFor?.accommodations.find((t) => t.slug === slug);
@@ -230,7 +247,7 @@ export default function StayReservationForm({
   function refreshAvailability() {
     if (!date) return;
     const forDate = date;
-    api.getStayAvailability(stay.slug, forDate).then((data) =>
+    api.getStayAvailability(stay.slug, forDate, nights).then((data) =>
       setAvail({ forDate, data, error: false }),
     ).catch(() => {});
   }
@@ -249,11 +266,17 @@ export default function StayReservationForm({
   // authoritative total is computed server-side from the snapshotted
   // per-unit price — this number is never submitted (see the
   // createStayBooking payload below: slugs, qty, party, contact only).
-  const total = selectedAccommodations.length > 0
+  // With accommodation types the price is per chosen tier; without, the stay's
+  // own adult/child rates from the back office. Either way it is per night.
+  const adultRate = stay.adultPrice ?? stay.priceFrom;
+  const childRate = stay.childPrice ?? adultRate;
+  const nightly = selectedAccommodations.length > 0
     ? selectedAccommodations.reduce((sum, { accommodation, qty }) => sum + accommodation.priceFrom * qty, 0)
-    : stay.priceFrom * partySize;
+    : adults * adultRate + children * childRate;
+  const total = nightly * nights;
 
   function optionQuantity(option: ServiceOptionCatalogItem): number {
+    if (option.pricingUnit === "PER_DAY") return nights;
     return option.pricingUnit === "PER_PERSON" ? partySize : 1;
   }
 
@@ -277,6 +300,14 @@ export default function StayReservationForm({
     (sum, option) => sum + (option ? optionPrice(option) ?? 0 : 0),
     0,
   );
+
+  // One total for everything the server will charge, all in €: the stay, each
+  // selected activity (a flat one-off, quantity 1) and the guide/transport.
+  const activitiesTotal = activities
+    .filter((a) => rideSlugs.includes(a.slug))
+    .reduce((sum, a) => sum + a.priceFrom, 0);
+  const grandTotal = total + activitiesTotal + serviceTotal;
+  const nightsSuffix = nights > 1 ? ` · ${t("summaryNights", { nights })}` : "";
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
@@ -320,6 +351,9 @@ export default function StayReservationForm({
     }
 
     const newErrors: Record<string, string> = {};
+    if (multiNight && (!departureDate || nights < 1 || nights > maxNights)) {
+      newErrors.departureDate = t("errorMaxNights", { max: maxNights });
+    }
     if (hasOwnVehicle === null) {
       newErrors.arrivalMode = t("errorArrivalMode");
     }
@@ -383,7 +417,9 @@ export default function StayReservationForm({
       staySlug: stay.slug,
       accommodations: accommodationsPayload.length > 0 ? accommodationsPayload : undefined,
       date,
+      nights: multiNight ? nights : undefined,
       partySize,
+      children: children > 0 ? children : undefined,
       rideSlugs,
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: departureCity || undefined,
@@ -503,6 +539,29 @@ export default function StayReservationForm({
         </div>
       )}
 
+      {multiNight && (
+        <>
+          <DateRangePicker
+            arrivalId="s-date"
+            departureId="s-departure-date"
+            arrivalLabel={t("arrivalDateLabel")}
+            departureLabel={t("departureDateLabel")}
+            min={min}
+            maxNights={maxNights}
+            start={date}
+            end={departureDate}
+            onChange={(s, e) => {
+              setDate(s);
+              setDepartureDate(e);
+            }}
+            errorStart={errors.date}
+            errorEnd={errors.departureDate}
+          />
+          {date && departureDate && <p className="hint">{t("nightsComputedHint", { nights })}</p>}
+        </>
+      )}
+
+      {!multiNight && (
       <div className="field" data-invalid={!!errors.date}>
         <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
         <DatePicker id="s-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
@@ -514,6 +573,7 @@ export default function StayReservationForm({
           )}
         {errors.date && <span className="err">{errors.date}</span>}
       </div>
+      )}
 
       <div className="field" data-invalid={!!errors.partySize}>
         <label>{t("whosComing")}</label>
@@ -819,44 +879,46 @@ export default function StayReservationForm({
         {selectedAccommodations.length > 0 ? (
           selectedAccommodations.map(({ accommodation, qty }) => (
             <div className="row" key={accommodation.slug}>
-              <span>{qty} × {accommodation.title}</span>
-              <span>€{accommodation.priceFrom * qty}</span>
+              <span>{qty} × {accommodation.title}{nightsSuffix}</span>
+              <span>€{accommodation.priceFrom * qty * nights}</span>
             </div>
           ))
         ) : (
-          <div className="row">
-            <span>{t("stayFallbackLabel")}</span>
-            <span>€{total}</span>
-          </div>
+          <>
+            <div className="row">
+              <span>{t("summaryAdults", { count: adults, price: adultRate })}{nightsSuffix}</span>
+              <span>€{adults * adultRate * nights}</span>
+            </div>
+            {children > 0 && (
+              <div className="row">
+                <span>{t("summaryChildren", { count: children, price: childRate })}{nightsSuffix}</span>
+                <span>€{children * childRate * nights}</span>
+              </div>
+            )}
+          </>
         )}
         {selectedGuide && (
           <div className="row">
             <span>{selectedGuide.name}</span>
-            <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `${optionPrice(selectedGuide)} TND`}</span>
+            <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `€${optionPrice(selectedGuide)}`}</span>
           </div>
         )}
         {selectedTransport && (
           <div className="row">
             <span>{selectedTransport.name}</span>
-            <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `${optionPrice(selectedTransport)} TND`}</span>
+            <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `€${optionPrice(selectedTransport)}`}</span>
           </div>
         )}
         {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
           <div className="row" key={activity.slug}>
             <span>{activity.title}</span>
-            <span>{t("fromPrice", { price: activity.priceFrom })}</span>
+            <span>€{activity.priceFrom}</span>
           </div>
         ))}
         <div className="row total">
-          <span>{t("stayTotal")}</span>
-          <span>€{total}</span>
+          <span>{t("grandTotal")}</span>
+          <span>€{grandTotal}</span>
         </div>
-        {serviceTotal > 0 && (
-          <div className="row total">
-            <span>{t("serviceOptionsLabel")}</span>
-            <span>{serviceTotal} TND</span>
-          </div>
-        )}
       </div>
 
       <label className="ride-option" data-invalid={!!errors.acceptedTerms}>
