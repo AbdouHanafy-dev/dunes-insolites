@@ -39,7 +39,6 @@ export default function TourBookingFlow({
   tourTitle,
   adultPrice,
   childPrice,
-  overnightsAtCamp = false,
   accommodations = [],
 }: {
   tourSlug: string;
@@ -59,6 +58,7 @@ export default function TourBookingFlow({
   const [children, setChildren] = useState(0);
   const [accommodationSlug, setAccommodationSlug] = useState("");
   const [accommodationQty, setAccommodationQty] = useState(1);
+  const [fallbackAccommodations, setFallbackAccommodations] = useState<Accommodation[]>([]);
 
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
@@ -83,7 +83,6 @@ export default function TourBookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [booking, setBooking] = useState<{ id: string } | null>(null);
-  const offersCampAccommodation = overnightsAtCamp || accommodations.length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -100,11 +99,26 @@ export default function TourBookingFlow({
     };
   }, [locale]);
 
+  useEffect(() => {
+    if (accommodations.length > 0) return;
+    let cancelled = false;
+    api.getStays(locale).then((stays) => {
+      if (cancelled) return;
+      const campStay = stays.find((stay) => (stay.accommodations?.length ?? 0) > 0);
+      setFallbackAccommodations(campStay?.accommodations ?? []);
+    }).catch(() => {
+      if (!cancelled) setFallbackAccommodations([]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [accommodations, locale]);
+
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
     { id: 1, label: t("stepGuide") },
     { id: 2, label: t("stepVehicle") },
-    ...(offersCampAccommodation ? [{ id: 5, label: t("stepAccommodation") }] : []),
+    { id: 5, label: t("stepAccommodation") },
     { id: 3, label: t("stepExtras") },
     { id: 4, label: t("stepReview") },
   ];
@@ -114,7 +128,8 @@ export default function TourBookingFlow({
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activity.priceFrom, 0);
-  const selectedAccommodation = accommodations.find((item) => item.slug === accommodationSlug);
+  const availableAccommodations = accommodations.length > 0 ? accommodations : fallbackAccommodations;
+  const selectedAccommodation = availableAccommodations.find((item) => item.slug === accommodationSlug);
   const accommodationTotal = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : 0;
 
   function toggleRide(slug: string) {
@@ -182,7 +197,7 @@ export default function TourBookingFlow({
       numberOfAdults: adults,
       numberOfChildren: children,
       rideSlugs,
-      accommodations: offersCampAccommodation && accommodationSlug
+      accommodations: accommodationSlug
         ? [{ accommodationSlug, quantity: accommodationQty }]
         : undefined,
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
@@ -317,10 +332,10 @@ export default function TourBookingFlow({
         <div className="field" data-invalid={!!errors.accommodation}>
           <label>{t("chooseAccommodation")}</label>
           <p className="hint">{t("chooseAccommodationHint")}</p>
-          {accommodations.length > 0 ? (
+          {availableAccommodations.length > 0 ? (
             <>
               <div className="ride-options">
-                {accommodations.map((item) => (
+                {availableAccommodations.map((item) => (
                   <label key={item.slug} className="ride-option">
                     <input
                       type="radio"
@@ -532,7 +547,7 @@ export default function TourBookingFlow({
               <span className="k">{t("dateLabelSummary")}</span>
               <span>{prettyDate(date, locale)}</span>
             </div>
-            {offersCampAccommodation && selectedAccommodation && (
+            {selectedAccommodation && (
               <div className="row">
                 <span className="k">{t("accommodationLabel")}</span>
                 <span>{selectedAccommodation.title} × {accommodationQty}</span>
