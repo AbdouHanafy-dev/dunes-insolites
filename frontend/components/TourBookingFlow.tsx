@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -8,6 +9,7 @@ import type { Language } from "@/lib/api";
 import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import { localizedLanguageName } from "@/lib/languageFlags";
 
 function todayISO(): string {
@@ -52,6 +54,7 @@ export default function TourBookingFlow({
   campStaySlug?: string;
 }) {
   const t = useTranslations("tourBookingForm");
+  const ts = useTranslations("stayReservationForm");
   const ta = useTranslations("authForm");
   const toast = useToast();
   const locale = useLocale();
@@ -336,9 +339,20 @@ export default function TourBookingFlow({
                             setAccommodationQty(1);
                           }}
                         />
+                        {isDisplayableImageSrc(item.image) && (
+                          <span
+                            aria-hidden="true"
+                            style={{ position: "relative", width: 88, height: 88, flex: "0 0 88px", borderRadius: 8, overflow: "hidden" }}
+                          >
+                            <Image src={item.image} alt="" fill sizes="88px" style={{ objectFit: "cover" }} />
+                          </span>
+                        )}
                         <span>
                           <strong>{item.title}</strong>
                           {item.sleeps && <small>{item.sleeps}</small>}
+                          {(item.tagline || item.description) && (
+                            <small style={{ display: "block", marginTop: 4 }}>{item.tagline || item.description}</small>
+                          )}
                         </span>
                         <span className="ride-price">{t("accommodationPrice", { price: item.priceFrom })}</span>
                       </label>
@@ -627,6 +641,18 @@ export default function TourBookingFlow({
                 <span>€{childPrice * children}</span>
               </div>
             )}
+            {selectedAccommodation && (
+              <div className="row">
+                <span className="k">{accommodationQty} × {selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
+                <span>€{accommodationTotal}</span>
+              </div>
+            )}
+            {activities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
+              <div className="row" key={a.slug}>
+                <span className="k">{a.title}</span>
+                <span>€{a.priceFrom}</span>
+              </div>
+            ))}
             <div className="row total">
               <span>{t("totalLabel")}</span>
               <span>€{total + accommodationTotal + extrasTotal}</span>

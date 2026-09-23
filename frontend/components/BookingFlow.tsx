@@ -818,9 +818,20 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                             setAccommodationQty(1);
                           }}
                         />
+                        {isDisplayableImageSrc(a.image) && (
+                          <span
+                            aria-hidden="true"
+                            style={{ position: "relative", width: 88, height: 88, flex: "0 0 88px", borderRadius: 8, overflow: "hidden" }}
+                          >
+                            <Image src={a.image} alt="" fill sizes="88px" style={{ objectFit: "cover" }} />
+                          </span>
+                        )}
                         <span>
                           <strong>{a.title}</strong>
                           {a.sleeps && <small>{a.sleeps}</small>}
+                          {(a.tagline || a.description) && (
+                            <small style={{ display: "block", marginTop: 4 }}>{a.tagline || a.description}</small>
+                          )}
                         </span>
                         <span className="ride-price">
                           {soldOut ? ts("soldOutForDate") : t("accommodationPrice", { price: a.priceFrom })}
@@ -1243,6 +1254,30 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               </div>
             )}
             {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
+
+            {selectedTour && (
+              <>
+                <div className="row">
+                  <span>{ts("summaryAdults", { count: adults, price: selectedTour.passengerAdultPrice })}</span>
+                  <span>€{selectedTour.passengerAdultPrice * adults}</span>
+                </div>
+                {children > 0 && (
+                  <div className="row">
+                    <span>{ts("summaryChildren", { count: children, price: selectedTour.passengerChildPrice })}</span>
+                    <span>€{selectedTour.passengerChildPrice * children}</span>
+                  </div>
+                )}
+              </>
+            )}
+            {circuitHasCampStay && selectedAccommodation && (
+              <div className="row">
+                <span>{accommodationQty} × {selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
+                <span>€{circuitAccommodationTotal}</span>
+              </div>
+            )}
+            {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
+              <div className="row" key={a.slug}><span>{a.title}</span><span>€{a.priceFrom}</span></div>
+            ))}
             <div className="row total"><span>{t("totalLabel")}</span><span>€{circuitTotal + circuitAccommodationTotal + extrasTotal}</span></div>
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
