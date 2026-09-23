@@ -146,7 +146,20 @@ export default function Header({
     (item) =>
       knownRoutes.size === 0 ||
       knownRoutes.has(item.href) ||
+      // Core static site sections — every one of these routes always
+      // exists in the app (see DrawerIcon's dedicated icon per href just
+      // above), so their nav visibility must never depend on whether the
+      // admin has also added a matching row to navigation_items. Found
+      // live: a database with only "Circuits" seeded in navigation_items
+      // (e.g. a freshly reset dev DB, before the admin configures the
+      // rest of the CMS nav) silently dropped "The Camp"/"Accommodation"/
+      // "Activities" from the header entirely, even though those pages
+      // work fine — /circuits, /guides and /faq were already exempted
+      // the same way, this just closes the gap for the other three.
+      item.href === "/about" ||
       item.href === "/circuits" ||
+      item.href === "/camp" ||
+      item.href === "/activities" ||
       item.href === "/guides" ||
       item.href === "/faq",
   );
