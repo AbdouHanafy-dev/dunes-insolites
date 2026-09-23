@@ -6595,3 +6595,40 @@ footer.site-footer .top > * {
 .compare .col {
   min-width: 0;
 }
+
+/* /book review step: the form (contact details, terms, errors) in one column
+   and the review summary beside it, instead of one long stacked page. The
+   camp and circuit sidebars stay single-column - they are too narrow. */
+@media (min-width: 900px) {
+  .book-page .tour-review-step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+    grid-template-rows: auto auto auto auto 1fr;
+    column-gap: 36px;
+    align-items: start;
+  }
+  .book-page .tour-review-details {
+    grid-column: 1;
+    grid-row: 1;
+    order: 0;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+  }
+  .book-page .tour-review-hint { grid-column: 1; grid-row: 2; }
+  .book-page .tour-review-terms { grid-column: 1; grid-row: 3; }
+  .book-page .tour-review-step > .err { grid-column: 1; grid-row: 4; }
+  .book-page .tour-review-step > .alert { grid-column: 1; grid-row: 5; }
+  .book-page .tour-review-summary {
+    grid-column: 2;
+    grid-row: 1 / span 5;
+    position: sticky;
+    top: 130px;
+    order: 0;
+    margin: 0;
+    padding: 22px;
+    border: 1px solid rgba(39, 34, 30, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.55);
+  }
+}

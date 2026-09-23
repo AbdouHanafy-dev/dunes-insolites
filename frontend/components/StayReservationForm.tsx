@@ -8,6 +8,7 @@ import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } fro
 import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import ListSelect from "@/components/ListSelect";
 import { activityQuantity, activityTotal } from "@/lib/activityPricing";
 import DateRangePicker from "@/components/DateRangePicker";
 import AccommodationPicker from "@/components/booking/AccommodationPicker";
@@ -669,35 +670,27 @@ export default function StayReservationForm({
 
         <div className="field" style={{ marginTop: 12 }}>
           <label htmlFor="sf-departure-city">{t("departureCityLabel")}</label>
-          <select
+          <ListSelect
             id="sf-departure-city"
             value={departureCity}
-            onChange={(e) => setDepartureCity(e.target.value as DepartureCity | "")}
-          >
-            <option value="">{t("departureCityPlaceholder")}</option>
-            {DEPARTURE_CITIES.map((city) => (
-              <option key={city} value={city}>
-                {DEPARTURE_CITY_LABELS[city]}
-              </option>
-            ))}
-          </select>
+            onChange={setDepartureCity}
+            options={DEPARTURE_CITIES}
+            labels={DEPARTURE_CITY_LABELS}
+            placeholder={t("departureCityPlaceholder")}
+          />
         </div>
 
         <div className="field" style={{ marginTop: 12 }}>
           <label htmlFor="sf-return-city">{t("returnCityLabel")}</label>
           <p className="hint">{t("returnCityHint")}</p>
-          <select
+          <ListSelect
             id="sf-return-city"
             value={returnCity}
-            onChange={(e) => setReturnCity(e.target.value as DepartureCity | "")}
-          >
-            <option value="">{t("returnCityPlaceholder")}</option>
-            {DEPARTURE_CITIES.map((city) => (
-              <option key={city} value={city}>
-                {DEPARTURE_CITY_LABELS[city]}
-              </option>
-            ))}
-          </select>
+            onChange={setReturnCity}
+            options={DEPARTURE_CITIES}
+            labels={DEPARTURE_CITY_LABELS}
+            placeholder={t("returnCityPlaceholder")}
+          />
         </div>
 
         {hasOwnVehicle === false && (
