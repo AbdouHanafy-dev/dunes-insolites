@@ -101,9 +101,9 @@ export default function TourBookingFlow({
 
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
-    ...(overnightsAtCamp ? [{ id: 5, label: t("stepAccommodation") }] : []),
     { id: 1, label: t("stepGuide") },
     { id: 2, label: t("stepVehicle") },
+    ...(overnightsAtCamp ? [{ id: 5, label: t("stepAccommodation") }] : []),
     { id: 3, label: t("stepExtras") },
     { id: 4, label: t("stepReview") },
   ];

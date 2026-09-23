@@ -318,9 +318,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           tb("stepCategory"),
           tb("stepResults"),
           t("stepDateTravelers"),
-          ...(circuitHasCampStay ? [t("stepAccommodation")] : []),
           t("stepGuide"),
           t("stepVehicle"),
+          ...(circuitHasCampStay ? [t("stepAccommodation")] : []),
           t("stepExtras"),
           t("stepReview"),
         ]
@@ -328,9 +328,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         ? [tb("stepCategory"), tb("stepResults"), ts("stepDateTravelers"), ts("stepAccommodation"), ts("stepVehicleGuide"), ts("stepExtras"), ts("stepReview")]
         : [tb("stepCategory")];
   const lastStep = STEPS.length - 1;
-  const circuitAccommodationStep = circuitHasCampStay ? 3 : -1;
-  const circuitGuideStep = circuitHasCampStay ? 4 : 3;
-  const circuitVehicleStep = circuitHasCampStay ? 5 : 4;
+  const circuitGuideStep = 3;
+  const circuitVehicleStep = 4;
+  const circuitAccommodationStep = circuitHasCampStay ? 5 : -1;
   const circuitExtrasStep = circuitHasCampStay ? 6 : 5;
 
   const validateStep = useCallback((): boolean => {
