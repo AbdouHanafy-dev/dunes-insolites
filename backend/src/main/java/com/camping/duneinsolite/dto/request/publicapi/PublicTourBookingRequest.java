@@ -43,10 +43,9 @@ public class PublicTourBookingRequest {
     // convention as PublicStayBookingRequest.rideSlugs.
     private List<String> rideSlugs;
 
-    // Accommodation tiers for the night this circuit sleeps at the Sabria
-    // camp — only meaningful when the Tour's overnightsAtCamp is true; the
-    // server rejects a non-empty list otherwise. Same shape as
-    // PublicStayBookingRequest.accommodations.
+    // Accommodation tiers from the shared Sabria catalogue. Multi-day
+    // circuits require a selection; the same shape is accepted from every
+    // circuit detail form and PublicStayBookingRequest.accommodations.
     @Valid
     private List<PublicAccommodationSelectionRequest> accommodations;
 

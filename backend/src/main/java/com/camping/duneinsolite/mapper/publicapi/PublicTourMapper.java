@@ -62,7 +62,7 @@ public class PublicTourMapper {
         response.setMeetingPoint(tour.getMeetingPoint());
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
         response.setOvernightsAtCamp(requiresCampAccommodation(tour));
-        response.setAccommodations(bookableCampAccommodations(tour));
+        response.setAccommodations(bookableCampAccommodations());
         response.setLanguages(tour.getLanguages() == null ? List.of()
                 : tour.getLanguages().stream().map(com.camping.duneinsolite.model.SpokenLanguage::getName).sorted().toList());
         response.setCoverImage(tour.getCoverPhotoUrl());
@@ -107,8 +107,7 @@ public class PublicTourMapper {
         return response;
     }
 
-    private List<PublicStayResponse.Accommodation> bookableCampAccommodations(Tour tour) {
-        if (!requiresCampAccommodation(tour)) return List.of();
+    private List<PublicStayResponse.Accommodation> bookableCampAccommodations() {
         List<java.util.UUID> campIds = accommodationTypeRepository.findDistinctTourTypeIds();
         if (campIds.size() != 1) return List.of();
         return accommodationTypeRepository

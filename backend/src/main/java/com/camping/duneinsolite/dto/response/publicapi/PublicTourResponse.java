@@ -26,7 +26,7 @@ public class PublicTourResponse {
      *  can then pick a priced accommodation tier the same catalogue the
      *  nuitée-campement offers (there's only one physical camp). */
     private Boolean overnightsAtCamp;
-    /** Bookable Sabria tiers when {@code overnightsAtCamp} is true. */
+    /** Shared bookable Sabria tiers offered by circuit booking forms. */
     private List<PublicStayResponse.Accommodation> accommodations;
     private List<String> languages;
     private String coverImage;

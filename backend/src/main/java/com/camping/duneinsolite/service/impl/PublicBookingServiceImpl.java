@@ -245,20 +245,14 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // Resolve (and fail closed on) the camp accommodation tiers BEFORE
         // any side effect, exactly like createStayBooking — a bad slug or
         // an unpriced/inactive/undersized tier must not reach guest-account
-        // creation. A circuit only offers accommodation when its Tour was
-        // configured to overnight at the Sabria camp (with a multi-day
-        // duration fallback for pre-migration data); anything else is a
-        // client error, not something to silently ignore.
+        // creation. Multi-day circuits require a choice, while every circuit
+        // form may use the same Sabria catalogue managed in the back office.
         List<PublicAccommodationSelectionRequest> requestedTourAccommodations =
                 request.getAccommodations() == null ? List.of() : request.getAccommodations();
         boolean requiresCampAccommodation = requiresCampAccommodation(tour);
         if (requiresCampAccommodation && requestedTourAccommodations.isEmpty()) {
             throw new ReservationValidationException(
                     "Choose at least one accommodation for the night at the Sabria camp.");
-        }
-        if (!requestedTourAccommodations.isEmpty() && !requiresCampAccommodation) {
-            throw new ReservationValidationException(
-                    "\"" + tour.getName() + "\" doesn't include a night at the camp — no accommodation to choose.");
         }
         record ResolvedCampTier(AccommodationType accommodation, int units) {}
         List<ResolvedCampTier> resolvedCampTiers = new java.util.ArrayList<>();

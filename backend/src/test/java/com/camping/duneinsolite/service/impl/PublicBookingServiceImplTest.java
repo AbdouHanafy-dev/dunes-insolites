@@ -464,6 +464,36 @@ class PublicBookingServiceImplTest {
         });
     }
 
+    @Test
+    void oneDayCircuitDetailFormCanUseTheSharedCampAccommodationCatalogue() {
+        UUID tourId = UUID.randomUUID();
+        UUID accommodationId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("one-day-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("One-day circuit")
+                        .duration("1 Jour").overnightsAtCamp(false).isActive(true).build()));
+        when(accommodationTypeRepository.findDistinctTourTypeIds()).thenReturn(List.of(tourTypeId));
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-tent"))
+                .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
+                        .id(accommodationId).slug("desert-tent").name("Desert Tent")
+                        .capacity(3).active(true).unitPriceTtc(new java.math.BigDecimal("95.000")).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicTourBookingRequest request = tourRequest("one-day-circuit");
+        var accommodation = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accommodation.setAccommodationSlug("desert-tent");
+        accommodation.setQuantity(1);
+        request.setAccommodations(List.of(accommodation));
+
+        service.createTourBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var campNight = captor.getValue().getTours().get(0).getHebergements().get(0);
+        assertThat(campNight.getTourTypeId()).isEqualTo(tourTypeId);
+        assertThat(campNight.getAccommodations()).singleElement().satisfies(selected ->
+                assertThat(selected.getAccommodationTypeId()).isEqualTo(accommodationId));
+    }
+
     private PublicTourBookingRequest tourRequest(String slug) {
         PublicTourBookingRequest request = new PublicTourBookingRequest();
         request.setTourSlug(slug);

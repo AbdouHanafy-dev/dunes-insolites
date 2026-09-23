@@ -28,7 +28,7 @@ function prettyDate(iso: string, locale: string): string {
 
 /**
  * Book-panel wizard for a single Tour (Route Insolite circuit): Date &
- * travelers → Guide language → Vehicle → Extras → Review & book. Guests never
+ * travelers → Guide language → Vehicle → Accommodation → Extras → Review & book. Guests never
  * choose a staff member: they state their preferred language and the admin
  * assigns an available guide from the reservation staff panel. The guest only
  * says whether transport is needed; staff assign the actual chauffeur and
@@ -83,6 +83,7 @@ export default function TourBookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [booking, setBooking] = useState<{ id: string } | null>(null);
+  const offersCampAccommodation = overnightsAtCamp || accommodations.length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -103,7 +104,7 @@ export default function TourBookingFlow({
     { id: 0, label: t("stepDateTravelers") },
     { id: 1, label: t("stepGuide") },
     { id: 2, label: t("stepVehicle") },
-    ...(overnightsAtCamp ? [{ id: 5, label: t("stepAccommodation") }] : []),
+    ...(offersCampAccommodation ? [{ id: 5, label: t("stepAccommodation") }] : []),
     { id: 3, label: t("stepExtras") },
     { id: 4, label: t("stepReview") },
   ];
@@ -181,7 +182,7 @@ export default function TourBookingFlow({
       numberOfAdults: adults,
       numberOfChildren: children,
       rideSlugs,
-      accommodations: overnightsAtCamp && accommodationSlug
+      accommodations: offersCampAccommodation && accommodationSlug
         ? [{ accommodationSlug, quantity: accommodationQty }]
         : undefined,
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
@@ -531,7 +532,7 @@ export default function TourBookingFlow({
               <span className="k">{t("dateLabelSummary")}</span>
               <span>{prettyDate(date, locale)}</span>
             </div>
-            {overnightsAtCamp && selectedAccommodation && (
+            {offersCampAccommodation && selectedAccommodation && (
               <div className="row">
                 <span className="k">{t("accommodationLabel")}</span>
                 <span>{selectedAccommodation.title} × {accommodationQty}</span>
