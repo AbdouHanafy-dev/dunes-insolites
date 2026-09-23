@@ -7,7 +7,7 @@
 const LANGUAGE_BY_KEYWORD: { keywords: string[]; country: string; lang: string }[] = [
   { keywords: ["francais", "french"], country: "FR", lang: "fr" },
   { keywords: ["anglais", "english"], country: "GB", lang: "en" },
-  { keywords: ["arabe", "arabic"], country: "TN", lang: "ar" },
+  { keywords: ["arabe", "arabic"], country: "SA", lang: "ar" },
   { keywords: ["allemand", "german", "deutsch"], country: "DE", lang: "de" },
   { keywords: ["italien", "italian", "italiano"], country: "IT", lang: "it" },
   { keywords: ["espagnol", "spanish", "espanol"], country: "ES", lang: "es" },

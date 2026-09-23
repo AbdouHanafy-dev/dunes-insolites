@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
+import FaqTabs from "@/components/FaqTabs";
 import CTA from "@/components/CTA";
 import CmsBlocks, { extractFaqs } from "@/components/CmsBlocks";
 import { getCmsPage } from "@/lib/api";
@@ -103,32 +104,13 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
         {researchedFaqs.length > 0 && (
           <section className="section-sand faq-researched">
             <div className="wrap">
-              {destinationFaqs.length > 0 && (
-                <Reveal className="faq-category">
-                  <h2>{t("catDestination")}</h2>
-                  <div className="faq">
-                    {destinationFaqs.map((item) => (
-                      <details key={item.q}>
-                        <summary>{item.q}</summary>
-                        <p>{item.a}</p>
-                      </details>
-                    ))}
-                  </div>
-                </Reveal>
-              )}
-              {campFaqs.length > 0 && (
-                <Reveal className="faq-category">
-                  <h2>{t("catCamp")}</h2>
-                  <div className="faq">
-                    {campFaqs.map((item) => (
-                      <details key={item.q}>
-                        <summary>{item.q}</summary>
-                        <p>{item.a}</p>
-                      </details>
-                    ))}
-                  </div>
-                </Reveal>
-              )}
+              <FaqTabs
+                groups={[
+                  ...(destinationFaqs.length > 0 ? [{ id: "destination", heading: t("catDestination"), items: destinationFaqs }] : []),
+                  ...(campFaqs.length > 0 ? [{ id: "camp", heading: t("catCamp"), items: campFaqs }] : []),
+                ]}
+              />
+              
               <Reveal className="prose faq-sources">
                 <h2>{t("sourcesHeading")}</h2>
                 <p>{t("sourcesNote")}</p>
@@ -192,21 +174,9 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
       />
       <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
 
-      <section className="section-sand">
+      <section className="section-sand faq-page-section">
         <div className="wrap">
-          {groups.map((group) => (
-            <Reveal className="faq-category" key={group.heading}>
-              <h2>{group.heading}</h2>
-              <div className="faq">
-                {group.items.map((item) => (
-                  <details key={item.q}>
-                    <summary>{item.q}</summary>
-                    <p>{item.a}</p>
-                  </details>
-                ))}
-              </div>
-            </Reveal>
-          ))}
+          <FaqTabs groups={groups.map((group, index) => ({ id: String(index), heading: group.heading, items: group.items }))} />
 
           {faqs.length > 9 && (
             <Reveal className="prose faq-sources">

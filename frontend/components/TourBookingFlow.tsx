@@ -10,6 +10,7 @@ import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import ListSelect from "@/components/ListSelect";
 import AccommodationPicker from "@/components/booking/AccommodationPicker";
+import { useStepScroll } from "@/lib/useStepScroll";
 import GuestPicker from "@/components/booking/GuestPicker";
 import LanguageChips from "@/components/booking/LanguageChips";
 import PhoneInput from "@/components/PhoneInput";
@@ -67,6 +68,7 @@ export default function TourBookingFlow({
   const toast = useToast();
   const locale = useLocale();
   const [step, setStep] = useState(0);
+  const flowRef = useStepScroll(step);
   const [date, setDate] = useState("");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
@@ -262,7 +264,7 @@ export default function TourBookingFlow({
   }
 
   return (
-    <div className="tour-book-flow">
+    <div className="tour-book-flow" ref={flowRef}>
       <div className="stepper" aria-label={activeStep.label}>
         {visibleSteps.map((item, i) => {
           return (

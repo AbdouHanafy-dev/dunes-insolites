@@ -142,13 +142,6 @@ controller gets an explicit `@PreAuthorize`.
 The existing entities still use `Double` — that is [tracked debt](ARCHITECTURE.md#12-known-architectural-debt),
 not a pattern to copy. New monetary fields use `BigDecimal`.
 
-### Never fabricate reviews or ratings
-
-Publishing invented reviews as real is illegal in the EU and most markets. Real
-reviews are entered by hand from what the user provides. Keep `body` in the
-guest's original language — translating misrepresents what they said.
-`AggregateRating` JSON-LD is emitted **only** when real reviews back it; faking
-it risks a Google manual action.
 
 ### Do not refactor the money path before tests exist
 

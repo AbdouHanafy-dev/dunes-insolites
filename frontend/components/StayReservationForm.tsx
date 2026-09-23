@@ -12,6 +12,7 @@ import ListSelect from "@/components/ListSelect";
 import { activityQuantity, activityTotal } from "@/lib/activityPricing";
 import DateRangePicker from "@/components/DateRangePicker";
 import AccommodationPicker from "@/components/booking/AccommodationPicker";
+import { useStepScroll } from "@/lib/useStepScroll";
 import GuestPicker from "@/components/booking/GuestPicker";
 import PhoneInput from "@/components/PhoneInput";
 import { type Country } from "react-phone-number-input";
@@ -69,6 +70,7 @@ export default function StayReservationForm({
   const tb = useTranslations("bookingFlow");
   const locale = useLocale();
   const [step, setStep] = useState(0);
+  const flowRef = useStepScroll(step);
   const PRICING_UNIT_LABEL: Record<ServiceOptionCatalogItem["pricingUnit"], string> = {
     PER_DAY: t("unitDay"),
     PER_BOOKING: t("unitBooking"),
@@ -244,6 +246,7 @@ export default function StayReservationForm({
     api
       .getStayAvailability(stay.slug, forDate, nights, ctrl.signal)
       .then((data) => {
+        if (ctrl.signal.aborted) return;
         setAvail({ forDate, data, error: false });
         if (data?.accommodations.some((t) => t.status === "UNAVAILABLE")) {
           const unavailableSlugs = new Set(
@@ -532,7 +535,7 @@ export default function StayReservationForm({
   const activeStep = visibleSteps[activeStepPosition] ?? visibleSteps[0];
 
   return (
-    <div className="tour-book-flow">
+    <div className="tour-book-flow" ref={flowRef}>
       <div className="stepper" aria-label={activeStep.label}>
         {visibleSteps.map((item, i) => (
           <span

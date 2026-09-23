@@ -1,3 +1,4 @@
+import FaqColumns from "@/components/FaqColumns";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { CmsBlock } from "@/lib/api";
@@ -178,14 +179,7 @@ function FaqGroup({ faqs }: { faqs: CmsBlock[] }) {
   return (
     <section className="section-sand cms-faq-section">
       <div className="wrap">
-        <div className="faq">
-          {entries.map((f, i) => (
-            <details key={i}>
-              <summary>{f.q}</summary>
-              {f.a && <p>{f.a}</p>}
-            </details>
-          ))}
-        </div>
+        <FaqColumns items={entries} />
       </div>
     </section>
   );

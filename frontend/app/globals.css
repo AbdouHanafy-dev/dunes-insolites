@@ -115,6 +115,9 @@
 }
 
 html {
+  /* One notch below the browser default (16px) - every rem-based size on the
+     site scales with it. */
+  font-size: 13.5px;
   scroll-behavior: smooth;
   /* Keeps in-page anchors clear of the fixed floating header. */
   scroll-padding-top: 118px;
@@ -326,7 +329,7 @@ body:has(.auth-page) .site-header {
 .lang-btn .flag {
   flex: none;
   width: 18px;
-  height: 13.5px;
+  height: 12px;
   border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(36, 27, 23, 0.18);
 }
@@ -397,7 +400,7 @@ body:has(.auth-page) .site-header {
 .lang-menu .flag {
   flex: none;
   width: 22px;
-  height: 16.5px;
+  height: 14.67px;
   border-radius: 2.5px;
   box-shadow: 0 0 0 1px rgba(36, 27, 23, 0.16);
 }
@@ -2846,7 +2849,7 @@ section.block {
 }
 .flag-icon {
   width: 22px;
-  height: 16px;
+  height: 14.67px;
   object-fit: cover;
   border-radius: 3px;
   flex: none;
@@ -3620,11 +3623,16 @@ footer.site-footer .bar-social a:hover {
 .picker {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr; /* every card the same height, whatever its text */
+  align-items: stretch;
   gap: 18px;
   margin-top: 32px;
 }
 .pick {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   text-align: start;
   border: 1px solid rgba(42, 21, 16, 0.14);
   background: rgba(255, 255, 255, 0.5);
@@ -3652,28 +3660,41 @@ footer.site-footer .bar-social a:hover {
 }
 .pick .thumb {
   position: relative;
+  flex: none;
   aspect-ratio: 16/10;
 }
 .pick .thumb img {
   object-fit: cover;
 }
 .pick .meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 18px 20px 22px;
 }
 .pick .meta h3 {
   font-family: var(--font-display), sans-serif;
   font-weight: 600;
   font-size: 1.2rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
 }
 .pick .meta p {
   margin-top: 6px;
   font-size: 0.88rem;
   color: var(--muted);
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 .pick .meta .price {
   display: block;
-  margin-top: 12px;
+  margin-top: auto; /* price pinned to the bottom of an equal-height card */
+  padding-top: 12px;
   font-size: 0.82rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -5379,7 +5400,7 @@ footer.site-footer .bar-social a:hover {
   border-top: 1px solid rgba(42, 21, 16, 0.12);
 }
 .faq-category {
-  max-width: 820px;
+  max-width: none;
 }
 .faq-category + .faq-category {
   margin-top: 72px;
@@ -5397,40 +5418,72 @@ footer.site-footer .bar-social a:hover {
   margin-top: 44px;
   max-width: 820px;
 }
-.faq details {
-  border-top: 1px solid rgba(42, 21, 16, 0.14);
-  padding: 22px 0;
+
+/* Two independent columns (FaqColumns): each is its own stack, so opening a
+   long answer never pushes the other column around. */
+.faq-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 72px;
+  align-items: start;
+  margin-top: 44px;
 }
-.faq details:last-child {
+.faq-category .faq-columns {
+  margin-top: 28px;
+}
+.faq-columns .faq {
+  margin-top: 0;
+  max-width: none;
+}
+@media (max-width: 800px) {
+  .faq-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.faq details {
   border-bottom: 1px solid rgba(42, 21, 16, 0.14);
+  padding: 24px 0;
 }
 .faq summary {
   cursor: pointer;
   list-style: none;
   font-family: var(--font-display), sans-serif;
   font-weight: 600;
-  font-size: 1.12rem;
+  font-size: 1.1rem;
+  line-height: 1.4;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
 }
 .faq summary::-webkit-details-marker {
   display: none;
 }
+/* round chevron button: outlined when closed, filled when open */
 .faq summary::after {
-  content: "+";
-  color: var(--accent);
-  font-size: 1.4rem;
-  line-height: 1;
+  content: "";
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--ink, #2a1508);
+  border-radius: 50%;
+  background: center / 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a1508' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.faq summary:hover::after {
+  border-color: var(--accent);
 }
 .faq details[open] summary::after {
-  content: "−";
+  border-color: var(--ink, #2a1508);
+  background-color: var(--ink, #2a1508);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m18 15-6-6-6 6'/%3E%3C/svg%3E");
 }
 .faq details p {
-  margin-top: 14px;
+  margin-top: 16px;
   color: var(--muted);
   line-height: 1.65;
-  max-width: 68ch;
+  max-width: 62ch;
 }
 
 /* ---------- reviews ---------- */
@@ -6630,5 +6683,131 @@ footer.site-footer .top > * {
     border: 1px solid rgba(39, 34, 30, 0.12);
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.55);
+  }
+}
+
+/* FAQ: compact page - category tabs, tighter sections */
+.faq-page-section {
+  padding: 56px 0 64px;
+}
+.faq-researched {
+  padding: 48px 0 56px;
+}
+.faq-page-section .faq-sources,
+.faq-researched .faq-sources {
+  margin-top: 44px;
+}
+.faq-page-section .faq-sources ul,
+.faq-researched .faq-sources ul {
+  margin-bottom: 0;
+  gap: 8px;
+}
+.faq-page-section .prose:last-child,
+.faq-researched + .section-sand .prose {
+  margin-top: 20px;
+}
+.faq-page-section .prose:last-child p,
+.faq-researched + .section-sand .prose p {
+  margin-bottom: 0;
+}
+
+.faq-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.faq-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 1px solid rgba(42, 21, 16, 0.22);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink, #2a1508);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.faq-tab:hover {
+  border-color: var(--accent);
+}
+.faq-tab[aria-selected="true"] {
+  border-color: var(--ink, #2a1508);
+  background: var(--ink, #2a1508);
+  color: #fff;
+}
+.faq-tab-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(42, 21, 16, 0.1);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.faq-tab[aria-selected="true"] .faq-tab-count {
+  background: rgba(255, 255, 255, 0.22);
+}
+.faq-tabs .faq-columns {
+  margin-top: 24px;
+}
+.faq-tabs .faq details {
+  padding: 20px 0;
+}
+
+/* ---- Auth screens (login, sign-up ...): one full screen, no site chrome ----
+   The header is already hidden on these pages (rule near the top); the footer
+   inherited from the layout goes too. With both gone the page is exactly one
+   screen, so the panel no longer reserves room for a header and its elements
+   are sized to fit without scrolling. */
+body:has(.auth-page) footer.site-footer {
+  display: none;
+}
+.auth-page {
+  height: 100svh;
+  min-height: 0;
+}
+.auth-panel {
+  align-items: stretch;
+  padding: 32px 48px;
+  overflow-y: auto; /* only if the form is taller than the screen (sign-up) */
+}
+.auth-inner {
+  max-width: 400px;
+  margin: auto;
+}
+.auth-back {
+  margin-bottom: 20px;
+}
+.auth-title {
+  margin-top: 10px;
+  font-size: clamp(28px, 3vw, 40px);
+}
+.auth-lead {
+  margin-top: 10px;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+.auth-form {
+  margin-top: 24px;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .auth-page {
+    height: auto;
+  }
+  .auth-art {
+    height: 200px;
+  }
+  .auth-panel {
+    padding: 32px 24px 48px;
+    overflow: visible;
+  }
+  .auth-inner {
+    max-width: 100%;
+    margin: 0;
   }
 }

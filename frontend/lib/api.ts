@@ -108,6 +108,11 @@ type FetchOpts = {
   quietOn404?: boolean;
 };
 
+/** A request the caller cancelled on purpose (a newer one replaced it) - not a failure. */
+function isAbortError(err: unknown): boolean {
+  return typeof err === "object" && err !== null && (err as { name?: string }).name === "AbortError";
+}
+
 /**
  * @param seed  value to serve ONLY when seed fallback is explicitly enabled
  * @param empty neutral "backend unavailable" value — served on a runtime failure
@@ -137,6 +142,9 @@ async function get<T>(
     }
     return (await res.json()) as T;
   } catch (err) {
+    // Cancelled on purpose (e.g. the date changed and a newer availability
+    // request replaced this one): stay quiet - callers ignore aborted results.
+    if (isAbortError(err)) return empty;
     if (SEED_FALLBACK_ENABLED) return seed;
     console.error(`[lib/api] ${path} fetch failed — serving unavailable state`, err);
     return empty;

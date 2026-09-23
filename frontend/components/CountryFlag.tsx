@@ -1,21 +1,20 @@
+import type { ComponentType } from "react";
+import flags from "react-phone-number-input/flags";
+
+// The package only types `{ title }`, but every generated flag component
+// spreads the rest onto its <svg>, so className works at runtime.
+type FlagComponent = ComponentType<{ title?: string; className?: string }>;
+
 /**
- * A country flag image for an ISO-3166 code, via flagcdn.com's SVGs — for
- * the booking flow's broader country lists (phone dial codes, spoken
- * languages), which cover far more countries than `components/Flag.tsx`'s
- * hand-drawn set (one inline SVG per site locale). Same reason as that
- * component: Windows Chrome renders regional-indicator emoji as literal
- * letter pairs ("GB", "FR"...) instead of a flag glyph, so an image is
- * needed — hand-illustrating dozens of flags isn't a reasonable use of
- * that approach at this scale, so this one goes through flagcdn.com.
+ * A country flag for an ISO-3166 code, from the same `country-flag-icons`
+ * React set the phone field uses - inline SVG, so no request to an outside
+ * image host and no broken flags when one is unreachable. (Not emoji: Windows
+ * Chrome renders regional-indicator emoji as literal letter pairs.)
+ *
+ * Unknown codes render nothing, so callers can fall back to their own icon.
  */
 export default function CountryFlag({ iso, className }: { iso: string; className?: string }) {
-  return (
-    <img
-      src={`https://flagcdn.com/${iso.toLowerCase()}.svg`}
-      alt=""
-      aria-hidden="true"
-      loading="lazy"
-      className={className ? `flag-icon ${className}` : "flag-icon"}
-    />
-  );
+  const Icon = (flags as unknown as Record<string, FlagComponent | undefined>)[iso.toUpperCase()];
+  if (!Icon) return null;
+  return <Icon className={className ? `flag-icon ${className}` : "flag-icon"} />;
 }

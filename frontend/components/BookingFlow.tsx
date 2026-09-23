@@ -9,6 +9,7 @@ import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, Sta
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import AccommodationPicker from "@/components/booking/AccommodationPicker";
+import { useStepScroll } from "@/lib/useStepScroll";
 import GuestPicker from "@/components/booking/GuestPicker";
 import LanguageChips from "@/components/booking/LanguageChips";
 import { activityQuantity, activityTotal } from "@/lib/activityPricing";
@@ -92,6 +93,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   const [category, setCategory] = useState<Category | "">("");
   const [step, setStep] = useState(0);
+  const flowRef = useStepScroll(step);
 
   // ---------- results ----------
   const [tours, setTours] = useState<Tour[]>([]);
@@ -584,7 +586,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }
 
   return (
-    <div className="tour-book-flow">
+    <div className="tour-book-flow" ref={flowRef}>
       <div className="stepper" aria-label={STEPS[step]} style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}>
         {STEPS.map((label, i) => (
           <span key={label + i} className="s" data-state={i === step ? "active" : i < step ? "done" : "todo"} aria-current={i === step ? "step" : undefined}>

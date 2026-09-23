@@ -199,12 +199,16 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html
+      // Browser extensions (Grammarly, LanguageTool...) add attributes to <html>
+      // and <body> before React hydrates; without this every page logs a
+      // hydration-mismatch error for them. Only affects these two elements.
+      suppressHydrationWarning
       lang={locale}
       dir={isRtl(locale) ? "rtl" : "ltr"}
       className={`${alexandria.variable} ${inter.variable}`}
       data-scroll-behavior="smooth"
     >
-      <body>
+      <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <ToastProvider>
             <script

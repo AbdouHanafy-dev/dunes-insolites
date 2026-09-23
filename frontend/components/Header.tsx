@@ -195,6 +195,7 @@ export default function Header({
     },
     { label: t("articles"), href: "/guides" },
     { label: t("faq"), href: "/faq" },
+    { label: t("contact"), href: "/contact" },
   ].filter(
     (item) =>
       knownRoutes.size === 0 ||
@@ -214,7 +215,8 @@ export default function Header({
       item.href === "/camp" ||
       item.href === "/activities" ||
       item.href === "/guides" ||
-      item.href === "/faq",
+      item.href === "/faq" ||
+      item.href === "/contact",
   );
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
@@ -351,7 +353,7 @@ export default function Header({
         <div className="drawer-scroll">
           <section className="drawer-section">
             <nav className="drawer-menu-list" aria-label="Mobile navigation">
-              {primaryNav.filter((item) => item.href !== "/faq").map((item) =>
+              {primaryNav.filter((item) => item.href !== "/faq" && item.href !== "/contact").map((item) =>
                 (item.href === "/camp" || item.href === "/circuits") && item.items?.length ? (
                   <div className="drawer-group" key={item.href}>
                     <div className="drawer-group-head">
