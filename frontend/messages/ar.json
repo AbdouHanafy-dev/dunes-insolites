@@ -26,6 +26,7 @@
     "myAccount": "حسابي"
   },
   "mobileMenu": {
+    "toggleSubmenu": "عرض الخيارات",
     "profile": "الملف الشخصي",
     "help": "المساعدة",
     "language": "اللغة"

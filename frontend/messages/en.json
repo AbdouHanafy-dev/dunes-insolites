@@ -26,6 +26,7 @@
     "myAccount": "My account"
   },
   "mobileMenu": {
+    "toggleSubmenu": "Show options",
     "profile": "Profile",
     "help": "Help",
     "language": "Language"

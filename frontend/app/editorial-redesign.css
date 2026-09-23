@@ -97,9 +97,7 @@ html { scroll-padding-top: 96px; }
   top: calc(100% + 16px);
   left: 50%;
   width: min(560px, calc(100vw - 32px));
-  max-height: calc(100vh - 110px);
   padding: 12px 20px 0;
-  overflow-y: auto;
   border: 1px solid var(--journal-rule);
   background: var(--journal-paper);
   box-shadow: 10px 12px 0 rgba(32, 29, 25, 0.1);
@@ -125,7 +123,14 @@ html { scroll-padding-top: 96px; }
   transform: translate(-50%, 0);
 }
 
-.nav-dropdown-list > a {
+.nav-dropdown-list {
+  max-height: calc(100vh - 190px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.nav-dropdown-list a {
   position: relative;
   display: grid;
   grid-template-columns: 82px minmax(0, 1fr);
@@ -164,7 +169,7 @@ html { scroll-padding-top: 96px; }
   gap: 4px;
 }
 
-.nav-dropdown-list > a strong {
+.nav-dropdown-list a strong {
   min-width: 0;
   font-family: var(--font-display), sans-serif;
   font-size: 14px;
@@ -174,7 +179,7 @@ html { scroll-padding-top: 96px; }
   overflow-wrap: anywhere;
 }
 
-.nav-dropdown-list > a small {
+.nav-dropdown-list a small {
   display: block;
   width: 100%;
   overflow: hidden;
@@ -198,17 +203,17 @@ html { scroll-padding-top: 96px; }
   transition: transform 180ms ease;
 }
 
-.nav-dropdown-list > a:hover {
+.nav-dropdown-list a:hover {
   background: transparent !important;
   color: var(--journal-rust);
 }
 
-.nav-dropdown-list > a:hover .nav-dropdown-thumb img {
+.nav-dropdown-list a:hover .nav-dropdown-thumb img {
   transform: scale(1.04);
   filter: saturate(1) contrast(1.02);
 }
 
-.nav-dropdown-list > a:hover > .nav-dropdown-arrow {
+.nav-dropdown-list a:hover > .nav-dropdown-arrow {
   transform: translate(3px, calc(-50% - 3px));
 }
 
@@ -2866,4 +2871,150 @@ footer.site-footer.pro-footer .bar a:hover {
   .article-card:nth-child(even) .article-card-media { order: 0; }
   .articles-index-bottom { margin-top: 50px; }
   .articles-index-bottom .wrap { align-items: flex-start; flex-direction: column; }
+}
+
+/* ---- Side panel: a second list that comes out of a hovered row ------------
+   Used by the Accommodation dropdown (a stay's accommodation types) and the
+   Circuits dropdown (the camp's types on a circuit that sleeps at the camp).
+   Same row styling as the main list - it reuses .nav-dropdown-list. */
+.nav-flyout {
+  position: absolute;
+  z-index: 21;
+  width: 320px;
+  padding: 12px 20px 0;
+  border: 1px solid var(--journal-rule);
+  background: var(--journal-paper);
+  box-shadow: 10px 12px 0 rgba(32, 29, 25, 0.1);
+  animation: nav-flyout-in 160ms ease both;
+}
+.nav-flyout[data-side="right"] { left: calc(100% + 6px); }
+.nav-flyout[data-side="left"] { right: calc(100% + 6px); }
+
+/* invisible bridge over the gap so moving the pointer across keeps it open */
+.nav-flyout::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+}
+.nav-flyout[data-side="right"]::before { left: -12px; }
+.nav-flyout[data-side="left"]::before { right: -12px; }
+
+.nav-flyout-list { max-height: none; overflow: visible; }
+.nav-flyout-list a:last-child { border-bottom: 0; }
+
+.nav-dropdown-list a[data-flyout="true"]:hover,
+.nav-dropdown-list a[data-flyout="true"]:focus-visible { color: var(--journal-rust); }
+
+@keyframes nav-flyout-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+.nav-flyout[data-side="left"] { animation-name: nav-flyout-in-left; }
+@keyframes nav-flyout-in-left {
+  from { opacity: 0; transform: translateX(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---- Mobile drawer: expandable Accommodation -> stays -> types ---------- */
+.drawer .drawer-menu-list > .drawer-group { border-bottom: 1px solid rgba(32, 29, 25, 0.1); }
+
+.drawer-group-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46px;
+  align-items: stretch;
+}
+
+.drawer .drawer-group-head > a {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 12px 0;
+  border: 0;
+  color: var(--journal-ink);
+  font-family: var(--font-body), sans-serif;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  text-transform: none;
+}
+.drawer .drawer-group-head > a:hover,
+.drawer .drawer-group-head > a:focus-visible { color: #8f412d; }
+.drawer .drawer-group-head > a > svg:first-child { color: var(--journal-rust); }
+
+.drawer-group-toggle {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: rgba(32, 29, 25, 0.55);
+  cursor: pointer;
+}
+.drawer-group-toggle .drawer-row-chevron { transition: transform 0.2s ease; }
+.drawer-group-toggle[aria-expanded="true"] .drawer-row-chevron { transform: rotate(90deg); }
+
+.drawer-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 220ms ease, visibility 0s linear 220ms;
+}
+.drawer-sub[data-open="true"] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.drawer-sub > div { min-height: 0; overflow: hidden; }
+
+.drawer-sub-entry { padding-inline-start: 38px; }
+.drawer-sub-entry + .drawer-sub-entry { border-top: 1px solid rgba(32, 29, 25, 0.08); }
+
+.drawer .drawer-sub-entry .drawer-group-head > a,
+.drawer .drawer-sub-nested a {
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 0;
+  padding: 9px 0;
+}
+
+.drawer .drawer-sub-nested a {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  margin-inline-start: 14px;
+  padding: 7px 0 7px 12px;
+  border-inline-start: 2px solid rgba(143, 65, 45, 0.35);
+  color: var(--journal-ink);
+  text-decoration: none;
+}
+
+.drawer .nav-dropdown-thumb { width: 64px; height: 46px; }
+.drawer .drawer-sub-nested .nav-dropdown-thumb { width: 52px; height: 38px; }
+.drawer .nav-dropdown-thumb img { object-fit: cover; }
+
+.drawer .nav-dropdown-copy strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.drawer .nav-dropdown-copy small {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  color: rgba(32, 29, 25, 0.6);
+  font-size: 11px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-flyout { animation: none; }
+  .drawer-sub,
+  .drawer-group-toggle .drawer-row-chevron { transition: none; }
 }

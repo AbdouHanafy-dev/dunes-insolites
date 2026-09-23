@@ -26,6 +26,7 @@
     "myAccount": "Min konto"
   },
   "mobileMenu": {
+    "toggleSubmenu": "Vis muligheder",
     "profile": "Profil",
     "help": "Hjælp",
     "language": "Sprog"
