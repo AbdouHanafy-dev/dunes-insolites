@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminReservationDetail, AdminSpokenLanguage } from "@/lib/api";
+import { MAIL_LOCALES } from "./mailLocales";
 
 /**
  * Edits the fields PUT /api/reservations/{id} accepts without touching
@@ -47,6 +48,7 @@ export default function ReservationEditForm({
   const [special, setSpecial] = useState(reservation.demandeSpecial ?? "");
   const [otherLanguage, setOtherLanguage] = useState(reservation.otherLanguageRequested ?? "");
   const [languageIds, setLanguageIds] = useState<string[]>(reservation.preferredLanguages.map((l) => l.languageId));
+  const [locale, setLocale] = useState(reservation.locale ?? "fr");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -77,6 +79,7 @@ export default function ReservationEditForm({
       demandeSpecial: special.trim(),
       otherLanguageRequested: otherLanguage.trim(),
       preferredLanguageIds: languageIds,
+      locale,
     };
     if (isStay) {
       body.checkInDate = checkIn;
@@ -242,6 +245,17 @@ export default function ReservationEditForm({
           />
         </fieldset>
       )}
+
+      <label className="flex max-w-[260px] flex-col gap-1">
+        <span className={labelClass}>Langue des emails du client</span>
+        <select className={inputClass} value={locale} onChange={(e) => setLocale(e.target.value)}>
+          {MAIL_LOCALES.map((l) => (
+            <option key={l.value} value={l.value}>
+              {l.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {error && (
         <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">{error}</div>

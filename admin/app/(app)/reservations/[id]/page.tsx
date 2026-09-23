@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getDriverProfiles, getGuideProfiles, getReservationById, getSpokenLanguages } from "@/lib/api";
+import { getDriverProfiles, getGuideProfiles, getPaymentPolicy, getReservationById, getSpokenLanguages } from "@/lib/api";
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 import ReservationStatusPanel from "@/components/payload/ReservationStatusPanel";
+import ReservationPaymentPanel from "@/components/reservations/ReservationPaymentPanel";
 import ReservationEditForm from "@/components/reservations/ReservationEditForm";
 import { isEditable, statusOf } from "@/components/reservations/reservationStatus";
 
@@ -15,11 +16,12 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   const session = await getSession();
   if (!session) return null;
 
-  const [reservation, guideProfiles, driverProfiles, languages] = await Promise.all([
+  const [reservation, guideProfiles, driverProfiles, languages, paymentPolicy] = await Promise.all([
     getReservationById(session.accessToken, id),
     getGuideProfiles(session.accessToken),
     getDriverProfiles(session.accessToken),
     getSpokenLanguages(session.accessToken),
+    getPaymentPolicy(session.accessToken),
   ]);
   if (!reservation) notFound();
 
@@ -66,7 +68,22 @@ export default async function ReservationDetailPage({ params }: { params: Promis
       <ReservationStatusPanel
         reservationId={reservation.reservationId}
         status={reservation.status}
+        total={reservation.paymentSummary?.originalTotalAmount ?? reservation.totalAmount}
+        currency={reservation.currency}
+        policy={paymentPolicy}
         paymentLink={reservation.paymentLink}
+        depositAmount={reservation.depositAmount ?? null}
+      />
+
+      <ReservationPaymentPanel
+        reservationId={reservation.reservationId}
+        currency={reservation.currency}
+        summary={reservation.paymentSummary ?? null}
+        transactions={reservation.transactions ?? []}
+        paymentLink={reservation.paymentLink}
+        depositAmount={reservation.depositAmount ?? null}
+        policy={paymentPolicy}
+        canSend={!["CANCELLED", "REJECTED", "COMPLETED", "EXPIRED"].includes(reservation.status)}
       />
 
       {isEditable(reservation.status) ? (

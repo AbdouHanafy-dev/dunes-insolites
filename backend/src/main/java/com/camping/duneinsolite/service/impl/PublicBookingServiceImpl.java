@@ -142,6 +142,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), timeSlotNote(request.getTimeSlot())));
+        reservationRequest.setLocale(request.getLocale());
         reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
                 : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
         reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null
@@ -298,6 +299,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(), null));
+        reservationRequest.setLocale(request.getLocale());
         reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
                 : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
         reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null
@@ -506,6 +508,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(),
                 accommodationNote(requestedAccommodations)));
+        reservationRequest.setLocale(request.getLocale());
         reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
                 : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
         reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null

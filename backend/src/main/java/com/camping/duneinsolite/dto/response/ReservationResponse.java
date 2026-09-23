@@ -40,6 +40,8 @@ public class ReservationResponse {
     private Set<SpokenLanguageResponse> preferredLanguages;
     private String otherLanguageRequested;
     private String paymentLink;
+    private String locale;
+    private java.math.BigDecimal depositAmount;
     private List<ReservationTourTypeResponse> tourTypes;
     private List<ReservationTourResponse> tours;
     private List<ParticipantResponse> participants;

@@ -21,6 +21,8 @@ public class ReservationUpdateRequest {
     private Set<UUID> preferredLanguageIds;
     private String otherLanguageRequested;
     private String promoCode;
+    // Language of the client's emails ("fr", "en", ...); null = unchanged.
+    private String locale;
    // private Currency currency;
     private Integer numberOfAdults;
     private Integer numberOfChildren;

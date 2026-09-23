@@ -66,7 +66,35 @@ export type AdminReservation = {
   createdAt: string;
   tourTypes: AdminReservationLine[];
   tours: AdminReservationLine[];
+  // Derived server-side from recorded transactions (PaymentServiceImpl) -
+  // never a stored status.
+  paymentSummary?: AdminPaymentSummary | null;
 };
+
+export type AdminPaymentStatus = "UNPAID" | "PARTIALLY_PAID" | "PAID" | "OVERDUE" | "REFUNDED";
+
+export type AdminPaymentSummary = {
+  originalTotalAmount: number;
+  totalPaid: number;
+  remainingTotal: number;
+  paymentStatus: AdminPaymentStatus;
+};
+
+export type AdminPaymentPolicy = {
+  depositMode: "NONE" | "PERCENT" | "FULL";
+  depositPercent: number;
+  deadlineDaysBefore: number | null;
+  acceptOnlineLink: boolean;
+  acceptBankTransfer: boolean;
+  acceptCardOnSite: boolean;
+  acceptCashOnSite: boolean;
+  acceptCheque: boolean;
+  note: string | null;
+};
+
+export function getPaymentPolicy(accessToken: string): Promise<AdminPaymentPolicy | null> {
+  return authedGet<AdminPaymentPolicy | null>("/payment-policy", accessToken, null);
+}
 
 export type Page<T> = { content: T[]; totalElements: number; totalPages: number; number: number };
 
@@ -162,6 +190,11 @@ export type AdminReservationDetail = AdminReservation & {
   preferredLanguages: AdminSpokenLanguage[];
   otherLanguageRequested: string | null;
   paymentLink: string | null;
+  // Language of the client's emails ("fr", "en", "de", "it", "da", "ar").
+  locale?: string;
+  // What staff asked this client to pay upfront; null = follow the payment rules.
+  depositAmount?: number | null;
+  transactions?: AdminTransaction[];
   guides: AdminReservationStaffMember[];
   chauffeurs: AdminReservationStaffMember[];
 };

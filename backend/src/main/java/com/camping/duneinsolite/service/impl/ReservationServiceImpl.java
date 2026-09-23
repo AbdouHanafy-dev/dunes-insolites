@@ -70,7 +70,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final InvoiceService              invoiceService;
     private final ReservationCapacityValidator reservationCapacityValidator;
     private final CurrencyConfig              currencyConfig;
-    private final EmailService                emailService;
+    private final PaymentRequestService      paymentRequestService;
     private final WhatsAppNotificationService whatsAppNotificationService;
     private final AccommodationPricingService accommodationPricingService;
     private final AccommodationAvailabilityService accommodationAvailabilityService;
@@ -222,6 +222,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .groupName(request.getGroupName())
                 .groupLeaderName(request.getGroupLeaderName())
                 .demandeSpecial(request.getDemandeSpecial())
+                .locale(com.camping.duneinsolite.model.enums.MailLocale.from(request.getLocale()).tag())
                 .arrivalMode(request.getArrivalMode())
                 .departureCity(request.getDepartureCity())
                 .returnCity(request.getReturnCity())
@@ -991,38 +992,14 @@ public class ReservationServiceImpl implements ReservationService {
             );
 
             // ── Auto-generate PROFORMA invoice (see ReservationInvoiceService / ADR-0004) ──
-            Invoice proforma = reservationInvoiceService.generateProforma(savedReservation, companyType);
-            java.math.BigDecimal totalTtc = proforma.getTotalTtc();
-
-            // ── Email + WhatsApp the client. No online payment gateway (Click
-            // to Pay) is integrated yet, so a confirmation always goes out here
-            // — either the payment-link email (admin already provided one) or
-            // the plain "accepted, we'll follow up" email. WhatsApp is a stub
-            // (see WhatsAppNotificationService) until a real API account
-            // exists; it never blocks or fails this flow. ──
-            if (savedReservation.getPaymentLink() != null && !savedReservation.getPaymentLink().isBlank()) {
-                LocalDate paymentDueDate = savedReservation.getCheckInDate() != null
-                        ? savedReservation.getCheckInDate()
-                        : savedReservation.getServiceDate();
-                java.math.BigDecimal minPaymentAmount = Money.multiply(totalTtc, new java.math.BigDecimal("0.10"));
-
-                emailService.sendReservationConfirmedPaymentEmail(
-                        savedReservation.getUser().getEmail(),
-                        savedReservation.getUser().getName(),
-                        savedReservation.getGroupName(),
-                        totalTtc,
-                        minPaymentAmount,
-                        savedReservation.getCurrency() != null ? savedReservation.getCurrency().name() : "TND",
-                        paymentDueDate,
-                        savedReservation.getPaymentLink()
-                );
-            } else {
-                emailService.sendReservationAcceptedEmail(
-                        savedReservation.getUser().getEmail(),
-                        savedReservation.getUser().getName(),
-                        savedReservation.getGroupName()
-                );
-            }
+            reservationInvoiceService.generateProforma(savedReservation, companyType);
+            // ── Email + WhatsApp the client. One confirmation email, in the language
+            // the client booked in, carrying the payment terms staff set for this
+            // booking (amount, link) or the payment policy's defaults - see
+            // PaymentRequestService. WhatsApp is a stub (see
+            // WhatsAppNotificationService) until a real API account exists; it
+            // never blocks or fails this flow. ──
+            paymentRequestService.sendConfirmation(savedReservation.getReservationId());
 
             whatsAppNotificationService.sendReservationAccepted(
                     savedReservation.getUser().getPhone(),
@@ -1111,6 +1088,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getPreferredLanguageIds() != null) reservation.setPreferredLanguages(resolveLanguages(request.getPreferredLanguageIds()));
         if (request.getOtherLanguageRequested() != null) reservation.setOtherLanguageRequested(request.getOtherLanguageRequested());
         if (request.getPromoCode()        != null) reservation.setPromoCode(request.getPromoCode());
+        if (request.getLocale()           != null) reservation.setLocale(com.camping.duneinsolite.model.enums.MailLocale.from(request.getLocale()).tag());
         if (request.getNumberOfAdults()   != null) reservation.setNumberOfAdults(request.getNumberOfAdults());
         if (request.getNumberOfChildren() != null) reservation.setNumberOfChildren(request.getNumberOfChildren());
 

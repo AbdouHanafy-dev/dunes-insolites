@@ -146,6 +146,18 @@ public class Reservation {
     @Column(name = "payment_link")
     private String paymentLink;
 
+    // Language of every email about this reservation - the site language the
+    // client booked in (MailLocale tag). Never null; French when unknown.
+    @Column(name = "locale", nullable = false, length = 5)
+    @Builder.Default
+    private String locale = "fr";
+
+    // What staff asked this client to pay upfront. null = follow the payment
+    // policy; zero = no deposit for this booking. Payment status is still
+    // derived from recorded transactions, never from this.
+    @Column(name = "deposit_amount")
+    private java.math.BigDecimal depositAmount;
+
     // ── Public guest hold (Phase 2) ──────────────────────────────
     // When set, this PENDING reservation is a temporary hold: it consumes
     // accommodation inventory only until this instant, then HoldExpiryJob

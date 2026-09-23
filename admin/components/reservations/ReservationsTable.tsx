@@ -6,17 +6,18 @@ import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { AdminReservation } from "@/lib/api";
-import { isEditable, statusOf } from "./reservationStatus";
+import { isEditable, paymentStatusOf, statusOf } from "./reservationStatus";
 
 const prestation = (r: AdminReservation) => [...r.tourTypes, ...r.tours][0]?.name ?? r.reservationType;
 const dateOf = (r: AdminReservation) => r.checkInDate ?? r.serviceDate ?? "";
 
-type SortKey = "client" | "prestation" | "status" | "date" | "created" | "amount";
+type SortKey = "client" | "prestation" | "status" | "payment" | "date" | "created" | "amount";
 
 const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "client", label: "Client" },
   { key: "prestation", label: "Prestation" },
   { key: "status", label: "Statut" },
+  { key: "payment", label: "Paiement" },
   { key: "date", label: "Date" },
   { key: "created", label: "Créée le" },
   { key: "amount", label: "Montant", right: true },
@@ -30,6 +31,8 @@ function sortValue(r: AdminReservation, key: SortKey): string | number {
       return prestation(r).toLowerCase();
     case "status":
       return statusOf(r.status).label;
+    case "payment":
+      return paymentStatusOf(r.paymentSummary?.paymentStatus).label;
     case "date":
       return dateOf(r);
     case "created":
@@ -67,7 +70,7 @@ export default function ReservationsTable({
     const q = query.trim().toLowerCase();
     const filtered = q
       ? reservations.filter((r) =>
-          [r.userName, prestation(r), statusOf(r.status).label, dateOf(r), String(r.totalAmount)]
+          [r.userName, prestation(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), String(r.totalAmount)]
             .join(" ")
             .toLowerCase()
             .includes(q),
@@ -188,6 +191,13 @@ export default function ReservationsTable({
                       <td className="px-6 py-3">
                         <span className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>
                           {st.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${paymentStatusOf(r.paymentSummary?.paymentStatus).className}`}
+                        >
+                          {paymentStatusOf(r.paymentSummary?.paymentStatus).label}
                         </span>
                       </td>
                       <td className="px-6 py-3 text-navy-700/75">{dateOf(r) || "—"}</td>

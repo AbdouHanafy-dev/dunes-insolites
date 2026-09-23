@@ -8,7 +8,6 @@ import com.camping.duneinsolite.model.enums.EmailType;
 import com.camping.duneinsolite.observability.CorrelationId;
 import com.camping.duneinsolite.observability.EmailMetrics;
 import com.camping.duneinsolite.repository.ReservationRepository;
-import com.camping.duneinsolite.service.impl.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -39,7 +38,7 @@ public class ReservationEmailConsumer {
 
     private final ReservationRepository reservationRepository;
     private final EmailDispatchService emailDispatchService;
-    private final EmailService emailService;
+    private final com.camping.duneinsolite.mail.ReservationMailer reservationMailer;
     private final EmailMetrics emailMetrics;
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE, containerFactory = "emailListenerContainerFactory")
@@ -59,8 +58,8 @@ public class ReservationEmailConsumer {
             }
 
             try {
-                emailService.sendReservationReceivedEmail(
-                        view.email(), view.name(), view.date(), view.total(), view.currency());
+                reservationMailer.sendReceived(
+                        view.email(), view.name(), view.locale(), view.date(), view.total(), view.currency());
                 emailDispatchService.markSent(claim.dispatchId());
                 emailMetrics.emailSent();
                 log.info("reservation-received email delivered for reservation {} (attempt {})",
@@ -75,7 +74,8 @@ public class ReservationEmailConsumer {
         }
     }
 
-    private record RecipientView(String email, String name, LocalDate date, java.math.BigDecimal total, String currency) {}
+    private record RecipientView(String email, String name, com.camping.duneinsolite.model.enums.MailLocale locale,
+                                 LocalDate date, java.math.BigDecimal total, String currency) {}
 
     private RecipientView loadRecipient(NotificationMessage message) {
         Reservation reservation = reservationRepository.findByIdWithUser(message.getReservationId())
@@ -87,6 +87,7 @@ public class ReservationEmailConsumer {
         java.math.BigDecimal total = com.camping.duneinsolite.money.Money.add(
                 reservation.getTotalAmount(), reservation.getTotalExtrasAmount());
         String currency = reservation.getCurrency() != null ? reservation.getCurrency().name() : "TND";
-        return new RecipientView(user.getEmail(), user.getName(), date, total, currency);
+        return new RecipientView(user.getEmail(), user.getName(),
+                com.camping.duneinsolite.model.enums.MailLocale.from(reservation.getLocale()), date, total, currency);
     }
 }

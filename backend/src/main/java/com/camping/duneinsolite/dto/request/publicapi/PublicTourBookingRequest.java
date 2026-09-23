@@ -111,4 +111,8 @@ public class PublicTourBookingRequest {
         return numberOfAdults == null || numberOfChildren == null
                 || numberOfAdults + numberOfChildren <= 12;
     }
+
+    // The site language the guest is browsing in ("fr", "en", "de", "it", "da", "ar"); their booking emails follow it.
+    @Size(max = 10)
+    private String locale;
 }

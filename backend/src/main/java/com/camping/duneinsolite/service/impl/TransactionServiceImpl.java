@@ -24,6 +24,7 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final PaymentRequestService paymentRequestService;
     private final ReservationRepository reservationRepository;
     private final InvoiceRepository invoiceRepository;
     private final TransactionMapper transactionMapper;
@@ -64,7 +65,12 @@ public class TransactionServiceImpl implements TransactionService {
             invoiceRepository.save(invoice);
         }
 
-        return transactionMapper.toResponse(transactionRepository.save(transaction));
+        TransactionResponse saved = transactionMapper.toResponse(transactionRepository.save(transaction));
+
+        if (!Boolean.FALSE.equals(request.getNotifyClient())) {
+            paymentRequestService.sendPaymentReceived(reservation.getReservationId(), request.getAmount());
+        }
+        return saved;
     }
 
     @Override

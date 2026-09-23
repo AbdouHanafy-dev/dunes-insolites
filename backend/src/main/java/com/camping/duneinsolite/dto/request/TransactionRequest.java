@@ -24,4 +24,9 @@ public class TransactionRequest {
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
+
+    // Email the client "we received your payment" (in their language, with how
+    // to settle the rest). Absent = yes; staff untick it for a payment they do
+    // not want announced.
+    private Boolean notifyClient;
 }

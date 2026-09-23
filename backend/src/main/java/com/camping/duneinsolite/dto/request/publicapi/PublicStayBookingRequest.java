@@ -100,4 +100,8 @@ public class PublicStayBookingRequest {
     @NotNull(message = "Terms acceptance is required")
     @AssertTrue(message = "Terms and privacy policy must be accepted")
     private Boolean acceptedTerms;
+
+    // The site language the guest is browsing in ("fr", "en", "de", "it", "da", "ar"); their booking emails follow it.
+    @Size(max = 10)
+    private String locale;
 }

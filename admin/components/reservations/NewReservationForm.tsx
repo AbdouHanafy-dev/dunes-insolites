@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
+import { MAIL_LOCALES } from "./mailLocales";
 import type { AdminTourType, AdminExtra, AdminSource, AdminAccommodationType, AdminUser, AdminTour } from "@/lib/api";
 
 /**
@@ -52,6 +53,8 @@ export default function NewReservationForm({
   const [reservationKind, setReservationKind] = useState<"HEBERGEMENT" | "TOURS">("HEBERGEMENT");
 
   // ── Client ──────────────────────────────────────────────────────
+  // Language of every email the client gets about this booking.
+  const [locale, setLocale] = useState("fr");
   const [clientMode, setClientMode] = useState<"search" | "new">("search");
   const [clientQuery, setClientQuery] = useState("");
   const [clientResults, setClientResults] = useState<AdminUser[]>([]);
@@ -211,6 +214,7 @@ export default function NewReservationForm({
             userId,
             sourceId,
             reservationType: "HEBERGEMENT",
+            locale,
             checkInDate,
             checkOutDate,
             numberOfAdults,
@@ -234,6 +238,7 @@ export default function NewReservationForm({
             userId,
             sourceId,
             reservationType: "TOURS",
+            locale,
             serviceDate: departureDate,
             numberOfAdults,
             numberOfChildren,
@@ -396,6 +401,21 @@ export default function NewReservationForm({
             />
           </div>
         )}
+
+        <label className="mt-4 block text-[13px] text-navy-700/70">
+          Langue des emails du client
+          <select
+            value={locale}
+            onChange={(e) => setLocale(e.target.value)}
+            className="mt-1 w-full max-w-[220px] rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+          >
+            {MAIL_LOCALES.map((l) => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </section>
 
       {/* ── Nuitée ── */}

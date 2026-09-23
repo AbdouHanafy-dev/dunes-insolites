@@ -48,6 +48,10 @@ public class ReservationRequest {
    // private Currency currency;
     private String promoCode;
     private String demandeSpecial;
+
+    // Site language the client booked in ("fr", "en", "de", "it", "da", "ar"); emails follow it. Absent/unknown = French.
+    @Size(max = 10)
+    private String locale;
     private ArrivalMode arrivalMode;
     private DepartureCity departureCity;
     // Optional return leg after the stay/tour, same DepartureCity catalog.
