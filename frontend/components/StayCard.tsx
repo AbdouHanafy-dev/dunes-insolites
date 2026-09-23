@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { Stay } from "@/lib/types";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 /**
  * Used by the /camp listing page and "other stays" on a stay's detail page
@@ -16,13 +17,15 @@ export default function StayCard({ stay }: { stay: Stay }) {
   return (
     <Link className="edit-card" href={`/camp/${stay.slug}`}>
       <span className="edit-card-media">
-        <Image
-          src={stay.image}
-          alt={stay.tagline}
-          fill
-          sizes="(max-width: 900px) 100vw, 33vw"
-          style={{ objectFit: "cover" }}
-        />
+        {isDisplayableImageSrc(stay.image) && (
+          <Image
+            src={stay.image}
+            alt={stay.tagline}
+            fill
+            sizes="(max-width: 900px) 100vw, 33vw"
+            style={{ objectFit: "cover" }}
+          />
+        )}
       </span>
       <span className="edit-card-cap">
         <span className="idx-label">{stay.kicker}</span>

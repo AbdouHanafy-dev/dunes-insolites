@@ -9,6 +9,7 @@ import { getStays as seedStays } from "@/lib/data/stays";
 import { canonicalStayPath } from "@/lib/legacySlugs";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import StayCard from "@/components/StayCard";
 import AccommodationCard from "@/components/AccommodationCard";
 import StayReservationForm from "@/components/StayReservationForm";
@@ -105,14 +106,16 @@ export default async function StayDetail({ params, searchParams }: Props) {
 
       <section className="detail-hero">
         <div className="bg">
-          <Image
-            src={stay.image}
-            alt={stay.title}
-            fill
-            sizes="100vw"
-            preload
-            style={{ objectFit: "cover" }}
-          />
+          {isDisplayableImageSrc(stay.image) && (
+            <Image
+              src={stay.image}
+              alt={stay.title}
+              fill
+              sizes="100vw"
+              preload
+              style={{ objectFit: "cover" }}
+            />
+          )}
         </div>
         <div className="wrap">
           <p className="kicker">{stay.kicker}</p>
@@ -230,10 +233,10 @@ export default async function StayDetail({ params, searchParams }: Props) {
                 </div>
               </Reveal>
 
-              {stay.gallery.length > 0 && (
+              {stay.gallery.filter(isDisplayableImageSrc).length > 0 && (
                 <Reveal>
                   <div className="detail-gallery">
-                    {stay.gallery.map((src, i) => (
+                    {stay.gallery.filter(isDisplayableImageSrc).map((src, i) => (
                       <div key={`${src}-${i}`} className="g">
                         <Image
                           src={src}
