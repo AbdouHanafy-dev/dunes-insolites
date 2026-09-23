@@ -135,7 +135,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
             className="btn btn-primary"
             title={pendingCount === 0 ? "Tout le monde a déjà reçu l'email" : undefined}
           >
-            📨 Envoyer l&apos;email de lancement
+            <i className="bi bi-send mr-2" aria-hidden />Envoyer l&apos;email de lancement
           </button>
         </div>
       </div>

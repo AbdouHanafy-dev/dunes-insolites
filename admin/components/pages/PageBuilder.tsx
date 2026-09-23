@@ -72,7 +72,7 @@ export default function PageBuilder({
           <div key={index} className="overflow-hidden rounded-xl border border-navy-700/10 bg-white">
             <div className="flex items-center gap-3 px-4 py-3">
               <span className="text-navy-700/25">⋮⋮</span>
-              <span className="text-lg">{def?.icon ?? "🧩"}</span>
+              <i className={`bi ${def?.icon ?? "bi-boxes"} text-lg`} aria-hidden />
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-navy-700/40">
                   {def?.label ?? block.type}
@@ -89,7 +89,7 @@ export default function PageBuilder({
                   className="h-7 w-7 rounded-md text-navy-700/50 hover:bg-navy-700/8 disabled:opacity-25"
                   title="Monter"
                 >
-                  ↑
+                  <i className="bi bi-arrow-up" aria-hidden />
                 </button>
                 <button
                   type="button"
@@ -98,7 +98,7 @@ export default function PageBuilder({
                   className="h-7 w-7 rounded-md text-navy-700/50 hover:bg-navy-700/8 disabled:opacity-25"
                   title="Descendre"
                 >
-                  ↓
+                  <i className="bi bi-arrow-down" aria-hidden />
                 </button>
                 <button
                   type="button"
@@ -147,7 +147,7 @@ export default function PageBuilder({
               onClick={() => addBlock(bt.type)}
               className="flex items-center gap-2 rounded-lg border border-navy-700/15 px-3 py-2 text-sm text-navy-700 hover:border-gold/50 hover:bg-gold/8"
             >
-              <span>{bt.icon}</span> {bt.label}
+              <i className={`bi ${bt.icon}`} aria-hidden /> {bt.label}
             </button>
           ))}
           <button

@@ -17,7 +17,7 @@ export default function RootError({ error, reset }: { error: Error & { digest?: 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
       <div className="card max-w-sm rounded-2xl p-8 text-center">
-        <p className="text-4xl">⚠️</p>
+        <p className="text-4xl text-gold"><i className="bi bi-exclamation-triangle" aria-hidden /></p>
         <h1 className="mt-3 text-lg font-bold text-navy-800">Une erreur est survenue</h1>
         <p className="mt-1.5 text-sm text-navy-700/60">
           Cet écran a rencontré un problème. Vous pouvez réessayer, ou retourner au tableau de bord.

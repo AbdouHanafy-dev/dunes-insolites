@@ -14,6 +14,7 @@ import type { FieldDef } from "@/components/payload/fields";
 export type BlockTypeDef = {
   type: string;
   label: string;
+  /** Bootstrap Icons class name. */
   icon: string;
   fields: FieldDef[];
   /** Which key in the block's data holds the human title shown on the collapsed card. */
@@ -24,7 +25,7 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "hero",
     label: "Hero",
-    icon: "🖼️",
+    icon: "bi-card-image",
     titleKey: "title",
     fields: [
       { type: "text", key: "title", label: "Titre", required: true },
@@ -37,7 +38,7 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "richText",
     label: "Texte riche",
-    icon: "📝",
+    icon: "bi-text-paragraph",
     titleKey: "heading",
     fields: [
       { type: "text", key: "heading", label: "Titre de section (optionnel)" },
@@ -47,7 +48,7 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "cta",
     label: "Appel à l'action",
-    icon: "📣",
+    icon: "bi-megaphone",
     titleKey: "title",
     fields: [
       { type: "text", key: "title", label: "Titre", required: true },
@@ -58,7 +59,7 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "faq",
     label: "FAQ",
-    icon: "❓",
+    icon: "bi-question-circle",
     titleKey: "question",
     fields: [
       { type: "text", key: "question", label: "Question", required: true },
@@ -68,19 +69,19 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "accommodationShowcase",
     label: "Vitrine hébergements",
-    icon: "🏕️",
+    icon: "bi-house-heart",
     fields: [], // rendered specially in PageBuilder.tsx with a real TourType picker
   },
   {
     type: "blockReference",
     label: "Bloc réutilisable",
-    icon: "🧩",
+    icon: "bi-boxes",
     fields: [], // rendered specially in BlockFieldsEditor.tsx with a picker over /api/content-blocks
   },
   {
     type: "steps",
     label: "Étapes (« Comment ça marche »)",
-    icon: "🔢",
+    icon: "bi-list-ol",
     titleKey: "eyebrow",
     fields: [
       { type: "text", key: "eyebrow", label: "Kicker" },
@@ -99,7 +100,7 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "bookDirect",
     label: "Réservez en direct",
-    icon: "💶",
+    icon: "bi-currency-euro",
     titleKey: "eyebrow",
     // Deliberately no field for the discount percentage or its headline -
     // that figure is tied to the real prices in the catalogue (see
@@ -123,7 +124,7 @@ export const BLOCK_TYPES: BlockTypeDef[] = [
   {
     type: "team",
     label: "Équipe",
-    icon: "🧑‍🤝‍🧑",
+    icon: "bi-people",
     titleKey: "heading",
     fields: [
       { type: "text", key: "heading", label: "Titre de la section" },

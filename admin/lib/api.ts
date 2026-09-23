@@ -42,7 +42,14 @@ export function getDashboardStats(accessToken: string, period = 30): Promise<Das
   );
 }
 
-export type AdminReservationLine = { name: string; totalPrice: number };
+export type AdminReservationLine = {
+  name: string;
+  totalPrice: number;
+  // Present on stay lines (ReservationTourTypeResponse) - needed to re-submit
+  // the line when the party size is edited.
+  catalogTourTypeId?: string;
+  activityDate?: string | null;
+};
 
 export type AdminReservation = {
   reservationId: string;

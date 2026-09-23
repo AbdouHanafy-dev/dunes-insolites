@@ -281,7 +281,7 @@ export default function NewReservationForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex max-w-3xl flex-col gap-6">
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold text-navy-800">Nouvelle réservation</h1>
         <p className="mt-1 text-sm text-navy-700/55">
@@ -309,6 +309,8 @@ export default function NewReservationForm({
         )}
       </div>
 
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="flex flex-col gap-6">
       {/* ── Client ── */}
       <section className="card rounded-2xl p-5">
         <h2 className="text-[15px] font-bold text-navy-800">Client</h2>
@@ -584,6 +586,9 @@ export default function NewReservationForm({
       </section>
       )}
 
+      </div>
+
+      <div className="flex flex-col gap-6">
       {/* ── Extras ── */}
       <section className="card rounded-2xl p-5">
         <div className="flex items-center justify-between">
@@ -661,6 +666,8 @@ export default function NewReservationForm({
         <button type="submit" disabled={busy} className="btn btn-primary">
           {busy ? "Création…" : "Créer la réservation"}
         </button>
+      </div>
+      </div>
       </div>
     </form>
   );

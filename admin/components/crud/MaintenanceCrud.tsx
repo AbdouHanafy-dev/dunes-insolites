@@ -123,7 +123,7 @@ export function MaintenanceEditor({
   // `^/.*` path validation (MaintenanceWindowRequest) as-is, no schema
   // change needed. Prepended, not mixed alphabetically into the real
   // pages, so it stays obviously distinct in the dropdown.
-  const withSiteWide = [{ value: "/*", label: "🌐 Tout le site (compte à rebours de lancement)" }, ...pageOptions];
+  const withSiteWide = [{ value: "/*", label: "Tout le site (compte à rebours de lancement)" }, ...pageOptions];
   const options =
     initialData?.path && initialData.path !== "/*" && !pageOptions.some((o) => o.value === initialData.path)
       ? [{ value: initialData.path, label: `${initialData.path} (page introuvable dans le sitemap actuel)` }, ...withSiteWide]

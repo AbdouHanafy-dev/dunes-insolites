@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getDriverProfiles, getGuideProfiles, getReservationById } from "@/lib/api";
+import { getDriverProfiles, getGuideProfiles, getReservationById, getSpokenLanguages } from "@/lib/api";
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 import ReservationStatusPanel from "@/components/payload/ReservationStatusPanel";
+import ReservationEditForm from "@/components/reservations/ReservationEditForm";
+import { isEditable, statusOf } from "@/components/reservations/reservationStatus";
 
 export const metadata: Metadata = { title: "Réservation" };
 
@@ -13,10 +15,11 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   const session = await getSession();
   if (!session) return null;
 
-  const [reservation, guideProfiles, driverProfiles] = await Promise.all([
+  const [reservation, guideProfiles, driverProfiles, languages] = await Promise.all([
     getReservationById(session.accessToken, id),
     getGuideProfiles(session.accessToken),
     getDriverProfiles(session.accessToken),
+    getSpokenLanguages(session.accessToken),
   ]);
   if (!reservation) notFound();
 
@@ -35,7 +38,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
       </div>
 
       <div className="card grid grid-cols-2 gap-4 rounded-2xl p-5 sm:grid-cols-4">
-        <Field label="Statut" value={reservation.status} />
+        <Field label="Statut" value={statusOf(reservation.status).label} />
         <Field label="Type" value={reservation.reservationType} />
         <Field label="Adultes / Enfants" value={`${reservation.numberOfAdults ?? 0} / ${reservation.numberOfChildren ?? 0}`} />
         <Field label="Montant" value={`${reservation.totalAmount} ${reservation.currency}`} />
@@ -58,11 +61,25 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         )}
       </div>
 
+      <div id="gestion" className="-mt-2 scroll-mt-20" />
+
       <ReservationStatusPanel
         reservationId={reservation.reservationId}
         status={reservation.status}
         paymentLink={reservation.paymentLink}
       />
+
+      {isEditable(reservation.status) ? (
+        <ReservationEditForm reservation={reservation} languages={languages.filter((l) => l.active)} />
+      ) : (
+        <div className="card flex items-start gap-3 rounded-2xl p-5 text-[13px] text-navy-700/70">
+          <i className="bi bi-lock mt-0.5 text-base" aria-hidden />
+          <p>
+            Cette réservation est <strong>{statusOf(reservation.status).label.toLowerCase()}</strong> : elle n&apos;est
+            plus modifiable. Seules les réservations en attente ou confirmées peuvent être éditées.
+          </p>
+        </div>
+      )}
 
       <ReservationStaffPanel
         reservationId={reservation.reservationId}

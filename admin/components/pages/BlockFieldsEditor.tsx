@@ -126,7 +126,7 @@ function BlockReferencePicker({
         <option value="">— Choisir —</option>
         {blocks.map((b) => (
           <option key={b.blockId} value={b.blockId}>
-            {blockTypeDef(b.type)?.icon} {b.label} — {blockPreviewLabel(b.type, b.dataJson)}
+            {b.label} — {blockPreviewLabel(b.type, b.dataJson)}
           </option>
         ))}
       </select>

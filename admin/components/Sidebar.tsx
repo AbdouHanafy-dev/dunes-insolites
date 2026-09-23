@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+/** icon = a Bootstrap Icons class name (font imported in app/layout.tsx). */
 type NavLink = { label: string; href: string; icon: string; soon?: boolean };
 type NavGroup = { label: string; items: NavLink[] };
 
@@ -16,64 +17,64 @@ const GROUPS: NavGroup[] = [
   {
     label: "Opérations",
     items: [
-      { label: "Nouvelle réservation", href: "/reservations/new", icon: "✦" },
-      { label: "Réservations", href: "/reservations", icon: "📅" },
-      { label: "Clients", href: "/clients", icon: "👥" },
-      { label: "Guides", href: "/guides", icon: "🧭" },
-      { label: "Chauffeurs", href: "/chauffeurs", icon: "🚗" },
-      { label: "Paiements", href: "/operations/paiements", icon: "💳" },
-      { label: "Factures", href: "/operations/factures", icon: "📄" },
-      { label: "Proformas", href: "/operations/proformas", icon: "📋" },
+      { label: "Nouvelle réservation", href: "/reservations/new", icon: "bi-plus-circle" },
+      { label: "Réservations", href: "/reservations", icon: "bi-calendar-check" },
+      { label: "Clients", href: "/clients", icon: "bi-people" },
+      { label: "Guides", href: "/guides", icon: "bi-compass" },
+      { label: "Chauffeurs", href: "/chauffeurs", icon: "bi-car-front" },
+      { label: "Paiements", href: "/operations/paiements", icon: "bi-credit-card" },
+      { label: "Factures", href: "/operations/factures", icon: "bi-receipt" },
+      { label: "Proformas", href: "/operations/proformas", icon: "bi-file-earmark-text" },
     ],
   },
   {
     label: "Catalogue",
     items: [
-      { label: "Hébergements", href: "/catalogue/hebergements", icon: "🏕️" },
-      { label: "Circuits", href: "/catalogue/tours", icon: "🗺️" },
-      { label: "Activités", href: "/catalogue/extras", icon: "➕" },
-      { label: "Véhicules & transport", href: "/catalogue/guides-transport", icon: "🚐" },
-      { label: "Langues", href: "/catalogue/langues", icon: "🌐" },
-      { label: "Disponibilités", href: "/catalogue/disponibilites", icon: "🗓️" },
+      { label: "Hébergements", href: "/catalogue/hebergements", icon: "bi-house-heart" },
+      { label: "Circuits", href: "/catalogue/tours", icon: "bi-map" },
+      { label: "Activités", href: "/catalogue/extras", icon: "bi-lightning-charge" },
+      { label: "Véhicules & transport", href: "/catalogue/guides-transport", icon: "bi-truck" },
+      { label: "Langues", href: "/catalogue/langues", icon: "bi-translate" },
+      { label: "Disponibilités", href: "/catalogue/disponibilites", icon: "bi-calendar3" },
     ],
   },
   {
     label: "Contenu",
     items: [
-      { label: "Pages", href: "/content/pages", icon: "📑" },
-      { label: "Blocs de contenu", href: "/content/blocks", icon: "🧩" },
-      { label: "Navigation", href: "/content/navigation", icon: "🔗" },
-      { label: "Médiathèque", href: "/content/media", icon: "🖼️" },
-      { label: "Galerie photos", href: "/content/gallery", icon: "🏞️" },
-      { label: "Avis clients", href: "/content/avis", icon: "⭐" },
+      { label: "Pages", href: "/content/pages", icon: "bi-files" },
+      { label: "Blocs de contenu", href: "/content/blocks", icon: "bi-boxes" },
+      { label: "Navigation", href: "/content/navigation", icon: "bi-link-45deg" },
+      { label: "Médiathèque", href: "/content/media", icon: "bi-images" },
+      { label: "Galerie photos", href: "/content/gallery", icon: "bi-image" },
+      { label: "Avis clients", href: "/content/avis", icon: "bi-star" },
     ],
   },
   {
     label: "SEO",
     items: [
-      { label: "Pages SEO", href: "/seo/pages", icon: "🔍" },
-      { label: "Redirections", href: "/seo/redirections", icon: "↪️" },
-      { label: "Sitemap", href: "/seo/sitemap", icon: "🗺️" },
-      { label: "Audit SEO", href: "/seo/audit", icon: "✅" },
-      { label: "Analytics & Search Console", href: "/seo/analytics", icon: "📈" },
+      { label: "Pages SEO", href: "/seo/pages", icon: "bi-search" },
+      { label: "Redirections", href: "/seo/redirections", icon: "bi-signpost-split" },
+      { label: "Sitemap", href: "/seo/sitemap", icon: "bi-diagram-3" },
+      { label: "Audit SEO", href: "/seo/audit", icon: "bi-clipboard-check" },
+      { label: "Analytics & Search Console", href: "/seo/analytics", icon: "bi-graph-up-arrow" },
     ],
   },
   {
     label: "Analytique",
     items: [
-      { label: "Statistiques", href: "#", icon: "📊", soon: true },
-      { label: "Revenus", href: "#", icon: "💰", soon: true },
+      { label: "Statistiques", href: "#", icon: "bi-bar-chart", soon: true },
+      { label: "Revenus", href: "#", icon: "bi-cash-coin", soon: true },
     ],
   },
   {
     label: "Administration",
     items: [
-      { label: "Utilisateurs", href: "/administration/utilisateurs", icon: "🧑‍💼" },
-      { label: "Rôles & permissions", href: "/administration/roles", icon: "🔐" },
-      { label: "Rôles personnalisés", href: "/administration/roles-personnalises", icon: "🧩" },
-      { label: "Maintenance", href: "/administration/maintenance", icon: "🚧" },
-      { label: "Newsletter", href: "/administration/newsletter", icon: "📧" },
-      { label: "Paramètres", href: "/administration/parametres", icon: "⚙️" },
+      { label: "Utilisateurs", href: "/administration/utilisateurs", icon: "bi-person-badge" },
+      { label: "Rôles & permissions", href: "/administration/roles", icon: "bi-shield-lock" },
+      { label: "Rôles personnalisés", href: "/administration/roles-personnalises", icon: "bi-boxes" },
+      { label: "Maintenance", href: "/administration/maintenance", icon: "bi-cone-striped" },
+      { label: "Newsletter", href: "/administration/newsletter", icon: "bi-envelope" },
+      { label: "Paramètres", href: "/administration/parametres", icon: "bi-gear" },
     ],
   },
 ];
@@ -105,25 +106,25 @@ export default function Sidebar({
       )}
 
       <nav
-        className={`fixed inset-y-0 left-0 z-[1000] flex flex-col border-r border-navy-700/10 bg-surface-alt shadow-[1px_0_3px_rgba(22,35,58,0.04),4px_0_24px_rgba(22,35,58,0.06)] transition-all duration-300 ${
+        className={`fixed inset-y-0 left-0 z-[1000] flex flex-col border-r border-white/5 bg-navy-950 shadow-[4px_0_24px_rgba(3,13,26,0.25)] transition-all duration-300 ${
           collapsed ? "w-16" : "w-60"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <div className="flex min-h-20 items-center justify-between gap-3 border-b border-navy-700/8 px-5 py-6">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-navy-700/15 bg-white text-base shadow-sm">
-              🏜️
+        <div className="flex min-h-20 items-center justify-between gap-2 border-b border-white/8 px-4 py-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-gold/30 bg-navy-800 text-base">
+              <i className="bi bi-brightness-alt-high text-lg leading-none text-gold" aria-hidden />
             </span>
             {!collapsed && (
-              <span className="truncate text-[15px] font-bold text-navy-800">Dunes Insolites</span>
+              <span className="whitespace-nowrap text-[14px] font-bold tracking-tight text-white">Dunes Insolites</span>
             )}
           </div>
           <button
-            className="hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-navy-700/12 bg-white text-navy-600/70 transition hover:border-gold/50 hover:text-navy-800 lg:flex"
+            className="hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-white/12 bg-white/5 text-white/60 transition hover:border-gold/50 hover:text-gold-light lg:flex"
             onClick={onToggleCollapsed}
             title={collapsed ? "Développer" : "Réduire"}
           >
-            {collapsed ? "→" : "←"}
+            <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`} aria-hidden />
           </button>
         </div>
 
@@ -133,18 +134,18 @@ export default function Sidebar({
             title="Tableau de bord"
             className={`mb-4 flex items-center gap-3 rounded-lg border-l-4 px-3 py-3.5 text-[15px] font-medium transition ${
               pathname === "/"
-                ? "border-gold bg-gold/12 text-navy-800"
-                : "border-transparent text-navy-700/65 hover:bg-white hover:text-navy-800"
+                ? "border-gold bg-gold/15 text-gold-light"
+                : "border-transparent text-white/60 hover:bg-white/8 hover:text-white"
             }`}
           >
-            <span className="w-6 flex-shrink-0 text-center text-lg">🏠</span>
+            <i className="bi bi-speedometer2 w-6 flex-shrink-0 text-center text-lg leading-none" aria-hidden />
             {!collapsed && <span className="truncate">Tableau de bord</span>}
           </Link>
 
           {GROUPS.map((group) => (
             <div key={group.label} className="mb-4">
               {!collapsed && (
-                <p className="mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-navy-700/35">
+                <p className="mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.1em] text-white/30">
                   {group.label}
                 </p>
               )}
@@ -156,13 +157,13 @@ export default function Sidebar({
                       {item.soon ? (
                         <span
                           title={`${item.label} — bientôt disponible`}
-                          className="flex cursor-not-allowed items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2.5 text-[14px] font-medium text-navy-700/28"
+                          className="flex cursor-not-allowed items-center gap-3 rounded-lg border-l-4 border-transparent px-3 py-2.5 text-[14px] font-medium text-white/25"
                         >
-                          <span className="w-6 flex-shrink-0 text-center text-base">{item.icon}</span>
+                          <i className={`bi ${item.icon} w-6 flex-shrink-0 text-center text-[17px] leading-none`} aria-hidden />
                           {!collapsed && (
                             <>
                               <span className="truncate">{item.label}</span>
-                              <span className="ml-auto rounded-full bg-navy-700/6 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-navy-700/35">
+                              <span className="ml-auto rounded-full bg-white/8 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white/35">
                                 Bientôt
                               </span>
                             </>
@@ -174,11 +175,11 @@ export default function Sidebar({
                           title={item.label}
                           className={`flex items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 text-[14px] font-medium transition ${
                             active
-                              ? "border-gold bg-gold/12 text-navy-800"
-                              : "border-transparent text-navy-700/65 hover:bg-white hover:text-navy-800"
+                              ? "border-gold bg-gold/15 text-gold-light"
+                              : "border-transparent text-white/60 hover:bg-white/8 hover:text-white"
                           }`}
                         >
-                          <span className="w-6 flex-shrink-0 text-center text-base">{item.icon}</span>
+                          <i className={`bi ${item.icon} w-6 flex-shrink-0 text-center text-[17px] leading-none`} aria-hidden />
                           {!collapsed && <span className="truncate">{item.label}</span>}
                         </Link>
                       )}
@@ -190,12 +191,12 @@ export default function Sidebar({
           ))}
         </div>
 
-        <div className="border-t border-navy-700/8 p-3">
+        <div className="border-t border-white/8 p-3">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose/25 bg-rose/8 px-4 py-3.5 text-[15px] font-semibold text-rose transition hover:border-rose/45 hover:bg-rose/14"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose/40 bg-rose/10 px-4 py-3.5 text-[15px] font-semibold text-[#f19a90] transition hover:border-rose/60 hover:bg-rose/20"
           >
-            <span>🚪</span>
+            <i className="bi bi-box-arrow-right" aria-hidden />
             {!collapsed && <span>Se déconnecter</span>}
           </button>
         </div>
