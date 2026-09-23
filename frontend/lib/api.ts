@@ -96,7 +96,17 @@ function localeQuery(locale?: string): string {
   return locale && locale !== "fr" ? `?locale=${encodeURIComponent(locale)}` : "";
 }
 
-type FetchOpts = { revalidate?: number; signal?: AbortSignal };
+type FetchOpts = {
+  revalidate?: number;
+  signal?: AbortSignal;
+  /** A 404 here is a normal, expected outcome (e.g. an optional CMS page
+   *  that hasn't been created yet), not a sign the backend is degraded —
+   *  skip the console.error noise for that one status, still log anything
+   *  else (500s, network failures) exactly as before. Callers must already
+   *  treat `empty` as a valid, non-error result for this to be correct;
+   *  see getCmsPage's own doc comment. */
+  quietOn404?: boolean;
+};
 
 /**
  * @param seed  value to serve ONLY when seed fallback is explicitly enabled
@@ -120,7 +130,9 @@ async function get<T>(
     });
     if (!res.ok) {
       if (SEED_FALLBACK_ENABLED) return seed;
-      console.error(`[lib/api] ${path} returned ${res.status} — serving unavailable state`);
+      if (!(opts.quietOn404 && res.status === 404)) {
+        console.error(`[lib/api] ${path} returned ${res.status} — serving unavailable state`);
+      }
       return empty;
     }
     return (await res.json()) as T;
@@ -169,7 +181,7 @@ export async function getCmsPage(slug: string, locale?: string): Promise<CmsPage
   return get<CmsPage | null>(
     `/public/pages/${encodeURIComponent(slug)}?locale=${loc}&companyType=DUNES_INSOLITES`,
     { seed: null, empty: null },
-    { revalidate: 300 },
+    { revalidate: 300, quietOn404: true },
   );
 }
 
