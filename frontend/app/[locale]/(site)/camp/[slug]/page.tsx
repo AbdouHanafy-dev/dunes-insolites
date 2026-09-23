@@ -142,7 +142,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
                 ))}
               </Reveal>
 
-              {stay.accommodations && (
+              {stay.accommodations && stay.accommodations.length > 0 && (
                 <Reveal className="accommodation-section">
                   <p className="sect-eyebrow">{t("chooseHowEyebrow")}</p>
                   <h2>{t("findYourStay")}</h2>

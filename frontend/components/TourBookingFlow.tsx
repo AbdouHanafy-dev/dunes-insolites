@@ -58,7 +58,6 @@ export default function TourBookingFlow({
   const [children, setChildren] = useState(0);
   const [accommodationSlug, setAccommodationSlug] = useState("");
   const [accommodationQty, setAccommodationQty] = useState(1);
-  const [fallbackAccommodations, setFallbackAccommodations] = useState<Accommodation[]>([]);
 
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
@@ -99,21 +98,6 @@ export default function TourBookingFlow({
     };
   }, [locale]);
 
-  useEffect(() => {
-    if (accommodations.length > 0) return;
-    let cancelled = false;
-    api.getStays(locale).then((stays) => {
-      if (cancelled) return;
-      const campStay = stays.find((stay) => (stay.accommodations?.length ?? 0) > 0);
-      setFallbackAccommodations(campStay?.accommodations ?? []);
-    }).catch(() => {
-      if (!cancelled) setFallbackAccommodations([]);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [accommodations, locale]);
-
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
     { id: 1, label: t("stepGuide") },
@@ -128,7 +112,7 @@ export default function TourBookingFlow({
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activity.priceFrom, 0);
-  const availableAccommodations = accommodations.length > 0 ? accommodations : fallbackAccommodations;
+  const availableAccommodations = accommodations;
   const selectedAccommodation = availableAccommodations.find((item) => item.slug === accommodationSlug);
   const accommodationTotal = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : 0;
 

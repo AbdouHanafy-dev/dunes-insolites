@@ -56,6 +56,16 @@ const fields: FieldDef[] = [
     key: "guideRequired",
     label: "Guide obligatoire — le client doit choisir un guide avant de continuer",
   },
+  {
+    type: "checkbox",
+    key: "hasAccommodationTypes",
+    label: "Types d'hébergement — le client choisit une tente, une chambre, une suite… avant de réserver",
+  },
+  {
+    type: "checkbox",
+    key: "circuitCamp",
+    label: "Camp des circuits — les circuits avec nuit au camp proposent les hébergements de ce séjour (un seul séjour à la fois)",
+  },
   { type: "checkbox", key: "isActive", label: "Actif" },
 ];
 
@@ -72,6 +82,8 @@ const emptyForm = {
   partnerChildPrice: 0,
   tva: 13,
   guideRequired: false,
+  hasAccommodationTypes: true,
+  circuitCamp: false,
   isActive: true,
   translations: {} as Record<string, CatalogTranslationForm>,
 };
@@ -113,9 +125,11 @@ export function HebergementEditor({ id, initialData }: { id?: string; initialDat
     return (
       <div className="flex flex-col gap-8">
         {translationsSection(form, patch)}
-        <div className="border-t border-navy-700/8 pt-6">
-          <AccommodationTiersManager tourTypeId={id} />
-        </div>
+        {(form.hasAccommodationTypes !== false || form.circuitCamp === true) && (
+          <div className="border-t border-navy-700/8 pt-6">
+            <AccommodationTiersManager tourTypeId={id} />
+          </div>
+        )}
       </div>
     );
   }

@@ -401,6 +401,8 @@ class PublicBookingServiceImplTest {
         when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
                         .overnightsAtCamp(true).isActive(true).build()));
+        when(tourTypeRepository.findFirstByCircuitCampTrue())
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
 
         PublicTourBookingRequest request = tourRequest("sabria-circuit");
 
@@ -418,6 +420,8 @@ class PublicBookingServiceImplTest {
         when(tourRepository.findBySlugAndIsActiveTrue("two-day-sabria-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Two-day Sabria circuit")
                         .duration("2 Jours").overnightsAtCamp(false).isActive(true).build()));
+        when(tourTypeRepository.findFirstByCircuitCampTrue())
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
 
         PublicTourBookingRequest request = tourRequest("two-day-sabria-circuit");
 
@@ -430,13 +434,75 @@ class PublicBookingServiceImplTest {
     }
 
     @Test
+    void overnightCircuitDoesNotRequireAnAccommodationWhenNoStayIsSetAsTheCircuitCamp() {
+        UUID tourId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
+                        .overnightsAtCamp(true).isActive(true).build()));
+        when(tourTypeRepository.findFirstByCircuitCampTrue()).thenReturn(Optional.empty());
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        service.createTourBooking(tourRequest("sabria-circuit"));
+
+        verify(reservationService).createReservation(any());
+    }
+
+    @Test
+    void circuitCampTiersAreUsedEvenWhenThatStayHasAccommodationTypesSwitchedOff() {
+        UUID tourId = UUID.randomUUID();
+        UUID accommodationId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
+                        .overnightsAtCamp(true).isActive(true).build()));
+        when(tourTypeRepository.findFirstByCircuitCampTrue())
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId)
+                        .circuitCamp(true).hasAccommodationTypes(false).build()));
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-room"))
+                .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
+                        .id(accommodationId).slug("desert-room").name("Desert Room")
+                        .capacity(3).active(true).unitPriceTtc(new java.math.BigDecimal("120.000")).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+        PublicTourBookingRequest request = tourRequest("sabria-circuit");
+        com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest sel =
+                new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        sel.setAccommodationSlug("desert-room");
+        sel.setQuantity(1);
+        request.setAccommodations(List.of(sel));
+
+        service.createTourBooking(request);
+
+        verify(reservationService).createReservation(any());
+    }
+
+    @Test
+    void stayWithoutAccommodationTypesRejectsATierSelectionBeforeCreatingAUser() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId)
+                        .hasAccommodationTypes(false).build()));
+        com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest sel =
+                new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        sel.setAccommodationSlug("desert-room");
+        sel.setQuantity(1);
+        PublicStayBookingRequest request = baseRequest();
+        request.setAccommodations(List.of(sel));
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("no accommodation types");
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
     void overnightCircuitMapsAccommodationTierAndQuantityToItsCampNight() {
         UUID tourId = UUID.randomUUID();
         UUID accommodationId = UUID.randomUUID();
         when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
                         .overnightsAtCamp(true).isActive(true).build()));
-        when(accommodationTypeRepository.findDistinctTourTypeIds()).thenReturn(List.of(tourTypeId));
+        when(tourTypeRepository.findFirstByCircuitCampTrue())
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-room"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(accommodationId).slug("desert-room").name("Desert Room")
@@ -471,7 +537,8 @@ class PublicBookingServiceImplTest {
         when(tourRepository.findBySlugAndIsActiveTrue("one-day-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("One-day circuit")
                         .duration("1 Jour").overnightsAtCamp(false).isActive(true).build()));
-        when(accommodationTypeRepository.findDistinctTourTypeIds()).thenReturn(List.of(tourTypeId));
+        when(tourTypeRepository.findFirstByCircuitCampTrue())
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-tent"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(accommodationId).slug("desert-tent").name("Desert Tent")

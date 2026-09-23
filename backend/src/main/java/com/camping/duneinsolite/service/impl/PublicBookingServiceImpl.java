@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -249,7 +250,10 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // form may use the same Sabria catalogue managed in the back office.
         List<PublicAccommodationSelectionRequest> requestedTourAccommodations =
                 request.getAccommodations() == null ? List.of() : request.getAccommodations();
-        boolean requiresCampAccommodation = requiresCampAccommodation(tour);
+        // The camp is the stay flagged circuit_camp in the back office. With
+        // none set there is nothing to choose, so nothing is required either.
+        Optional<TourType> circuitCamp = tourTypeRepository.findFirstByCircuitCampTrue();
+        boolean requiresCampAccommodation = requiresCampAccommodation(tour) && circuitCamp.isPresent();
         if (requiresCampAccommodation && requestedTourAccommodations.isEmpty()) {
             throw new ReservationValidationException(
                     "Choose at least one accommodation for the night at the Sabria camp.");
@@ -258,13 +262,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         List<ResolvedCampTier> resolvedCampTiers = new java.util.ArrayList<>();
         UUID campTourTypeId = null;
         if (!requestedTourAccommodations.isEmpty()) {
-            List<UUID> tourTypeIdsWithTiers = accommodationTypeRepository.findDistinctTourTypeIds();
-            if (tourTypeIdsWithTiers.size() != 1) {
-                throw new ResourceNotFoundException(
-                        "The camp's accommodation catalogue isn't configured correctly — expected exactly one "
-                                + "nuitée with tiers, found " + tourTypeIdsWithTiers.size() + ".");
-            }
-            campTourTypeId = tourTypeIdsWithTiers.get(0);
+            campTourTypeId = circuitCamp.orElseThrow(() -> new ResourceNotFoundException(
+                    "No stay is set as the circuit camp — this circuit has no accommodation to choose.")).getTourTypeId();
             for (PublicAccommodationSelectionRequest sel : requestedTourAccommodations) {
                 AccommodationType accommodation = accommodationTypeRepository
                         .findByTourTypeAndSlug(campTourTypeId, sel.getAccommodationSlug())
@@ -446,6 +445,12 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // Suites + 3 Tentes together).
         List<PublicAccommodationSelectionRequest> requestedAccommodations =
                 request.getAccommodations() == null ? List.of() : request.getAccommodations();
+        // A stay switched to "no accommodation types" in the back office is
+        // priced per person; a tier selection for it is a stale or forged
+        // request, not something to price silently.
+        if (Boolean.FALSE.equals(tourType.getHasAccommodationTypes()) && !requestedAccommodations.isEmpty()) {
+            throw new ReservationValidationException("This stay has no accommodation types to choose from.");
+        }
         record ResolvedTier(AccommodationType accommodation, int units) {}
         List<ResolvedTier> resolvedTiers = new java.util.ArrayList<>();
         for (PublicAccommodationSelectionRequest sel : requestedAccommodations) {

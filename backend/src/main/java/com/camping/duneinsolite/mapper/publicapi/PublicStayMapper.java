@@ -71,6 +71,8 @@ public class PublicStayMapper {
 
     /** Only active + priced tiers reach the vitrine — never an option we can't quote. */
     private List<PublicStayResponse.Accommodation> bookableAccommodations(TourType tourType) {
+        // Switched off in the back office: no accommodation step at all.
+        if (Boolean.FALSE.equals(tourType.getHasAccommodationTypes())) return List.of();
         return accommodationTypeRepository
                 .findByTourType_TourTypeIdOrderByDisplayOrderAsc(tourType.getTourTypeId())
                 .stream()

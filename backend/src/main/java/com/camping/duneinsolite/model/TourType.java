@@ -75,6 +75,26 @@ public class TourType {
     @Builder.Default
     private Boolean guideRequired = false;
 
+    /**
+     * Whether this nuitée offers accommodation types (Desert Tent / Room /
+     * Dune Suite ...) for the guest to pick. True by default so existing
+     * stays behave as before. When false the vitrine hides the accommodation
+     * step and the stay is priced per person, like the bivouac.
+     */
+    @Column(name = "has_accommodation_types", nullable = false)
+    @Builder.Default
+    private Boolean hasAccommodationTypes = true;
+
+    /**
+     * True on the single nuitée that is THE Sabria camp multi-day circuits
+     * sleep at: circuits read their accommodation tiers from this stay, whatever
+     * its {@link #hasAccommodationTypes}. At most one row is true (enforced by a
+     * partial unique index; TourTypeServiceImpl moves the flag).
+     */
+    @Column(name = "circuit_camp", nullable = false)
+    @Builder.Default
+    private Boolean circuitCamp = false;
+
     @Column(name = "tva", nullable = false)
     @Builder.Default
     private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;

@@ -142,6 +142,8 @@ export type Tour = {
   overnightsAtCamp?: boolean;
   /** Bookable Tent/Room/Suite tiers for that camp night. */
   accommodations?: Accommodation[];
+  /** Slug of the stay that is the circuit camp; availability for those tiers is queried against it. */
+  campStaySlug?: string | null;
   languages: string[];
   coverImage: string | null;
   gallery: string[];

@@ -34,6 +34,8 @@ public class TourTypeResponse {
     private String location;
     private Boolean isActive;
     private Boolean guideRequired;
+    private Boolean hasAccommodationTypes;
+    private Boolean circuitCamp;
     private GroupSizeType groupSizeType;
     private Set<SpokenLanguageResponse> languages;
     private CancellationPolicy cancellationPolicy;

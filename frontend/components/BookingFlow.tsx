@@ -204,7 +204,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }, []);
 
   const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
-  const campStay = stays.find((stay) => (stay.accommodations?.length ?? 0) > 0);
+  // The circuit camp is set in the back office and travels on each Tour — it
+  // never depends on which stays happen to offer accommodation types.
+  const campStaySlug = selectedTour?.campStaySlug ?? tours.find((tour) => tour.campStaySlug)?.campStaySlug ?? null;
   // Before a card is selected, keep the full stepper visible when the loaded
   // catalogue contains multi-day circuits. After selection, only that tour
   // decides whether the accommodation step applies.
@@ -214,22 +216,22 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const circuitAccommodations = selectedTour?.accommodations?.length
     ? selectedTour.accommodations
     : circuitHasCampStay
-      ? (campStay?.accommodations ?? [])
+      ? (tours.find((tour) => tour.accommodations?.length)?.accommodations ?? [])
       : [];
 
   // Stay tier + service-option availability for the chosen arrival date,
   // across the full [date, date + nights) span for multi-night stays.
   useEffect(() => {
-    const availabilityStay = category === "accommodation"
-      ? selectedStay
+    const availabilityStaySlug = category === "accommodation"
+      ? selectedStay?.slug
       : category === "circuit" && circuitHasCampStay
-        ? campStay
+        ? campStaySlug
         : null;
-    if (!availabilityStay || !date) return;
+    if (!availabilityStaySlug || !date) return;
     if (category === "accommodation" && multiNight && !departureDate) return;
     const ctrl = new AbortController();
     const availabilityNights = category === "accommodation" ? nights : 1;
-    api.getStayAvailability(availabilityStay.slug, date, availabilityNights, ctrl.signal)
+    api.getStayAvailability(availabilityStaySlug, date, availabilityNights, ctrl.signal)
       .then((data) => !ctrl.signal.aborted && setStayAvail({ forDate: date, data }))
       .catch(() => {});
     Promise.all(
@@ -238,7 +240,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       if (!ctrl.signal.aborted) setServiceAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
     }).catch(() => {});
     return () => ctrl.abort();
-  }, [category, selectedStay, circuitHasCampStay, campStay, date, departureDate, multiNight, nights, transportOptions]);
+  }, [category, selectedStay, circuitHasCampStay, campStaySlug, date, departureDate, multiNight, nights, transportOptions]);
 
   const otherActivities = activities;
   const availableAccommodations = category === "circuit" ? circuitAccommodations : (selectedStay?.accommodations ?? []);

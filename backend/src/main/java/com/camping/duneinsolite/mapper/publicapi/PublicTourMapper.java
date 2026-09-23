@@ -26,6 +26,7 @@ import java.util.Optional;
 public class PublicTourMapper {
 
     private final com.camping.duneinsolite.repository.AccommodationTypeRepository accommodationTypeRepository;
+    private final com.camping.duneinsolite.repository.TourTypeRepository tourTypeRepository;
 
     /**
      * @param locale e.g. "de"; null/"fr"/unknown all resolve to Tour's own (French) fields.
@@ -62,7 +63,9 @@ public class PublicTourMapper {
         response.setMeetingPoint(tour.getMeetingPoint());
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
         response.setOvernightsAtCamp(requiresCampAccommodation(tour));
-        response.setAccommodations(bookableCampAccommodations());
+        var camp = tourTypeRepository.findFirstByCircuitCampTrue();
+        response.setAccommodations(camp.map(this::bookableCampAccommodations).orElse(List.of()));
+        response.setCampStaySlug(camp.map(com.camping.duneinsolite.model.TourType::getSlug).orElse(null));
         response.setLanguages(tour.getLanguages() == null ? List.of()
                 : tour.getLanguages().stream().map(com.camping.duneinsolite.model.SpokenLanguage::getName).sorted().toList());
         response.setCoverImage(tour.getCoverPhotoUrl());
@@ -107,11 +110,12 @@ public class PublicTourMapper {
         return response;
     }
 
-    private List<PublicStayResponse.Accommodation> bookableCampAccommodations() {
-        List<java.util.UUID> campIds = accommodationTypeRepository.findDistinctTourTypeIds();
-        if (campIds.size() != 1) return List.of();
+    // Tiers of the stay flagged circuit_camp - independent of that stay's own
+    // hasAccommodationTypes, which only governs its own booking form.
+    private List<PublicStayResponse.Accommodation> bookableCampAccommodations(
+            com.camping.duneinsolite.model.TourType camp) {
         return accommodationTypeRepository
-                .findByTourType_TourTypeIdOrderByDisplayOrderAsc(campIds.get(0))
+                .findByTourType_TourTypeIdOrderByDisplayOrderAsc(camp.getTourTypeId())
                 .stream()
                 .filter(com.camping.duneinsolite.model.AccommodationType::isBookable)
                 .map(a -> {

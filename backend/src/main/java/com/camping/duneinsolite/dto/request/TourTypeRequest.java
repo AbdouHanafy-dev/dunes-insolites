@@ -39,6 +39,8 @@ public class TourTypeRequest {
     private String location;
     private Boolean isActive;
     private Boolean guideRequired;
+    private Boolean hasAccommodationTypes;
+    private Boolean circuitCamp;
     private GroupSizeType groupSizeType;
     private Set<UUID> languageIds;
     private CancellationPolicy cancellationPolicy;

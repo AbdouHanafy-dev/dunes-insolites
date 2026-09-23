@@ -28,6 +28,8 @@ public class PublicTourResponse {
     private Boolean overnightsAtCamp;
     /** Shared bookable Sabria tiers offered by circuit booking forms. */
     private List<PublicStayResponse.Accommodation> accommodations;
+    /** Slug of the stay that is the circuit camp (availability is queried against it); null when none is set. */
+    private String campStaySlug;
     private List<String> languages;
     private String coverImage;
     private List<String> gallery;

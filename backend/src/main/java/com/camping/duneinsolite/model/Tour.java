@@ -133,7 +133,7 @@ public class Tour {
     // the guest picks an accommodation tier (Tente/Chambre/Suite) the same
     // way a nuitée-campement guest does, reusing that catalogue's tiers
     // (there is only one physical camp). See
-    // AccommodationTypeRepository.findDistinctTourTypeIds().
+    // the stay flagged TourType.circuitCamp.
     @Column(name = "overnights_at_camp", nullable = false)
     @Builder.Default
     private Boolean overnightsAtCamp = false;

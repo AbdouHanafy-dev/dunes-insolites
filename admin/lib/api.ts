@@ -369,6 +369,10 @@ export type AdminTourType = {
   tva: number;
   isActive: boolean;
   guideRequired: boolean;
+  // false = no accommodation step on the vitrine; the stay is priced per person.
+  hasAccommodationTypes: boolean;
+  // The one stay whose tiers multi-day circuits offer for their camp night.
+  circuitCamp: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
   translations: AdminCatalogTranslation[];

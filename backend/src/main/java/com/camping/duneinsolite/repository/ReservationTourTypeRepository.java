@@ -47,11 +47,12 @@ public interface ReservationTourTypeRepository extends JpaRepository<Reservation
      * {@code existing.checkIn < requested.checkOut AND existing.checkOut > requested.checkIn}.
      */
     @Query("""
-            SELECT COALESCE(SUM(rtt.accommodationUnits), 0)
+            SELECT COALESCE(SUM(acc.accommodationUnits), 0)
             FROM ReservationTourType rtt
             JOIN rtt.reservation r
-            WHERE rtt.accommodationTypeId = :accommodationTypeId
-              AND rtt.accommodationUnits IS NOT NULL
+            JOIN rtt.accommodations acc
+            WHERE acc.accommodationTypeId = :accommodationTypeId
+              AND acc.accommodationUnits IS NOT NULL
               AND r.checkInDate < :checkOut
               AND r.checkOutDate > :checkIn
               AND (:excludeReservationId IS NULL OR r.reservationId <> :excludeReservationId)

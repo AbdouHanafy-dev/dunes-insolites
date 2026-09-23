@@ -59,7 +59,19 @@ public class TourTypeServiceImpl implements TourTypeService {
         if (tourType.getMaxNights() == null) {
             tourType.setMaxNights(1);
         }
+        // Same NOT NULL default: omitted means "offers accommodation types",
+        // which is what every stay did before this became configurable.
+        if (tourType.getHasAccommodationTypes() == null) {
+            tourType.setHasAccommodationTypes(true);
+        }
+        if (tourType.getCircuitCamp() == null) {
+            tourType.setCircuitCamp(false);
+        }
         syncTranslations(tourType, request.getTranslations());
+        // Free the single circuit-camp slot BEFORE this row is inserted as true.
+        if (Boolean.TRUE.equals(tourType.getCircuitCamp())) {
+            tourTypeRepository.clearCircuitCampExcept(UUID.randomUUID());
+        }
         return tourTypeMapper.toResponse(tourTypeRepository.save(tourType));
     }
 
@@ -83,9 +95,17 @@ public class TourTypeServiceImpl implements TourTypeService {
     @Override
     public TourTypeResponse updateTourType(UUID tourTypeId, TourTypeRequest request) {
         TourType tourType = findById(tourTypeId);
+        // Flagging this stay as the circuit camp moves the flag off the previous
+        // one. Done BEFORE the entity is mutated so no flush ever sees two true
+        // rows (unique index). Un-flagging is allowed: circuits then have no camp.
+        if (Boolean.TRUE.equals(request.getCircuitCamp())) {
+            tourTypeRepository.clearCircuitCampExcept(tourTypeId);
+        }
         Boolean previousIsActive = tourType.getIsActive();
         Boolean previousGuideRequired = tourType.getGuideRequired();
         Integer previousMaxNights = tourType.getMaxNights();
+        Boolean previousHasAccommodationTypes = tourType.getHasAccommodationTypes();
+        Boolean previousCircuitCamp = tourType.getCircuitCamp();
         tourTypeMapper.updateEntity(request, tourType);
         if (tourType.getIsActive() == null) {
             tourType.setIsActive(previousIsActive);
@@ -95,6 +115,12 @@ public class TourTypeServiceImpl implements TourTypeService {
         }
         if (tourType.getMaxNights() == null) {
             tourType.setMaxNights(previousMaxNights);
+        }
+        if (tourType.getHasAccommodationTypes() == null) {
+            tourType.setHasAccommodationTypes(previousHasAccommodationTypes);
+        }
+        if (tourType.getCircuitCamp() == null) {
+            tourType.setCircuitCamp(previousCircuitCamp);
         }
         if (request.getLanguageIds() != null) {
             tourType.setLanguages(spokenLanguageResolver.resolve(request.getLanguageIds()));

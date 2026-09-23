@@ -37,6 +37,20 @@ const nextConfig: NextConfig = {
   // direct LCP win on the hero/product images already marked `priority`.
   images: {
     formats: ["image/avif", "image/webp"],
+    // Product/CMS images are served straight from the backend's /media
+    // endpoint (apiOrigin above), not from this app — without an explicit
+    // allow-list entry next/image throws "hostname not configured" the
+    // moment an editor uploads an image from the backoffice.
+    remotePatterns: [
+      {
+        protocol: apiOrigin.startsWith("https") ? "https" : "http",
+        hostname: new URL(apiOrigin === "'self'" ? "http://localhost:8080" : apiOrigin).hostname,
+        port: new URL(apiOrigin === "'self'" ? "http://localhost:8080" : apiOrigin).port,
+        pathname: "/media/**",
+      },
+    ],
+    // Local dev only: the backend runs at localhost:8080, which resolves to
+    ...(isDev ? { dangerouslyAllowLocalIP: true } : {}),
   },
   // Lean container image for the VPS deploy — traced runtime files only,
   // rooted at the monorepo so hoisted deps + @dunes/api-types come along.
