@@ -438,6 +438,8 @@
     "summaryChildren": "{count, plural, =1 {1 bambino} other {# bambini}} × {price} €",
     "summaryNights": "{nights, plural, =1 {1 notte} other {# notti}}",
     "grandTotal": "Totale",
+    "tierPerNight": "a notte",
+    "tierUnitsLeft": "{units, plural, =1 {1 rimasto} other {# rimasti}}",
     "serviceOptionsLabel": "Opzioni di servizio",
     "reserving": "Prenotazione…",
     "reserveThisStay": "Prenota questo soggiorno",

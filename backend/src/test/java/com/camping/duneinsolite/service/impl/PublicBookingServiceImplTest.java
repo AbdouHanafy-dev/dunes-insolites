@@ -201,6 +201,35 @@ class PublicBookingServiceImplTest {
     }
 
     @Test
+    void perUnitActivitiesAreRequestedOncePerTraveler_otherUnitsStayAtOne() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID perUnitId = UUID.randomUUID();
+        UUID flatId = UUID.randomUUID();
+        when(extraRepository.findBySlugAndIsActiveTrue("camel-trek"))
+                .thenReturn(Optional.of(Extra.builder().extraId(perUnitId)
+                        .pricingUnit(com.camping.duneinsolite.model.enums.PricingUnit.PER_UNIT).build()));
+        when(extraRepository.findBySlugAndIsActiveTrue("bread-demo"))
+                .thenReturn(Optional.of(Extra.builder().extraId(flatId)
+                        .pricingUnit(com.camping.duneinsolite.model.enums.PricingUnit.PER_BOOKING).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicStayBookingRequest request = baseRequest();
+        request.setPartySize(3);
+        request.setRideSlugs(List.of("camel-trek", "bread-demo"));
+        service.createStayBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var extras = captor.getValue().getExtras();
+
+        assertThat(extras.get(0).getExtraId()).isEqualTo(perUnitId);
+        assertThat(extras.get(0).getQuantity()).isEqualTo(3);
+        assertThat(extras.get(1).getExtraId()).isEqualTo(flatId);
+        assertThat(extras.get(1).getQuantity()).isEqualTo(1);
+    }
+
+    @Test
     void accommodationChoiceResolvesToATierAndDrivesPricing_notFreeText() {
         // Phase 1: the picked tier is a real, server-priced product. It must be
         // resolved to an AccommodationType id + unit count on the selection so

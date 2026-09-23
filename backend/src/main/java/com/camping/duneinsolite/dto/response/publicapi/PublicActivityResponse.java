@@ -22,6 +22,8 @@ public class PublicActivityResponse {
     private String cardImage;
     private List<String> gallery;
     private java.math.BigDecimal priceFrom;
+    /** Back-office pricing unit (PER_UNIT, PER_PERSON, PER_DAY, PER_BOOKING, PER_VEHICLE) - lets the site estimate the same total the server charges. */
+    private String pricingUnit;
     private Integer durationMins;
     private String difficulty;
     private String groupSize;

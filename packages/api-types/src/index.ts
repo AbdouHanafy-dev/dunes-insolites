@@ -60,6 +60,8 @@ export const MAX_PARTY_SIZE = 12;
  * URLs hold the existing search rankings.
  */
 export type Activity = {
+  /** Back-office pricing unit; the booking estimate follows it (see frontend lib/activityPricing). */
+  pricingUnit?: "PER_UNIT" | "PER_PERSON" | "PER_DAY" | "PER_BOOKING" | "PER_VEHICLE";
   slug: string;
   title: string;
   kicker: string;

@@ -47,6 +47,7 @@ public class PublicActivityMapper {
         response.setCardImage(extra.getCoverPhotoUrl());
         response.setGallery(PublicCatalogText.gallery(extra.getPhotos()));
         response.setPriceFrom(extra.getUnitPrice());
+        response.setPricingUnit(extra.getPricingUnit() == null ? null : extra.getPricingUnit().name());
         response.setDurationMins(PublicCatalogText.parseDurationMinutes(extra.getDuration()));
         // No difficulty rating exists on Extra today - neutral default until modeled.
         response.setDifficulty("Moderate");

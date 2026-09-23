@@ -404,9 +404,11 @@ export default async function TourDetail({ params }: Props) {
               <small>{t("perAdultLabel")}</small>
             </div>
             <ul className="tour-booking-promises">
-              <li>{t("noPaymentTitle")}</li>
-              <li>{t("localConfirmationTitle")}</li>
-              <li>{t("whatsappSupportTitle")}</li>
+              {[t("noPaymentTitle"), t("localConfirmationTitle"), t("whatsappSupportTitle")]
+                .filter((text) => text && text.trim())
+                .map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
             </ul>
             <TourBookingFlow
               tourSlug={tour.slug}

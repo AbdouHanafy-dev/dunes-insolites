@@ -167,7 +167,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         if (!rideSlugs.isEmpty()) {
             selectedExtras.addAll(rideSlugs.stream()
                     .filter(slug -> !slug.equals(request.getActivitySlug()))
-                    .map(slug -> resolveRide(slug, request.getDate()))
+                    .map(slug -> resolveRide(slug, request.getDate(), totalHeadcount))
                     .toList());
         }
         reservationRequest.setExtras(selectedExtras);
@@ -336,7 +336,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         List<ReservationExtraRequest> selectedExtras = new java.util.ArrayList<>();
         if (!rideSlugs.isEmpty()) {
             selectedExtras.addAll(rideSlugs.stream()
-                    .map(slug -> resolveRide(slug, request.getDate()))
+                    .map(slug -> resolveRide(slug, request.getDate(),
+                            request.getNumberOfAdults() + orZero(request.getNumberOfChildren())))
                     .toList());
         }
         if (!resolvedServiceOptions.isEmpty()) {
@@ -536,7 +537,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         List<ReservationExtraRequest> selectedExtras = new java.util.ArrayList<>();
         if (!rideSlugs.isEmpty()) {
             selectedExtras.addAll(rideSlugs.stream()
-                    .map(slug -> resolveRide(slug, request.getDate()))
+                    .map(slug -> resolveRide(slug, request.getDate(), request.getPartySize()))
                     .toList());
         }
 
@@ -578,12 +579,20 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         return response;
     }
 
-    private ReservationExtraRequest resolveRide(String slug, java.time.LocalDate date) {
+    /**
+     * An add-on activity for the whole party: a per-unit activity is requested
+     * once per traveler (2 adults = 2 camel treks). The other pricing units are
+     * decided by ReservationService from the back-office setting (PER_PERSON
+     * counts the party itself, PER_BOOKING is flat, PER_DAY follows the nights),
+     * so they are requested once and never multiplied here.
+     */
+    private ReservationExtraRequest resolveRide(String slug, java.time.LocalDate date, int headcount) {
         Extra extra = extraRepository.findBySlugAndIsActiveTrue(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + slug));
         ReservationExtraRequest extraRequest = new ReservationExtraRequest();
         extraRequest.setExtraId(extra.getExtraId());
-        extraRequest.setQuantity(1);
+        extraRequest.setQuantity(extra.getPricingUnit() == com.camping.duneinsolite.model.enums.PricingUnit.PER_UNIT
+                ? Math.max(headcount, 1) : 1);
         extraRequest.setActivityDate(date);
         return extraRequest;
     }

@@ -3018,3 +3018,108 @@ footer.site-footer.pro-footer .bar a:hover {
   .drawer-sub,
   .drawer-group-toggle .drawer-row-chevron { transition: none; }
 }
+
+/* ---- Accommodation-type cards, shared by every booking form ------------- */
+.acc-cards { display: flex; flex-direction: column; gap: 12px; }
+
+.acc-card {
+  border: 1px solid rgba(42, 21, 16, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.acc-card:hover { border-color: rgba(160, 74, 47, 0.45); }
+.acc-card[data-selected] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(160, 74, 47, 0.28);
+  background: rgba(160, 74, 47, 0.05);
+}
+.acc-card[data-disabled] { opacity: 0.55; }
+.acc-card[data-disabled] .acc-card-main { cursor: not-allowed; }
+
+.acc-card-main {
+  display: grid;
+  grid-template-columns: 18px 104px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 14px;
+  cursor: pointer;
+}
+.acc-card-main input {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+.acc-card-thumb {
+  position: relative;
+  display: block;
+  width: 104px;
+  height: 84px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--journal-paper-deep, #e7dfd2);
+}
+.acc-card-thumb img { object-fit: cover; }
+
+.acc-card-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.acc-card-copy strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.acc-card-sleeps { color: var(--accent); font-size: 0.82rem; font-weight: 600; }
+.acc-card-desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: rgba(42, 21, 16, 0.72);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* the price is its own column on the right, never squeezed into the text */
+.acc-card-price {
+  display: flex;
+  min-width: 78px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: end;
+}
+.acc-card-price b { font-size: 1.15rem; font-weight: 700; line-height: 1.1; color: var(--accent); }
+.acc-card-price small { color: var(--muted); font-size: 0.78rem; }
+.acc-card-price em { color: var(--accent); font-size: 0.78rem; font-style: normal; font-weight: 600; }
+
+.acc-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px 12px 46px;
+}
+.acc-card-details {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.acc-card-details:hover { text-decoration: underline; }
+
+@media (max-width: 520px) {
+  .acc-card-main { grid-template-columns: 18px 76px minmax(0, 1fr); gap: 10px; }
+  .acc-card-thumb { width: 76px; height: 64px; }
+  .acc-card-price {
+    grid-column: 2 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 6px;
+    text-align: start;
+  }
+  .acc-card-foot { padding-inline-start: 14px; }
+}

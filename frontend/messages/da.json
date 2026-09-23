@@ -438,6 +438,8 @@
     "summaryChildren": "{count, plural, =1 {1 barn} other {# børn}} × {price} €",
     "summaryNights": "{nights, plural, =1 {1 nat} other {# nætter}}",
     "grandTotal": "I alt",
+    "tierPerNight": "pr. nat",
+    "tierUnitsLeft": "{units, plural, =1 {1 tilbage} other {# tilbage}}",
     "serviceOptionsLabel": "Servicevalg",
     "reserving": "Reserverer…",
     "reserveThisStay": "Reservér dette ophold",

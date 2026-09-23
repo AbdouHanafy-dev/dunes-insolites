@@ -144,11 +144,21 @@ export default async function StayDetail({ params, searchParams }: Props) {
 
             <p className="tour-product-lead">{stay.tagline}</p>
 
-            <div className="tour-essentials" aria-label={t("goodToKnow")}>
-              <div><small>{t("groupSize")}</small><strong>{stay.groupSize}</strong></div>
-              <div><small>{t("checkInLabel")}</small><strong>{stay.arrivalTime}</strong></div>
-              <div><small>{t("checkOutLabel")}</small><strong>{stay.departureTime}</strong></div>
-            </div>
+            {(() => {
+              const essentials = [
+                { label: t("groupSize"), value: stay.groupSize },
+                { label: t("checkInLabel"), value: stay.arrivalTime },
+                { label: t("checkOutLabel"), value: stay.departureTime },
+              ].filter((item) => item.value && item.value.trim());
+              if (essentials.length === 0) return null;
+              return (
+                <div className="tour-essentials" aria-label={t("goodToKnow")}>
+                  {essentials.map((item) => (
+                    <div key={item.label}><small>{item.label}</small><strong>{item.value}</strong></div>
+                  ))}
+                </div>
+              );
+            })()}
 
             <div>
               <Reveal className="prose">
@@ -281,10 +291,16 @@ export default async function StayDetail({ params, searchParams }: Props) {
               </small>
             </div>
             <ul className="tour-booking-promises">
-              {!hasTiers && !sameRate && <li>€{childRate} {t("perChildPerNight")}</li>}
-              <li>{stay.groupSize}</li>
-              <li>{t("sabriaCamp")}</li>
-              <li>{maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight")}</li>
+              {[
+                !hasTiers && !sameRate ? `€${childRate} ${t("perChildPerNight")}` : "",
+                stay.groupSize,
+                t("sabriaCamp"),
+                maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight"),
+              ]
+                .filter((text) => text && text.trim())
+                .map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
             </ul>
             <StayReservationForm
               stay={stay}

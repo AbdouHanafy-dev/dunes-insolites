@@ -1,15 +1,21 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { Language } from "@/lib/api";
-import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
+import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
-import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import AccommodationPicker from "@/components/booking/AccommodationPicker";
+import GuestPicker from "@/components/booking/GuestPicker";
+import LanguageChips from "@/components/booking/LanguageChips";
+import PhoneInput from "@/components/PhoneInput";
+import { type Country } from "react-phone-number-input";
+import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
+import { composePhone } from "@/lib/phone";
+import { activityQuantity, activityTotal } from "@/lib/activityPricing";
 import { localizedLanguageName } from "@/lib/languageFlags";
 
 function todayISO(): string {
@@ -56,6 +62,7 @@ export default function TourBookingFlow({
   const t = useTranslations("tourBookingForm");
   const ts = useTranslations("stayReservationForm");
   const ta = useTranslations("authForm");
+  const tb = useTranslations("bookingFlow");
   const toast = useToast();
   const locale = useLocale();
   const [step, setStep] = useState(0);
@@ -78,6 +85,7 @@ export default function TourBookingFlow({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState<Country>(() => (DEFAULT_COUNTRY_BY_LOCALE[locale] ?? "TN") as Country);
   const [languages, setLanguages] = useState<Language[]>([]);
   const [preferredLanguageIds, setPreferredLanguageIds] = useState<string[]>([]);
   const [otherLanguageRequested, setOtherLanguageRequested] = useState("");
@@ -117,7 +125,7 @@ export default function TourBookingFlow({
 
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
-    .reduce((sum, activity) => sum + activity.priceFrom, 0);
+    .reduce((sum, activity) => sum + activityTotal(activity, adults + children), 0);
   const availableAccommodations = accommodations;
   const selectedAccommodation = availableAccommodations.find((item) => item.slug === accommodationSlug);
   const accommodationTotal = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : 0;
@@ -197,7 +205,7 @@ export default function TourBookingFlow({
       otherLanguageRequested: otherLanguageRequested.trim() || undefined,
       name,
       email,
-      phone,
+      phone: composePhone(phoneCountry, phone),
       notes: notes.trim() || undefined,
       idempotencyKey: idempotencyKeyRef.current,
       acceptedTerms,
@@ -292,28 +300,15 @@ export default function TourBookingFlow({
             {errors.date && <span className="err">{errors.date}</span>}
           </div>
 
-          <div className="tour-book-guests">
-            <div className="guest-row field" data-invalid={!!errors.adults}>
-              <div>
-                <label>{t("adultsLabel")}</label>
-                {errors.adults && <span className="err">{errors.adults}</span>}
-              </div>
-              <div className="guest-stepper">
-                <button type="button" aria-label={`− ${t("adultsLabel")}`} onClick={() => setAdults((value) => Math.max(1, value - 1))} disabled={adults <= 1}>−</button>
-                <output aria-live="polite">{adults}</output>
-                <button type="button" aria-label={`+ ${t("adultsLabel")}`} onClick={() => setAdults((value) => Math.min(MAX_PARTY_SIZE, value + 1))} disabled={adults >= MAX_PARTY_SIZE}>+</button>
-              </div>
-            </div>
-
-            <div className="guest-row field">
-              <label>{t("childrenLabel")}</label>
-              <div className="guest-stepper">
-                <button type="button" aria-label={`− ${t("childrenLabel")}`} onClick={() => setChildren((value) => Math.max(0, value - 1))} disabled={children <= 0}>−</button>
-                <output aria-live="polite">{children}</output>
-                <button type="button" aria-label={`+ ${t("childrenLabel")}`} onClick={() => setChildren((value) => Math.min(MAX_PARTY_SIZE, value + 1))} disabled={children >= MAX_PARTY_SIZE}>+</button>
-              </div>
-            </div>
-          </div>
+          <GuestPicker
+            adults={adults}
+            kids={children}
+            error={errors.adults}
+            onChange={(a, c) => {
+              setAdults(a);
+              setChildren(c);
+            }}
+          />
         </div>
       )}
 
@@ -322,64 +317,21 @@ export default function TourBookingFlow({
         <div className="field" data-invalid={!!errors.accommodation}>
           <label>{t("chooseAccommodation")}</label>
           <p className="hint">{t("chooseAccommodationHint")}</p>
-          {availableAccommodations.length > 0 ? (
-            <>
-              <div className="ride-options">
-                {availableAccommodations.map((item) => {
-                  const isSelected = accommodationSlug === item.slug;
-                  return (
-                    <div key={item.slug}>
-                      <label className="ride-option">
-                        <input
-                          type="radio"
-                          name="tourAccommodation"
-                          checked={isSelected}
-                          onChange={() => {
-                            setAccommodationSlug(item.slug);
-                            setAccommodationQty(1);
-                          }}
-                        />
-                        {isDisplayableImageSrc(item.image) && (
-                          <span
-                            aria-hidden="true"
-                            style={{ position: "relative", width: 88, height: 88, flex: "0 0 88px", borderRadius: 8, overflow: "hidden" }}
-                          >
-                            <Image src={item.image} alt="" fill sizes="88px" style={{ objectFit: "cover" }} />
-                          </span>
-                        )}
-                        <span>
-                          <strong>{item.title}</strong>
-                          {item.sleeps && <small>{item.sleeps}</small>}
-                          {(item.tagline || item.description) && (
-                            <small style={{ display: "block", marginTop: 4 }}>{item.tagline || item.description}</small>
-                          )}
-                        </span>
-                        <span className="ride-price">{t("accommodationPrice", { price: item.priceFrom })}</span>
-                      </label>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "0 16px 12px" }}>
-                        {campStaySlug && (
-                          <Link
-                            href={`/camp/${campStaySlug}/${item.slug}`}
-                            target="_blank"
-                            className="pick-details-link"
-                            style={{ position: "static" }}
-                          >
-                            {t("viewDetails")}
-                          </Link>
-                        )}
-                        {isSelected && (
-                          <div className="guest-stepper">
-                            <button type="button" aria-label={`− ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((value) => Math.max(1, value - 1))} disabled={accommodationQty <= 1}>−</button>
-                            <output aria-live="polite">{accommodationQty}</output>
-                            <button type="button" aria-label={`+ ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((value) => value + 1)}>+</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+{availableAccommodations.length > 0 ? (
+            <AccommodationPicker
+              name="tourAccommodation"
+              mode="single"
+              items={availableAccommodations}
+              selections={accommodationSlug ? { [accommodationSlug]: accommodationQty } : {}}
+              onChange={(next) => {
+                const first = Object.entries(next)[0];
+                if (first) {
+                  setAccommodationSlug(first[0]);
+                  setAccommodationQty(first[1]);
+                }
+              }}
+              detailsHref={(slug) => (campStaySlug ? `/camp/${campStaySlug}/${slug}` : null)}
+            />
           ) : (
             <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
           )}
@@ -392,17 +344,7 @@ export default function TourBookingFlow({
         <div className="field" data-invalid={!!errors.language}>
           <label>{t("preferredLanguageLabel")}</label>
           <p className="hint">{t("preferredLanguageHint")}</p>
-          {languages.length > 0 && (
-            <div className="ride-options">
-              {languages.map((language) => (
-                  <label key={language.id} className="ride-option">
-                    <input type="checkbox" checked={preferredLanguageIds.includes(language.id)} onChange={() => toggleLanguage(language.id)} />
-                    <span>{localizedLanguageName(locale, language.name)}</span>
-                    <span className="ride-price">€0</span>
-                  </label>
-              ))}
-            </div>
-          )}
+<LanguageChips languages={languages} selectedIds={preferredLanguageIds} onToggle={toggleLanguage} />
           <input
             className="tour-other-language"
             placeholder={t("otherLanguagePlaceholder")}
@@ -537,7 +479,7 @@ export default function TourBookingFlow({
 
             <div className="field" data-invalid={!!errors.phone}>
               <label htmlFor="tf-phone">{t("phone")}</label>
-              <input id="tf-phone" type="tel" value={phone} autoComplete="tel" onChange={(e) => setPhone(e.target.value)} />
+              <PhoneInput id="tf-phone" country={phoneCountry} onCountryChange={setPhoneCountry} value={phone} onChange={setPhone} invalid={!!errors.phone} searchPlaceholder={tb("phoneSearchPlaceholder")} />
               {errors.phone && <span className="err">{errors.phone}</span>}
             </div>
 
@@ -601,7 +543,7 @@ export default function TourBookingFlow({
                 <span>
                   {activities
                     .filter((a) => rideSlugs.includes(a.slug))
-                    .map((a) => `${a.title} — €${a.priceFrom}`)
+                    .map((a) => `${a.title} — €${activityTotal(a, adults + children)}`)
                     .join(", ")}
                 </span>
               </div>
@@ -610,7 +552,7 @@ export default function TourBookingFlow({
               <div className="row">
                 <span className="k">{t("contactLabel")}</span>
                 <span>
-                  {email} · {phone}
+                  {email} · {composePhone(phoneCountry, phone)}
                 </span>
               </div>
             )}
@@ -649,8 +591,11 @@ export default function TourBookingFlow({
             )}
             {activities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
               <div className="row" key={a.slug}>
-                <span className="k">{a.title}</span>
-                <span>€{a.priceFrom}</span>
+                <span className="k">
+                  {a.title}
+                  {activityQuantity(a, adults + children) > 1 ? ` × ${activityQuantity(a, adults + children)}` : ""}
+                </span>
+                <span>€{activityTotal(a, adults + children)}</span>
               </div>
             ))}
             <div className="row total">

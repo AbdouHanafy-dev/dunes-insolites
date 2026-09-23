@@ -8,10 +8,13 @@ import * as api from "@/lib/api";
 import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, StayAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import AccommodationPicker from "@/components/booking/AccommodationPicker";
+import GuestPicker from "@/components/booking/GuestPicker";
+import LanguageChips from "@/components/booking/LanguageChips";
+import { activityQuantity, activityTotal } from "@/lib/activityPricing";
 import DateRangePicker from "@/components/DateRangePicker";
 import ListSelect from "@/components/ListSelect";
-import { isoForLanguage, localizedLanguageName } from "@/lib/languageFlags";
-import CountryFlag from "@/components/CountryFlag";
+import { localizedLanguageName } from "@/lib/languageFlags";
 import PhoneInput from "@/components/PhoneInput";
 import { getCountryCallingCode, type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
@@ -19,7 +22,6 @@ import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import {
   DEPARTURE_CITIES,
   DEPARTURE_CITY_LABELS,
-  MAX_PARTY_SIZE,
   type Activity,
   type DepartureCity,
   type Stay,
@@ -290,7 +292,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     return selectedStay?.priceFrom ?? 0;
   })();
 
-  const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + a.priceFrom, 0);
+  const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + activityTotal(a, partySize, nights), 0);
 
   const circuitTotal = selectedTour
     ? selectedTour.passengerAdultPrice * adults + selectedTour.passengerChildPrice * children
@@ -770,27 +772,15 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             <DatePicker id="bf-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
             {errors.date && <span className="err">{errors.date}</span>}
           </div>
-          <div className="tour-book-guests">
-            <div className="guest-row field" data-invalid={!!errors.adults}>
-              <div>
-                <label>{t("adultsLabel")}</label>
-                {errors.adults && <span className="err">{errors.adults}</span>}
-              </div>
-              <div className="guest-stepper">
-                <button type="button" aria-label={`− ${t("adultsLabel")}`} onClick={() => setAdults((v) => Math.max(1, v - 1))} disabled={adults <= 1}>−</button>
-                <output aria-live="polite">{adults}</output>
-                <button type="button" aria-label={`+ ${t("adultsLabel")}`} onClick={() => setAdults((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={adults >= MAX_PARTY_SIZE}>+</button>
-              </div>
-            </div>
-            <div className="guest-row field">
-              <label>{t("childrenLabel")}</label>
-              <div className="guest-stepper">
-                <button type="button" aria-label={`− ${t("childrenLabel")}`} onClick={() => setChildren((v) => Math.max(0, v - 1))} disabled={children <= 0}>−</button>
-                <output aria-live="polite">{children}</output>
-                <button type="button" aria-label={`+ ${t("childrenLabel")}`} onClick={() => setChildren((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={children >= MAX_PARTY_SIZE}>+</button>
-              </div>
-            </div>
-          </div>
+          <GuestPicker
+            adults={adults}
+            kids={children}
+            error={errors.adults}
+            onChange={(a, c) => {
+              setAdults(a);
+              setChildren(c);
+            }}
+          />
         </div>
       )}
 
@@ -799,68 +789,22 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <div className="field" data-invalid={!!errors.accommodation}>
           <label>{t("chooseAccommodation")}</label>
           <p className="hint">{t("chooseAccommodationHint")}</p>
-          {circuitAccommodations.length > 0 ? (
-            <>
-              <div className="ride-options">
-                {circuitAccommodations.map((a) => {
-                  const soldOut = tierSoldOut(a.slug);
-                  const isSelected = accommodationSlug === a.slug;
-                  return (
-                    <div key={a.slug}>
-                      <label className="ride-option" data-disabled={soldOut || undefined}>
-                        <input
-                          type="radio"
-                          name="circuitAccommodation"
-                          checked={isSelected}
-                          disabled={soldOut}
-                          onChange={() => {
-                            setAccommodationSlug(a.slug);
-                            setAccommodationQty(1);
-                          }}
-                        />
-                        {isDisplayableImageSrc(a.image) && (
-                          <span
-                            aria-hidden="true"
-                            style={{ position: "relative", width: 88, height: 88, flex: "0 0 88px", borderRadius: 8, overflow: "hidden" }}
-                          >
-                            <Image src={a.image} alt="" fill sizes="88px" style={{ objectFit: "cover" }} />
-                          </span>
-                        )}
-                        <span>
-                          <strong>{a.title}</strong>
-                          {a.sleeps && <small>{a.sleeps}</small>}
-                          {(a.tagline || a.description) && (
-                            <small style={{ display: "block", marginTop: 4 }}>{a.tagline || a.description}</small>
-                          )}
-                        </span>
-                        <span className="ride-price">
-                          {soldOut ? ts("soldOutForDate") : t("accommodationPrice", { price: a.priceFrom })}
-                        </span>
-                      </label>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "0 16px 12px" }}>
-                        {campStaySlug && (
-                          <Link
-                            href={`/camp/${campStaySlug}/${a.slug}`}
-                            target="_blank"
-                            className="pick-details-link"
-                            style={{ position: "static" }}
-                          >
-                            {tb("viewDetails")}
-                          </Link>
-                        )}
-                        {isSelected && (
-                          <div className="guest-stepper">
-                            <button type="button" aria-label={`− ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
-                            <output aria-live="polite">{accommodationQty}</output>
-                            <button type="button" aria-label={`+ ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
+{circuitAccommodations.length > 0 ? (
+            <AccommodationPicker
+              name="circuitAccommodation"
+              mode="single"
+              items={circuitAccommodations}
+              selections={accommodationSlug ? { [accommodationSlug]: accommodationQty } : {}}
+              onChange={(next) => {
+                const first = Object.entries(next)[0];
+                if (first) {
+                  setAccommodationSlug(first[0]);
+                  setAccommodationQty(first[1]);
+                }
+              }}
+              availability={tierAvailability}
+              detailsHref={(slug) => (campStaySlug ? `/camp/${campStaySlug}/${slug}` : null)}
+            />
           ) : (
             <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
           )}
@@ -873,27 +817,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <div className="field" data-invalid={!!errors.language}>
           <label>{t("preferredLanguageLabel")}</label>
           <p className="hint">{t("preferredLanguageHint")}</p>
-          {languages.length > 0 && (
-            <div className="language-list">
-              {languages.map((language) => {
-                const selected = preferredLanguageIds.includes(language.id);
-                const iso = isoForLanguage(language.name);
-                return (
-                  <button
-                    key={language.id}
-                    type="button"
-                    className="language-chip"
-                    aria-pressed={selected}
-                    onClick={() => toggleLanguage(language.id)}
-                  >
-                    {iso ? <CountryFlag iso={iso} className="language-flag" /> : <span className="language-flag" aria-hidden="true">🌐</span>}
-                    <span className="language-name">{localizedLanguageName(locale, language.name)}</span>
-                    {selected && <span className="language-check" aria-hidden="true">✓</span>}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+<LanguageChips languages={languages} selectedIds={preferredLanguageIds} onToggle={toggleLanguage} />
           <input className="tour-other-language" placeholder={t("otherLanguagePlaceholder")} value={otherLanguageRequested} onChange={(e) => setOtherLanguageRequested(e.target.value)} />
           {errors.language && <span className="err">{errors.language}</span>}
         </div>
@@ -1007,27 +931,15 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             </>
           )}
 
-          <div className="tour-book-guests">
-            <div className="guest-row field" data-invalid={!!errors.adults}>
-              <div>
-                <label>{ts("adults")}</label>
-                {errors.adults && <span className="err">{errors.adults}</span>}
-              </div>
-              <div className="guest-stepper">
-                <button type="button" aria-label={`− ${ts("adults")}`} onClick={() => setAdults((v) => Math.max(1, v - 1))} disabled={adults <= 1}>−</button>
-                <output aria-live="polite">{adults}</output>
-                <button type="button" aria-label={`+ ${ts("adults")}`} onClick={() => setAdults((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={adults >= MAX_PARTY_SIZE}>+</button>
-              </div>
-            </div>
-            <div className="guest-row field">
-              <label>{ts("children")}</label>
-              <div className="guest-stepper">
-                <button type="button" aria-label={`− ${ts("children")}`} onClick={() => setChildren((v) => Math.max(0, v - 1))} disabled={children <= 0}>−</button>
-                <output aria-live="polite">{children}</output>
-                <button type="button" aria-label={`+ ${ts("children")}`} onClick={() => setChildren((v) => Math.min(MAX_PARTY_SIZE, v + 1))} disabled={children >= MAX_PARTY_SIZE}>+</button>
-              </div>
-            </div>
-          </div>
+          <GuestPicker
+            adults={adults}
+            kids={children}
+            error={errors.adults}
+            onChange={(a, c) => {
+              setAdults(a);
+              setChildren(c);
+            }}
+          />
         </div>
       )}
 
@@ -1037,52 +949,21 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           {selectedStay && selectedStay.accommodations && selectedStay.accommodations.length > 0 ? (
             <>
               <p className="hint">{ts("chooseCamp")}</p>
-              <div className="ride-options">
-                {selectedStay.accommodations.map((a) => {
-                  const soldOut = tierSoldOut(a.slug);
-                  const isSelected = accommodationSlug === a.slug;
-                  return (
-                    <div key={a.slug}>
-                      <label className="ride-option" data-disabled={soldOut || undefined}>
-                        <input
-                          type="radio"
-                          name="stayAccommodation"
-                          checked={isSelected}
-                          disabled={soldOut}
-                          onChange={() => {
-                            setAccommodationSlug(a.slug);
-                            setAccommodationQty(1);
-                          }}
-                        />
-                        <span>
-                          <strong>{a.title}</strong>
-                          {a.sleeps && <small>{a.sleeps}</small>}
-                        </span>
-                        <span className="ride-price">
-                          {soldOut ? ts("soldOutForDate") : ts("fromPrice", { price: a.priceFrom })}
-                        </span>
-                      </label>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "0 16px 12px" }}>
-                        <Link
-                          href={`/camp/${selectedStay.slug}/${a.slug}`}
-                          target="_blank"
-                          className="pick-details-link"
-                          style={{ position: "static" }}
-                        >
-                          {tb("viewDetails")}
-                        </Link>
-                        {isSelected && (
-                          <div className="guest-stepper">
-                            <button type="button" aria-label={`− ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
-                            <output aria-live="polite">{accommodationQty}</output>
-                            <button type="button" aria-label={`+ ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <AccommodationPicker
+                name="stayAccommodation"
+                mode="single"
+                items={selectedStay.accommodations}
+                selections={accommodationSlug ? { [accommodationSlug]: accommodationQty } : {}}
+                onChange={(next) => {
+                  const first = Object.entries(next)[0];
+                  if (first) {
+                    setAccommodationSlug(first[0]);
+                    setAccommodationQty(first[1]);
+                  }
+                }}
+                availability={tierAvailability}
+                detailsHref={(slug) => `/camp/${selectedStay.slug}/${slug}`}
+              />
               {errors.accommodation && <div className="alert">{errors.accommodation}</div>}
             </>
           ) : (
@@ -1243,7 +1124,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             {rideSlugs.length > 0 && (
               <div className="row">
                 <span className="k">{t("reviewExtrasLabel")}</span>
-                <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title} — €${a.priceFrom}`).join(", ")}</span>
+                <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title} — €${activityTotal(a, partySize, nights)}`).join(", ")}</span>
               </div>
             )}
             {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {composePhone()}</span></div>}
@@ -1276,7 +1157,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               </div>
             )}
             {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
-              <div className="row" key={a.slug}><span>{a.title}</span><span>€{a.priceFrom}</span></div>
+              <div className="row" key={a.slug}><span>{a.title}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>€{activityTotal(a, partySize, nights)}</span></div>
             ))}
             <div className="row total"><span>{t("totalLabel")}</span><span>€{circuitTotal + circuitAccommodationTotal + extrasTotal}</span></div>
           </div>
@@ -1368,7 +1249,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `€${optionPrice(selectedTransport)}`}</span></div>
             )}
             {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
-              <div className="row" key={a.slug}><span>{a.title}</span><span>€{a.priceFrom}</span></div>
+              <div className="row" key={a.slug}><span>{a.title}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>€{activityTotal(a, partySize, nights)}</span></div>
             ))}
             <div className="row total"><span>{ts("grandTotal")}</span><span>€{stayTotal + extrasTotal + serviceTotal}</span></div>
           </div>
