@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 /**
  * Redesigned (visual identity pass, 14 Sep 2026 — see
@@ -46,13 +47,15 @@ export default async function Stays() {
 
         <Reveal className="stay-feature">
           <div className="stay-feature-media">
-            <Image
-              src={featured.image}
-              alt={featured.tagline}
-              fill
-              sizes="(max-width: 900px) 100vw, 56vw"
-              style={{ objectFit: "cover" }}
-            />
+            {isDisplayableImageSrc(featured.image) && (
+              <Image
+                src={featured.image}
+                alt={featured.tagline}
+                fill
+                sizes="(max-width: 900px) 100vw, 56vw"
+                style={{ objectFit: "cover" }}
+              />
+            )}
           </div>
           <div className="stay-feature-body">
             <span className="idx-label">01 / {featured.kicker}</span>
@@ -83,13 +86,15 @@ export default async function Stays() {
                 <Link href={`/camp/${stay.slug}`} className="stay-row">
                   <span className="idx-label">{String(i + 2).padStart(2, "0")}</span>
                   <span className="stay-row-media">
-                    <Image
-                      src={stay.image}
-                      alt={stay.tagline}
-                      fill
-                      sizes="(max-width: 900px) 40vw, 220px"
-                      style={{ objectFit: "cover" }}
-                    />
+                    {isDisplayableImageSrc(stay.image) && (
+                      <Image
+                        src={stay.image}
+                        alt={stay.tagline}
+                        fill
+                        sizes="(max-width: 900px) 40vw, 220px"
+                        style={{ objectFit: "cover" }}
+                      />
+                    )}
                   </span>
                   <span className="stay-row-body">
                     <span className="stay-row-title">{stay.title}</span>

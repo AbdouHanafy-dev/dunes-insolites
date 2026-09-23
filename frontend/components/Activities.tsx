@@ -4,6 +4,7 @@ import { getActivities } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatDuration } from "@/lib/data/activities";
 import Reveal from "@/components/Reveal";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 /**
  * Redesigned (visual identity pass, 14 Sep 2026 — see
@@ -55,13 +56,15 @@ export default async function Activities() {
               <Link href={`/activities/${activity.slug}`} className="field-row">
                 <span className="idx-label field-row-idx">{String(i + 1).padStart(2, "0")}</span>
                 <span className="field-row-media">
-                  <Image
-                    src={activity.cardImage}
-                    alt={activity.tagline}
-                    fill
-                    sizes="(max-width: 900px) 100vw, 320px"
-                    style={{ objectFit: "cover" }}
-                  />
+                  {isDisplayableImageSrc(activity.cardImage) && (
+                    <Image
+                      src={activity.cardImage}
+                      alt={activity.tagline}
+                      fill
+                      sizes="(max-width: 900px) 100vw, 320px"
+                      style={{ objectFit: "cover" }}
+                    />
+                  )}
                 </span>
                 <span className="field-row-body">
                   <span className="field-row-title">{activity.title}</span>

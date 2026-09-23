@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import { getGalleryStrip } from "@/lib/api";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 /**
  * Simplified (14 Sep 2026, on request) off the asymmetric "tall item"
@@ -34,13 +35,15 @@ export default async function GalleryStrip() {
           {galleryItems.map((item, i) => (
             <figure key={`${item.src}-${i}`} className="log-gallery-item">
               <div className="log-gallery-frame">
-                <Image
-                  src={item.src}
-                  alt={altText(item.alt)}
-                  fill
-                  sizes="(max-width: 900px) 50vw, 33vw"
-                  style={{ objectFit: "cover" }}
-                />
+                {isDisplayableImageSrc(item.src) && (
+                  <Image
+                    src={item.src}
+                    alt={altText(item.alt)}
+                    fill
+                    sizes="(max-width: 900px) 50vw, 33vw"
+                    style={{ objectFit: "cover" }}
+                  />
+                )}
               </div>
               <figcaption>
                 <span className="log-num">{String(i + 1).padStart(2, "0")}</span>
