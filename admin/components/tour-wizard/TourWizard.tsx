@@ -46,6 +46,7 @@ type TourForm = {
   keywords: string[];
   programSteps: ProgramStep[];
   guideType: GuideType;
+  overnightsAtCamp: boolean;
   foodIncluded: boolean;
   meals: Meal[];
   drinksIncluded: boolean;
@@ -95,6 +96,7 @@ const EMPTY_FORM: TourForm = {
   keywords: [],
   programSteps: [],
   guideType: "NONE",
+  overnightsAtCamp: false,
   foodIncluded: false,
   meals: [],
   drinksIncluded: false,
@@ -154,6 +156,7 @@ function fromInitialData(data?: AdminTour): TourForm {
       durationMinutes: s.durationMinutes ?? null,
     })),
     guideType: data.guideType ?? "NONE",
+    overnightsAtCamp: data.overnightsAtCamp ?? false,
     foodIncluded: data.foodIncluded ?? false,
     meals: data.meals ?? [],
     drinksIncluded: data.drinksIncluded ?? false,
@@ -205,6 +208,7 @@ function toRequestBody(form: TourForm) {
     keywords: form.keywords,
     programSteps: form.programSteps,
     guideType: form.guideType,
+    overnightsAtCamp: form.overnightsAtCamp,
     foodIncluded: form.foodIncluded,
     meals: form.foodIncluded ? form.meals : [],
     drinksIncluded: form.foodIncluded ? form.drinksIncluded : false,
@@ -508,6 +512,20 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                   </option>
                 ))}
               </select>
+            </Field>
+            <Field label="Nuit au camp de Sabria">
+              <label className="flex items-start gap-2 text-sm text-navy-700/80">
+                <input
+                  type="checkbox"
+                  checked={form.overnightsAtCamp}
+                  onChange={(e) => patch({ overnightsAtCamp: e.target.checked })}
+                  className="mt-0.5 h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+                />
+                <span>
+                  Ce circuit passe une nuit au camp. Le client devra choisir un hébergement
+                  (Tente, Chambre ou Suite) et le nombre d&apos;unités lors de la réservation.
+                </span>
+              </label>
             </Field>
             <Field label="Description courte" hint="Affichée dans les listes et cartes">
               <textarea

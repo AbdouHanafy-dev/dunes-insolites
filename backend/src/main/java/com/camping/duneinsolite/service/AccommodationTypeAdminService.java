@@ -51,6 +51,7 @@ public class AccommodationTypeAdminService {
                 .name(req.getName())
                 .description(req.getDescription())
                 .imageUrl(req.getImageUrl())
+                .gallery(req.getGallery() != null ? new ArrayList<>(req.getGallery()) : new ArrayList<>())
                 .capacity(req.getCapacity())
                 .maxUnits(req.getMaxUnits())
                 .unitPriceTtc(Money.round(req.getUnitPriceTtc()))
@@ -74,6 +75,10 @@ public class AccommodationTypeAdminService {
         a.setName(req.getName());
         a.setDescription(req.getDescription());
         a.setImageUrl(req.getImageUrl());
+        if (req.getGallery() != null) {
+            a.getGallery().clear();
+            a.getGallery().addAll(req.getGallery());
+        }
         a.setCapacity(req.getCapacity());
         a.setMaxUnits(req.getMaxUnits());
         a.setUnitPriceTtc(Money.round(req.getUnitPriceTtc()));

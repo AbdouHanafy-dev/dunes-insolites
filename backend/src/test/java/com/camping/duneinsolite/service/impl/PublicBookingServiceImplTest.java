@@ -216,8 +216,10 @@ class PublicBookingServiceImplTest {
         when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
         PublicStayBookingRequest request = baseRequest();
-        request.setAccommodationSlug("dune-suite");
-        request.setAccommodationQty(2);
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug("dune-suite");
+        accSelection.setQuantity(2);
+        request.setAccommodations(List.of(accSelection));
         service.createStayBooking(request);
 
         // fail-closed pre-check ran before any reservation was built
@@ -226,8 +228,49 @@ class PublicBookingServiceImplTest {
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
         var selection = captor.getValue().getTourTypes().get(0);
-        assertThat(selection.getAccommodationTypeId()).isEqualTo(accId);
-        assertThat(selection.getAccommodationUnits()).isEqualTo(2);
+        var resolved = selection.resolvedAccommodationSelections();
+        assertThat(resolved).hasSize(1);
+        assertThat(resolved.get(0).getAccommodationTypeId()).isEqualTo(accId);
+        assertThat(resolved.get(0).getAccommodationUnits()).isEqualTo(2);
+    }
+
+    @Test
+    void multipleAccommodationTiersCanBeBookedTogether() {
+        // The core of the multi-tier feature: a guest can pick several tiers
+        // at once (e.g. a Suite and a Tente together) in one booking, each
+        // resolved and priced independently.
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID suiteId = UUID.randomUUID();
+        UUID tentId = UUID.randomUUID();
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "dune-suite"))
+                .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
+                        .id(suiteId).slug("dune-suite").name("Dune Suite").capacity(4).active(true)
+                        .unitPriceTtc(new java.math.BigDecimal("165.000")).build()));
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-tent"))
+                .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
+                        .id(tentId).slug("desert-tent").name("Desert Tent").capacity(2).active(true)
+                        .unitPriceTtc(new java.math.BigDecimal("80.000")).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicStayBookingRequest request = baseRequest();
+        var suiteSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        suiteSelection.setAccommodationSlug("dune-suite");
+        suiteSelection.setQuantity(2);
+        var tentSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        tentSelection.setAccommodationSlug("desert-tent");
+        tentSelection.setQuantity(3);
+        request.setAccommodations(List.of(suiteSelection, tentSelection));
+        service.createStayBooking(request);
+
+        verify(accommodationPricingService).resolveById(suiteId, 2, 1, 2, LocalDate.of(2026, 9, 20));
+        verify(accommodationPricingService).resolveById(tentId, 3, 1, 2, LocalDate.of(2026, 9, 20));
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var resolved = captor.getValue().getTourTypes().get(0).resolvedAccommodationSelections();
+        assertThat(resolved).hasSize(2);
+        assertThat(resolved).extracting("accommodationTypeId").containsExactlyInAnyOrder(suiteId, tentId);
     }
 
     @Test
@@ -238,7 +281,10 @@ class PublicBookingServiceImplTest {
                 .thenReturn(Optional.empty());
 
         PublicStayBookingRequest request = baseRequest();
-        request.setAccommodationSlug("gold-yurt");
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug("gold-yurt");
+        accSelection.setQuantity(1);
+        request.setAccommodations(List.of(accSelection));
 
         assertThatThrownBy(() -> service.createStayBooking(request))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -347,6 +393,71 @@ class PublicBookingServiceImplTest {
         assertThat(built.getExtras()).isNull();
         assertThat(built.getTours()).hasSize(1);
         assertThat(built.getTours().get(0).getTourId()).isEqualTo(tourId);
+    }
+
+    @Test
+    void overnightCircuitRequiresAnAccommodationBeforeCreatingAUser() {
+        UUID tourId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
+                        .overnightsAtCamp(true).isActive(true).build()));
+
+        PublicTourBookingRequest request = tourRequest("sabria-circuit");
+
+        assertThatThrownBy(() -> service.createTourBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("Choose at least one accommodation");
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
+    void overnightCircuitMapsAccommodationTierAndQuantityToItsCampNight() {
+        UUID tourId = UUID.randomUUID();
+        UUID accommodationId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
+                        .overnightsAtCamp(true).isActive(true).build()));
+        when(accommodationTypeRepository.findDistinctTourTypeIds()).thenReturn(List.of(tourTypeId));
+        when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-room"))
+                .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
+                        .id(accommodationId).slug("desert-room").name("Desert Room")
+                        .capacity(3).active(true).unitPriceTtc(new java.math.BigDecimal("120.000")).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        PublicTourBookingRequest request = tourRequest("sabria-circuit");
+        var accommodation = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accommodation.setAccommodationSlug("desert-room");
+        accommodation.setQuantity(2);
+        request.setAccommodations(List.of(accommodation));
+
+        service.createTourBooking(request);
+
+        verify(accommodationPricingService).resolveById(
+                accommodationId, 2, 1, 3, LocalDate.of(2026, 10, 20));
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        var campNight = captor.getValue().getTours().get(0).getHebergements().get(0);
+        assertThat(campNight.getTourTypeId()).isEqualTo(tourTypeId);
+        assertThat(campNight.getNumberOfNights()).isEqualTo(1);
+        assertThat(campNight.getAccommodations()).singleElement().satisfies(selected -> {
+            assertThat(selected.getAccommodationTypeId()).isEqualTo(accommodationId);
+            assertThat(selected.getAccommodationUnits()).isEqualTo(2);
+        });
+    }
+
+    private PublicTourBookingRequest tourRequest(String slug) {
+        PublicTourBookingRequest request = new PublicTourBookingRequest();
+        request.setTourSlug(slug);
+        request.setDate(LocalDate.of(2026, 10, 20));
+        request.setNumberOfAdults(2);
+        request.setNumberOfChildren(1);
+        request.setArrivalMode("OWN_VEHICLE");
+        request.setName("Circuit Guest");
+        request.setEmail("circuit@example.com");
+        request.setPhone("+21650000008");
+        return request;
     }
 
     @Test

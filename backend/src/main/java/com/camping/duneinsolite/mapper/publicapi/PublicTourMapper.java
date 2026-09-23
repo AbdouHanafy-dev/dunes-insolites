@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.mapper.publicapi;
 
 import com.camping.duneinsolite.dto.response.publicapi.PublicTourResponse;
+import com.camping.duneinsolite.dto.response.publicapi.PublicStayResponse;
 import com.camping.duneinsolite.model.CancellationPolicy;
 import com.camping.duneinsolite.model.Photo;
 import com.camping.duneinsolite.model.ProgramStep;
@@ -8,6 +9,7 @@ import com.camping.duneinsolite.model.Tour;
 import com.camping.duneinsolite.model.TourTranslation;
 import com.camping.duneinsolite.model.enums.ContentLocale;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +22,10 @@ import java.util.Optional;
  * marketing copy the entity never stored.
  */
 @Component
+@RequiredArgsConstructor
 public class PublicTourMapper {
+
+    private final com.camping.duneinsolite.repository.AccommodationTypeRepository accommodationTypeRepository;
 
     /**
      * @param locale e.g. "de"; null/"fr"/unknown all resolve to Tour's own (French) fields.
@@ -56,6 +61,8 @@ public class PublicTourMapper {
         response.setLocation(tour.getLocation());
         response.setMeetingPoint(tour.getMeetingPoint());
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
+        response.setOvernightsAtCamp(tour.getOvernightsAtCamp());
+        response.setAccommodations(bookableCampAccommodations(tour));
         response.setLanguages(tour.getLanguages() == null ? List.of()
                 : tour.getLanguages().stream().map(com.camping.duneinsolite.model.SpokenLanguage::getName).sorted().toList());
         response.setCoverImage(tour.getCoverPhotoUrl());
@@ -98,6 +105,32 @@ public class PublicTourMapper {
         response.setEmergencyPhone(tour.getEmergencyPhone());
         response.setTicketInfo(tour.getTicketInfo());
         return response;
+    }
+
+    private List<PublicStayResponse.Accommodation> bookableCampAccommodations(Tour tour) {
+        if (!Boolean.TRUE.equals(tour.getOvernightsAtCamp())) return List.of();
+        List<java.util.UUID> campIds = accommodationTypeRepository.findDistinctTourTypeIds();
+        if (campIds.size() != 1) return List.of();
+        return accommodationTypeRepository
+                .findByTourType_TourTypeIdOrderByDisplayOrderAsc(campIds.get(0))
+                .stream()
+                .filter(com.camping.duneinsolite.model.AccommodationType::isBookable)
+                .map(a -> {
+                    PublicStayResponse.Accommodation dto = new PublicStayResponse.Accommodation();
+                    dto.setSlug(a.getSlug());
+                    dto.setTitle(a.getName());
+                    dto.setTagline("");
+                    dto.setDescription(a.getDescription());
+                    dto.setImage(a.getImageUrl());
+                    dto.setGallery(List.copyOf(a.getGallery()));
+                    dto.setPriceFrom(a.getUnitPriceTtc());
+                    dto.setSleeps("Jusqu'\u00e0 " + a.getCapacity()
+                            + (a.getCapacity() > 1 ? " personnes" : " personne"));
+                    dto.setFeatures(List.copyOf(a.getFeatures()));
+                    dto.setMaxUnits(a.getMaxUnits());
+                    return dto;
+                })
+                .toList();
     }
 
     private static List<String> orEmpty(List<String> list) {

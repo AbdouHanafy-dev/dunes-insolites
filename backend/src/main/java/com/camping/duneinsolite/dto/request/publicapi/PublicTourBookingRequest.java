@@ -43,6 +43,13 @@ public class PublicTourBookingRequest {
     // convention as PublicStayBookingRequest.rideSlugs.
     private List<String> rideSlugs;
 
+    // Accommodation tiers for the night this circuit sleeps at the Sabria
+    // camp — only meaningful when the Tour's overnightsAtCamp is true; the
+    // server rejects a non-empty list otherwise. Same shape as
+    // PublicStayBookingRequest.accommodations.
+    @Valid
+    private List<PublicAccommodationSelectionRequest> accommodations;
+
     @jakarta.validation.constraints.Pattern(
             regexp = "OWN_VEHICLE|TRANSPORT",
             message = "Arrival mode must be OWN_VEHICLE or TRANSPORT")

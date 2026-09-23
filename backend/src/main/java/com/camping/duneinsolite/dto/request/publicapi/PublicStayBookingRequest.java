@@ -19,11 +19,13 @@ public class PublicStayBookingRequest {
     @Size(max = 120)
     private String staySlug;
 
-    // Accommodation isn't modeled on TourType yet (see docs/ROADMAP.md
-    // DI-012 notes) - carried through into the reservation's notes for
-    // staff, does not affect the computed price.
-    private String accommodationSlug;
-    private Integer accommodationQty;
+    // Accommodation tiers chosen for this booking, each with its own
+    // quantity — a guest may pick several at once (e.g. 2 Suites + 3
+    // Tentes together). Absent/empty = no tier chosen (bivouac). The
+    // server re-resolves and snapshots each tier's price; nothing here is
+    // trusted as a price.
+    @Valid
+    private List<PublicAccommodationSelectionRequest> accommodations;
 
     @NotNull(message = "Date is required")
     @FutureOrPresent(message = "Date cannot be in the past")

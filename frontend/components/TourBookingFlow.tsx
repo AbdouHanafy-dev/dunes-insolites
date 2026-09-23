@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { Language } from "@/lib/api";
-import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Activity, type DepartureCity } from "@/lib/types";
+import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, MAX_PARTY_SIZE, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import { localizedLanguageName } from "@/lib/languageFlags";
@@ -39,11 +39,15 @@ export default function TourBookingFlow({
   tourTitle,
   adultPrice,
   childPrice,
+  overnightsAtCamp = false,
+  accommodations = [],
 }: {
   tourSlug: string;
   tourTitle: string;
   adultPrice: number;
   childPrice: number;
+  overnightsAtCamp?: boolean;
+  accommodations?: Accommodation[];
 }) {
   const t = useTranslations("tourBookingForm");
   const ta = useTranslations("authForm");
@@ -53,6 +57,8 @@ export default function TourBookingFlow({
   const [date, setDate] = useState("");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [accommodationSlug, setAccommodationSlug] = useState("");
+  const [accommodationQty, setAccommodationQty] = useState(1);
 
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
@@ -95,6 +101,7 @@ export default function TourBookingFlow({
 
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
+    ...(overnightsAtCamp ? [{ id: 5, label: t("stepAccommodation") }] : []),
     { id: 1, label: t("stepGuide") },
     { id: 2, label: t("stepVehicle") },
     { id: 3, label: t("stepExtras") },
@@ -106,6 +113,8 @@ export default function TourBookingFlow({
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activity.priceFrom, 0);
+  const selectedAccommodation = accommodations.find((item) => item.slug === accommodationSlug);
+  const accommodationTotal = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : 0;
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
@@ -129,6 +138,9 @@ export default function TourBookingFlow({
       if (preferredLanguageIds.length === 0 && !otherLanguageRequested.trim()) {
         e.language = t("errorLanguageRequired");
       }
+    }
+    if (step === 5 && !accommodationSlug) {
+      e.accommodation = t("errorAccommodationRequired");
     }
     if (step === 2) {
       if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
@@ -169,6 +181,9 @@ export default function TourBookingFlow({
       numberOfAdults: adults,
       numberOfChildren: children,
       rideSlugs,
+      accommodations: overnightsAtCamp && accommodationSlug
+        ? [{ accommodationSlug, quantity: accommodationQty }]
+        : undefined,
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
@@ -254,10 +269,11 @@ export default function TourBookingFlow({
         <h3>{activeStep.label}</h3>
         <strong className="tour-book-step-amount">
           {step === 0 && `€${total}`}
+          {step === 5 && (selectedAccommodation ? `€${accommodationTotal}` : t("chooseAccommodation"))}
           {step === 1 && "€0"}
           {step === 2 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
           {step === 3 && `€${extrasTotal}`}
-          {step === 4 && `€${total + extrasTotal}`}
+          {step === 4 && `€${total + accommodationTotal + extrasTotal}`}
         </strong>
       </div>
 
@@ -292,6 +308,51 @@ export default function TourBookingFlow({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ---------- accommodation at the Sabria camp ---------- */}
+      {step === 5 && (
+        <div className="field" data-invalid={!!errors.accommodation}>
+          <label>{t("chooseAccommodation")}</label>
+          <p className="hint">{t("chooseAccommodationHint")}</p>
+          {accommodations.length > 0 ? (
+            <>
+              <div className="ride-options">
+                {accommodations.map((item) => (
+                  <label key={item.slug} className="ride-option">
+                    <input
+                      type="radio"
+                      name="tourAccommodation"
+                      checked={accommodationSlug === item.slug}
+                      onChange={() => {
+                        setAccommodationSlug(item.slug);
+                        setAccommodationQty(1);
+                      }}
+                    />
+                    <span>
+                      <strong>{item.title}</strong>
+                      {item.sleeps && <small>{item.sleeps}</small>}
+                    </span>
+                    <span className="ride-price">{t("accommodationPrice", { price: item.priceFrom })}</span>
+                  </label>
+                ))}
+              </div>
+              {selectedAccommodation && (
+                <div className="guest-row" style={{ marginTop: 16 }}>
+                  <strong>{t("accommodationQuantity")}</strong>
+                  <div className="guest-stepper">
+                    <button type="button" aria-label={`− ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((value) => Math.max(1, value - 1))} disabled={accommodationQty <= 1}>−</button>
+                    <output aria-live="polite">{accommodationQty}</output>
+                    <button type="button" aria-label={`+ ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((value) => value + 1)}>+</button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
+          )}
+          {errors.accommodation && <span className="err">{errors.accommodation}</span>}
         </div>
       )}
 
@@ -470,6 +531,12 @@ export default function TourBookingFlow({
               <span className="k">{t("dateLabelSummary")}</span>
               <span>{prettyDate(date, locale)}</span>
             </div>
+            {overnightsAtCamp && selectedAccommodation && (
+              <div className="row">
+                <span className="k">{t("accommodationLabel")}</span>
+                <span>{selectedAccommodation.title} × {accommodationQty}</span>
+              </div>
+            )}
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
               <span>
@@ -545,7 +612,7 @@ export default function TourBookingFlow({
             )}
             <div className="row total">
               <span>{t("totalLabel")}</span>
-              <span>€{total + extrasTotal}</span>
+              <span>€{total + accommodationTotal + extrasTotal}</span>
             </div>
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
@@ -570,7 +637,7 @@ export default function TourBookingFlow({
             ← {t("back")}
           </button>
         )}
-        {step < 4 ? (
+        {activeStepPosition < visibleSteps.length - 1 ? (
           <button type="button" className="btn-accent" onClick={next} disabled={!catalogLoaded}>
             {t("continue")}
           </button>

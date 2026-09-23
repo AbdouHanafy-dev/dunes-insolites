@@ -396,21 +396,28 @@ public class ReservationServiceImpl implements ReservationService {
                 .activityDate(selection.getActivityDate())
                 .tva(tourType.getTva());
 
-        // Phase 1: if the guest picked an accommodation tier, the server
-        // resolves its price (fails closed if unpriced/inactive/undersized) and
-        // snapshots it — this line is then priced per unit, not per person.
-        if (selection.getAccommodationTypeId() != null) {
-            int units = selection.getAccommodationUnits() != null ? selection.getAccommodationUnits() : 1;
+        ReservationTourType tourTypeSnapshot = builder.build();
+
+        // Phase 1: if the guest picked one or more accommodation tiers, the
+        // server resolves each price (fails closed if unpriced/inactive/
+        // undersized) and snapshots it — this line is then priced per unit,
+        // not per person, summed across every tier (2 Suites + 3 Tentes is
+        // two rows here).
+        for (AccommodationSelectionRequest sel : selection.resolvedAccommodationSelections()) {
+            int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
             var priced = accommodationPricingService.resolveById(
-                    selection.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
-            builder.accommodationTypeId(priced.accommodationTypeId())
+                    sel.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
+            tourTypeSnapshot.getAccommodations().add(ReservationAccommodation.builder()
+                    .reservationTourType(tourTypeSnapshot)
+                    .accommodationTypeId(priced.accommodationTypeId())
                     .accommodationName(priced.name())
                     .accommodationUnits(priced.units())
                     .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
-                    .accommodationTvaRate(priced.tvaRate());
+                    .accommodationTvaRate(priced.tvaRate())
+                    .build());
         }
 
-        return builder.build();
+        return tourTypeSnapshot;
     }
 
     /**
@@ -421,16 +428,29 @@ public class ReservationServiceImpl implements ReservationService {
      * when a tier has no {@code maxUnits} configured.
      */
     private void enforceAccommodationAvailability(Reservation reservation, UUID excludeReservationId) {
-        if (reservation.getReservationType() != ReservationType.HEBERGEMENT
-                || reservation.getCheckInDate() == null || reservation.getCheckOutDate() == null) {
+        boolean relevantType = reservation.getReservationType() == ReservationType.HEBERGEMENT
+                || reservation.getReservationType() == ReservationType.TOURS;
+        if (!relevantType || reservation.getCheckInDate() == null || reservation.getCheckOutDate() == null) {
             return;
         }
         for (ReservationTourType line : reservation.getTourTypes()) {
-            if (line.isAccommodationPriced()) {
+            for (ReservationAccommodation acc : line.getAccommodations()) {
                 accommodationAvailabilityService.allocate(
-                        line.getAccommodationTypeId(), line.getAccommodationUnits(),
+                        acc.getAccommodationTypeId(), acc.getAccommodationUnits(),
                         reservation.getCheckInDate(), reservation.getCheckOutDate(),
                         excludeReservationId);
+            }
+        }
+        // A circuit that overnights at the camp — the accommodation lives on
+        // the ReservationTour's hebergement nights instead of tourTypes.
+        for (ReservationTour tour : reservation.getTours()) {
+            for (ReservationTourHebergement heb : tour.getHebergements()) {
+                for (ReservationAccommodation acc : heb.getAccommodations()) {
+                    accommodationAvailabilityService.allocate(
+                            acc.getAccommodationTypeId(), acc.getAccommodationUnits(),
+                            reservation.getCheckInDate(), reservation.getCheckOutDate(),
+                            excludeReservationId);
+                }
             }
         }
     }
@@ -472,9 +492,18 @@ public class ReservationServiceImpl implements ReservationService {
         TourSelectionRequest selection = request.getTours().get(0);
         if (selection.getHebergements() != null && !selection.getHebergements().isEmpty()) {
             applyTourHebergements(selection.getHebergements(), reservationTour, reservation);
+            reservationTour.setTotalPrice(Money.add(
+                    reservationTour.getTotalPrice(), accommodationTotalForTour(reservationTour)));
         }
 
         reservation.setTotalAmount(reservation.calculateTotalToursAmount());
+    }
+
+    // Sum of every hebergement night's accommodation total on this tour line.
+    private java.math.BigDecimal accommodationTotalForTour(ReservationTour reservationTour) {
+        return Money.sum(reservationTour.getHebergements().stream()
+                .map(ReservationTourHebergement::getAccommodationTotalPrice)
+                .toList());
     }
 
     // Embedded, free accommodation nights on a TOURS reservation. Derives the reservation's
@@ -502,6 +531,23 @@ public class ReservationServiceImpl implements ReservationService {
                     .activityDate(h.getActivityDate())
                     .build();
             reservationTour.addHebergement(snapshot);
+
+            if (h.getAccommodations() != null) {
+                int adultsPlusChildren = snapshot.getNumberOfAdults() + snapshot.getNumberOfChildren();
+                for (AccommodationSelectionRequest sel : h.getAccommodations()) {
+                    int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
+                    var priced = accommodationPricingService.resolveById(
+                            sel.getAccommodationTypeId(), units, nights, adultsPlusChildren, h.getActivityDate());
+                    snapshot.getAccommodations().add(ReservationAccommodation.builder()
+                            .reservationTourHebergement(snapshot)
+                            .accommodationTypeId(priced.accommodationTypeId())
+                            .accommodationName(priced.name())
+                            .accommodationUnits(priced.units())
+                            .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
+                            .accommodationTvaRate(priced.tvaRate())
+                            .build());
+                }
+            }
 
             if (h.getRepartitions() != null) {
                 for (RepartitionRequest r : h.getRepartitions()) {
@@ -1161,29 +1207,41 @@ public class ReservationServiceImpl implements ReservationService {
                         .activityDate(selection.getActivityDate())
                         .tva(tourType.getTva());
 
-                if (selection.getAccommodationTypeId() != null) {
+                ReservationTourType snapshot = snapshotBuilder.build();
+
+                List<AccommodationSelectionRequest> explicitSelections = selection.resolvedAccommodationSelections();
+                if (!explicitSelections.isEmpty()) {
                     // Explicit re-selection in the request → reprice (deliberate).
-                    int units = selection.getAccommodationUnits() != null ? selection.getAccommodationUnits() : 1;
-                    var priced = accommodationPricingService.resolveById(
-                            selection.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
-                    snapshotBuilder.accommodationTypeId(priced.accommodationTypeId())
-                            .accommodationName(priced.name())
-                            .accommodationUnits(priced.units())
-                            .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
-                            .accommodationTvaRate(priced.tvaRate());
+                    for (AccommodationSelectionRequest sel : explicitSelections) {
+                        int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
+                        var priced = accommodationPricingService.resolveById(
+                                sel.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
+                        snapshot.getAccommodations().add(ReservationAccommodation.builder()
+                                .reservationTourType(snapshot)
+                                .accommodationTypeId(priced.accommodationTypeId())
+                                .accommodationName(priced.name())
+                                .accommodationUnits(priced.units())
+                                .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
+                                .accommodationTvaRate(priced.tvaRate())
+                                .build());
+                    }
                 } else {
-                    // Carry the prior snapshot forward unchanged — no repricing.
+                    // Carry the prior snapshot(s) forward unchanged — no repricing.
                     ReservationTourType prior = priorAccommodation.get(tourType.getTourTypeId());
                     if (prior != null) {
-                        snapshotBuilder.accommodationTypeId(prior.getAccommodationTypeId())
-                                .accommodationName(prior.getAccommodationName())
-                                .accommodationUnits(prior.getAccommodationUnits())
-                                .accommodationUnitPriceTtc(prior.getAccommodationUnitPriceTtc())
-                                .accommodationTvaRate(prior.getAccommodationTvaRate());
+                        for (ReservationAccommodation priorAcc : prior.getAccommodations()) {
+                            snapshot.getAccommodations().add(ReservationAccommodation.builder()
+                                    .reservationTourType(snapshot)
+                                    .accommodationTypeId(priorAcc.getAccommodationTypeId())
+                                    .accommodationName(priorAcc.getAccommodationName())
+                                    .accommodationUnits(priorAcc.getAccommodationUnits())
+                                    .accommodationUnitPriceTtc(priorAcc.getAccommodationUnitPriceTtc())
+                                    .accommodationTvaRate(priorAcc.getAccommodationTvaRate())
+                                    .build());
+                        }
                     }
                 }
 
-                ReservationTourType snapshot = snapshotBuilder.build();
                 reservation.addTourType(snapshot);
 
                 if (selection.getRepartitions() != null) {
@@ -1206,15 +1264,26 @@ public class ReservationServiceImpl implements ReservationService {
             TourSelectionRequest tourSelection = request.getTours().get(0);
             ReservationTour existingTour = reservation.getTours().get(0);
 
+            // Recomputed from the tour's own snapshot fields, not read back
+            // from totalPrice — that field may already include a previous
+            // call's accommodation total, and re-adding on top of it would
+            // double-count on a second edit.
+            java.math.BigDecimal baseTourPrice = Money.add(
+                    Money.multiply(existingTour.getAdultPrice(), existingTour.getNumberOfAdults()),
+                    Money.multiply(existingTour.getChildPrice(), existingTour.getNumberOfChildren()));
+
             reservation.getRepartitions().removeIf(r -> r.getReservationTourHebergement() != null);
             existingTour.getHebergements().clear();
 
             if (tourSelection.getHebergements() != null && !tourSelection.getHebergements().isEmpty()) {
                 applyTourHebergements(tourSelection.getHebergements(), existingTour, reservation);
+                existingTour.setTotalPrice(Money.add(baseTourPrice, accommodationTotalForTour(existingTour)));
             } else {
+                existingTour.setTotalPrice(baseTourPrice);
                 reservation.setCheckInDate(null);
                 reservation.setCheckOutDate(null);
             }
+            reservation.setTotalAmount(reservation.calculateTotalToursAmount());
         }
 
         if (request.getParticipants() != null) {

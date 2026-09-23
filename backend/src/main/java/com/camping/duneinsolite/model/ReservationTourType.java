@@ -6,6 +6,8 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -58,40 +60,32 @@ public class ReservationTourType {
     @Builder.Default
     private java.math.BigDecimal tva = java.math.BigDecimal.ZERO;
 
-    // ── Accommodation snapshot (production-hardening Phase 1) ────────────
-    // Set at booking time when the guest picked a tier (Desert Tent / Room /
-    // Dune Suite). All nullable: a legacy or bivouac line leaves them null and
-    // keeps the per-person pricing below. Snapshotted, so a later catalogue
-    // price change never moves an existing reservation's total.
-    @Column(name = "accommodation_type_id")
-    private UUID accommodationTypeId;
-
-    @Column(name = "accommodation_name")
-    private String accommodationName;
-
-    @Column(name = "accommodation_units")
-    private Integer accommodationUnits;
-
-    @Column(name = "accommodation_unit_price_ttc", precision = 15, scale = 3)
-    private BigDecimal accommodationUnitPriceTtc;
-
-    @Column(name = "accommodation_tva_rate", precision = 6, scale = 3)
-    private BigDecimal accommodationTvaRate;
+    // ── Accommodation snapshot (production-hardening Phase 1; multi-tier
+    // since the accommodation-selection feature) ─────────────────────────
+    // One row per tier the guest picked (Desert Tent / Room / Dune Suite) —
+    // a booking may hold several at once (e.g. 2 Suites + 3 Tentes). Empty
+    // for a legacy or bivouac line, which keeps the per-person pricing
+    // below. Each row is a snapshot, so a later catalogue price change never
+    // moves an existing reservation's total.
+    @OneToMany(mappedBy = "reservationTourType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ReservationAccommodation> accommodations = new ArrayList<>();
 
     /** True when this line is priced per accommodation unit, not per person. */
     @Transient
     public boolean isAccommodationPriced() {
-        return accommodationUnitPriceTtc != null
-                && accommodationUnits != null && accommodationUnits > 0;
+        return !accommodations.isEmpty();
     }
 
     // Computed — not stored. Prices are TTC, so no TVA multiplication.
-    // Pure BigDecimal end to end (Phase 3).
+    // Pure BigDecimal end to end (Phase 3). Sums every selected tier.
     @Transient
     public BigDecimal getTotalPrice() {
         int nights = numberOfNights != null && numberOfNights > 0 ? numberOfNights : 1;
         if (isAccommodationPriced()) {
-            return Money.lineTotal(accommodationUnitPriceTtc, accommodationUnits, nights);
+            return Money.sum(accommodations.stream()
+                    .map(a -> Money.lineTotal(a.getAccommodationUnitPriceTtc(), a.getAccommodationUnits(), nights))
+                    .toList());
         }
         BigDecimal perNight = Money.add(
                 Money.multiply(adultPrice, numberOfAdults),

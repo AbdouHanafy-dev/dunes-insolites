@@ -1,9 +1,11 @@
 package com.camping.duneinsolite.service.impl;
 
+import com.camping.duneinsolite.dto.request.AccommodationSelectionRequest;
 import com.camping.duneinsolite.dto.request.ReservationExtraRequest;
 import com.camping.duneinsolite.dto.request.ReservationRequest;
 import com.camping.duneinsolite.dto.request.TourSelectionRequest;
 import com.camping.duneinsolite.dto.request.TourTypeSelectionRequest;
+import com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicActivityBookingRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicStayBookingRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicTourBookingRequest;
@@ -240,6 +242,51 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                     "Transportation can't be selected when joining with your own vehicle.");
         }
 
+        // Resolve (and fail closed on) the camp accommodation tiers BEFORE
+        // any side effect, exactly like createStayBooking — a bad slug or
+        // an unpriced/inactive/undersized tier must not reach guest-account
+        // creation. A circuit only offers accommodation when its Tour was
+        // explicitly configured to overnight at the Sabria camp; anything
+        // else is a client error, not something to silently ignore.
+        List<PublicAccommodationSelectionRequest> requestedTourAccommodations =
+                request.getAccommodations() == null ? List.of() : request.getAccommodations();
+        if (Boolean.TRUE.equals(tour.getOvernightsAtCamp()) && requestedTourAccommodations.isEmpty()) {
+            throw new ReservationValidationException(
+                    "Choose at least one accommodation for the night at the Sabria camp.");
+        }
+        if (!requestedTourAccommodations.isEmpty() && !Boolean.TRUE.equals(tour.getOvernightsAtCamp())) {
+            throw new ReservationValidationException(
+                    "\"" + tour.getName() + "\" doesn't include a night at the camp — no accommodation to choose.");
+        }
+        record ResolvedCampTier(AccommodationType accommodation, int units) {}
+        List<ResolvedCampTier> resolvedCampTiers = new java.util.ArrayList<>();
+        UUID campTourTypeId = null;
+        if (!requestedTourAccommodations.isEmpty()) {
+            List<UUID> tourTypeIdsWithTiers = accommodationTypeRepository.findDistinctTourTypeIds();
+            if (tourTypeIdsWithTiers.size() != 1) {
+                throw new ResourceNotFoundException(
+                        "The camp's accommodation catalogue isn't configured correctly — expected exactly one "
+                                + "nuitée with tiers, found " + tourTypeIdsWithTiers.size() + ".");
+            }
+            campTourTypeId = tourTypeIdsWithTiers.get(0);
+            for (PublicAccommodationSelectionRequest sel : requestedTourAccommodations) {
+                AccommodationType accommodation = accommodationTypeRepository
+                        .findByTourTypeAndSlug(campTourTypeId, sel.getAccommodationSlug())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Accommodation not found for the camp: " + sel.getAccommodationSlug()));
+                int units = sel.getQuantity() != null && sel.getQuantity() > 0 ? sel.getQuantity() : 1;
+                int party = request.getNumberOfAdults() + orZero(request.getNumberOfChildren());
+                accommodationPricingService.resolveById(accommodation.getId(), units, 1, party, request.getDate());
+                var pre = accommodationAvailabilityService.status(
+                        accommodation, request.getDate(), request.getDate().plusDays(1));
+                if (pre.status() == AccommodationAvailabilityService.Status.UNAVAILABLE) {
+                    throw new com.camping.duneinsolite.exception.AccommodationUnavailableException(
+                            "\"" + accommodation.getName() + "\" is fully booked for that date.");
+                }
+                resolvedCampTiers.add(new ResolvedCampTier(accommodation, units));
+            }
+        }
+
         ResolvedBookingUser resolvedUser = resolveBookingUser(
                 request.getName(), request.getEmail(), request.getPhone());
         User user = resolvedUser.user();
@@ -269,6 +316,25 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
         TourSelectionRequest selection = new TourSelectionRequest();
         selection.setTourId(tour.getTourId());
+        if (!resolvedCampTiers.isEmpty()) {
+            com.camping.duneinsolite.dto.request.TourHebergementRequest hebergement =
+                    new com.camping.duneinsolite.dto.request.TourHebergementRequest();
+            hebergement.setTourTypeId(campTourTypeId);
+            hebergement.setActivityDate(request.getDate());
+            // Single night — matches the current circuit catalogue's own
+            // durations (1-2 days), same provisional-until-confirmed
+            // approach as accommodation quantity elsewhere in this API.
+            hebergement.setNumberOfNights(1);
+            hebergement.setNumberOfAdults(request.getNumberOfAdults());
+            hebergement.setNumberOfChildren(orZero(request.getNumberOfChildren()));
+            hebergement.setAccommodations(resolvedCampTiers.stream().map(tier -> {
+                AccommodationSelectionRequest sel = new AccommodationSelectionRequest();
+                sel.setAccommodationTypeId(tier.accommodation().getId());
+                sel.setAccommodationUnits(tier.units());
+                return sel;
+            }).toList());
+            selection.setHebergements(List.of(hebergement));
+        }
         reservationRequest.setTours(List.of(selection));
 
         List<String> rideSlugs = request.getRideSlugs() == null ? List.of() : request.getRideSlugs();
@@ -315,6 +381,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setNumberOfAdults(request.getNumberOfAdults());
         response.setNumberOfChildren(request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0);
         response.setRideSlugs(rideSlugs);
+        response.setAccommodations(request.getAccommodations());
         response.setArrivalMode(request.getArrivalMode());
         response.setDepartureCity(request.getDepartureCity());
         response.setReturnCity(request.getReturnCity());
@@ -376,22 +443,25 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                     "Transportation can't be selected when joining with your own vehicle.");
         }
 
-        // Resolve (and fail closed on) the accommodation BEFORE any side effect
-        // — a bad slug, an inactive or unpriced tier, or a party that won't fit
-        // must not reach guest-account creation or the reservation.
-        AccommodationType accommodation = null;
-        int accommodationUnits = 1;
-        if (request.getAccommodationSlug() != null && !request.getAccommodationSlug().isBlank()) {
-            accommodation = accommodationTypeRepository
-                    .findByTourTypeAndSlug(tourType.getTourTypeId(), request.getAccommodationSlug())
+        // Resolve (and fail closed on) every selected accommodation tier
+        // BEFORE any side effect — a bad slug, an inactive or unpriced tier,
+        // or a party that won't fit must not reach guest-account creation or
+        // the reservation. A guest may select several tiers at once (e.g. 2
+        // Suites + 3 Tentes together).
+        List<PublicAccommodationSelectionRequest> requestedAccommodations =
+                request.getAccommodations() == null ? List.of() : request.getAccommodations();
+        record ResolvedTier(AccommodationType accommodation, int units) {}
+        List<ResolvedTier> resolvedTiers = new java.util.ArrayList<>();
+        for (PublicAccommodationSelectionRequest sel : requestedAccommodations) {
+            AccommodationType accommodation = accommodationTypeRepository
+                    .findByTourTypeAndSlug(tourType.getTourTypeId(), sel.getAccommodationSlug())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Accommodation not found for this stay: " + request.getAccommodationSlug()));
-            accommodationUnits = request.getAccommodationQty() != null && request.getAccommodationQty() > 0
-                    ? request.getAccommodationQty() : 1;
+                            "Accommodation not found for this stay: " + sel.getAccommodationSlug()));
+            int units = sel.getQuantity() != null && sel.getQuantity() > 0 ? sel.getQuantity() : 1;
             // Reuses the pricing service's fail-closed rules (unpriced / inactive
             // / not enough beds) — throws before any side effect.
             accommodationPricingService.resolveById(
-                    accommodation.getId(), accommodationUnits, nights, request.getPartySize(), request.getDate());
+                    accommodation.getId(), units, nights, request.getPartySize(), request.getDate());
 
             // Phase 2 — advisory pre-check: reject an obviously sold-out tier
             // before creating a guest account. NOT authoritative (no lock) —
@@ -403,6 +473,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 throw new com.camping.duneinsolite.exception.AccommodationUnavailableException(
                         "\"" + accommodation.getName() + "\" is fully booked for that date.");
             }
+            resolvedTiers.add(new ResolvedTier(accommodation, units));
         }
 
         ResolvedBookingUser resolvedUser = resolveBookingUser(
@@ -424,7 +495,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setHoldExpiresAt(holdExpiry());
         reservationRequest.setIdempotencyKey(request.getIdempotencyKey());
         reservationRequest.setDemandeSpecial(demandeSpecial(request.getNotes(),
-                accommodationNote(request.getAccommodationSlug(), request.getAccommodationQty())));
+                accommodationNote(requestedAccommodations)));
         reservationRequest.setArrivalMode(request.getArrivalMode() == null ? null
                 : com.camping.duneinsolite.model.enums.ArrivalMode.valueOf(request.getArrivalMode()));
         reservationRequest.setDepartureCity(request.getDepartureCity() == null ? null
@@ -440,9 +511,14 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
         // Phase 1: ReservationService re-resolves the price and snapshots it
         // onto the stay line (per unit, per night) — see buildTourTypeSnapshot.
-        if (accommodation != null) {
-            selection.setAccommodationTypeId(accommodation.getId());
-            selection.setAccommodationUnits(accommodationUnits);
+        // One entry per selected tier — a booking may hold several at once.
+        if (!resolvedTiers.isEmpty()) {
+            selection.setAccommodationSelections(resolvedTiers.stream().map(tier -> {
+                AccommodationSelectionRequest sel = new AccommodationSelectionRequest();
+                sel.setAccommodationTypeId(tier.accommodation().getId());
+                sel.setAccommodationUnits(tier.units());
+                return sel;
+            }).toList());
         }
 
         reservationRequest.setTourTypes(List.of(selection));
@@ -473,8 +549,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         PublicStayBookingResponse response = new PublicStayBookingResponse();
         response.setId(reservation.getReservationId().toString());
         response.setStaySlug(request.getStaySlug());
-        response.setAccommodationSlug(request.getAccommodationSlug());
-        response.setAccommodationQty(request.getAccommodationQty());
+        response.setAccommodations(request.getAccommodations());
         response.setDate(request.getDate().toString());
         response.setNights(request.getNights() != null ? request.getNights() : 1);
         response.setPartySize(request.getPartySize());
@@ -586,10 +661,11 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         return (timeSlot == null || timeSlot.isBlank()) ? null : "Time preference: " + timeSlot;
     }
 
-    private static String accommodationNote(String accommodationSlug, Integer accommodationQty) {
-        if (accommodationSlug == null || accommodationSlug.isBlank()) return null;
-        return "Accommodation requested: " + accommodationSlug
-                + (accommodationQty != null ? " x" + accommodationQty : "");
+    private static String accommodationNote(List<PublicAccommodationSelectionRequest> accommodations) {
+        if (accommodations == null || accommodations.isEmpty()) return null;
+        return "Accommodation requested: " + accommodations.stream()
+                .map(sel -> sel.getAccommodationSlug() + (sel.getQuantity() != null ? " x" + sel.getQuantity() : ""))
+                .collect(Collectors.joining(", "));
     }
 
     private static String demandeSpecial(String notes, String extra) {

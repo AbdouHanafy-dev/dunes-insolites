@@ -3681,6 +3681,26 @@ footer.site-footer .bar-social a:hover {
   font-weight: 700;
 }
 
+.pick-details-link {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  z-index: 2;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink, #2a1508);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 12px rgba(42, 16, 8, 0.18);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.pick-details-link:hover {
+  background: #fff;
+}
+
 .slots {
   display: grid;
   grid-template-columns: 1fr 1fr;

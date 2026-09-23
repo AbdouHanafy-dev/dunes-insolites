@@ -46,26 +46,64 @@ export default function StayReservationForm({
     PER_PERSON: t("unitPerson"),
     PER_VEHICLE: t("unitVehicle"),
   };
-  const [date, setDate] = useState("");
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [accommodationSlug, setAccommodationSlug] = useState(initialAccommodationSlug ?? "");
-  const [accommodationQty, setAccommodationQty] = useState(1);
-  const [rideSlugs, setRideSlugs] = useState<string[]>([]);
+  // A draft snapshot of the guest's in-progress selections, so navigating to
+  // an accommodation tier's own detail page ("voir détails") and coming back
+  // doesn't lose what they'd already picked. sessionStorage only (per-tab,
+  // gone on close) — never used for anything the server treats as
+  // authoritative. Read once on mount; every read/write is defensive since a
+  // private window or blocked site data can make either throw or return null.
+  const draftKey = `booking-draft:${stay.slug}`;
+  type BookingDraft = {
+    date?: string;
+    adults?: number;
+    children?: number;
+    accommodationSelections?: Record<string, number>;
+    rideSlugs?: string[];
+    hasOwnVehicle?: boolean | null;
+    departureCity?: DepartureCity | "";
+    returnCity?: DepartureCity | "";
+    guideSlug?: string;
+    transportSlug?: string;
+  };
+  function readDraft(): BookingDraft | null {
+    try {
+      const raw = sessionStorage.getItem(draftKey);
+      return raw ? (JSON.parse(raw) as BookingDraft) : null;
+    } catch {
+      return null;
+    }
+  }
+  const initialDraft = typeof window !== "undefined" ? readDraft() : null;
+
+  const [date, setDate] = useState(initialDraft?.date ?? "");
+  const [adults, setAdults] = useState(initialDraft?.adults ?? 1);
+  const [children, setChildren] = useState(initialDraft?.children ?? 0);
+  // slug -> quantity. A guest may pick several tiers at once (e.g. 2 Suites +
+  // 3 Tentes in one booking). `initialAccommodationSlug` (from the "Réserver"
+  // link on a tier's own detail page) is merged in rather than replacing
+  // whatever the draft already held.
+  const [accommodationSelections, setAccommodationSelections] = useState<Record<string, number>>(() => {
+    const base = { ...(initialDraft?.accommodationSelections ?? {}) };
+    if (initialAccommodationSlug && !(initialAccommodationSlug in base)) {
+      base[initialAccommodationSlug] = 1;
+    }
+    return base;
+  });
+  const [rideSlugs, setRideSlugs] = useState<string[]>(initialDraft?.rideSlugs ?? []);
 
   // "Getting There & Guide" - hasOwnVehicle null = not chosen yet. Guide is
   // always offered; transport only when the guest has no vehicle. Kept as
   // two separate selections (never both a customer-vehicle guide AND a
   // transport option), matching the backend's own mutual-exclusion rule.
-  const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
-  const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
+  const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(initialDraft?.hasOwnVehicle ?? null);
+  const [departureCity, setDepartureCity] = useState<DepartureCity | "">(initialDraft?.departureCity ?? "");
   // Optional return leg after the stay ends - same city list as
   // departureCity, entirely skippable.
-  const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
+  const [returnCity, setReturnCity] = useState<DepartureCity | "">(initialDraft?.returnCity ?? "");
   const [guideOptions, setGuideOptions] = useState<ServiceOptionCatalogItem[]>([]);
   const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
-  const [guideSlug, setGuideSlug] = useState("");
-  const [transportSlug, setTransportSlug] = useState("");
+  const [guideSlug, setGuideSlug] = useState(initialDraft?.guideSlug ?? "");
+  const [transportSlug, setTransportSlug] = useState(initialDraft?.transportSlug ?? "");
   const [pickupHotelName, setPickupHotelName] = useState("");
   const [pickupAirport, setPickupAirport] = useState("");
   const [pickupFlightNumber, setPickupFlightNumber] = useState("");
@@ -82,6 +120,31 @@ export default function StayReservationForm({
       cancelled = true;
     };
   }, []);
+
+  // Snapshot the draft on every relevant change. Contact details (name/email/
+  // phone/notes) are deliberately excluded — no reason to linger in browser
+  // storage, and they aren't lost by the "voir détails" round trip since that
+  // link is reached before those fields are usually filled in.
+  useEffect(() => {
+    try {
+      const draft: BookingDraft = {
+        date,
+        adults,
+        children,
+        accommodationSelections,
+        rideSlugs,
+        hasOwnVehicle,
+        departureCity,
+        returnCity,
+        guideSlug,
+        transportSlug,
+      };
+      sessionStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch {
+      // Best-effort only — a private window or blocked storage just means
+      // the draft won't survive the round trip, not a broken form.
+    }
+  }, [date, adults, children, accommodationSelections, rideSlugs, hasOwnVehicle, departureCity, returnCity, guideSlug, transportSlug, draftKey]);
 
   const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
   const selectedGuide = guideOptions.find((o) => o.slug === guideSlug);
@@ -144,8 +207,11 @@ export default function StayReservationForm({
       .then((data) => {
         setAvail({ forDate, data, error: false });
         if (data?.accommodations.some((t) => t.status === "UNAVAILABLE")) {
-          setAccommodationSlug((cur) =>
-            data.accommodations.find((t) => t.slug === cur)?.status === "UNAVAILABLE" ? "" : cur,
+          const unavailableSlugs = new Set(
+            data.accommodations.filter((t) => t.status === "UNAVAILABLE").map((t) => t.slug),
+          );
+          setAccommodationSelections((cur) =>
+            Object.fromEntries(Object.entries(cur).filter(([slug]) => !unavailableSlugs.has(slug))),
           );
         }
       })
@@ -171,15 +237,20 @@ export default function StayReservationForm({
 
   const min = todayISO();
   const partySize = adults + children;
-  const selectedAccommodation = accommodations?.find((a) => a.slug === accommodationSlug);
-  // Per unit while a specific tent/room/suite is chosen — how many units count
-  // against a shared night's price is still to be confirmed with the camp, so
-  // this stays a free pick rather than something derived from party size.
-  // Display-only estimate. The authoritative total is computed server-side from
-  // the snapshotted per-unit price — this number is never submitted (see the
+  // Every tier the guest has checked, each with its own quantity — a guest
+  // may book several at once (e.g. 2 Suites + 3 Tentes together).
+  const selectedAccommodations = (accommodations ?? [])
+    .filter((a) => a.slug in accommodationSelections)
+    .map((a) => ({ accommodation: a, qty: accommodationSelections[a.slug] }));
+  // Per unit while at least one tent/room/suite is chosen — how many units
+  // count against a shared night's price is still to be confirmed with the
+  // camp, so this stays a free pick rather than something derived from party
+  // size. Display-only estimate, summed across every selected tier. The
+  // authoritative total is computed server-side from the snapshotted
+  // per-unit price — this number is never submitted (see the
   // createStayBooking payload below: slugs, qty, party, contact only).
-  const total = selectedAccommodation
-    ? selectedAccommodation.priceFrom * accommodationQty
+  const total = selectedAccommodations.length > 0
+    ? selectedAccommodations.reduce((sum, { accommodation, qty }) => sum + accommodation.priceFrom * qty, 0)
     : stay.priceFrom * partySize;
 
   function optionQuantity(option: ServiceOptionCatalogItem): number {
@@ -219,13 +290,22 @@ export default function StayReservationForm({
     setChildren((current) => Math.max(0, Math.min(MAX_PARTY_SIZE - adults, current + change)));
   }
 
-  function changeAccommodationQty(change: -1 | 1) {
-    setAccommodationQty((current) => Math.max(1, Math.min(6, current + change)));
+  function changeAccommodationQty(slug: string, change: -1 | 1) {
+    setAccommodationSelections((cur) => {
+      if (!(slug in cur)) return cur;
+      return { ...cur, [slug]: Math.max(1, Math.min(6, cur[slug] + change)) };
+    });
   }
 
-  function selectAccommodation(slug: string) {
-    setAccommodationSlug(slug);
-    setAccommodationQty(1);
+  function toggleAccommodation(slug: string) {
+    setAccommodationSelections((cur) => {
+      if (slug in cur) {
+        const rest = { ...cur };
+        delete rest[slug];
+        return rest;
+      }
+      return { ...cur, [slug]: 1 };
+    });
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -233,7 +313,8 @@ export default function StayReservationForm({
     setErrors({});
     setFormError("");
 
-    if (accommodationSlug && tierSoldOut(accommodationSlug)) {
+    const soldOutSelection = selectedAccommodations.find(({ accommodation }) => tierSoldOut(accommodation.slug));
+    if (soldOutSelection) {
       setErrors({ accommodationSlug: t("errorSoldOut") });
       return;
     }
@@ -293,10 +374,14 @@ export default function StayReservationForm({
         : []),
     ];
 
+    const accommodationsPayload = selectedAccommodations.map(({ accommodation, qty }) => ({
+      accommodationSlug: accommodation.slug,
+      quantity: qty,
+    }));
+
     const result = await api.createStayBooking({
       staySlug: stay.slug,
-      accommodationSlug: accommodationSlug || undefined,
-      accommodationQty: accommodationSlug ? accommodationQty : undefined,
+      accommodations: accommodationsPayload.length > 0 ? accommodationsPayload : undefined,
       date,
       partySize,
       rideSlugs,
@@ -328,6 +413,11 @@ export default function StayReservationForm({
     setBooking(result.data);
     setSubmitting(false);
     toast.success(t("reservedConfirmation", { id: result.data.id }));
+    try {
+      sessionStorage.removeItem(draftKey);
+    } catch {
+      // Nothing to clean up if storage isn't available.
+    }
   }
 
   if (booking) {
@@ -351,66 +441,65 @@ export default function StayReservationForm({
             {accommodations.map((a) => {
               const av = tierAvailability(a.slug);
               const soldOut = av?.status === "UNAVAILABLE";
+              const checked = a.slug in accommodationSelections;
+              const qty = accommodationSelections[a.slug] ?? 1;
               return (
-                <label
-                  key={a.slug}
-                  className="ride-option"
-                  data-disabled={soldOut || undefined}
-                >
-                  <input
-                    type="radio"
-                    name="accommodation"
-                    checked={accommodationSlug === a.slug}
-                    disabled={soldOut}
-                    onChange={() => selectAccommodation(a.slug)}
-                  />
-                  <span>{a.title}</span>
-                  <span className="ride-price">
-                    {soldOut
-                      ? t("soldOutForDate")
-                      : av?.status === "AVAILABLE" && av.unitsAvailable != null && av.unitsAvailable <= 3
-                        ? (av.unitsAvailable === 1
-                            ? t("leftFromPriceOne", { units: av.unitsAvailable, price: a.priceFrom })
-                            : t("leftFromPriceOther", { units: av.unitsAvailable, price: a.priceFrom }))
-                        : t("fromPrice", { price: a.priceFrom })}
-                  </span>
-                </label>
+                <div key={a.slug}>
+                  <label
+                    className="ride-option"
+                    data-disabled={soldOut || undefined}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={soldOut}
+                      onChange={() => toggleAccommodation(a.slug)}
+                    />
+                    <span>{a.title}</span>
+                    <span className="ride-price">
+                      {soldOut
+                        ? t("soldOutForDate")
+                        : av?.status === "AVAILABLE" && av.unitsAvailable != null && av.unitsAvailable <= 3
+                          ? (av.unitsAvailable === 1
+                              ? t("leftFromPriceOne", { units: av.unitsAvailable, price: a.priceFrom })
+                              : t("leftFromPriceOther", { units: av.unitsAvailable, price: a.priceFrom }))
+                          : t("fromPrice", { price: a.priceFrom })}
+                    </span>
+                  </label>
+                  {checked && (
+                    <div className="guest-picker" style={{ marginTop: 6, marginBottom: 10 }}>
+                      <div className="guest-row">
+                        <div>
+                          <strong>{t("howMany")}</strong>
+                          <span>{t("exactRuleNote")}</span>
+                        </div>
+                        <div className="guest-stepper">
+                          <button
+                            type="button"
+                            onClick={() => changeAccommodationQty(a.slug, -1)}
+                            disabled={qty === 1}
+                            aria-label={t("decrease")}
+                          >
+                            −
+                          </button>
+                          <output aria-label={`${qty} ${a.title}`}>{qty}</output>
+                          <button
+                            type="button"
+                            onClick={() => changeAccommodationQty(a.slug, 1)}
+                            disabled={qty === 6}
+                            aria-label={t("increase")}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
           {errors.accommodationSlug && <span className="err">{errors.accommodationSlug}</span>}
-          {selectedAccommodation && (
-            <div className="guest-picker" style={{ marginTop: 10 }}>
-              <div className="guest-row">
-                <div>
-                  <strong>{t("howMany")}</strong>
-                  <span>{t("exactRuleNote")}</span>
-                </div>
-                <div className="guest-stepper">
-                  <button
-                    type="button"
-                    onClick={() => changeAccommodationQty(-1)}
-                    disabled={accommodationQty === 1}
-                    aria-label={t("decrease")}
-                  >
-                    −
-                  </button>
-                  <output aria-label={`${accommodationQty} ${selectedAccommodation.title}`}>
-                    {accommodationQty}
-                  </output>
-                  <button
-                    type="button"
-                    onClick={() => changeAccommodationQty(1)}
-                    disabled={accommodationQty === 6}
-                    aria-label={t("increase")}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              {errors.accommodationQty && <span className="err">{errors.accommodationQty}</span>}
-            </div>
-          )}
         </div>
       )}
 
@@ -727,10 +816,19 @@ export default function StayReservationForm({
       </div>
 
       <div className="summary">
-        <div className="row">
-          <span>{selectedAccommodation?.title ?? t("stayFallbackLabel")}</span>
-          <span>€{total}</span>
-        </div>
+        {selectedAccommodations.length > 0 ? (
+          selectedAccommodations.map(({ accommodation, qty }) => (
+            <div className="row" key={accommodation.slug}>
+              <span>{qty} × {accommodation.title}</span>
+              <span>€{accommodation.priceFrom * qty}</span>
+            </div>
+          ))
+        ) : (
+          <div className="row">
+            <span>{t("stayFallbackLabel")}</span>
+            <span>€{total}</span>
+          </div>
+        )}
         {selectedGuide && (
           <div className="row">
             <span>{selectedGuide.name}</span>

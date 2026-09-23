@@ -95,6 +95,16 @@ public class AccommodationType {
     @Builder.Default
     private List<String> features = new ArrayList<>();
 
+    /** Additional photos beyond {@link #imageUrl}, for this tier's own public
+     *  detail page gallery. Same pattern as {@link #features}. */
+    @ElementCollection
+    @CollectionTable(name = "accommodation_type_gallery",
+            joinColumns = @JoinColumn(name = "accommodation_type_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "photo_url", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> gallery = new ArrayList<>();
+
     /** True when this tier has everything it needs to be booked. */
     @Transient
     public boolean isBookable() {

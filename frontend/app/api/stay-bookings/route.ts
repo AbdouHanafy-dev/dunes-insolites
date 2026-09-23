@@ -18,7 +18,9 @@ export async function POST(req: Request) {
   const input: Partial<StayBookingInput> = {
     ...body,
     partySize: Number(body.partySize),
-    accommodationQty: body.accommodationSlug ? Number(body.accommodationQty) : undefined,
+    accommodations: Array.isArray(body.accommodations)
+      ? body.accommodations.map((a) => ({ accommodationSlug: a.accommodationSlug, quantity: Number(a.quantity) }))
+      : undefined,
     rideSlugs: Array.isArray(body.rideSlugs) ? body.rideSlugs : [],
     name: body.name?.trim(),
     email: body.email?.trim(),

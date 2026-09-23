@@ -453,6 +453,8 @@ export type AdminAccommodationType = {
   name: string;
   description: string | null;
   imageUrl: string | null;
+  /** Additional photos beyond `imageUrl`, for this tier's own public detail page. */
+  gallery: string[];
   capacity: number;
   maxUnits: number | null;
   unitPriceTtc: number | null;
@@ -472,6 +474,7 @@ export type AdminAccommodationTypeInput = {
   name: string;
   description?: string | null;
   imageUrl?: string | null;
+  gallery?: string[];
   capacity: number;
   maxUnits?: number | null;
   unitPriceTtc?: number | null;
@@ -551,6 +554,7 @@ export type AdminTour = {
   keywords: string[];
   programSteps: AdminTourProgramStep[];
   guideType: AdminGuideType;
+  overnightsAtCamp: boolean;
   foodIncluded: boolean;
   meals: AdminTourMeal[];
   drinksIncluded: boolean;

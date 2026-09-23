@@ -28,6 +28,13 @@ import {
 
 type Category = "circuit" | "accommodation";
 
+// Step 0's category cards show a real result's photo once tours/stays load;
+// until then (or if a result is genuinely missing one), these keep the card
+// from sitting blank — same static assets already used as fallbacks
+// elsewhere (circuits/[slug]/page.tsx, account/page.tsx).
+const CIRCUIT_FALLBACK_IMAGE = "/images/tours/depuis-tunis-2-jours-camp-sahara/01.avif";
+const STAY_FALLBACK_IMAGE = "/images/camp-hero-poster.jpg";
+
 function todayISO(): string {
   const d = new Date();
   const off = d.getTimezoneOffset();
@@ -142,6 +149,18 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const maxNights = selectedStay?.maxNights ?? 1;
   const multiNight = maxNights > 1;
 
+  // A preview photo for each category card on step 0, from the same real
+  // catalogue the results step uses — fetched eagerly (not gated on picking
+  // a category) so the card isn't left blank before the guest chooses.
+  useEffect(() => {
+    let cancelled = false;
+    api.getTours(locale).then((items) => !cancelled && setTours((cur) => (cur.length ? cur : items)));
+    api.getStays(locale).then((items) => !cancelled && setStays((cur) => (cur.length ? cur : items)));
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
   // Results, per chosen category.
   useEffect(() => {
     if (category === "circuit") {
@@ -178,14 +197,23 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }, []);
 
   const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
+  const circuitHasCampStay = Boolean(selectedTour?.overnightsAtCamp);
+  const circuitAccommodations = selectedTour?.accommodations ?? [];
+  const campStay = stays.find((stay) => (stay.accommodations?.length ?? 0) > 0);
 
   // Stay tier + service-option availability for the chosen arrival date,
   // across the full [date, date + nights) span for multi-night stays.
   useEffect(() => {
-    if (category !== "accommodation" || !selectedStay || !date) return;
-    if (multiNight && !departureDate) return;
+    const availabilityStay = category === "accommodation"
+      ? selectedStay
+      : category === "circuit" && circuitHasCampStay
+        ? campStay
+        : null;
+    if (!availabilityStay || !date) return;
+    if (category === "accommodation" && multiNight && !departureDate) return;
     const ctrl = new AbortController();
-    api.getStayAvailability(selectedStay.slug, date, nights, ctrl.signal)
+    const availabilityNights = category === "accommodation" ? nights : 1;
+    api.getStayAvailability(availabilityStay.slug, date, availabilityNights, ctrl.signal)
       .then((data) => !ctrl.signal.aborted && setStayAvail({ forDate: date, data }))
       .catch(() => {});
     Promise.all(
@@ -194,10 +222,11 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       if (!ctrl.signal.aborted) setServiceAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
     }).catch(() => {});
     return () => ctrl.abort();
-  }, [category, selectedStay, date, departureDate, multiNight, nights, transportOptions]);
+  }, [category, selectedStay, circuitHasCampStay, campStay, date, departureDate, multiNight, nights, transportOptions]);
 
   const otherActivities = activities;
-  const selectedAccommodation = selectedStay?.accommodations?.find((a) => a.slug === accommodationSlug);
+  const availableAccommodations = category === "circuit" ? circuitAccommodations : (selectedStay?.accommodations ?? []);
+  const selectedAccommodation = availableAccommodations.find((a) => a.slug === accommodationSlug);
   const partySize = adults + children;
 
   const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
@@ -248,6 +277,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const circuitTotal = selectedTour
     ? selectedTour.passengerAdultPrice * adults + selectedTour.passengerChildPrice * children
     : 0;
+  const circuitAccommodationTotal = circuitHasCampStay && selectedAccommodation
+    ? selectedAccommodation.priceFrom * accommodationQty
+    : 0;
   const stayNightly = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : (selectedStay?.priceFrom ?? 0) * partySize;
   const stayTotal = stayNightly * nights;
 
@@ -276,17 +308,30 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     setStayDetailLoading(false);
   }
 
-  // Steps: 0 category, 1 results, then category-specific steps. For
-  // accommodation, the tier pick comes right after dates/travelers (step 3)
+  // Steps: 0 category, 1 results, then category-specific steps. The camp
+  // accommodation step is inserted for circuits configured to sleep at Sabria.
   // — dates decide the nights count, which the tier's per-night price and
   // its live availability both depend on, so it can't come before them.
   const STEPS =
     category === "circuit"
-      ? [tb("stepCategory"), tb("stepResults"), t("stepDateTravelers"), t("stepGuide"), t("stepVehicle"), t("stepExtras"), t("stepReview")]
+      ? [
+          tb("stepCategory"),
+          tb("stepResults"),
+          t("stepDateTravelers"),
+          ...(circuitHasCampStay ? [t("stepAccommodation")] : []),
+          t("stepGuide"),
+          t("stepVehicle"),
+          t("stepExtras"),
+          t("stepReview"),
+        ]
       : category === "accommodation"
         ? [tb("stepCategory"), tb("stepResults"), ts("stepDateTravelers"), ts("stepAccommodation"), ts("stepVehicleGuide"), ts("stepExtras"), ts("stepReview")]
         : [tb("stepCategory")];
   const lastStep = STEPS.length - 1;
+  const circuitAccommodationStep = circuitHasCampStay ? 3 : -1;
+  const circuitGuideStep = circuitHasCampStay ? 4 : 3;
+  const circuitVehicleStep = circuitHasCampStay ? 5 : 4;
+  const circuitExtrasStep = circuitHasCampStay ? 6 : 5;
 
   const validateStep = useCallback((): boolean => {
     const e: Record<string, string> = {};
@@ -303,10 +348,14 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       else if (date < min) e.date = t("errorPastDate");
       if (adults < 1) e.adults = t("errorAtLeastOneAdult");
     }
-    if (category === "circuit" && step === 3) {
+    if (category === "circuit" && step === circuitAccommodationStep) {
+      if (!accommodationSlug) e.accommodation = t("errorAccommodationRequired");
+      else if (tierSoldOut(accommodationSlug)) e.accommodation = ts("errorSoldOut");
+    }
+    if (category === "circuit" && step === circuitGuideStep) {
       if (preferredLanguageIds.length === 0 && !otherLanguageRequested.trim()) e.language = t("errorLanguageRequired");
     }
-    if (category === "circuit" && step === 4) {
+    if (category === "circuit" && step === circuitVehicleStep) {
       if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
     }
     if (category === "circuit" && step === lastStep) {
@@ -354,7 +403,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     step, category, selectedTour, selectedStay, accommodationSlug, date, min, adults, multiNight, departureDate,
     nights, maxNights, preferredLanguageIds, otherLanguageRequested, hasOwnVehicle, name, email, phone,
     acceptedTerms, transportSlug, needsPickupDetails, pickupHotelName, pickupAirport, pickupAddress,
-    pickupInstructions, selectedTransport,
+    pickupInstructions, selectedTransport, circuitAccommodationStep, circuitGuideStep, circuitVehicleStep,
   ]);
 
   function next() {
@@ -381,6 +430,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       numberOfAdults: adults,
       numberOfChildren: children,
       rideSlugs,
+      accommodations: circuitHasCampStay && accommodationSlug
+        ? [{ accommodationSlug, quantity: accommodationQty }]
+        : undefined,
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
@@ -426,8 +478,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
     const result = await api.createStayBooking({
       staySlug: selectedStay.slug,
-      accommodationSlug: accommodationSlug || undefined,
-      accommodationQty: accommodationSlug ? accommodationQty : undefined,
+      accommodations: accommodationSlug
+        ? [{ accommodationSlug, quantity: accommodationQty }]
+        : undefined,
       date,
       nights,
       partySize,
@@ -520,10 +573,13 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           {step === 1 && category === "circuit" && selectedTour && `€${selectedTour.priceFrom}`}
           {step === 1 && category === "accommodation" && selectedStay && `€${selectedStay.priceFrom}`}
           {category === "circuit" && step === 2 && `€${circuitTotal}`}
-          {category === "circuit" && step === 3 && "€0"}
-          {category === "circuit" && step === 4 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
-          {category === "circuit" && step === 5 && `€${extrasTotal}`}
-          {category === "circuit" && step === lastStep && `€${circuitTotal + extrasTotal}`}
+          {category === "circuit" && step === circuitAccommodationStep && (
+            selectedAccommodation ? `€${circuitAccommodationTotal}` : t("chooseAccommodation")
+          )}
+          {category === "circuit" && step === circuitGuideStep && "€0"}
+          {category === "circuit" && step === circuitVehicleStep && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
+          {category === "circuit" && step === circuitExtrasStep && `€${extrasTotal}`}
+          {category === "circuit" && step === lastStep && `€${circuitTotal + circuitAccommodationTotal + extrasTotal}`}
           {category === "accommodation" && step === 2 && ts("fromPrice", { price: stayFromPrice })}
           {category === "accommodation" && step === 3 && (selectedAccommodation ? `€${stayTotal}` : ts("fromPrice", { price: stayFromPrice }))}
           {category === "accommodation" && step === 4 && (hasOwnVehicle === false ? ts("onRequest") : ts("ownVehicle"))}
@@ -545,9 +601,19 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 setCategory("circuit");
                 setSelectedTour(null);
                 setSelectedStay(null);
+                setAccommodationSlug("");
+                setAccommodationQty(1);
                 setResultsLoaded(false);
               }}
             >
+              <div className="thumb">
+                <Image
+                  src={isDisplayableImageSrc(tours[0]?.coverImage) ? tours[0].coverImage : CIRCUIT_FALLBACK_IMAGE}
+                  alt=""
+                  fill
+                  sizes="(max-width: 900px) 100vw, 50vw"
+                />
+              </div>
               <div className="meta">
                 <h3>{tb("circuitsLabel")}</h3>
                 <p>{tb("circuitsHint")}</p>
@@ -561,9 +627,19 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 setCategory("accommodation");
                 setSelectedTour(null);
                 setSelectedStay(null);
+                setAccommodationSlug("");
+                setAccommodationQty(1);
                 setResultsLoaded(false);
               }}
             >
+              <div className="thumb">
+                <Image
+                  src={isDisplayableImageSrc(stays[0]?.image) ? stays[0].image : STAY_FALLBACK_IMAGE}
+                  alt=""
+                  fill
+                  sizes="(max-width: 900px) 100vw, 50vw"
+                />
+              </div>
               <div className="meta">
                 <h3>{tb("accommodationsLabel")}</h3>
                 <p>{tb("accommodationsHint")}</p>
@@ -583,22 +659,35 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           ) : (
             <div className="picker">
               {tours.map((tour) => (
-                <button
-                  key={tour.slug}
-                  type="button"
-                  className="pick"
-                  aria-pressed={selectedTour?.slug === tour.slug}
-                  onClick={() => setSelectedTour(tour)}
-                >
-                  <div className="thumb">
-                    {isDisplayableImageSrc(tour.coverImage) && <Image src={tour.coverImage} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
-                  </div>
-                  <div className="meta">
-                    <h3>{tour.title}</h3>
-                    <p>{tour.duration}</p>
-                    <span className="price">{t("estimatedTotal")} €{tour.priceFrom}</span>
-                  </div>
-                </button>
+                <div key={tour.slug} style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    className="pick"
+                    aria-pressed={selectedTour?.slug === tour.slug}
+                    onClick={() => {
+                      setSelectedTour(tour);
+                      setAccommodationSlug("");
+                      setAccommodationQty(1);
+                    }}
+                  >
+                    <div className="thumb">
+                      {isDisplayableImageSrc(tour.coverImage) && <Image src={tour.coverImage} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                    </div>
+                    <div className="meta">
+                      <h3>{tour.title}</h3>
+                      <p>{tour.duration}</p>
+                      <span className="price">{t("estimatedTotal")} €{tour.priceFrom}</span>
+                    </div>
+                  </button>
+                  <Link
+                    href={`/circuits/${tour.slug}`}
+                    target="_blank"
+                    className="pick-details-link"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {tb("viewDetails")}
+                  </Link>
+                </div>
               ))}
             </div>
           )}
@@ -614,22 +703,31 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           ) : (
             <div className="picker">
               {stays.map((stay) => (
-                <button
-                  key={stay.slug}
-                  type="button"
-                  className="pick"
-                  aria-pressed={selectedStay?.slug === stay.slug}
-                  onClick={() => selectStay(stay)}
-                >
-                  <div className="thumb">
-                    {isDisplayableImageSrc(stay.image) && <Image src={stay.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
-                  </div>
-                  <div className="meta">
-                    <h3>{stay.title}</h3>
-                    <p>{stay.tagline}</p>
-                    <span className="price">{ts("fromPrice", { price: stay.priceFrom })}</span>
-                  </div>
-                </button>
+                <div key={stay.slug} style={{ position: "relative" }}>
+                  <button
+                    type="button"
+                    className="pick"
+                    aria-pressed={selectedStay?.slug === stay.slug}
+                    onClick={() => selectStay(stay)}
+                  >
+                    <div className="thumb">
+                      {isDisplayableImageSrc(stay.image) && <Image src={stay.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                    </div>
+                    <div className="meta">
+                      <h3>{stay.title}</h3>
+                      <p>{stay.tagline}</p>
+                      <span className="price">{ts("fromPrice", { price: stay.priceFrom })}</span>
+                    </div>
+                  </button>
+                  <Link
+                    href={`/camp/${stay.slug}`}
+                    target="_blank"
+                    className="pick-details-link"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {tb("viewDetails")}
+                  </Link>
+                </div>
               ))}
             </div>
           )}
@@ -669,8 +767,65 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         </div>
       )}
 
-      {/* ---------- circuit: 3. guide language ---------- */}
-      {category === "circuit" && step === 3 && (
+      {/* ---------- circuit: camp accommodation ---------- */}
+      {category === "circuit" && step === circuitAccommodationStep && (
+        <div className="field" data-invalid={!!errors.accommodation}>
+          <label>{t("chooseAccommodation")}</label>
+          <p className="hint">{t("chooseAccommodationHint")}</p>
+          {circuitAccommodations.length > 0 ? (
+            <>
+              <div className="picker">
+                {circuitAccommodations.map((a) => {
+                  const soldOut = tierSoldOut(a.slug);
+                  return (
+                    <button
+                      key={a.slug}
+                      type="button"
+                      className="pick"
+                      aria-pressed={accommodationSlug === a.slug}
+                      disabled={soldOut}
+                      onClick={() => {
+                        setAccommodationSlug(a.slug);
+                        setAccommodationQty(1);
+                      }}
+                    >
+                      <div className="thumb">
+                        {isDisplayableImageSrc(a.image) && <Image src={a.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
+                      </div>
+                      <div className="meta">
+                        <h3>{a.title}</h3>
+                        {(a.tagline || a.description) && <p>{a.tagline || a.description}</p>}
+                        <span className="price">
+                          {soldOut ? ts("soldOutForDate") : t("accommodationPrice", { price: a.priceFrom })}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedAccommodation && (
+                <div className="guest-row" style={{ marginTop: 16 }}>
+                  <div>
+                    <strong>{t("accommodationQuantity")}</strong>
+                    <p className="hint">{selectedAccommodation.title}</p>
+                  </div>
+                  <div className="guest-stepper">
+                    <button type="button" aria-label={`− ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
+                    <output aria-live="polite">{accommodationQty}</output>
+                    <button type="button" aria-label={`+ ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
+          )}
+          {errors.accommodation && <span className="err">{errors.accommodation}</span>}
+        </div>
+      )}
+
+      {/* ---------- circuit: guide language ---------- */}
+      {category === "circuit" && step === circuitGuideStep && (
         <div className="field" data-invalid={!!errors.language}>
           <label>{t("preferredLanguageLabel")}</label>
           <p className="hint">{t("preferredLanguageHint")}</p>
@@ -700,8 +855,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         </div>
       )}
 
-      {/* ---------- circuit: 4. vehicle ---------- */}
-      {category === "circuit" && step === 4 && (
+      {/* ---------- circuit: vehicle ---------- */}
+      {category === "circuit" && step === circuitVehicleStep && (
         <div className="field" data-invalid={!!errors.arrivalMode}>
           <label>{t("howWillYouArrive")}</label>
           <div className="ride-options">
@@ -752,8 +907,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         </div>
       )}
 
-      {/* ---------- circuit: 5. extras ---------- */}
-      {category === "circuit" && step === 5 && (
+      {/* ---------- circuit: extras ---------- */}
+      {category === "circuit" && step === circuitExtrasStep && (
         <div className="field">
           <label>{t("addExtra")}</label>
           {otherActivities.length === 0 ? (
@@ -867,6 +1022,19 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                   );
                 })}
               </div>
+              {selectedAccommodation && (
+                <div className="guest-row" style={{ marginTop: 16 }}>
+                  <div>
+                    <strong>{ts("accommodationQuantity")}</strong>
+                    <p className="hint">{selectedAccommodation.title}</p>
+                  </div>
+                  <div className="guest-stepper">
+                    <button type="button" aria-label={`− ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
+                    <output aria-live="polite">{accommodationQty}</output>
+                    <button type="button" aria-label={`+ ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
+                  </div>
+                </div>
+              )}
               {errors.accommodation && <div className="alert">{errors.accommodation}</div>}
             </>
           ) : (
@@ -930,7 +1098,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               ) : (
                 <div className="ride-options">
                   {transportOptions.map((o) => {
-                    const availability = optionAvailability(o);
                     const unavailable = optionUnavailable(o);
                     return (
                       <label key={o.slug} className="ride-option" data-disabled={unavailable || undefined}>
@@ -1011,6 +1178,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <p className="hint tour-review-hint">{t("reviewHint")}</p>
           <div className="summary tour-review-summary">
             <div className="row"><span className="k">{t("tripLabel")}</span><span>{selectedTour?.title}</span></div>
+            {circuitHasCampStay && selectedAccommodation && (
+              <div className="row">
+                <span className="k">{t("accommodationLabel")}</span>
+                <span>{selectedAccommodation.title} × {accommodationQty}</span>
+              </div>
+            )}
             <div className="row"><span className="k">{t("dateLabelSummary")}</span><span>{prettyDate(date, locale)}</span></div>
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
@@ -1033,7 +1206,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               </div>
             )}
             {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
-            <div className="row total"><span>{t("totalLabel")}</span><span>€{circuitTotal + extrasTotal}</span></div>
+            <div className="row total"><span>{t("totalLabel")}</span><span>€{circuitTotal + circuitAccommodationTotal + extrasTotal}</span></div>
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
             <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />

@@ -48,8 +48,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TourDetail({ params }: Props) {
   const { locale, slug } = await params;
-  const tour = await getTour(slug, locale);
-  if (!tour) notFound();
+  const rawTour = await getTour(slug, locale);
+  if (!rawTour) notFound();
+  // Keep prerendering compatible while an older API deployment is still
+  // serving tours created before these collection fields were introduced.
+  const tour = {
+    ...rawTour,
+    gallery: rawTour.gallery ?? [],
+    languages: rawTour.languages ?? [],
+    highlights: rawTour.highlights ?? [],
+    included: rawTour.included ?? [],
+    notIncluded: rawTour.notIncluded ?? [],
+    itinerary: rawTour.itinerary ?? [],
+    meals: rawTour.meals ?? [],
+    dietaryRestrictions: rawTour.dietaryRestrictions ?? [],
+    transportModes: rawTour.transportModes ?? [],
+    notSuitableFor: rawTour.notSuitableFor ?? [],
+    notAllowed: rawTour.notAllowed ?? [],
+    mustBring: rawTour.mustBring ?? [],
+  };
 
   const [related, tourReviews, t, tLinks, tNav] = await Promise.all([
     getRelatedTours(slug, locale).then((items) => items.slice(0, 3)),
@@ -396,6 +413,8 @@ export default async function TourDetail({ params }: Props) {
               tourTitle={tour.title}
               adultPrice={tour.passengerAdultPrice}
               childPrice={tour.passengerChildPrice}
+              overnightsAtCamp={tour.overnightsAtCamp}
+              accommodations={tour.accommodations ?? []}
             />
           </aside>
         </div>

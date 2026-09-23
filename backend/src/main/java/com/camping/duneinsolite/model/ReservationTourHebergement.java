@@ -1,9 +1,13 @@
 package com.camping.duneinsolite.model;
 
+import com.camping.duneinsolite.money.Money;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -45,4 +49,29 @@ public class ReservationTourHebergement {
 
     @Column(name = "activity_date", nullable = false)
     private LocalDate activityDate;
+
+    // ── Accommodation (Tour circuits that overnight at the Sabria camp) ──
+    // A circuit whose Tour.overnightsAtCamp is true lets the guest pick a
+    // real, priced tier (Tente/Chambre/Suite) for this night — same
+    // ReservationAccommodation snapshot the Stay flow uses, attached here
+    // instead of to a ReservationTourType. Empty when the circuit doesn't
+    // offer accommodation (the free/included nights this entity was
+    // originally built for keep working unpriced).
+    @OneToMany(mappedBy = "reservationTourHebergement", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ReservationAccommodation> accommodations = new ArrayList<>();
+
+    @Transient
+    public boolean isAccommodationPriced() {
+        return !accommodations.isEmpty();
+    }
+
+    /** Sum of every selected tier's line total for this one night. */
+    @Transient
+    public BigDecimal getAccommodationTotalPrice() {
+        int nights = numberOfNights != null && numberOfNights > 0 ? numberOfNights : 1;
+        return Money.sum(accommodations.stream()
+                .map(a -> Money.lineTotal(a.getAccommodationUnitPriceTtc(), a.getAccommodationUnits(), nights))
+                .toList());
+    }
 }

@@ -56,6 +56,7 @@ public class PublicStayResponse {
         private String tagline;
         private String description;
         private String image;
+        private List<String> gallery;
         private java.math.BigDecimal priceFrom;
         private String sleeps;
         private List<String> features;

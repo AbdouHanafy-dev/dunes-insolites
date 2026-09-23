@@ -119,7 +119,9 @@ class SitewideCapacityConcurrencyIT {
     private UUID book() {
         PublicStayBookingRequest r = new PublicStayBookingRequest();
         r.setStaySlug(staySlug); r.setDate(date); r.setPartySize(2);
-        r.setAccommodationSlug("suite"); r.setAccommodationQty(1);
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug("suite"); accSelection.setQuantity(1);
+        r.setAccommodations(java.util.List.of(accSelection));
         r.setName("Guest"); r.setEmail("g@example.com"); r.setPhone("+21650000000");
         return UUID.fromString(publicBookingService.createStayBooking(r).getId());
     }

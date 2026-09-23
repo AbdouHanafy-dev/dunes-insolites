@@ -129,6 +129,15 @@ public class Tour {
     @Builder.Default
     private GuideType guideType = GuideType.NONE;
 
+    // When true, this multi-day circuit sleeps a night at the Sabria camp —
+    // the guest picks an accommodation tier (Tente/Chambre/Suite) the same
+    // way a nuitée-campement guest does, reusing that catalogue's tiers
+    // (there is only one physical camp). See
+    // AccommodationTypeRepository.findDistinctTourTypeIds().
+    @Column(name = "overnights_at_camp", nullable = false)
+    @Builder.Default
+    private Boolean overnightsAtCamp = false;
+
     @Column(name = "food_included", nullable = false)
     @Builder.Default
     private Boolean foodIncluded = false;

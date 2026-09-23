@@ -82,6 +82,7 @@ public class PublicStayMapper {
                     dto.setTagline("");
                     dto.setDescription(a.getDescription());
                     dto.setImage(a.getImageUrl());
+                    dto.setGallery(List.copyOf(a.getGallery()));
                     dto.setPriceFrom(a.getUnitPriceTtc());
                     dto.setSleeps("Jusqu'à " + a.getCapacity()
                             + (a.getCapacity() > 1 ? " personnes" : " personne"));

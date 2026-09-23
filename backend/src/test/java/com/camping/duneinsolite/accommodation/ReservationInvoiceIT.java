@@ -113,8 +113,10 @@ class ReservationInvoiceIT {
         r.setStaySlug(staySlug);
         r.setDate(LocalDate.now().plusDays(30));
         r.setPartySize(2);
-        r.setAccommodationSlug("dune-suite");
-        r.setAccommodationQty(1);
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug("dune-suite");
+        accSelection.setQuantity(1);
+        r.setAccommodations(java.util.List.of(accSelection));
         r.setName("Guest"); r.setEmail("guest@example.com"); r.setPhone("+21650000000");
         return r;
     }
@@ -199,7 +201,7 @@ class ReservationInvoiceIT {
         Reservation res = tx.execute(t ->
                 reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
         assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");
-        assertThat(res.getTourTypes().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(res.getTourTypes().get(0).getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
     }
 
     // ── Characterization net added before the ReservationInvoiceService

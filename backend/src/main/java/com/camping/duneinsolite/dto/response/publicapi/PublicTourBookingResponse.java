@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.dto.response.publicapi;
 
+import com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class PublicTourBookingResponse {
     private Integer numberOfAdults;
     private Integer numberOfChildren;
     private List<String> rideSlugs;
+    private List<PublicAccommodationSelectionRequest> accommodations;
     private String arrivalMode;
     private String departureCity;
     private String returnCity;

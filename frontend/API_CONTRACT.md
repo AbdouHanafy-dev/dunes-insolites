@@ -203,8 +203,10 @@ for each activity with the guest on arrival.
 {
   "id": "DI-MSYHFD",
   "staySlug": "nuitee-campement",
-  "accommodationSlug": "desert-tent",
-  "accommodationQty": 1,
+  "accommodations": [
+    { "accommodationSlug": "desert-tent", "quantity": 1 },
+    { "accommodationSlug": "dune-suite", "quantity": 2 }
+  ],
   "date": "2026-08-26",
   "partySize": 2,
   "rideSlugs": ["camel-trek", "quad-safari"],
@@ -226,12 +228,11 @@ for each activity with the guest on arrival.
 
 | Field | Java type | Notes |
 |---|---|---|
-| `accommodationSlug` | `String`, nullable | Only present when the stay offers `accommodations` and the guest picked one |
-| `accommodationQty` | `Integer`, nullable | How many of that tent/room/suite (1–6, UI-side). Only present alongside `accommodationSlug`. **Provisional** — see the note under `POST /stay-bookings` |
+| `accommodations` | `List<AccommodationSelection>`, nullable | Zero or more tiers the guest picked, each with its own `accommodationSlug` + `quantity` — a guest may book several tiers at once (e.g. 2 Suites + 3 Tentes). Absent/empty means no tier chosen (bivouac). |
 | `rideSlugs` | `List<String>` | Zero or more `Activity.slug` values. Validate each exists — don't trust the client list |
 | `arrivalMode` | `String` | Required: `OWN_VEHICLE` or `TRANSPORT`. `TRANSPORT` requires a selected transport option; `OWN_VEHICLE` rejects one. |
 | `serviceOptions` | `List<ServiceOptionSelection>`, nullable | Guide and transport selections by public slug. Prices are never accepted from the client; pickup fields are required when the catalogue option says so. |
-| `total` | `int` | Euros. If an accommodation is picked: **`accommodation.priceFrom × accommodationQty`**. Otherwise: **`stay.priceFrom × partySize`**. Either way, activities in `rideSlugs` are *not* added to this total (see `POST /stay-bookings` below) |
+| `total` | `int` | Euros. If one or more accommodations are picked: **the sum of `accommodation.priceFrom × quantity` across every selected tier**. Otherwise: **`stay.priceFrom × partySize`**. Either way, activities in `rideSlugs` are *not* added to this total (see `POST /stay-bookings` below) |
 
 ---
 
@@ -350,8 +351,9 @@ Request:
 ```json
 {
   "staySlug": "nuitee-campement",
-  "accommodationSlug": "desert-tent",
-  "accommodationQty": 2,
+  "accommodations": [
+    { "accommodationSlug": "desert-tent", "quantity": 2 }
+  ],
   "date": "2026-08-26",
   "partySize": 4,
   "rideSlugs": ["camel-trek"],
@@ -364,33 +366,35 @@ Request:
 
 - **`201`** → the full `StayBooking` object (with `id`, `status`, `total`).
 - **`422`** → field errors, keyed by the exact request field name:
-  `staySlug`, `accommodationSlug`, `accommodationQty`, `date`, `partySize`,
-  `rideSlugs`, `name`, `email`, `phone`.
+  `staySlug`, `accommodationSlug` (per-selection), `accommodationQty`
+  (per-selection), `date`, `partySize`, `rideSlugs`, `name`, `email`,
+  `phone`.
 
 Server-side validation, mirroring `POST /bookings`:
 
 - `date` is today or later
 - `partySize` between 1 and 12
-- `accommodationSlug`, if sent, must belong to that stay's `accommodations`
-- `accommodationQty`, if `accommodationSlug` is sent, is an integer 1–6
+- each `accommodations[].accommodationSlug`, if sent, must belong to that
+  stay's `accommodations`
+- each `accommodations[].quantity` is an integer 1–6
 - every slug in `rideSlugs` must be a real `Activity.slug`
-- `total` = `accommodation.priceFrom × accommodationQty` when an
-  accommodation is picked, else `stay.priceFrom × partySize` — **rides do
-  not currently add to the total.** That's the product's actual behavior
-  today (activities are priced/confirmed on arrival, not billed through
-  this form), not a bug to silently "fix" — confirm with the client before
-  changing it.
+- `total` = the sum of `accommodation.priceFrom × quantity` across every
+  selected tier when one or more are picked, else `stay.priceFrom ×
+  partySize` — **rides do not currently add to the total.** That's the
+  product's actual behavior today (activities are priced/confirmed on
+  arrival, not billed through this form), not a bug to silently "fix" —
+  confirm with the client before changing it.
 - Unlike `POST /bookings`, there is **no seat/capacity check.** Every future
   date is bookable regardless of how many guests are already booked that
   night. If the camp needs a real nightly capacity (limited tents/bivouac
   spots), that logic doesn't exist anywhere yet and needs to be designed.
 
-**`accommodationQty` is explicitly provisional.** The client doesn't yet
+**Per-tier `quantity` is explicitly provisional.** The client doesn't yet
 know the camp's real rule for how many tents/rooms/suites a party should
 book (per couple? capped by `Accommodation.sleeps`? one fixed price
-regardless of count?) — so today the guest just free-picks 1–6 and the
-price scales linearly with it. Don't harden this into a stricter rule on
-the backend until the client confirms the actual policy with the camp
+regardless of count?) — so today the guest just free-picks 1–6 per tier and
+the price scales linearly with it. Don't harden this into a stricter rule
+on the backend until the client confirms the actual policy with the camp
 operator.
 
 ### `POST /auth/login` · `POST /auth/register`

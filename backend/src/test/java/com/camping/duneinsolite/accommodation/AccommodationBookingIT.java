@@ -113,8 +113,10 @@ class AccommodationBookingIT {
         r.setStaySlug(staySlug);
         r.setDate(LocalDate.now().plusDays(30));
         r.setPartySize(party);
-        r.setAccommodationSlug(accSlug);
-        r.setAccommodationQty(qty);
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug(accSlug);
+        accSelection.setQuantity(qty);
+        r.setAccommodations(java.util.List.of(accSelection));
         r.setName("Guest"); r.setEmail("guest@example.com"); r.setPhone("+21650000000");
         return r;
     }
@@ -126,8 +128,8 @@ class AccommodationBookingIT {
         assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");                 // suite, not 999 × 2
         var line = res.getTourTypes().get(0);
         assertThat(line.isAccommodationPriced()).isTrue();
-        assertThat(line.getAccommodationName()).isEqualTo("Dune Suite");
-        assertThat(line.getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(line.getAccommodations().get(0).getAccommodationName()).isEqualTo("Dune Suite");
+        assertThat(line.getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
     }
 
     @Test
@@ -181,7 +183,7 @@ class AccommodationBookingIT {
 
         Reservation reloaded = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
         assertThat(reloaded.getTotalAmount()).isEqualByComparingTo("165.000");
-        assertThat(reloaded.getTourTypes().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(reloaded.getTourTypes().get(0).getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
     }
 
     @Test
@@ -241,8 +243,8 @@ class AccommodationBookingIT {
         Reservation r = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
         var line = r.getTourTypes().get(0);
         assertThat(line.isAccommodationPriced()).as("snapshot carried forward").isTrue();
-        assertThat(line.getAccommodationName()).isEqualTo("Dune Suite");
-        assertThat(line.getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(line.getAccommodations().get(0).getAccommodationName()).isEqualTo("Dune Suite");
+        assertThat(line.getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
         assertThat(r.getTotalAmount()).isEqualByComparingTo("165.000");
     }
 

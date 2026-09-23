@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
+import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import type { AdminAccommodationType, AdminAccommodationTypeInput } from "@/lib/api";
 
 const emptyTier = (tourTypeId: string): AdminAccommodationTypeInput => ({
@@ -12,6 +13,7 @@ const emptyTier = (tourTypeId: string): AdminAccommodationTypeInput => ({
   name: "",
   description: "",
   imageUrl: "",
+  gallery: [],
   capacity: 2,
   maxUnits: null,
   unitPriceTtc: null,
@@ -81,6 +83,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
       name: t.name,
       description: t.description ?? "",
       imageUrl: t.imageUrl ?? "",
+      gallery: t.gallery ?? [],
       capacity: t.capacity,
       maxUnits: t.maxUnits,
       unitPriceTtc: t.unitPriceTtc,
@@ -245,11 +248,12 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
               />
             </div>
             <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <label className={labelClass}>Image (URL)</label>
-              <input
-                className={inputClass}
-                value={editing.imageUrl ?? ""}
-                onChange={(e) => patch({ imageUrl: e.target.value })}
+              <label className={labelClass}>Photos</label>
+              <PhotoGalleryField
+                coverPhotoUrl={editing.imageUrl ?? null}
+                onCoverChange={(url) => patch({ imageUrl: url ?? "" })}
+                photos={(editing.gallery ?? []).map((url): TourPhoto => ({ url, caption: null }))}
+                onPhotosChange={(photos) => patch({ gallery: photos.map((p) => p.url) })}
               />
             </div>
             <div className="flex flex-col gap-1.5">

@@ -22,6 +22,7 @@ public class AccommodationTypeRequest {
 
     private String description;
     private String imageUrl;
+    private List<String> gallery;
 
     @Min(value = 1, message = "Capacity must be at least 1")
     private int capacity;

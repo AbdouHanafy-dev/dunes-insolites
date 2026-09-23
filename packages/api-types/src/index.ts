@@ -138,6 +138,10 @@ export type Tour = {
   location: string | null;
   meetingPoint: string | null;
   groupSize: string;
+  /** This circuit includes a night at the Sabria camp. */
+  overnightsAtCamp?: boolean;
+  /** Bookable Tent/Room/Suite tiers for that camp night. */
+  accommodations?: Accommodation[];
   languages: string[];
   coverImage: string | null;
   gallery: string[];
@@ -222,6 +226,8 @@ export type TourBooking = {
   numberOfAdults: number;
   numberOfChildren: number;
   rideSlugs: string[];
+  /** Required when the selected circuit overnights at the Sabria camp. */
+  accommodations?: AccommodationSelection[];
   /** How the guest reaches the meeting point; validated against selected transport options. */
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
   /** Where the guest departs from for pickup. Optional — not every guest arranges pickup through the site. */
@@ -257,6 +263,9 @@ export type Accommodation = {
   tagline: string;
   description: string;
   image: string;
+  /** Additional photos beyond `image` for this tier's own detail page.
+   *  Absent/empty means the detail page falls back to just `image`. */
+  gallery?: string[];
   priceFrom: number;
   sleeps: string;
   features: string[];
@@ -397,13 +406,20 @@ export type ServiceOptionSelection = {
   pickupInstructions?: string;
 };
 
+/** One accommodation tier + how many units of it, within a single Stay
+ *  booking. A booking may carry several of these at once (e.g. 2 Suites +
+ *  3 Tentes together) — same convention as `ServiceOptionSelection`. */
+export type AccommodationSelection = {
+  accommodationSlug: string;
+  quantity: number;
+};
+
 export type StayBooking = {
   id: string;
   staySlug: string;
-  accommodationSlug?: string;
-  /** How many of that accommodation to book. Only meaningful alongside
-   *  `accommodationSlug`. */
-  accommodationQty?: number;
+  /** Accommodation tiers chosen for this booking, each with its own
+   *  quantity. Absent/empty means no tier chosen (bivouac). */
+  accommodations?: AccommodationSelection[];
   date: string;
   /** How many nights this booking covers, computed client-side from the
    *  guest's arrival/departure picks. Defaults to 1 (a fixed single-night

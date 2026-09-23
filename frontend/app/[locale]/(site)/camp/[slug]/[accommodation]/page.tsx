@@ -74,6 +74,29 @@ export default async function AccommodationDetail({ params }: Props) {
       </section>
       <section className="detail-body">
         <div className="wrap">
+          {accommodation.gallery && accommodation.gallery.length > 0 && (
+            <div
+              style={{
+                maxWidth: 960,
+                margin: "0 auto 40px",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {accommodation.gallery.filter(isDisplayableImageSrc).map((src, index) => (
+                <div key={src} style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: 12, overflow: "hidden" }}>
+                  <Image
+                    src={src}
+                    alt={`${accommodation.title} — ${index + 2}`}
+                    fill
+                    sizes="(max-width: 700px) 100vw, 320px"
+                    style={{ objectFit: "cover" }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
           <div className="prose accommodation-detail-copy" style={{ maxWidth: 720, margin: "0 auto" }}>
             <p className="sect-eyebrow">{t("theDetails")}</p>
             <h2>{t("nightThatFits")}</h2>

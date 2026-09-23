@@ -104,8 +104,10 @@ class UserDataExportIT {
         req.setStaySlug(slug);
         req.setDate(LocalDate.now().plusDays(30));
         req.setPartySize(2);
-        req.setAccommodationSlug("dune-suite");
-        req.setAccommodationQty(1);
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug("dune-suite");
+        accSelection.setQuantity(1);
+        req.setAccommodations(java.util.List.of(accSelection));
         req.setName("Owner A"); req.setEmail(ownerAEmail); req.setPhone("+21650000001");
         UUID reservationId = UUID.fromString(publicBookingService.createStayBooking(req).getId());
         ownerAId = reservationRepository.findById(reservationId).orElseThrow().getUser().getUserId();

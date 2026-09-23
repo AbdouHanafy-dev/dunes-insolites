@@ -21,4 +21,8 @@ public class TourHebergementRequest {
     private Integer numberOfChildren;
 
     private List<RepartitionRequest> repartitions;
+
+    /** Priced accommodation tiers (Tente/Chambre/Suite) for this night, when
+     *  the circuit's Tour.overnightsAtCamp reuses the camp's catalogue. */
+    private List<AccommodationSelectionRequest> accommodations;
 }

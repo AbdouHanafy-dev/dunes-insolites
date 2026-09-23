@@ -105,8 +105,10 @@ class ReservationOwnershipIdorIT {
         req.setStaySlug(staySlug);
         req.setDate(LocalDate.now().plusDays(30));
         req.setPartySize(2);
-        req.setAccommodationSlug("dune-suite");
-        req.setAccommodationQty(1);
+        var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        accSelection.setAccommodationSlug("dune-suite");
+        accSelection.setQuantity(1);
+        req.setAccommodations(java.util.List.of(accSelection));
         req.setName("Owner A"); req.setEmail("ownerA@example.com"); req.setPhone("+21650000000");
         reservationId = UUID.fromString(publicBookingService.createStayBooking(req).getId());
 

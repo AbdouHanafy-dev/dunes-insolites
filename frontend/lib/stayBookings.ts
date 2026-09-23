@@ -24,17 +24,19 @@ export function validateStayBooking(input: Partial<StayBookingInput>): Validatio
 
   if (!stay) errors.staySlug = "Pick a stay.";
   else if (
-    input.accommodationSlug &&
-    !stay.accommodations?.some((accommodation) => accommodation.slug === input.accommodationSlug)
+    input.accommodations?.some(
+      (selection) => !stay.accommodations?.some((accommodation) => accommodation.slug === selection.accommodationSlug),
+    )
   ) {
     errors.accommodationSlug = "Pick an available accommodation.";
   }
 
-  if (input.accommodationSlug) {
-    const qty = Number(input.accommodationQty);
-    if (!qty || Number.isNaN(qty) || qty < 1 || qty > 6) {
-      errors.accommodationQty = "How many? Between 1 and 6.";
-    }
+  if (
+    input.accommodations?.some(
+      (selection) => !selection.quantity || selection.quantity < 1 || selection.quantity > 6,
+    )
+  ) {
+    errors.accommodationQty = "How many? Between 1 and 6.";
   }
 
   if (!input.date) errors.date = "Pick a date.";
@@ -63,9 +65,12 @@ export function validateStayBooking(input: Partial<StayBookingInput>): Validatio
 
 export function createStayBooking(input: StayBookingInput): StayBooking {
   const stay = getStay(input.staySlug)!;
-  const accommodation = stay.accommodations?.find((item) => item.slug === input.accommodationSlug);
-  const total = accommodation
-    ? accommodation.priceFrom * (input.accommodationQty ?? 1)
+  const selections = input.accommodations ?? [];
+  const total = selections.length > 0
+    ? selections.reduce((sum, selection) => {
+        const accommodation = stay.accommodations?.find((item) => item.slug === selection.accommodationSlug);
+        return sum + (accommodation ? accommodation.priceFrom * selection.quantity : 0);
+      }, 0)
     : stay.priceFrom * input.partySize;
   const booking: StayBooking = {
     ...input,

@@ -30,4 +30,15 @@ public interface AccommodationTypeRepository extends JpaRepository<Accommodation
     """)
     Optional<AccommodationType> findByTourTypeAndSlug(@Param("tourTypeId") UUID tourTypeId,
                                                      @Param("slug") String slug);
+
+    /**
+     * Every distinct TourType id that has at least one accommodation tier
+     * configured. There is only one physical camp (Sabria), so in a
+     * correctly configured catalogue this resolves to exactly one id — the
+     * nuitée-campement TourType whose tiers a Tour that
+     * {@code overnightsAtCamp} reuses. Callers must fail closed (not guess)
+     * when this doesn't return exactly one id.
+     */
+    @Query("SELECT DISTINCT a.tourType.tourTypeId FROM AccommodationType a")
+    List<UUID> findDistinctTourTypeIds();
 }

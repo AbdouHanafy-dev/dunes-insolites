@@ -22,6 +22,12 @@ public class PublicTourResponse {
     private String location;
     private String meetingPoint;
     private String groupSize;
+    /** True when this circuit sleeps a night at the Sabria camp — the guest
+     *  can then pick a priced accommodation tier the same catalogue the
+     *  nuitée-campement offers (there's only one physical camp). */
+    private Boolean overnightsAtCamp;
+    /** Bookable Sabria tiers when {@code overnightsAtCamp} is true. */
+    private List<PublicStayResponse.Accommodation> accommodations;
     private List<String> languages;
     private String coverImage;
     private List<String> gallery;

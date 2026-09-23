@@ -113,9 +113,11 @@ class AccommodationAvailabilityIT {
                     .reservation(r).name("P2").catalogTourTypeId(stay.getTourTypeId())
                     .adultPrice(java.math.BigDecimal.ZERO).childPrice(java.math.BigDecimal.ZERO).numberOfAdults(0).numberOfChildren(0)
                     .numberOfNights(1).activityDate(in)
-                    .accommodationTypeId(acc.getId()).accommodationName(acc.getName())
-                    .accommodationUnits(units).accommodationUnitPriceTtc(new BigDecimal("100.000"))
                     .build();
+            line.getAccommodations().add(com.camping.duneinsolite.model.ReservationAccommodation.builder()
+                    .reservationTourType(line).accommodationTypeId(acc.getId()).accommodationName(acc.getName())
+                    .accommodationUnits(units).accommodationUnitPriceTtc(new BigDecimal("100.000"))
+                    .build());
             r.getTourTypes().add(line);
             return reservationRepository.save(r);
         });
@@ -124,7 +126,9 @@ class AccommodationAvailabilityIT {
     private PublicStayBookingRequest req(String accSlug, int units, int party, LocalDate d) {
         PublicStayBookingRequest r = new PublicStayBookingRequest();
         r.setStaySlug(staySlug); r.setDate(d); r.setPartySize(party);
-        r.setAccommodationSlug(accSlug); r.setAccommodationQty(units);
+        var sel = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
+        sel.setAccommodationSlug(accSlug); sel.setQuantity(units);
+        r.setAccommodations(java.util.List.of(sel));
         r.setName("Guest"); r.setEmail("guest@example.com"); r.setPhone("+21650000000");
         return r;
     }

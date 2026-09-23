@@ -130,22 +130,25 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                 && !reservation.getTourTypes().isEmpty()) {
 
             // Group nights into one invoice line only when they're truly the same stay:
-            // same tour, same headcount, same price.
+            // same tour, same headcount, same price, same set of accommodation tiers.
             record TourTypeGroupKey(UUID catalogTourTypeId, Integer adults, Integer children,
                                      String adultPrice, String childPrice,
-                                     UUID accommodationTypeId, Integer accommodationUnits,
-                                     String accommodationUnitPrice) {}
+                                     List<String> accommodationKey) {}
 
             Map<TourTypeGroupKey, List<ReservationTourType>> grouped = new LinkedHashMap<>();
             for (ReservationTourType tt : reservation.getTourTypes()) {
                 UUID catalogId = tt.getCatalogTourTypeId() != null
                         ? tt.getCatalogTourTypeId()
                         : tt.getReservationTourTypeId();
+                List<String> accommodationKey = tt.getAccommodations().stream()
+                        .map(a -> a.getAccommodationTypeId() + ":" + a.getAccommodationUnits()
+                                + ":" + plain(a.getAccommodationUnitPriceTtc()))
+                        .sorted()
+                        .toList();
                 TourTypeGroupKey key = new TourTypeGroupKey(
                         catalogId, tt.getNumberOfAdults(), tt.getNumberOfChildren(),
                         plain(tt.getAdultPrice()), plain(tt.getChildPrice()),
-                        tt.getAccommodationTypeId(), tt.getAccommodationUnits(),
-                        plain(tt.getAccommodationUnitPriceTtc()));
+                        accommodationKey);
                 grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(tt);
             }
 
@@ -164,19 +167,23 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                         .filter(d -> d != null).max(Comparator.naturalOrder()).orElse(null);
                 LocalDate endDate = (maxDate != null && nights > 1) ? maxDate.plusDays(1) : null;
 
-                // Phase 1: an accommodation-priced line invoices per unit.
+                // Phase 1: an accommodation-priced line invoices per unit, per
+                // tier — a night with several tiers selected (e.g. 2 Suites +
+                // 3 Tentes) gets one invoice item per tier.
                 if (first.isAccommodationPriced()) {
-                    int units = first.getAccommodationUnits();
-                    BigDecimal accRate = Money.nz(first.getAccommodationTvaRate());
-                    BigDecimal lineTtc = Money.lineTotal(first.getAccommodationUnitPriceTtc(), units, nights);
-                    sumHt  = Money.add(sumHt, Money.htFromTtc(lineTtc, accRate));
-                    sumTva = Money.add(sumTva, Money.taxFromTtc(lineTtc, accRate));
-                    invoice.addItem(InvoiceItem.builder()
-                            .description(first.getAccommodationName() + (nights > 1 ? " (" + nights + " nuits)" : ""))
-                            .itemType("HEBERGEMENT").quantity(units)
-                            .unitPrice(Money.htFromTtc(
-                                    Money.lineTotal(first.getAccommodationUnitPriceTtc(), 1, nights), accRate))
-                            .tva(accRate).activityDate(minDate).activityEndDate(endDate).lineNumber(line++).build());
+                    for (ReservationAccommodation acc : first.getAccommodations()) {
+                        int units = acc.getAccommodationUnits();
+                        BigDecimal accRate = Money.nz(acc.getAccommodationTvaRate());
+                        BigDecimal lineTtc = Money.lineTotal(acc.getAccommodationUnitPriceTtc(), units, nights);
+                        sumHt  = Money.add(sumHt, Money.htFromTtc(lineTtc, accRate));
+                        sumTva = Money.add(sumTva, Money.taxFromTtc(lineTtc, accRate));
+                        invoice.addItem(InvoiceItem.builder()
+                                .description(acc.getAccommodationName() + (nights > 1 ? " (" + nights + " nuits)" : ""))
+                                .itemType("HEBERGEMENT").quantity(units)
+                                .unitPrice(Money.htFromTtc(
+                                        Money.lineTotal(acc.getAccommodationUnitPriceTtc(), 1, nights), accRate))
+                                .tva(accRate).activityDate(minDate).activityEndDate(endDate).lineNumber(line++).build());
+                    }
                     continue;
                 }
 
@@ -230,6 +237,26 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                             .description(t.getName() + " (Enfant)").itemType("TOURS").quantity(children)
                             .unitPrice(Money.htFromTtc(cp, rate)).tva(rate)
                             .activityDate(t.getDepartureDate()).lineNumber(line++).build());
+                }
+
+                // A circuit that overnights at the camp — one invoice item
+                // per accommodation tier, per night, same as the Stay side.
+                for (ReservationTourHebergement heb : t.getHebergements()) {
+                    int nights = heb.getNumberOfNights() != null && heb.getNumberOfNights() > 0
+                            ? heb.getNumberOfNights() : 1;
+                    for (ReservationAccommodation acc : heb.getAccommodations()) {
+                        int units = acc.getAccommodationUnits();
+                        BigDecimal accRate = Money.nz(acc.getAccommodationTvaRate());
+                        BigDecimal lineTtc = Money.lineTotal(acc.getAccommodationUnitPriceTtc(), units, nights);
+                        sumHt  = Money.add(sumHt, Money.htFromTtc(lineTtc, accRate));
+                        sumTva = Money.add(sumTva, Money.taxFromTtc(lineTtc, accRate));
+                        invoice.addItem(InvoiceItem.builder()
+                                .description(acc.getAccommodationName() + (nights > 1 ? " (" + nights + " nuits)" : ""))
+                                .itemType("HEBERGEMENT").quantity(units)
+                                .unitPrice(Money.htFromTtc(
+                                        Money.lineTotal(acc.getAccommodationUnitPriceTtc(), 1, nights), accRate))
+                                .tva(accRate).activityDate(heb.getActivityDate()).lineNumber(line++).build());
+                    }
                 }
             }
         }

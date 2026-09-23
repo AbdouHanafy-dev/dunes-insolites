@@ -41,6 +41,7 @@ public class TourResponse {
     private List<String> keywords;
     private List<ProgramStep> programSteps;
     private GuideType guideType;
+    private Boolean overnightsAtCamp;
     private Boolean foodIncluded;
     private List<Meal> meals;
     private Boolean drinksIncluded;
