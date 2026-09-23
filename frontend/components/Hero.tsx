@@ -54,10 +54,6 @@ export default async function Hero({ stats }: { stats: Stats }) {
           <dt>{t("ofExperience")}</dt>
         </div>
       </dl>
-
-      <p className="static-gate-coordinates" aria-hidden="true">
-        33.2286° N · 09.0056° E
-      </p>
     </section>
   );
 }

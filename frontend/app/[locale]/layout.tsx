@@ -11,6 +11,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CookieConsent from "@/components/CookieConsent";
 import Analytics from "@/components/Analytics";
+import ScrollToTop from "@/components/ScrollToTop";
 import { ToastProvider } from "@/components/Toast";
 import "../globals.css";
 import "../editorial-redesign.css";
@@ -227,6 +228,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             <main>{children}</main>
             <Footer settings={settings} />
             <CookieConsent />
+            <ScrollToTop />
             <Analytics />
           </ToastProvider>
         </NextIntlClientProvider>

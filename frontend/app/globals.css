@@ -2225,13 +2225,13 @@ section.block {
 
 /* ---------- experience / proof + place ----------
    Replaces the "3 equal stats over a photo" band (redesign, 14 Sep 2026 —
-   audit §11). A full-height photo beside a narrative statement and a
-   vertical, thin-ruled fact list — closing on the coordinates, the one
-   fact the rest of the page never states outright. */
+   audit §11). A full-height photo beside one narrative statement. (The
+   fact list that used to sit under it repeated the hero's figures and the
+   Location section's place - removed 23 Sep 2026.) */
 .exp-proof {
   display: grid;
   grid-template-columns: 46% 1fr;
-  min-height: 78vh;
+  min-height: 62vh;
   background: var(--night);
 }
 .exp-proof-media {
@@ -2258,42 +2258,6 @@ section.block {
   font-size: 1.06rem;
   line-height: 1.6;
   color: rgba(244, 233, 216, 0.72);
-}
-.exp-proof-facts {
-  display: flex;
-  flex-direction: column;
-}
-.exp-fact {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 18px 0;
-  flex-wrap: wrap;
-}
-.exp-fact-v {
-  font-size: 1.7rem;
-  font-weight: 600;
-  color: var(--paper);
-  white-space: nowrap;
-}
-.exp-fact-k {
-  font-size: 0.82rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(244, 233, 216, 0.58);
-  text-align: right;
-}
-.exp-fact-rule {
-  height: 1px;
-  background: rgba(244, 233, 216, 0.14);
-}
-.exp-fact-place .idx-label {
-  color: var(--color-amber);
-  font-size: 0.8rem;
-}
-.exp-fact-place .exp-fact-k {
-  color: rgba(244, 233, 216, 0.5);
 }
 @media (max-width: 900px) {
   .exp-proof {
@@ -5878,9 +5842,6 @@ footer.site-footer .bar-social a:hover {
   padding: 22px 28px;
   background: linear-gradient(180deg, rgba(26, 36, 41, 0) 0%, rgba(26, 36, 41, 0.72) 100%);
 }
-.cta-split-place {
-  color: var(--color-amber);
-}
 .cta-split-note {
   font-size: 0.85rem;
   color: rgba(244, 233, 216, 0.82);
@@ -6809,5 +6770,50 @@ body:has(.auth-page) footer.site-footer {
   .auth-inner {
     max-width: 100%;
     margin: 0;
+  }
+}
+
+/* ---------- back to top ----------
+   Appears after the first screen of scrolling. Sits at the reading-end
+   corner, opposite the cookie notice (reading-start, z-index 50), and below
+   it in the stacking order so the notice always wins. */
+.scroll-top {
+  position: fixed;
+  inset-inline-end: 20px;
+  bottom: 20px;
+  z-index: 40;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(253, 241, 225, 0.18);
+  border-radius: 999px;
+  background: rgba(20, 14, 10, 0.86);
+  color: var(--color-amber);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease;
+}
+.scroll-top[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.scroll-top:hover {
+  background: rgba(20, 14, 10, 1);
+}
+.scroll-top:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-top {
+    transition: none;
   }
 }

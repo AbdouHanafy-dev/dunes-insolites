@@ -11,7 +11,6 @@ import Circuits from "@/components/Circuits";
 import CTA from "@/components/CTA";
 import { getActivities, getCmsPage, getStats, getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
-import { site } from "@/lib/site";
 
 const CMS_SLUG = "home";
 
@@ -61,12 +60,9 @@ export default async function Home() {
       <ReviewsShowcase />
       <BookDirect override={bookDirectOverride} />
       <GalleryStrip />
-      {/* site.address already reads "Sabria, Kebili Governorate, Tunisia" —
-          prefixing it with "Sabria ·" duplicated the name (found live). */}
-      <CTA
-        place={site.address}
-        note={arrival ? tCta("arrivalNote", { time: arrival }) : undefined}
-      />
+      {/* The address is stated once, in Location - the CTA keeps only the one
+          fact nothing else says: when to arrive. */}
+      <CTA note={arrival ? tCta("arrivalNote", { time: arrival }) : undefined} />
     </>
   );
 }

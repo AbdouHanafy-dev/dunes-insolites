@@ -621,18 +621,6 @@ html { scroll-padding-top: 96px; }
   text-transform: uppercase;
 }
 
-.static-gate-coordinates {
-  position: absolute;
-  z-index: 3;
-  right: 28px;
-  bottom: 26px;
-  margin: 0;
-  color: rgba(255, 248, 237, 0.7);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-}
-
 /* Route dossiers: an image-led journey board, intentionally unlike the
    practical activity index that follows later on the homepage. */
 .route-ledger {
@@ -1263,7 +1251,6 @@ body:has(.drawer[data-open="true"]) .tour-mobile-booking-bar {
 
   .static-gate-word { padding-bottom: 23vh; }
   .static-gate-copy { top: 58%; }
-  .static-gate-coordinates { display: none; }
 }
 
 @media (max-width: 560px) {

@@ -38,10 +38,6 @@ export default async function Location({
           </h2>
           <dl className="location-facts">
             <div>
-              <dt>{t("camp")}</dt>
-              <dd>Sabria</dd>
-            </div>
-            <div>
               <dt>{t("region")}</dt>
               <dd>{site.address}</dd>
             </div>
