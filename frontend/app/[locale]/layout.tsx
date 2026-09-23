@@ -202,6 +202,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       lang={locale}
       dir={isRtl(locale) ? "rtl" : "ltr"}
       className={`${alexandria.variable} ${inter.variable}`}
+      data-scroll-behavior="smooth"
     >
       <body>
         <NextIntlClientProvider messages={messages}>

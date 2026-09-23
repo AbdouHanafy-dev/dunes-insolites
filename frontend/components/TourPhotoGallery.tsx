@@ -66,7 +66,7 @@ export default function TourPhotoGallery({
     <>
       <section className={`tour-gallery media-count-${preview.length}`} aria-label={title}>
         <div className="tour-media-primary">
-          <Image src={preview[0]} alt={suppliedMediaCount ? title : ""} fill sizes="(max-width: 900px) 100vw, 58vw" priority />
+          <Image src={preview[0]} alt={suppliedMediaCount ? title : ""} fill sizes="(max-width: 900px) 100vw, 58vw" preload />
         </div>
         {preview.length > 1 && (
           <div className="tour-media-secondary">
@@ -95,7 +95,7 @@ export default function TourPhotoGallery({
                 alt={suppliedMediaCount ? `${title} — ${index + 1}` : ""}
                 fill
                 sizes="100vw"
-                priority={index === 0}
+                preload={index === 0}
               />
             </figure>
           ))}

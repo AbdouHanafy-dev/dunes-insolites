@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function MaintenanceLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${alexandria.variable} ${inter.variable}`}>
+    <html lang="fr" className={`${alexandria.variable} ${inter.variable}`} data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

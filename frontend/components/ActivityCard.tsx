@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { Activity } from "@/lib/types";
+import { isDisplayableImageSrc } from "@/lib/imageSrc";
 
 /**
  * Used by the /activities listing page and "also on the sand" related
@@ -20,14 +21,16 @@ export default function ActivityCard({
   return (
     <Link className="edit-card" href={`/activities/${activity.slug}`}>
       <span className="edit-card-media">
-        <Image
-          src={activity.cardImage}
-          alt={activity.tagline}
-          fill
-          sizes="(max-width: 900px) 100vw, 33vw"
-          style={{ objectFit: "cover" }}
-          priority={preload}
-        />
+        {isDisplayableImageSrc(activity.cardImage) && (
+          <Image
+            src={activity.cardImage}
+            alt={activity.tagline}
+            fill
+            sizes="(max-width: 900px) 100vw, 33vw"
+            style={{ objectFit: "cover" }}
+            preload={preload}
+          />
+        )}
       </span>
       <span className="edit-card-cap">
         <span className="idx-label">{activity.kicker}</span>

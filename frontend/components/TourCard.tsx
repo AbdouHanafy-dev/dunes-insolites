@@ -37,7 +37,7 @@ export default async function TourCard({
             fill
             sizes="(max-width: 900px) 100vw, 33vw"
             style={{ objectFit: "cover" }}
-            priority={preload}
+            preload={preload}
           />
         ) : (
           // No cover photo uploaded for this Tour yet (admin catalogue gap,

@@ -199,7 +199,7 @@ export default async function MaintenancePage() {
       </div>
       <MaintenanceMusic labels={{ on: copy.musicOn, off: copy.musicOff }} />
       <div className="maint-content">
-        <Image src="/logo-mark.png" alt="" width={56} height={56} className="maint-logo" priority />
+        <Image src="/logo-mark.png" alt="" width={56} height={56} className="maint-logo" preload />
         <p className="maint-brand">
           {site.name.toUpperCase()} <span className="maint-brand-line">· {site.brandLine}</span>
         </p>
