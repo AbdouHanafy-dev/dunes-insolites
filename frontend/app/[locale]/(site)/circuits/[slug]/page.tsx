@@ -416,6 +416,7 @@ export default async function TourDetail({ params }: Props) {
               overnightsAtCamp={Boolean(tour.overnightsAtCamp)
                 || Number(tour.duration.match(/(\d+)\s*(?:jours?|days?)\b/i)?.[1] ?? 0) > 1}
               accommodations={tour.accommodations ?? []}
+              campStaySlug={tour.campStaySlug ?? ""}
             />
           </aside>
         </div>

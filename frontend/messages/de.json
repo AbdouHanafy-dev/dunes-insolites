@@ -367,6 +367,7 @@
   },
   "stayReservationForm": {
     "chooseCamp": "Wählen Sie Ihr Camp",
+    "viewDetails": "Details ansehen",
     "soldOutForDate": "Für dieses Datum ausgebucht",
     "fromPrice": "ab {price} €",
     "leftFromPriceOne": "noch {units} verfügbar · ab {price} €",
@@ -458,7 +459,21 @@
     "dateLabel": "Datum",
     "partySizeLabel": "Gruppengröße",
     "campLabel": "Camp",
-    "accommodationLabel": "Unterkunft"
+    "accommodationLabel": "Unterkunft",
+    "back": "Zurück",
+    "continue": "Weiter",
+    "reviewHint": "Es wird jetzt nichts berechnet. Wir bestätigen die Verfügbarkeit und melden uns, bevor wir die Zahlung einziehen.",
+    "travelersLabel": "Reisende",
+    "contactLabel": "Kontakt",
+    "notesLabelSummary": "Anmerkungen",
+    "totalLabel": "Gesamt",
+    "reviewGuideLabel": "Guide",
+    "reviewVehicleLabel": "Anreise",
+    "reviewExtrasLabel": "Aktivitäten",
+    "pickupLabel": "Abholung",
+    "errorPickDate": "Wählen Sie ein Datum.",
+    "errorPastDate": "Wählen Sie heute oder ein zukünftiges Datum.",
+    "extrasUnavailable": "Derzeit werden keine zusätzlichen Aktivitäten angeboten."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Rundreisen",
@@ -530,6 +545,7 @@
     "accommodationPrice": "{price} € pro Einheit",
     "accommodationQuantity": "Anzahl der Einheiten",
     "accommodationUnavailable": "Für diese Rundreise ist noch keine buchbare Unterkunft konfiguriert.",
+    "viewDetails": "Details ansehen",
     "errorAccommodationRequired": "Wählen Sie eine Unterkunft für die Nacht im Camp Sabria.",
     "accommodationLabel": "Unterkunft",
     "errorLanguageRequired": "Wählen Sie mindestens eine bevorzugte Sprache oder geben Sie eine andere Sprache ein.",
@@ -632,7 +648,8 @@
     "otherLanguagePlaceholder": "Andere Sprache nicht aufgeführt? Hier angeben (optional)"
   },
   "accommodationCard": {
-    "exploreThisStay": "Diese Übernachtung entdecken ↗"
+    "exploreThisStay": "Diese Übernachtung entdecken ↗",
+    "fromPrice": "ab {price} €"
   },
   "tourCard": {
     "fromPrice": "ab {price} €",
@@ -708,6 +725,9 @@
   "stayDetail": {
     "checkIn": "Anreise {time}",
     "checkOut": "Abreise {time}",
+    "checkInLabel": "Anreise",
+    "checkOutLabel": "Abreise",
+    "directBooking": "Direktbuchung",
     "experienceEyebrow": "Eine durchdacht getaktete Wüstennacht",
     "theExperience": "Das Erlebnis",
     "chooseHowEyebrow": "Wählen Sie, wie Sie schlafen",

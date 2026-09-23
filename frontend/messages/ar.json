@@ -367,6 +367,7 @@
   },
   "stayReservationForm": {
     "chooseCamp": "اختاروا مخيمكم",
+    "viewDetails": "عرض التفاصيل",
     "soldOutForDate": "محجوز بالكامل في هذا التاريخ",
     "fromPrice": "ابتداءً من {price} €",
     "leftFromPriceOne": "تبقّى {units} · ابتداءً من {price} €",
@@ -458,7 +459,21 @@
     "dateLabel": "التاريخ",
     "partySizeLabel": "عدد الأشخاص",
     "campLabel": "المخيم",
-    "accommodationLabel": "الإقامة"
+    "accommodationLabel": "الإقامة",
+    "back": "رجوع",
+    "continue": "متابعة",
+    "reviewHint": "لن يتم خصم أي مبلغ الآن. نؤكد التوفر ونتواصل معكم قبل إتمام الدفع.",
+    "travelersLabel": "المسافرون",
+    "contactLabel": "التواصل",
+    "notesLabelSummary": "ملاحظات",
+    "totalLabel": "المجموع",
+    "reviewGuideLabel": "المرشد",
+    "reviewVehicleLabel": "الوصول",
+    "reviewExtrasLabel": "الأنشطة",
+    "pickupLabel": "الاستلام",
+    "errorPickDate": "اختاروا تاريخًا.",
+    "errorPastDate": "اختاروا اليوم أو تاريخًا مستقبليًا.",
+    "extrasUnavailable": "لا توجد أنشطة إضافية متاحة حاليًا."
   },
   "tourDetail": {
     "breadcrumbCircuits": "الرحلات",
@@ -530,6 +545,7 @@
     "accommodationPrice": "{price} € للوحدة",
     "accommodationQuantity": "عدد الوحدات",
     "accommodationUnavailable": "لم يتم إعداد مكان إقامة قابل للحجز لهذه الجولة بعد.",
+    "viewDetails": "عرض التفاصيل",
     "errorAccommodationRequired": "اختاروا مكان إقامة لليلة في مخيم صبرية.",
     "accommodationLabel": "الإقامة",
     "errorLanguageRequired": "اختر لغة مفضلة واحدة على الأقل أو أدخل لغة أخرى.",
@@ -632,7 +648,8 @@
     "otherLanguagePlaceholder": "لغة أخرى غير مدرجة؟ حددها هنا (اختياري)"
   },
   "accommodationCard": {
-    "exploreThisStay": "اكتشف هذه الإقامة ←"
+    "exploreThisStay": "اكتشف هذه الإقامة ←",
+    "fromPrice": "ابتداءً من {price} €"
   },
   "tourCard": {
     "fromPrice": "ابتداءً من {price} €",
@@ -708,6 +725,9 @@
   "stayDetail": {
     "checkIn": "الوصول {time}",
     "checkOut": "المغادرة {time}",
+    "checkInLabel": "الوصول",
+    "checkOutLabel": "المغادرة",
+    "directBooking": "حجز مباشر",
     "experienceEyebrow": "ليلة صحراوية مدروسة بعناية",
     "theExperience": "التجربة",
     "chooseHowEyebrow": "اختاروا طريقة نومكم",

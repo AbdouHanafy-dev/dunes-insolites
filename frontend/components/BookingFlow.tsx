@@ -801,48 +801,54 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <p className="hint">{t("chooseAccommodationHint")}</p>
           {circuitAccommodations.length > 0 ? (
             <>
-              <div className="picker">
+              <div className="ride-options">
                 {circuitAccommodations.map((a) => {
                   const soldOut = tierSoldOut(a.slug);
+                  const isSelected = accommodationSlug === a.slug;
                   return (
-                    <button
-                      key={a.slug}
-                      type="button"
-                      className="pick"
-                      aria-pressed={accommodationSlug === a.slug}
-                      disabled={soldOut}
-                      onClick={() => {
-                        setAccommodationSlug(a.slug);
-                        setAccommodationQty(1);
-                      }}
-                    >
-                      <div className="thumb">
-                        {isDisplayableImageSrc(a.image) && <Image src={a.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
-                      </div>
-                      <div className="meta">
-                        <h3>{a.title}</h3>
-                        {(a.tagline || a.description) && <p>{a.tagline || a.description}</p>}
-                        <span className="price">
+                    <div key={a.slug}>
+                      <label className="ride-option" data-disabled={soldOut || undefined}>
+                        <input
+                          type="radio"
+                          name="circuitAccommodation"
+                          checked={isSelected}
+                          disabled={soldOut}
+                          onChange={() => {
+                            setAccommodationSlug(a.slug);
+                            setAccommodationQty(1);
+                          }}
+                        />
+                        <span>
+                          <strong>{a.title}</strong>
+                          {a.sleeps && <small>{a.sleeps}</small>}
+                        </span>
+                        <span className="ride-price">
                           {soldOut ? ts("soldOutForDate") : t("accommodationPrice", { price: a.priceFrom })}
                         </span>
+                      </label>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "0 16px 12px" }}>
+                        {campStaySlug && (
+                          <Link
+                            href={`/camp/${campStaySlug}/${a.slug}`}
+                            target="_blank"
+                            className="pick-details-link"
+                            style={{ position: "static" }}
+                          >
+                            {tb("viewDetails")}
+                          </Link>
+                        )}
+                        {isSelected && (
+                          <div className="guest-stepper">
+                            <button type="button" aria-label={`− ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
+                            <output aria-live="polite">{accommodationQty}</output>
+                            <button type="button" aria-label={`+ ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
+                          </div>
+                        )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
-              {selectedAccommodation && (
-                <div className="guest-row" style={{ marginTop: 16 }}>
-                  <div>
-                    <strong>{t("accommodationQuantity")}</strong>
-                    <p className="hint">{selectedAccommodation.title}</p>
-                  </div>
-                  <div className="guest-stepper">
-                    <button type="button" aria-label={`− ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
-                    <output aria-live="polite">{accommodationQty}</output>
-                    <button type="button" aria-label={`+ ${t("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
@@ -1020,48 +1026,52 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           {selectedStay && selectedStay.accommodations && selectedStay.accommodations.length > 0 ? (
             <>
               <p className="hint">{ts("chooseCamp")}</p>
-              <div className="picker">
+              <div className="ride-options">
                 {selectedStay.accommodations.map((a) => {
                   const soldOut = tierSoldOut(a.slug);
+                  const isSelected = accommodationSlug === a.slug;
                   return (
-                    <button
-                      key={a.slug}
-                      type="button"
-                      className="pick"
-                      aria-pressed={accommodationSlug === a.slug}
-                      disabled={soldOut}
-                      onClick={() => {
-                        setAccommodationSlug(a.slug);
-                        setAccommodationQty(1);
-                      }}
-                    >
-                      <div className="thumb">
-                        {isDisplayableImageSrc(a.image) && <Image src={a.image} alt="" fill sizes="(max-width: 900px) 100vw, 33vw" />}
-                      </div>
-                      <div className="meta">
-                        <h3>{a.title}</h3>
-                        {(a.tagline || a.description) && <p>{a.tagline || a.description}</p>}
-                        <span className="price">
+                    <div key={a.slug}>
+                      <label className="ride-option" data-disabled={soldOut || undefined}>
+                        <input
+                          type="radio"
+                          name="stayAccommodation"
+                          checked={isSelected}
+                          disabled={soldOut}
+                          onChange={() => {
+                            setAccommodationSlug(a.slug);
+                            setAccommodationQty(1);
+                          }}
+                        />
+                        <span>
+                          <strong>{a.title}</strong>
+                          {a.sleeps && <small>{a.sleeps}</small>}
+                        </span>
+                        <span className="ride-price">
                           {soldOut ? ts("soldOutForDate") : ts("fromPrice", { price: a.priceFrom })}
                         </span>
+                      </label>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "0 16px 12px" }}>
+                        <Link
+                          href={`/camp/${selectedStay.slug}/${a.slug}`}
+                          target="_blank"
+                          className="pick-details-link"
+                          style={{ position: "static" }}
+                        >
+                          {tb("viewDetails")}
+                        </Link>
+                        {isSelected && (
+                          <div className="guest-stepper">
+                            <button type="button" aria-label={`− ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
+                            <output aria-live="polite">{accommodationQty}</output>
+                            <button type="button" aria-label={`+ ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
+                          </div>
+                        )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
-              {selectedAccommodation && (
-                <div className="guest-row" style={{ marginTop: 16 }}>
-                  <div>
-                    <strong>{ts("accommodationQuantity")}</strong>
-                    <p className="hint">{selectedAccommodation.title}</p>
-                  </div>
-                  <div className="guest-stepper">
-                    <button type="button" aria-label={`− ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => Math.max(1, v - 1))} disabled={accommodationQty <= 1}>−</button>
-                    <output aria-live="polite">{accommodationQty}</output>
-                    <button type="button" aria-label={`+ ${ts("accommodationQuantity")}`} onClick={() => setAccommodationQty((v) => v + 1)}>+</button>
-                  </div>
-                </div>
-              )}
               {errors.accommodation && <div className="alert">{errors.accommodation}</div>}
             </>
           ) : (

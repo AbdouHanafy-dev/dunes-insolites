@@ -16,6 +16,9 @@ import StayReservationForm from "@/components/StayReservationForm";
 import Reveal from "@/components/Reveal";
 import Reviews from "@/components/Reviews";
 import CTA from "@/components/CTA";
+import WishlistButton from "@/components/WishlistButton";
+import ShareButton from "@/components/ShareButton";
+import TourPhotoGallery from "@/components/TourPhotoGallery";
 import { site } from "@/lib/site";
 
 type Props = {
@@ -115,41 +118,38 @@ export default async function StayDetail({ params, searchParams }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
-      <section className="detail-hero">
-        <div className="bg">
-          {isDisplayableImageSrc(stay.image) && (
-            <Image
-              src={stay.image}
-              alt={stay.title}
-              fill
-              sizes="100vw"
-              preload
-              style={{ objectFit: "cover" }}
-            />
-          )}
-        </div>
+      <section className="tour-product-content">
         <div className="wrap">
-          <p className="kicker">{stay.kicker}</p>
-          <h1>{stay.title}</h1>
-          <p className="tagline">{stay.tagline}</p>
-          <div className="facts">
-            <span className="fact">
-              {hasTiers
-                ? t("fromTierPrice", { price: lowestTierPrice })
-                : sameRate
-                  ? t("perPersonRateSingle", { price: adultRate })
-                  : t("perPersonRates", { adult: adultRate, child: childRate })}
-            </span>
-            <span className="fact">{t("checkIn", { time: stay.arrivalTime })}</span>
-            <span className="fact">{t("checkOut", { time: stay.departureTime })}</span>
-            <span className="fact">{stay.groupSize}</span>
-          </div>
-        </div>
-      </section>
+        <div className="tour-product-grid">
+          <div className="tour-product-main">
+            <div className="tour-hero-head">
+              {stay.kicker && <p className="tour-location">{stay.kicker}</p>}
+              <h1>{stay.title}</h1>
+              <div className="tour-header-actions">
+                <span className="tour-header-desktop-action">
+                  <WishlistButton slug={stay.slug} variant="inline" />
+                </span>
+                <span className="tour-header-desktop-action">
+                  <ShareButton title={stay.title} />
+                </span>
+              </div>
+            </div>
 
-      <section className="detail-body">
-        <div className="wrap">
-          <div className="detail-grid">
+            <TourPhotoGallery
+              media={[stay.image, ...stay.gallery].filter((src): src is string => isDisplayableImageSrc(src))}
+              suppliedMediaCount={1 + stay.gallery.length}
+              title={stay.title}
+              slug={stay.slug}
+            />
+
+            <p className="tour-product-lead">{stay.tagline}</p>
+
+            <div className="tour-essentials" aria-label={t("goodToKnow")}>
+              <div><small>{t("groupSize")}</small><strong>{stay.groupSize}</strong></div>
+              <div><small>{t("checkInLabel")}</small><strong>{stay.arrivalTime}</strong></div>
+              <div><small>{t("checkOutLabel")}</small><strong>{stay.departureTime}</strong></div>
+            </div>
+
             <div>
               <Reveal className="prose">
                 <p className="sect-eyebrow">{t("experienceEyebrow")}</p>
@@ -267,42 +267,33 @@ export default async function StayDetail({ params, searchParams }: Props) {
                 </Reveal>
               )}
             </div>
-
-            <aside className="book-panel" id="reserve">
-              <div className="price">
-                <span className="v">€{hasTiers ? lowestTierPrice : adultRate}</span>
-                <span className="u">
-                  {hasTiers ? t("perNight") : sameRate ? t("perPersonPerNight") : t("perAdultPerNight")}
-                </span>
-              </div>
-              <div className="rows">
-                {!hasTiers && !sameRate && (
-                  <div className="row">
-                    <span className="k">{t("perChildPerNight")}</span>
-                    <span className="v">€{childRate}</span>
-                  </div>
-                )}
-                <div className="row">
-                  <span className="k">{t("groupSize")}</span>
-                  <span className="v">{stay.groupSize}</span>
-                </div>
-                <div className="row">
-                  <span className="k">{t("location")}</span>
-                  <span className="v">{t("sabriaCamp")}</span>
-                </div>
-                <div className="row">
-                  <span className="k">{t("stayLabel")}</span>
-                  <span className="v">{maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight")}</span>
-                </div>
-              </div>
-              <StayReservationForm
-                stay={stay}
-                activities={activities}
-                accommodations={stay.accommodations}
-                initialAccommodationSlug={initialAccommodationSlug}
-              />
-            </aside>
           </div>
+
+          <aside className="tour-booking-card" id="reserve">
+            <div className="tour-booking-heading">
+              <small>{t("directBooking")}</small>
+              <h2>{stay.title}</h2>
+            </div>
+            <div className="tour-booking-price">
+              <span>€{hasTiers ? lowestTierPrice : adultRate}</span>
+              <small>
+                {hasTiers ? t("perNight") : sameRate ? t("perPersonPerNight") : t("perAdultPerNight")}
+              </small>
+            </div>
+            <ul className="tour-booking-promises">
+              {!hasTiers && !sameRate && <li>€{childRate} {t("perChildPerNight")}</li>}
+              <li>{stay.groupSize}</li>
+              <li>{t("sabriaCamp")}</li>
+              <li>{maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight")}</li>
+            </ul>
+            <StayReservationForm
+              stay={stay}
+              activities={activities}
+              accommodations={stay.accommodations}
+              initialAccommodationSlug={initialAccommodationSlug}
+            />
+          </aside>
+        </div>
 
           <Reveal className="night-journal">
             <div className="night-journal-intro">

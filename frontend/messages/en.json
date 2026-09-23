@@ -367,6 +367,7 @@
   },
   "stayReservationForm": {
     "chooseCamp": "Choose your camp",
+    "viewDetails": "View details",
     "soldOutForDate": "Sold out for this date",
     "fromPrice": "from €{price}",
     "leftFromPriceOne": "{units} left · from €{price}",
@@ -458,7 +459,21 @@
     "dateLabel": "Date",
     "partySizeLabel": "Party size",
     "campLabel": "Camp",
-    "accommodationLabel": "Accommodation"
+    "accommodationLabel": "Accommodation",
+    "back": "Back",
+    "continue": "Continue",
+    "reviewHint": "Nothing is charged now. We confirm availability and get back to you before taking payment.",
+    "travelersLabel": "Travelers",
+    "contactLabel": "Contact",
+    "notesLabelSummary": "Notes",
+    "totalLabel": "Total",
+    "reviewGuideLabel": "Guide",
+    "reviewVehicleLabel": "Getting there",
+    "reviewExtrasLabel": "Activities",
+    "pickupLabel": "Pickup",
+    "errorPickDate": "Pick a date.",
+    "errorPastDate": "Pick today or a future date.",
+    "extrasUnavailable": "No additional activities are currently offered."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Circuits",
@@ -530,6 +545,7 @@
     "accommodationPrice": "€{price} per unit",
     "accommodationQuantity": "Number of units",
     "accommodationUnavailable": "No bookable accommodation is configured for this circuit yet.",
+    "viewDetails": "View details",
     "errorAccommodationRequired": "Choose an accommodation for the night at the Sabria camp.",
     "accommodationLabel": "Accommodation",
     "errorLanguageRequired": "Choose at least one preferred language or enter another language.",
@@ -632,7 +648,8 @@
     "otherLanguagePlaceholder": "Other language not listed? Specify here (optional)"
   },
   "accommodationCard": {
-    "exploreThisStay": "Explore this stay ↗"
+    "exploreThisStay": "Explore this stay ↗",
+    "fromPrice": "from €{price}"
   },
   "tourCard": {
     "fromPrice": "from €{price}",
@@ -708,6 +725,9 @@
   "stayDetail": {
     "checkIn": "Check-in {time}",
     "checkOut": "Check-out {time}",
+    "checkInLabel": "Check-in",
+    "checkOutLabel": "Check-out",
+    "directBooking": "Direct booking",
     "experienceEyebrow": "A desert night, thoughtfully paced",
     "theExperience": "The experience",
     "chooseHowEyebrow": "Choose how you sleep",
