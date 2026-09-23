@@ -61,7 +61,7 @@ public class PublicTourMapper {
         response.setLocation(tour.getLocation());
         response.setMeetingPoint(tour.getMeetingPoint());
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
-        response.setOvernightsAtCamp(tour.getOvernightsAtCamp());
+        response.setOvernightsAtCamp(requiresCampAccommodation(tour));
         response.setAccommodations(bookableCampAccommodations(tour));
         response.setLanguages(tour.getLanguages() == null ? List.of()
                 : tour.getLanguages().stream().map(com.camping.duneinsolite.model.SpokenLanguage::getName).sorted().toList());
@@ -108,7 +108,7 @@ public class PublicTourMapper {
     }
 
     private List<PublicStayResponse.Accommodation> bookableCampAccommodations(Tour tour) {
-        if (!Boolean.TRUE.equals(tour.getOvernightsAtCamp())) return List.of();
+        if (!requiresCampAccommodation(tour)) return List.of();
         List<java.util.UUID> campIds = accommodationTypeRepository.findDistinctTourTypeIds();
         if (campIds.size() != 1) return List.of();
         return accommodationTypeRepository
@@ -131,6 +131,15 @@ public class PublicTourMapper {
                     return dto;
                 })
                 .toList();
+    }
+
+    private static boolean requiresCampAccommodation(Tour tour) {
+        if (Boolean.TRUE.equals(tour.getOvernightsAtCamp())) return true;
+        if (tour.getDuration() == null) return false;
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("(\\d+)\\s*(?:jours?|days?)\\b", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(tour.getDuration());
+        return matcher.find() && Integer.parseInt(matcher.group(1)) > 1;
     }
 
     private static List<String> orEmpty(List<String> list) {

@@ -58,6 +58,13 @@ function nightsBetween(arrival: string, departure: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
+function tourRequiresCampAccommodation(tour: Tour | null | undefined): boolean {
+  if (!tour) return false;
+  if (tour.overnightsAtCamp) return true;
+  const dayCount = tour.duration.match(/(\d+)\s*(?:jours?|days?)\b/i)?.[1];
+  return dayCount != null && Number(dayCount) > 1;
+}
+
 /**
  * /book's entry point: choose Circuits or Camp stays, see the matching
  * results, then walk a wizard whose steps and backend call differ by
@@ -197,9 +204,18 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }, []);
 
   const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
-  const circuitHasCampStay = Boolean(selectedTour?.overnightsAtCamp);
-  const circuitAccommodations = selectedTour?.accommodations ?? [];
   const campStay = stays.find((stay) => (stay.accommodations?.length ?? 0) > 0);
+  // Before a card is selected, keep the full stepper visible when the loaded
+  // catalogue contains multi-day circuits. After selection, only that tour
+  // decides whether the accommodation step applies.
+  const circuitHasCampStay = selectedTour
+    ? tourRequiresCampAccommodation(selectedTour)
+    : tours.some(tourRequiresCampAccommodation);
+  const circuitAccommodations = selectedTour?.accommodations?.length
+    ? selectedTour.accommodations
+    : circuitHasCampStay
+      ? (campStay?.accommodations ?? [])
+      : [];
 
   // Stay tier + service-option availability for the chosen arrival date,
   // across the full [date, date + nights) span for multi-night stays.

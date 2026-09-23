@@ -246,15 +246,17 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // any side effect, exactly like createStayBooking — a bad slug or
         // an unpriced/inactive/undersized tier must not reach guest-account
         // creation. A circuit only offers accommodation when its Tour was
-        // explicitly configured to overnight at the Sabria camp; anything
-        // else is a client error, not something to silently ignore.
+        // configured to overnight at the Sabria camp (with a multi-day
+        // duration fallback for pre-migration data); anything else is a
+        // client error, not something to silently ignore.
         List<PublicAccommodationSelectionRequest> requestedTourAccommodations =
                 request.getAccommodations() == null ? List.of() : request.getAccommodations();
-        if (Boolean.TRUE.equals(tour.getOvernightsAtCamp()) && requestedTourAccommodations.isEmpty()) {
+        boolean requiresCampAccommodation = requiresCampAccommodation(tour);
+        if (requiresCampAccommodation && requestedTourAccommodations.isEmpty()) {
             throw new ReservationValidationException(
                     "Choose at least one accommodation for the night at the Sabria camp.");
         }
-        if (!requestedTourAccommodations.isEmpty() && !Boolean.TRUE.equals(tour.getOvernightsAtCamp())) {
+        if (!requestedTourAccommodations.isEmpty() && !requiresCampAccommodation) {
             throw new ReservationValidationException(
                     "\"" + tour.getName() + "\" doesn't include a night at the camp — no accommodation to choose.");
         }
@@ -666,6 +668,15 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         return "Accommodation requested: " + accommodations.stream()
                 .map(sel -> sel.getAccommodationSlug() + (sel.getQuantity() != null ? " x" + sel.getQuantity() : ""))
                 .collect(Collectors.joining(", "));
+    }
+
+    private static boolean requiresCampAccommodation(com.camping.duneinsolite.model.Tour tour) {
+        if (Boolean.TRUE.equals(tour.getOvernightsAtCamp())) return true;
+        if (tour.getDuration() == null) return false;
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("(\\d+)\\s*(?:jours?|days?)\\b", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(tour.getDuration());
+        return matcher.find() && Integer.parseInt(matcher.group(1)) > 1;
     }
 
     private static String demandeSpecial(String notes, String extra) {

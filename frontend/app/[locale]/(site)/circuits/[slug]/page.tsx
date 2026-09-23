@@ -413,7 +413,8 @@ export default async function TourDetail({ params }: Props) {
               tourTitle={tour.title}
               adultPrice={tour.passengerAdultPrice}
               childPrice={tour.passengerChildPrice}
-              overnightsAtCamp={tour.overnightsAtCamp}
+              overnightsAtCamp={Boolean(tour.overnightsAtCamp)
+                || Number(tour.duration.match(/(\d+)\s*(?:jours?|days?)\b/i)?.[1] ?? 0) > 1}
               accommodations={tour.accommodations ?? []}
             />
           </aside>

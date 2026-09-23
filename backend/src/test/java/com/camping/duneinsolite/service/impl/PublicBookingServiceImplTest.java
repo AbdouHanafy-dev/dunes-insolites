@@ -413,6 +413,23 @@ class PublicBookingServiceImplTest {
     }
 
     @Test
+    void multiDayCircuitRequiresAccommodationWhileLegacyFlagIsStillFalse() {
+        UUID tourId = UUID.randomUUID();
+        when(tourRepository.findBySlugAndIsActiveTrue("two-day-sabria-circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Two-day Sabria circuit")
+                        .duration("2 Jours").overnightsAtCamp(false).isActive(true).build()));
+
+        PublicTourBookingRequest request = tourRequest("two-day-sabria-circuit");
+
+        assertThatThrownBy(() -> service.createTourBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("Choose at least one accommodation");
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
     void overnightCircuitMapsAccommodationTierAndQuantityToItsCampNight() {
         UUID tourId = UUID.randomUUID();
         UUID accommodationId = UUID.randomUUID();
