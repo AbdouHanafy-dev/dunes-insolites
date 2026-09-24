@@ -43,26 +43,43 @@ export default function MediaPicker({
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
+  const [attempt, setAttempt] = useState(0);
+
+  function retry() {
+    setAssets(null);
+    setLoadError("");
+    setAttempt((n) => n + 1);
+  }
+
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/proxy/media")
-      .then(async (res) => {
-        if (!res.ok) throw new Error(String(res.status));
-        return (await res.json()) as AdminMediaAsset[];
-      })
-      .then((list) => {
+    async function load() {
+      let res: Response;
+      try {
+        res = await fetch("/api/proxy/media");
+      } catch {
+        return "Connexion impossible : vérifiez votre réseau.";
+      }
+      if (res.status === 401) return "Session expirée : reconnectez-vous puis réessayez.";
+      if (res.status === 403) return "Vous n’avez pas la permission « Médiathèque » (lecture) : demandez-la à un administrateur.";
+      if (!res.ok) return `Erreur du serveur (${res.status}) : la médiathèque ne répond pas.`;
+      try {
+        const list = (await res.json()) as AdminMediaAsset[];
         if (!cancelled) setAssets(list.filter((a) => a.mimeType.startsWith("image/")));
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAssets([]);
-          setLoadError("La médiathèque n’a pas pu être chargée. Vous pouvez quand même envoyer une photo depuis votre ordinateur.");
-        }
-      });
+        return "";
+      } catch {
+        return "Réponse illisible du serveur.";
+      }
+    }
+    load().then((error) => {
+      if (cancelled || !error) return;
+      setAssets([]);
+      setLoadError(error);
+    });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -152,7 +169,14 @@ export default function MediaPicker({
         />
       </div>
 
-      {loadError && <p className="mb-3 text-sm text-rose">{loadError}</p>}
+      {loadError && (
+        <p className="mb-3 text-sm text-rose">
+          {loadError} Vous pouvez quand même envoyer une photo depuis votre ordinateur.{" "}
+          <button type="button" onClick={retry} className="font-semibold underline">
+            Réessayer
+          </button>
+        </p>
+      )}
 
       {assets === null ? (
         <p className="py-10 text-center text-sm text-gray-400">Chargement de la médiathèque…</p>
