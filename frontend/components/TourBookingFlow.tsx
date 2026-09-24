@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
@@ -17,7 +17,9 @@ import PhoneInput from "@/components/PhoneInput";
 import { type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { composePhone } from "@/lib/phone";
-import { activityQuantity, activityTotal } from "@/lib/activityPricing";
+import { tierPerNight } from "@/lib/guestPricing";
+import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
+import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import { localizedLanguageName } from "@/lib/languageFlags";
 
 function todayISO(): string {
@@ -49,6 +51,7 @@ export default function TourBookingFlow({
   tourTitle,
   adultPrice,
   childPrice,
+  infantPrice = 0,
   accommodations = [],
   campStaySlug = "",
 }: {
@@ -56,6 +59,8 @@ export default function TourBookingFlow({
   tourTitle: string;
   adultPrice: number;
   childPrice: number;
+  /** 0-3 years, set in the back office. 0 = free. */
+  infantPrice?: number;
   overnightsAtCamp?: boolean;
   accommodations?: Accommodation[];
   /** The circuit camp stay (set in the back office) - target of each tier's "voir détails" link. */
@@ -72,6 +77,7 @@ export default function TourBookingFlow({
   const [date, setDate] = useState("");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
   const [accommodationSlug, setAccommodationSlug] = useState("");
   const [accommodationQty, setAccommodationQty] = useState(1);
 
@@ -85,6 +91,11 @@ export default function TourBookingFlow({
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
+  // Minutes picked per timed activity (absent = its base duration).
+  const [durations, setDurations] = useState<Record<string, number>>({});
+  const sessionLabel = useSessionLabel();
+  const minutesFor = (a: Activity) => durations[a.slug] ?? baseMinutes(a);
+  const durationNote = (a: Activity) => (minutesFor(a) !== baseMinutes(a) ? " · " + sessionLabel(minutesFor(a)) : "");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -129,10 +140,11 @@ export default function TourBookingFlow({
 
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
-    .reduce((sum, activity) => sum + activityTotal(activity, adults + children), 0);
+    .reduce((sum, activity) => sum + activityTotal(activity, adults + children, 1, minutesFor(activity)), 0);
   const availableAccommodations = accommodations;
   const selectedAccommodation = availableAccommodations.find((item) => item.slug === accommodationSlug);
-  const accommodationTotal = selectedAccommodation ? selectedAccommodation.priceFrom * accommodationQty : 0;
+  // One tier: the whole party sleeps there, each guest type at its own per-night price.
+  const accommodationTotal = selectedAccommodation ? tierPerNight(selectedAccommodation, { adults, children, infants }) : 0;
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
@@ -143,7 +155,7 @@ export default function TourBookingFlow({
   }
 
   const min = todayISO();
-  const total = adultPrice * adults + childPrice * children;
+  const total = adultPrice * adults + childPrice * children + infantPrice * infants;
 
   function validateStep(): boolean {
     const e: Record<string, string> = {};
@@ -198,7 +210,9 @@ export default function TourBookingFlow({
       date,
       numberOfAdults: adults,
       numberOfChildren: children,
+      numberOfInfants: infants > 0 ? infants : undefined,
       rideSlugs,
+      activityDurations: durationsPayload(activities, rideSlugs, durations),
       accommodations: accommodationSlug
         ? [{ accommodationSlug, quantity: accommodationQty }]
         : undefined,
@@ -308,10 +322,12 @@ export default function TourBookingFlow({
           <GuestPicker
             adults={adults}
             kids={children}
+            infants={infants}
             error={errors.adults}
-            onChange={(a, c) => {
+            onChange={(a, c, n) => {
               setAdults(a);
               setChildren(c);
+              setInfants(n);
             }}
           />
         </div>
@@ -449,7 +465,8 @@ export default function TourBookingFlow({
           ) : (
             <div className="ride-options">
               {activities.map((a) => (
-                <label key={a.slug} className="ride-option">
+                <Fragment key={a.slug}>
+<label className="ride-option">
                   <input
                     type="checkbox"
                     checked={rideSlugs.includes(a.slug)}
@@ -458,6 +475,10 @@ export default function TourBookingFlow({
                   <span>{a.title}</span>
                   <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
                 </label>
+{rideSlugs.includes(a.slug) && canExtend(a) && (
+<ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
+)}
+</Fragment>
               ))}
             </div>
           )}
@@ -525,6 +546,7 @@ export default function TourBookingFlow({
               <span>
                 {adults} {t("adultsLabel").toLowerCase()}
                 {children > 0 ? ` · ${children} ${t("childrenLabel").toLowerCase()}` : ""}
+                {infants > 0 ? ` · ${infants} ${t("infantsLabel").toLowerCase()}` : ""}
               </span>
             </div>
             <div className="row">
@@ -553,7 +575,7 @@ export default function TourBookingFlow({
                 <span>
                   {activities
                     .filter((a) => rideSlugs.includes(a.slug))
-                    .map((a) => `${a.title} — €${activityTotal(a, adults + children)}`)
+                    .map((a) => `${a.title}${durationNote(a)} — €${activityTotal(a, adults + children, 1, minutesFor(a))}`)
                     .join(", ")}
                 </span>
               </div>
@@ -593,6 +615,12 @@ export default function TourBookingFlow({
                 <span>€{childPrice * children}</span>
               </div>
             )}
+            {infants > 0 && (
+              <div className="row">
+                <span className="k">{infants} × {t("infantsLabel")}</span>
+                <span>€{infantPrice * infants}</span>
+              </div>
+            )}
             {selectedAccommodation && (
               <div className="row">
                 <span className="k">{accommodationQty} × {selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
@@ -602,10 +630,10 @@ export default function TourBookingFlow({
             {activities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
               <div className="row" key={a.slug}>
                 <span className="k">
-                  {a.title}
+                  {a.title}{durationNote(a)}
                   {activityQuantity(a, adults + children) > 1 ? ` × ${activityQuantity(a, adults + children)}` : ""}
                 </span>
-                <span>€{activityTotal(a, adults + children)}</span>
+                <span>€{activityTotal(a, adults + children, 1, minutesFor(a))}</span>
               </div>
             ))}
             <div className="row total">

@@ -24,6 +24,7 @@ public class TourResponse {
     private java.math.BigDecimal passengerAdultPrice;
     private java.math.BigDecimal salePriceAdult;
     private java.math.BigDecimal passengerChildPrice;
+    private java.math.BigDecimal passengerInfantPrice;
     private java.math.BigDecimal partnerAdultPrice;
     private java.math.BigDecimal partnerChildPrice;
     private Boolean isActive;

@@ -43,6 +43,7 @@ export default function ReservationEditForm({
   const [serviceDate, setServiceDate] = useState(reservation.serviceDate ?? "");
   const [adults, setAdults] = useState(reservation.numberOfAdults ?? 0);
   const [children, setChildren] = useState(reservation.numberOfChildren ?? 0);
+  const [infants, setInfants] = useState(reservation.numberOfInfants ?? 0);
   const [groupName, setGroupName] = useState(reservation.groupName ?? "");
   const [leader, setLeader] = useState(reservation.groupLeaderName ?? "");
   const [special, setSpecial] = useState(reservation.demandeSpecial ?? "");
@@ -53,7 +54,8 @@ export default function ReservationEditForm({
   const [error, setError] = useState("");
 
   const partyChanged =
-    adults !== (reservation.numberOfAdults ?? 0) || children !== (reservation.numberOfChildren ?? 0);
+    adults !== (reservation.numberOfAdults ?? 0) || children !== (reservation.numberOfChildren ?? 0)
+    || infants !== (reservation.numberOfInfants ?? 0);
 
   function toggleLanguage(id: string) {
     setLanguageIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
@@ -90,6 +92,7 @@ export default function ReservationEditForm({
     if (canEditParty) {
       body.numberOfAdults = adults;
       body.numberOfChildren = children;
+      body.numberOfInfants = infants;
       // Re-submitting the line is what makes the server apply the new counts
       // to it; with a single line it uses the group counts, and carries the
       // accommodation snapshot forward unchanged.
@@ -180,6 +183,17 @@ export default function ReservationEditForm({
             value={children}
             disabled={!canEditParty}
             onChange={(e) => setChildren(Number(e.target.value))}
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className={labelClass}>Bébés (0-3 ans)</span>
+          <input
+            type="number"
+            min={0}
+            className={inputClass}
+            value={infants}
+            disabled={!canEditParty}
+            onChange={(e) => setInfants(Number(e.target.value))}
           />
         </label>
       </div>

@@ -13,5 +13,6 @@ public class TourHebergementResponseDto {
     private Integer numberOfNights;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private Integer numberOfInfants;
     private LocalDate activityDate;
 }

@@ -50,6 +50,14 @@ public class ReservationTourType {
     @Column(name = "number_of_children", nullable = false)
     private Integer numberOfChildren;
 
+    @Column(name = "number_of_infants", nullable = false)
+    @Builder.Default
+    private Integer numberOfInfants = 0;
+
+    @Column(name = "infant_price", nullable = false)
+    @Builder.Default
+    private java.math.BigDecimal infantPrice = java.math.BigDecimal.ZERO;
+
     @Column(name = "catalog_tour_type_id")
     private UUID catalogTourTypeId;
 
@@ -84,12 +92,13 @@ public class ReservationTourType {
         int nights = numberOfNights != null && numberOfNights > 0 ? numberOfNights : 1;
         if (isAccommodationPriced()) {
             return Money.sum(accommodations.stream()
-                    .map(a -> Money.lineTotal(a.getAccommodationUnitPriceTtc(), a.getAccommodationUnits(), nights))
+                    .map(a -> a.lineTotal(nights))
                     .toList());
         }
         BigDecimal perNight = Money.add(
                 Money.multiply(adultPrice, numberOfAdults),
-                Money.multiply(childPrice, numberOfChildren));
+                Money.multiply(childPrice, numberOfChildren),
+                Money.multiply(infantPrice, numberOfInfants));
         return Money.multiply(perNight, nights);
     }
 }

@@ -49,7 +49,17 @@ public class PublicStayBookingRequest {
     @Min(value = 0, message = "Children cannot be negative")
     private Integer children;
 
+    // Infants (0-3), on top of partySize (not part of it). Free until priced in the back office.
+    @Min(value = 0, message = "Infants cannot be negative")
+    @Max(value = 6, message = "Infants cannot exceed 6")
+    private Integer infants;
+
     private List<String> rideSlugs;
+
+    // Minutes chosen per timed activity, keyed by activity slug (the main
+    // activity and any add-on rides). Absent = the activity's base duration.
+    // The server validates each against the back-office base/step/max.
+    private java.util.Map<@Size(max = 120) String, @Min(1) Integer> activityDurations;
 
     @jakarta.validation.constraints.Pattern(
             regexp = "OWN_VEHICLE|TRANSPORT",

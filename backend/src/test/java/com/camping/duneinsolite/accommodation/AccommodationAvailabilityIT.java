@@ -93,7 +93,7 @@ class AccommodationAvailabilityIT {
     private AccommodationType tier(String slug, int capacity, Integer maxUnits, boolean active) {
         return accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug(slug).name(slug).capacity(capacity)
-                .unitPriceTtc(new BigDecimal("100.000")).tvaRate(BigDecimal.ZERO)
+                .adultPriceTtc(new BigDecimal("50.000")).childPriceTtc(new BigDecimal("50.000")).infantPriceTtc(BigDecimal.ZERO).tvaRate(BigDecimal.ZERO)
                 .maxUnits(maxUnits).active(active).build());
     }
 

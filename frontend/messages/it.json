@@ -388,7 +388,8 @@
     "successBody": "Confermeremo la tua prenotazione entro 24 ore. Un riepilogo è in arrivo a {email}. Non è stato addebitato nulla.",
     "successBrowseMore": "Scopri altre attività",
     "errorFormSteps": "Alcuni campi vanno controllati di nuovo — vedi i passaggi qui sopra.",
-    "errorGeneric": "Non siamo riusciti a salvare la prenotazione. Riprovate."
+    "errorGeneric": "Non siamo riusciti a salvare la prenotazione. Riprovate.",
+    "infantsLabel": "Neonati"
   },
   "stayReservationForm": {
     "chooseCamp": "Scegliete il vostro campo",
@@ -416,9 +417,9 @@
     "everyCampBooked": "Tutti i campi sono al completo per questa data — provatene un'altra.",
     "whosComing": "Chi viene?",
     "adults": "Adulti",
-    "adultsAge": "Dai 7 anni",
+    "adultsAge": "Dai 18 anni",
     "children": "Bambini",
-    "childrenAge": "Fino a 6 anni",
+    "childrenAge": "3–18 anni",
     "howWillYouJoin": "Come raggiungerete l'esperienza?",
     "ownVehicle": "Ho un mio veicolo",
     "ownVehicleHint": "Auto, 4x4 o moto",
@@ -503,7 +504,21 @@
     "pickupLabel": "Ritiro",
     "errorPickDate": "Scegliete una data.",
     "errorPastDate": "Scegliete oggi o una data futura.",
-    "extrasUnavailable": "Al momento non sono proposte attività aggiuntive."
+    "extrasUnavailable": "Al momento non sono proposte attività aggiuntive.",
+    "infants": "Neonati",
+    "infantsAge": "0–3 anni",
+    "summaryInfants": "{count, plural, =1 {1 neonato} other {# neonati}} × {price} €",
+    "summaryInfantsFree": "{count, plural, =1 {1 neonato} other {# neonati}} · gratis",
+    "tierPerPerson": "a persona / notte",
+    "tierChildPrice": "Bambino {price} €",
+    "tierInfantPrice": "Neonato {price} €",
+    "tierInfantFree": "Neonato gratis",
+    "assignTitle": "Chi dorme dove?",
+    "assignLeft": "Ancora da sistemare:",
+    "assignDone": "Tutti hanno un posto",
+    "assignHint": "Hai scelto più alloggi — indica chi dorme in ciascuno.",
+    "errorAssignGuests": "Assegna ogni ospite a un alloggio prima di continuare.",
+    "errorTierCapacity": "Ogni alloggio deve avere almeno un ospite e non superare la capienza (i neonati non contano)."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Circuiti",
@@ -678,7 +693,8 @@
     "preferredLanguageLabel": "Lingua preferita",
     "preferredLanguageHint": "Così possiamo assegnarti una guida che parla la tua lingua.",
     "reviewLanguageLabel": "Lingua preferita",
-    "otherLanguagePlaceholder": "Un'altra lingua non elencata? Specificala qui (opzionale)"
+    "otherLanguagePlaceholder": "Un'altra lingua non elencata? Specificala qui (opzionale)",
+    "infantsLabel": "Neonati"
   },
   "accommodationCard": {
     "exploreThisStay": "Scopri questo soggiorno ↗",
@@ -1307,5 +1323,14 @@
     "placeholder": "Scegli una data",
     "previousMonth": "Mese precedente",
     "nextMonth": "Mese successivo"
+  },
+  "activityDuration": {
+    "label": "Durata",
+    "minutes": "{n} min",
+    "oneHour": "1 ora",
+    "hours": "{h}H",
+    "hoursMinutes": "{h}:{mm}H",
+    "decrease": "Riduci {title}",
+    "increase": "Aumenta {title}"
   }
 }

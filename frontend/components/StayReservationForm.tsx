@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
@@ -9,7 +9,9 @@ import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, type Accommodation, type Activ
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import ListSelect from "@/components/ListSelect";
-import { activityQuantity, activityTotal } from "@/lib/activityPricing";
+import { NO_GUESTS, guestsPerTier, isPlaced, tierPerNight, unplaced, type Guests } from "@/lib/guestPricing";
+import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
+import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import DateRangePicker from "@/components/DateRangePicker";
 import AccommodationPicker from "@/components/booking/AccommodationPicker";
 import { useStepScroll } from "@/lib/useStepScroll";
@@ -89,6 +91,7 @@ export default function StayReservationForm({
     departureDate?: string;
     adults?: number;
     children?: number;
+    infants?: number;
     accommodationSelections?: Record<string, number>;
     rideSlugs?: string[];
     hasOwnVehicle?: boolean | null;
@@ -116,6 +119,9 @@ export default function StayReservationForm({
   const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
   const [adults, setAdults] = useState(initialDraft?.adults ?? 1);
   const [children, setChildren] = useState(initialDraft?.children ?? 0);
+  const [infants, setInfants] = useState(initialDraft?.infants ?? 0);
+  // Only used when several tiers are picked: who sleeps in each.
+  const [tierAssignments, setTierAssignments] = useState<Record<string, Guests>>({});
   // slug -> quantity. A guest may pick several tiers at once (e.g. 2 Suites +
   // 3 Tentes in one booking). `initialAccommodationSlug` (from the "Réserver"
   // link on a tier's own detail page) is merged in rather than replacing
@@ -128,6 +134,11 @@ export default function StayReservationForm({
     return base;
   });
   const [rideSlugs, setRideSlugs] = useState<string[]>(initialDraft?.rideSlugs ?? []);
+  // Minutes picked per timed activity (absent = its base duration).
+  const [durations, setDurations] = useState<Record<string, number>>({});
+  const sessionLabel = useSessionLabel();
+  const minutesFor = (a: Activity) => durations[a.slug] ?? baseMinutes(a);
+  const durationNote = (a: Activity) => (minutesFor(a) !== baseMinutes(a) ? " · " + sessionLabel(minutesFor(a)) : "");
 
   // "Getting There & Guide" - hasOwnVehicle null = not chosen yet. Guide is
   // always offered; transport only when the guest has no vehicle. Kept as
@@ -171,6 +182,7 @@ export default function StayReservationForm({
         departureDate,
         adults,
         children,
+        infants,
         accommodationSelections,
         rideSlugs,
         hasOwnVehicle,
@@ -184,7 +196,7 @@ export default function StayReservationForm({
       // Best-effort only — a private window or blocked storage just means
       // the draft won't survive the round trip, not a broken form.
     }
-  }, [date, departureDate, adults, children, accommodationSelections, rideSlugs, hasOwnVehicle, departureCity, returnCity, guideSlug, transportSlug, draftKey]);
+  }, [date, departureDate, adults, children, infants, accommodationSelections, rideSlugs, hasOwnVehicle, departureCity, returnCity, guideSlug, transportSlug, draftKey]);
 
   const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
   const selectedGuide = guideOptions.find((o) => o.slug === guideSlug);
@@ -296,9 +308,13 @@ export default function StayReservationForm({
   // own adult/child rates from the back office. Either way it is per night.
   const adultRate = stay.adultPrice ?? stay.priceFrom;
   const childRate = stay.childPrice ?? adultRate;
+  const infantRate = stay.infantPrice ?? 0;
+  // Tiers are priced per person: one tier takes the whole party, several take whoever the guest assigned.
+  const party: Guests = { adults, children, infants };
+  const tierGuests = guestsPerTier(selectedAccommodations.map(({ accommodation }) => accommodation.slug), party, tierAssignments);
   const nightly = selectedAccommodations.length > 0
-    ? selectedAccommodations.reduce((sum, { accommodation, qty }) => sum + accommodation.priceFrom * qty, 0)
-    : adults * adultRate + children * childRate;
+    ? selectedAccommodations.reduce((sum, { accommodation }) => sum + tierPerNight(accommodation, tierGuests[accommodation.slug]), 0)
+    : adults * adultRate + children * childRate + infants * infantRate;
   const total = nightly * nights;
   // Until a tier is chosen the stay is priced "from" its cheapest available tier.
   const availableTierPrices = (accommodations ?? []).filter((a) => !tierSoldOut(a.slug)).map((a) => a.priceFrom);
@@ -334,7 +350,7 @@ export default function StayReservationForm({
   );
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
-    .reduce((sum, activity) => sum + activityTotal(activity, partySize, nights), 0);
+    .reduce((sum, activity) => sum + activityTotal(activity, partySize, nights, minutesFor(activity)), 0);
 
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
@@ -359,6 +375,14 @@ export default function StayReservationForm({
       }
       const soldOutSelection = selectedAccommodations.find(({ accommodation }) => tierSoldOut(accommodation.slug));
       if (soldOutSelection) e.accommodationSlug = t("errorSoldOut");
+      else if (selectedAccommodations.length > 1 && !isPlaced(unplaced(party, selectedAccommodations.map(({ accommodation }) => tierGuests[accommodation.slug])))) {
+        e.accommodationSlug = t("errorAssignGuests");
+      } else if (selectedAccommodations.some(({ accommodation, qty }) => {
+        const g = tierGuests[accommodation.slug];
+        return accommodation.capacity != null && (g.adults + g.children < 1 || g.adults + g.children > accommodation.capacity * qty);
+      })) {
+        e.accommodationSlug = t("errorTierCapacity");
+      }
     }
     if (step === 2) {
       if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
@@ -468,6 +492,8 @@ export default function StayReservationForm({
     const accommodationsPayload = selectedAccommodations.map(({ accommodation, qty }) => ({
       accommodationSlug: accommodation.slug,
       quantity: qty,
+      // One tier takes the whole party (the server knows); several say who sleeps in each.
+      ...(selectedAccommodations.length > 1 ? tierGuests[accommodation.slug] : {}),
     }));
 
     const result = await api.createStayBooking({
@@ -477,7 +503,9 @@ export default function StayReservationForm({
       nights: multiNight ? nights : undefined,
       partySize,
       children: children > 0 ? children : undefined,
+      infants: infants > 0 ? infants : undefined,
       rideSlugs,
+      activityDurations: durationsPayload(activities, rideSlugs, durations),
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
@@ -571,7 +599,18 @@ export default function StayReservationForm({
             mode="multi"
             items={accommodations}
             selections={accommodationSelections}
-            onChange={setAccommodationSelections}
+            onChange={(next) => {
+              // Going from one tier to several: the first keeps everyone until the guest moves them.
+              const slugs = Object.keys(next);
+              if (slugs.length > 1 && Object.keys(accommodationSelections).length <= 1) {
+                const first = Object.keys(accommodationSelections)[0] ?? slugs[0];
+                setTierAssignments(Object.fromEntries(slugs.map((slug) => [slug, slug === first ? party : NO_GUESTS])));
+              }
+              setAccommodationSelections(next);
+            }}
+            party={party}
+            assignments={tierAssignments}
+            onAssign={(slug, guests) => setTierAssignments((cur) => ({ ...cur, [slug]: guests }))}
             availability={tierAvailability}
             detailsHref={(slug) => `/camp/${stay.slug}/${slug}`}
           />
@@ -624,10 +663,12 @@ export default function StayReservationForm({
           <GuestPicker
             adults={adults}
             kids={children}
+            infants={infants}
             error={errors.partySize}
-            onChange={(a, c) => {
+            onChange={(a, c, n) => {
               setAdults(a);
               setChildren(c);
+              setInfants(n);
             }}
           />
         </div>
@@ -871,7 +912,8 @@ export default function StayReservationForm({
         ) : (
           <div className="ride-options">
             {activities.map((a) => (
-              <label key={a.slug} className="ride-option">
+              <Fragment key={a.slug}>
+<label className="ride-option">
                 <input
                   type="checkbox"
                   checked={rideSlugs.includes(a.slug)}
@@ -880,6 +922,10 @@ export default function StayReservationForm({
                 <span>{a.title}</span>
                 <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
               </label>
+{rideSlugs.includes(a.slug) && canExtend(a) && (
+<ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
+)}
+</Fragment>
             ))}
           </div>
         )}
@@ -951,7 +997,7 @@ export default function StayReservationForm({
             )}
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
-              <span>{adults} {t("adults").toLowerCase()}{children > 0 ? ` · ${children} ${t("children").toLowerCase()}` : ""}</span>
+              <span>{adults} {t("adults").toLowerCase()}{children > 0 ? ` · ${children} ${t("children").toLowerCase()}` : ""}{infants > 0 ? ` · ${infants} ${t("infants").toLowerCase()}` : ""}</span>
             </div>
             <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? t("ownVehicle") : t("needTransport")}</span></div>
             {departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
@@ -969,7 +1015,7 @@ export default function StayReservationForm({
                 <span>
                   {activities
                     .filter((a) => rideSlugs.includes(a.slug))
-                    .map((a) => `${a.title} — €${activityTotal(a, partySize, nights)}`)
+                    .map((a) => `${a.title}${durationNote(a)} — €${activityTotal(a, partySize, nights, minutesFor(a))}`)
                     .join(", ")}
                 </span>
               </div>
@@ -981,7 +1027,7 @@ export default function StayReservationForm({
               selectedAccommodations.map(({ accommodation, qty }) => (
                 <div className="row" key={accommodation.slug}>
                   <span>{qty} × {accommodation.title}{nightsSuffix}</span>
-                  <span>€{accommodation.priceFrom * qty * nights}</span>
+                  <span>€{tierPerNight(accommodation, tierGuests[accommodation.slug]) * nights}</span>
                 </div>
               ))
             ) : (
@@ -994,6 +1040,12 @@ export default function StayReservationForm({
                   <div className="row">
                     <span>{t("summaryChildren", { count: children, price: childRate })}{nightsSuffix}</span>
                     <span>€{children * childRate * nights}</span>
+                  </div>
+                )}
+                {infants > 0 && (
+                  <div className="row">
+                    <span>{infantRate > 0 ? t("summaryInfants", { count: infants, price: infantRate }) : t("summaryInfantsFree", { count: infants })}{nightsSuffix}</span>
+                    <span>€{infants * infantRate * nights}</span>
                   </div>
                 )}
               </>
@@ -1016,7 +1068,7 @@ export default function StayReservationForm({
                   {activity.title}
                   {activityQuantity(activity, partySize, nights) > 1 ? ` × ${activityQuantity(activity, partySize, nights)}` : ""}
                 </span>
-                <span>€{activityTotal(activity, partySize, nights)}</span>
+                <span>€{activityTotal(activity, partySize, nights, minutesFor(activity))}</span>
               </div>
             ))}
             <div className="row total">

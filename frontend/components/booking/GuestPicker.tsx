@@ -1,22 +1,25 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { MAX_PARTY_SIZE } from "@/lib/types";
+import { MAX_INFANTS, MAX_PARTY_SIZE } from "@/lib/types";
 
 /**
- * "Who's coming" - adults and children steppers. One component so the camp
+ * "Who's coming" - adults, children and infants steppers. One component so the camp
  * page, the circuit page and the global /book page all look and behave the
- * same: at least one adult, and at most MAX_PARTY_SIZE travelers in total.
+ * same: at least one adult, and at most MAX_PARTY_SIZE adults + children in total.
+ * Infants (0-3) sit outside that limit: they are priced on their own and take no place.
  */
 export default function GuestPicker({
   adults,
   kids,
+  infants,
   onChange,
   error,
 }: {
   adults: number;
   kids: number;
-  onChange: (adults: number, kids: number) => void;
+  infants: number;
+  onChange: (adults: number, kids: number, infants: number) => void;
   error?: string;
 }) {
   const t = useTranslations("stayReservationForm");
@@ -29,17 +32,25 @@ export default function GuestPicker({
         <div className="guest-row">
           <div><strong>{t("adults")}</strong><span>{t("adultsAge")}</span></div>
           <div className="guest-stepper">
-            <button type="button" onClick={() => onChange(adults - 1, kids)} disabled={adults <= 1} aria-label={t("decrease")}>−</button>
+            <button type="button" onClick={() => onChange(adults - 1, kids, infants)} disabled={adults <= 1} aria-label={t("decrease")}>−</button>
             <output aria-label={`${adults} ${t("adults")}`}>{adults}</output>
-            <button type="button" onClick={() => onChange(adults + 1, kids)} disabled={party >= MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
+            <button type="button" onClick={() => onChange(adults + 1, kids, infants)} disabled={party >= MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
           </div>
         </div>
         <div className="guest-row">
           <div><strong>{t("children")}</strong><span>{t("childrenAge")}</span></div>
           <div className="guest-stepper">
-            <button type="button" onClick={() => onChange(adults, kids - 1)} disabled={kids <= 0} aria-label={t("decrease")}>−</button>
+            <button type="button" onClick={() => onChange(adults, kids - 1, infants)} disabled={kids <= 0} aria-label={t("decrease")}>−</button>
             <output aria-label={`${kids} ${t("children")}`}>{kids}</output>
-            <button type="button" onClick={() => onChange(adults, kids + 1)} disabled={party >= MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
+            <button type="button" onClick={() => onChange(adults, kids + 1, infants)} disabled={party >= MAX_PARTY_SIZE} aria-label={t("increase")}>+</button>
+          </div>
+        </div>
+        <div className="guest-row">
+          <div><strong>{t("infants")}</strong><span>{t("infantsAge")}</span></div>
+          <div className="guest-stepper">
+            <button type="button" onClick={() => onChange(adults, kids, infants - 1)} disabled={infants <= 0} aria-label={t("decrease")}>−</button>
+            <output aria-label={`${infants} ${t("infants")}`}>{infants}</output>
+            <button type="button" onClick={() => onChange(adults, kids, infants + 1)} disabled={infants >= MAX_INFANTS} aria-label={t("increase")}>+</button>
           </div>
         </div>
       </div>

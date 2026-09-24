@@ -17,6 +17,7 @@ public class PublicBookingResponse {
     private String timeSlot;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private Integer numberOfInfants;
     private List<String> rideSlugs;
     private String arrivalMode;
     private String departureCity;

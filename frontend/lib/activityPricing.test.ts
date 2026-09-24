@@ -22,3 +22,31 @@ describe("activityPricing", () => {
     expect(activityQuantity({ pricingUnit: "PER_UNIT" }, 0)).toBe(1);
   });
 });
+
+describe("activity timing", () => {
+  const quad = { pricingUnit: "PER_UNIT" as const, priceFrom: 25, baseDurationMinutes: 30, durationStepMinutes: 30, maxDurationMinutes: 120 };
+
+  it("charges the unit price times minutes over the base", () => {
+    expect(activityTotal(quad, 1, 1, 30)).toBe(25);
+    expect(activityTotal(quad, 1, 1, 60)).toBe(50);
+    expect(activityTotal(quad, 2, 1, 90)).toBe(150);
+  });
+
+  it("steps inside base..max and cannot extend when max equals base", async () => {
+    const { stepDuration, canExtend } = await import("@/lib/activityPricing");
+    expect(stepDuration(quad, 30, 1)).toBe(60);
+    expect(stepDuration(quad, 30, -1)).toBe(30);
+    expect(stepDuration(quad, 120, 1)).toBe(120);
+    expect(canExtend({ ...quad, maxDurationMinutes: 30 })).toBe(false);
+    expect(canExtend({ priceFrom: 1 } as typeof quad)).toBe(false);
+  });
+
+  it("labels 30 min, 1 Hour, 1:30H, 2H", async () => {
+    const { formatSessionMinutes } = await import("@/lib/activityPricing");
+    const labels = { minutes: (n: number) => `${n} min`, oneHour: "1 Hour", hours: (h: number, mm: string) => `${h}${mm ? `:${mm}` : ""}H` };
+    expect(formatSessionMinutes(30, labels)).toBe("30 min");
+    expect(formatSessionMinutes(60, labels)).toBe("1 Hour");
+    expect(formatSessionMinutes(90, labels)).toBe("1:30H");
+    expect(formatSessionMinutes(120, labels)).toBe("2H");
+  });
+});

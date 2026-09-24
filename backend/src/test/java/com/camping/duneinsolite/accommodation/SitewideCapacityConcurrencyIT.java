@@ -94,7 +94,7 @@ class SitewideCapacityConcurrencyIT {
                 .tva(BigDecimal.ZERO).build());
         accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("suite").name("Dune Suite").capacity(6)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(BigDecimal.ZERO)
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(BigDecimal.ZERO)
                 .maxUnits(20).active(true).build());   // per-tier lock must not be the limiter
 
         // Camp holds 5. Each booking below is 2 adults.

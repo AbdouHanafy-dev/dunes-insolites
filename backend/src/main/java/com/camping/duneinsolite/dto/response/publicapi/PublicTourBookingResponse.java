@@ -14,6 +14,7 @@ public class PublicTourBookingResponse {
     private String date;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private Integer numberOfInfants;
     private List<String> rideSlugs;
     private List<PublicAccommodationSelectionRequest> accommodations;
     private String arrivalMode;

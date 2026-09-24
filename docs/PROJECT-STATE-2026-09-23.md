@@ -71,6 +71,32 @@ source de vérité ; les décisions en attente sont listées plus bas.
 - **Paiement reçu** : `TransactionRequest.notifyClient` (absent = on prévient).
   Déclenché aussi depuis la page Paiements.
 
+### Tarification par type de voyageur et activités chronométrées (24 sept.)
+
+- **Trois types de voyageurs** partout : adultes (18 ans et +), enfants (3 à 18 ans),
+  **bébés (0 à 3 ans)**. Les bébés ont leur propre prix (0 = gratuit, valeur par défaut) mais ne
+  comptent ni dans la limite de groupe (`MAX_PARTY_SIZE`) ni dans la capacité d'un hébergement.
+  Ils sont plafonnés à `MAX_INFANTS` (6), constante du contrat `packages/api-types`.
+- **Prix saisis dans le backoffice** : circuits (`TourWizard`) et séjours (`HebergementsCrud`)
+  ont prix adulte / enfant / bébé ; les **types d'hébergement** (tente, chambre, suite) sont
+  désormais tarifés **par personne et par nuit**, un prix par type de voyageur, au lieu d'un prix
+  par unité. Enfant vide = prix adulte, bébé vide = gratuit. Les tarifs partenaires ne changent pas.
+- **Qui dort où** : une seule catégorie choisie = tout le groupe y dort ; plusieurs (formulaire
+  `/camp` uniquement) = le voyageur répartit adultes / enfants / bébés, et la somme doit égaler le
+  groupe (`AccommodationPricingService#splitGuests`, revérifié côté serveur).
+- **Règles de prix (dates / périodes)** : une règle fixe le prix adulte ; enfant et bébé suivent
+  dans le même rapport.
+- **Activités chronométrées** : `Extra` a `baseDurationMinutes` (30 par défaut), `durationStepMinutes`
+  et `maxDurationMinutes`, saisis en minutes dans le backoffice. Le prix unitaire est le prix de la durée
+  de base ; le prix d'une séance = prix × minutes ÷ base (`ExtraDurationPricing`). Max = base : le client
+  ne peut pas allonger. Le site affiche un − / + (30 min, 1 Hour, 1:30H, 2H…) sur `/book`, `/camp` et les
+  circuits. Les activités gardent **un seul prix** (pas de prix par âge) ; les bébés n'y comptent pas.
+- **Migrations à appliquer** : `V49__activity_timing.sql` (durées, reprise du texte libre `duration`
+  quand il est lisible) et `V50__infants_and_per_person_tiers.sql` (bébés, prix par personne des
+  hébergements). `V50` reprend l'ancien prix unitaire comme **prix unitaire ÷ capacité** pour l'adulte
+  (un logement plein coûte pareil qu'avant), enfant = adulte, bébé = 0. Les anciennes lignes de réservation
+  gardent leur total par unité.
+
 ### Site public (`frontend/`)
 
 - Page d'accueil allégée (23 sept.) : chiffres clés uniquement dans le hero,
@@ -98,6 +124,12 @@ source de vérité ; les décisions en attente sont listées plus bas.
 
 ---
 
+- **Un hébergement est tarifé par personne.** Total d'une catégorie =
+  (adultes × prix adulte + enfants × prix enfant + bébés × prix bébé) × nuits, prix copiés sur la
+  réservation (`ReservationAccommodation`) : un changement de catalogue ne bouge jamais une réservation
+  existante. Modifier le groupe d'une réservation à une seule catégorie la suit (avec contrôle de
+  capacité) ; à plusieurs catégories, le serveur refuse et demande de re-choisir la répartition.
+
 ## 3. Ce qui manque ou reste imparfait
 
 | Sujet | Détail |
@@ -115,6 +147,10 @@ source de vérité ; les décisions en attente sont listées plus bas.
 | Tableau de bord « récentes » | ce sont les 10 plus proches par date de séjour, pas les 10 dernières créées. |
 | Clés de traduction orphelines | espace `experience` (`guestsGuided`, `averageRating`, `newRating`, `onTheDunes`, `yearsUnit`) dans les 6 fichiers `frontend/messages/*.json`. |
 | Documentation | `README.md` racine et `docs/README.md` pointaient vers des fichiers supprimés ; corrigé ici, mais `ARCHITECTURE.md` §10 (backoffice) décrit encore l'état d'avant cette session. |
+| Tarifs par voyageur et durées non testés de bout en bout | les tests unitaires couvrent les montants (serveur et site) ; les tests d'intégration `accommodation/*IT` ont été adaptés mais **pas exécutés** (ils exigent Postgres, Keycloak, RabbitMQ), et l'interface n'a pas été vérifiée dans un navigateur. |
+| Répartition des voyageurs entre catégories | seule la page `/camp` la propose ; le formulaire admin d'édition ne permet pas de re-répartir, il faut re-sélectionner les hébergements. |
+| Brouillon `/camp` | il mémorise les bébés mais pas les durées d'activité ni la répartition par catégorie. |
+| Formulaire admin « Nouvelle réservation » | il réserve la durée de base des activités et une seule catégorie (tout le groupe). |
 | Secrets | mot de passe d'application Gmail non révoqué, hôte distant `79.143.185.33` non vérifié — voir `CLAUDE.md`, « Current state ». |
 
 ## 4. Décisions à prendre (propriétaire / comptable)
@@ -143,6 +179,6 @@ npm run dev             # site public sur http://localhost:3000
 ```
 
 Le backend doit tourner avec le profil local (voir `CLAUDE.md`) et avoir appliqué
-V39 et V40. Rien de cette session n'a été essayé contre une vraie base ni un vrai
+V39 à V50 (V49 et V50 : durées d'activité, bébés et prix par personne). Rien de cette session n'a été essayé contre une vraie base ni un vrai
 serveur SMTP : les tests unitaires couvrent les montants, les traductions et le rendu
 des emails, pas le parcours complet.

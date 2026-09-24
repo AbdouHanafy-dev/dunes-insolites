@@ -48,7 +48,10 @@ public class PublicActivityMapper {
         response.setGallery(PublicCatalogText.gallery(extra.getPhotos()));
         response.setPriceFrom(extra.getUnitPrice());
         response.setPricingUnit(extra.getPricingUnit() == null ? null : extra.getPricingUnit().name());
-        response.setDurationMins(PublicCatalogText.parseDurationMinutes(extra.getDuration()));
+        response.setDurationMins(extra.getBaseDurationMinutes());
+        response.setBaseDurationMinutes(extra.getBaseDurationMinutes());
+        response.setDurationStepMinutes(extra.getDurationStepMinutes());
+        response.setMaxDurationMinutes(extra.getMaxDurationMinutes());
         // No difficulty rating exists on Extra today - neutral default until modeled.
         response.setDifficulty("Moderate");
         response.setGroupSize(PublicCatalogText.groupSize(extra.getGroupSizeType()));

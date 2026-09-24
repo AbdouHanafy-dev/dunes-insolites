@@ -94,7 +94,7 @@ class ReservationInvoiceIT {
 
         suiteId = accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("dune-suite").name("Dune Suite").capacity(4)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(new BigDecimal("7"))
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(new BigDecimal("7"))
                 .displayOrder(0).active(true).build()).getId();
 
         Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
@@ -189,8 +189,9 @@ class ReservationInvoiceIT {
         assertThat(proforma.getItems()).hasSize(1);
         var item = proforma.getItems().get(0);
         assertThat(item.getItemType()).isEqualTo("HEBERGEMENT");
-        assertThat(item.getQuantity()).isEqualTo(1);
-        assertThat(item.getUnitPrice()).isEqualByComparingTo("154.206"); // HT
+        assertThat(item.getDescription()).contains("(Adulte)");
+        assertThat(item.getQuantity()).isEqualTo(2); // 2 adults, one item per guest type
+        assertThat(item.getUnitPrice()).isEqualByComparingTo("77.103"); // 82.500 TTC @ 7% → HT per adult
         assertThat(item.getTva()).isEqualByComparingTo("7");
     }
 
@@ -203,7 +204,7 @@ class ReservationInvoiceIT {
 
         tx.executeWithoutResult(t -> {
             AccommodationType suite = accommodationTypeRepository.findById(suiteId).orElseThrow();
-            suite.setUnitPriceTtc(new BigDecimal("999.000"));
+            suite.setAdultPriceTtc(new BigDecimal("999.000"));
             accommodationTypeRepository.save(suite);
         });
 
@@ -213,7 +214,7 @@ class ReservationInvoiceIT {
 
         Reservation res = load(resId);
         assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");
-        assertThat(res.getTourTypes().get(0).getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(res.getTourTypes().get(0).getAccommodations().get(0).getAdultPriceTtc()).isEqualByComparingTo("82.500");
     }
 
     // ── Characterization net added before the ReservationInvoiceService

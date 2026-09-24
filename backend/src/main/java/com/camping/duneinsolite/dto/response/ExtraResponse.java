@@ -24,6 +24,9 @@ public class ExtraResponse {
     private String description;
     private String duration;
     private java.math.BigDecimal unitPrice;
+    private Integer baseDurationMinutes;
+    private Integer durationStepMinutes;
+    private Integer maxDurationMinutes;
     private Boolean isActive;
     private java.math.BigDecimal tva;
     private Integer maxUnitsPerDay;

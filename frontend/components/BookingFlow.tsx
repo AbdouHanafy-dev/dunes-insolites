@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, Fragment, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api";
 import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, StayAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
@@ -12,7 +12,9 @@ import AccommodationPicker from "@/components/booking/AccommodationPicker";
 import { useStepScroll } from "@/lib/useStepScroll";
 import GuestPicker from "@/components/booking/GuestPicker";
 import LanguageChips from "@/components/booking/LanguageChips";
-import { activityQuantity, activityTotal } from "@/lib/activityPricing";
+import { tierPerNight } from "@/lib/guestPricing";
+import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
+import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import DateRangePicker from "@/components/DateRangePicker";
 import ListSelect from "@/components/ListSelect";
 import { localizedLanguageName } from "@/lib/languageFlags";
@@ -112,6 +114,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const [departureDate, setDepartureDate] = useState(""); // stay, multi-night only
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
 
   // ---------- circuit-only: preferred guide language ----------
   const [languages, setLanguages] = useState<Language[]>([]);
@@ -142,6 +145,11 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   // ---------- shared: extras (other activities) ----------
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
+  // Minutes picked per timed activity (absent = its base duration).
+  const [durations, setDurations] = useState<Record<string, number>>({});
+  const sessionLabel = useSessionLabel();
+  const minutesFor = (a: Activity) => durations[a.slug] ?? baseMinutes(a);
+  const durationNote = (a: Activity) => (minutesFor(a) !== baseMinutes(a) ? " · " + sessionLabel(minutesFor(a)) : "");
 
   // ---------- shared: contact ----------
   const [name, setName] = useState("");
@@ -295,21 +303,24 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     return selectedStay?.priceFrom ?? 0;
   })();
 
-  const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + activityTotal(a, partySize, nights), 0);
+  const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + activityTotal(a, partySize, nights, minutesFor(a)), 0);
 
   const circuitTotal = selectedTour
     ? selectedTour.passengerAdultPrice * adults + selectedTour.passengerChildPrice * children
+      + (selectedTour.passengerInfantPrice ?? 0) * infants
     : 0;
+  // A single tier takes the whole party, each guest type at its own per-night price.
   const circuitAccommodationTotal = circuitHasCampStay && selectedAccommodation
-    ? selectedAccommodation.priceFrom * accommodationQty
+    ? tierPerNight(selectedAccommodation, { adults, children, infants })
     : 0;
   // No tier chosen (stay without accommodation types): the stay's own adult and
   // child rates from the back office, per person, per night.
   const stayAdultRate = selectedStay?.adultPrice ?? selectedStay?.priceFrom ?? 0;
   const stayChildRate = selectedStay?.childPrice ?? stayAdultRate;
+  const stayInfantRate = selectedStay?.infantPrice ?? 0;
   const stayNightly = selectedAccommodation
-    ? selectedAccommodation.priceFrom * accommodationQty
-    : stayAdultRate * adults + stayChildRate * children;
+    ? tierPerNight(selectedAccommodation, { adults, children, infants })
+    : stayAdultRate * adults + stayChildRate * children + stayInfantRate * infants;
   const stayTotal = stayNightly * nights;
   const stayHasTiers = (selectedStay?.accommodations?.length ?? 0) > 0;
   const nightsSuffix = nights > 1 ? ` · ${ts("summaryNights", { nights })}` : "";
@@ -460,7 +471,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       date,
       numberOfAdults: adults,
       numberOfChildren: children,
+      numberOfInfants: infants > 0 ? infants : undefined,
       rideSlugs,
+      activityDurations: durationsPayload(otherActivities, rideSlugs, durations),
       accommodations: circuitHasCampStay && accommodationSlug
         ? [{ accommodationSlug, quantity: accommodationQty }]
         : undefined,
@@ -517,7 +530,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       nights,
       partySize,
       children: children > 0 ? children : undefined,
+      infants: infants > 0 ? infants : undefined,
       rideSlugs,
+      activityDurations: durationsPayload(otherActivities, rideSlugs, durations),
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
@@ -780,10 +795,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <GuestPicker
             adults={adults}
             kids={children}
+            infants={infants}
             error={errors.adults}
-            onChange={(a, c) => {
+            onChange={(a, c, n) => {
               setAdults(a);
               setChildren(c);
+              setInfants(n);
             }}
           />
         </div>
@@ -902,11 +919,16 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           ) : (
             <div className="ride-options">
               {otherActivities.map((a) => (
-                <label key={a.slug} className="ride-option">
+                <Fragment key={a.slug}>
+<label className="ride-option">
                   <input type="checkbox" checked={rideSlugs.includes(a.slug)} onChange={() => toggleRide(a.slug)} />
                   <span>{a.title}</span>
                   <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
                 </label>
+{rideSlugs.includes(a.slug) && canExtend(a) && (
+<ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
+)}
+</Fragment>
               ))}
             </div>
           )}
@@ -952,10 +974,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <GuestPicker
             adults={adults}
             kids={children}
+            infants={infants}
             error={errors.adults}
-            onChange={(a, c) => {
+            onChange={(a, c, n) => {
               setAdults(a);
               setChildren(c);
+              setInfants(n);
             }}
           />
         </div>
@@ -1099,11 +1123,16 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <label>{ts("addRide")}</label>
           <div className="ride-options">
             {otherActivities.map((a) => (
-              <label key={a.slug} className="ride-option">
+              <Fragment key={a.slug}>
+<label className="ride-option">
                 <input type="checkbox" checked={rideSlugs.includes(a.slug)} onChange={() => toggleRide(a.slug)} />
                 <span>{a.title}</span>
                 <span className="ride-price">{ts("fromPrice", { price: a.priceFrom })}</span>
               </label>
+{rideSlugs.includes(a.slug) && canExtend(a) && (
+<ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
+)}
+</Fragment>
             ))}
           </div>
           <p className="hint">{ts("confirmOnSite")}</p>
@@ -1147,7 +1176,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             <div className="row"><span className="k">{t("dateLabelSummary")}</span><span>{prettyDate(date, locale)}</span></div>
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
-              <span>{adults} {t("adultsLabel").toLowerCase()}{children > 0 ? ` · ${children} ${t("childrenLabel").toLowerCase()}` : ""}</span>
+              <span>{adults} {t("adultsLabel").toLowerCase()}{children > 0 ? ` · ${children} ${t("childrenLabel").toLowerCase()}` : ""}{infants > 0 ? ` · ${infants} ${t("infantsLabel").toLowerCase()}` : ""}</span>
             </div>
             <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? t("ownVehicle") : t("needTransport")}</span></div>
             {departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
@@ -1155,7 +1184,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             {rideSlugs.length > 0 && (
               <div className="row">
                 <span className="k">{t("reviewExtrasLabel")}</span>
-                <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title} — €${activityTotal(a, partySize, nights)}`).join(", ")}</span>
+                <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title}${durationNote(a)} — €${activityTotal(a, partySize, nights, minutesFor(a))}`).join(", ")}</span>
               </div>
             )}
             {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {composePhone()}</span></div>}
@@ -1179,16 +1208,22 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                     <span>€{selectedTour.passengerChildPrice * children}</span>
                   </div>
                 )}
+                {infants > 0 && (
+                  <div className="row">
+                    <span>{(selectedTour.passengerInfantPrice ?? 0) > 0 ? ts("summaryInfants", { count: infants, price: selectedTour.passengerInfantPrice ?? 0 }) : ts("summaryInfantsFree", { count: infants })}</span>
+                    <span>€{(selectedTour.passengerInfantPrice ?? 0) * infants}</span>
+                  </div>
+                )}
               </>
             )}
             {circuitHasCampStay && selectedAccommodation && (
               <div className="row">
-                <span>{accommodationQty} × {selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
+                <span>{selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
                 <span>€{circuitAccommodationTotal}</span>
               </div>
             )}
             {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
-              <div className="row" key={a.slug}><span>{a.title}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>€{activityTotal(a, partySize, nights)}</span></div>
+              <div className="row" key={a.slug}><span>{a.title}{durationNote(a)}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>€{activityTotal(a, partySize, nights, minutesFor(a))}</span></div>
             ))}
             <div className="row total"><span>{t("totalLabel")}</span><span>€{circuitTotal + circuitAccommodationTotal + extrasTotal}</span></div>
           </div>
@@ -1243,7 +1278,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             )}
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
-              <span>{adults} {ts("adults").toLowerCase()}{children > 0 ? ` · ${children} ${ts("children").toLowerCase()}` : ""}</span>
+              <span>{adults} {ts("adults").toLowerCase()}{children > 0 ? ` · ${children} ${ts("children").toLowerCase()}` : ""}{infants > 0 ? ` · ${infants} ${ts("infants").toLowerCase()}` : ""}</span>
             </div>
             <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? ts("ownVehicle") : ts("needTransport")}</span></div>
             {departureCity && <div className="row"><span className="k">{ts("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
@@ -1259,7 +1294,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
             {selectedAccommodation ? (
               <div className="row">
-                <span>{accommodationQty} × {selectedAccommodation.title}{nightsSuffix}</span>
+                <span>{selectedAccommodation.title}{nightsSuffix}</span>
                 <span>€{stayTotal}</span>
               </div>
             ) : (
@@ -1274,13 +1309,19 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                     <span>€{stayChildRate * children * nights}</span>
                   </div>
                 )}
+                {infants > 0 && (
+                  <div className="row">
+                    <span>{stayInfantRate > 0 ? ts("summaryInfants", { count: infants, price: stayInfantRate }) : ts("summaryInfantsFree", { count: infants })}{nightsSuffix}</span>
+                    <span>€{stayInfantRate * infants * nights}</span>
+                  </div>
+                )}
               </>
             )}
             {selectedTransport && (
               <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `€${optionPrice(selectedTransport)}`}</span></div>
             )}
             {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
-              <div className="row" key={a.slug}><span>{a.title}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>€{activityTotal(a, partySize, nights)}</span></div>
+              <div className="row" key={a.slug}><span>{a.title}{durationNote(a)}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>€{activityTotal(a, partySize, nights, minutesFor(a))}</span></div>
             ))}
             <div className="row total"><span>{ts("grandTotal")}</span><span>€{stayTotal + extrasTotal + serviceTotal}</span></div>
           </div>

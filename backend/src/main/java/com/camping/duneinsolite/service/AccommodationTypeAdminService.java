@@ -54,7 +54,9 @@ public class AccommodationTypeAdminService {
                 .gallery(req.getGallery() != null ? new ArrayList<>(req.getGallery()) : new ArrayList<>())
                 .capacity(req.getCapacity())
                 .maxUnits(req.getMaxUnits())
-                .unitPriceTtc(Money.round(req.getUnitPriceTtc()))
+                .adultPriceTtc(Money.round(req.getAdultPriceTtc()))
+                .childPriceTtc(childPrice(req))
+                .infantPriceTtc(Money.round(req.getInfantPriceTtc()))
                 .tvaRate(req.getTvaRate())
                 .currency(req.getCurrency() != null ? req.getCurrency() : Currency.EUR)
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
@@ -81,7 +83,9 @@ public class AccommodationTypeAdminService {
         }
         a.setCapacity(req.getCapacity());
         a.setMaxUnits(req.getMaxUnits());
-        a.setUnitPriceTtc(Money.round(req.getUnitPriceTtc()));
+        a.setAdultPriceTtc(Money.round(req.getAdultPriceTtc()));
+        a.setChildPriceTtc(childPrice(req));
+        a.setInfantPriceTtc(Money.round(req.getInfantPriceTtc()));
         a.setTvaRate(req.getTvaRate());
         if (req.getCurrency() != null) a.setCurrency(req.getCurrency());
         if (req.getDisplayOrder() != null) a.setDisplayOrder(req.getDisplayOrder());
@@ -95,6 +99,11 @@ public class AccommodationTypeAdminService {
 
     public void delete(UUID id) {
         repository.delete(find(id));
+    }
+
+    /** A blank child price means "same as an adult" - never silently free. */
+    private static java.math.BigDecimal childPrice(AccommodationTypeRequest req) {
+        return Money.round(req.getChildPriceTtc() != null ? req.getChildPriceTtc() : req.getAdultPriceTtc());
     }
 
     private AccommodationType find(UUID id) {

@@ -54,6 +54,11 @@ public class TourType {
     private java.math.BigDecimal passengerChildPrice;
 
     // Prices for partner bookings
+    // Infants (0-3): free until the back office sets a price.
+    @Column(name = "passenger_infant_price", nullable = false)
+    @Builder.Default
+    private java.math.BigDecimal passengerInfantPrice = java.math.BigDecimal.ZERO;
+
     @Column(name = "partner_adult_price", nullable = false)
     private java.math.BigDecimal partnerAdultPrice;
 

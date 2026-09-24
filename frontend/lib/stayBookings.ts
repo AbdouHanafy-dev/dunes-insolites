@@ -1,5 +1,6 @@
 import { getStay } from "@/lib/data/stays";
 import { getActivities } from "@/lib/data/activities";
+import { tierPerNight } from "@/lib/guestPricing";
 import { isFutureDate, makeId } from "@/lib/bookings";
 import { MAX_PARTY_SIZE, type StayBooking, type StayBookingInput } from "@/lib/types";
 
@@ -66,13 +67,22 @@ export function validateStayBooking(input: Partial<StayBookingInput>): Validatio
 export function createStayBooking(input: StayBookingInput): StayBooking {
   const stay = getStay(input.staySlug)!;
   const selections = input.accommodations ?? [];
+  const nights = input.nights ?? 1;
+  const children = input.children ?? 0;
+  const infants = input.infants ?? 0;
+  const party = { adults: input.partySize - children, children, infants };
+  // Tiers are priced per person per night; a lone tier takes the whole party.
   const total = selections.length > 0
     ? selections.reduce((sum, selection) => {
         const accommodation = stay.accommodations?.find((item) => item.slug === selection.accommodationSlug);
-        return sum + (accommodation ? accommodation.priceFrom * selection.quantity : 0);
+        const guests = selections.length === 1
+          ? party
+          : { adults: selection.adults ?? 0, children: selection.children ?? 0, infants: selection.infants ?? 0 };
+        return sum + (accommodation ? tierPerNight(accommodation, guests) * nights : 0);
       }, 0)
-    : ((stay.adultPrice ?? stay.priceFrom) * (input.partySize - (input.children ?? 0))
-        + (stay.childPrice ?? stay.adultPrice ?? stay.priceFrom) * (input.children ?? 0)) * (input.nights ?? 1);
+    : ((stay.adultPrice ?? stay.priceFrom) * party.adults
+        + (stay.childPrice ?? stay.adultPrice ?? stay.priceFrom) * children
+        + (stay.infantPrice ?? 0) * infants) * nights;
   const booking: StayBooking = {
     ...input,
     id: makeId(),

@@ -46,6 +46,14 @@ public class ReservationTour {
     @Column(name = "number_of_children", nullable = false)
     private Integer numberOfChildren;
 
+    @Column(name = "number_of_infants", nullable = false)
+    @Builder.Default
+    private Integer numberOfInfants = 0;
+
+    @Column(name = "infant_price", nullable = false)
+    @Builder.Default
+    private java.math.BigDecimal infantPrice = java.math.BigDecimal.ZERO;
+
     @Column(name = "catalog_tour_id")
     private UUID catalogTourId;
 

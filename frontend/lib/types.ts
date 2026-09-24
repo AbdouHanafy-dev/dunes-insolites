@@ -35,7 +35,7 @@ export type {
   TourBookingInput,
 } from "@dunes/api-types";
 
-export { DEPARTURE_CITIES, MAX_PARTY_SIZE } from "@dunes/api-types";
+export { DEPARTURE_CITIES, MAX_INFANTS, MAX_PARTY_SIZE } from "@dunes/api-types";
 
 import type { DepartureCity, Review, TimeSlot, Tour } from "@dunes/api-types";
 

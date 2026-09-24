@@ -92,15 +92,15 @@ class AccommodationBookingIT {
 
         tentId = accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("desert-tent").name("Desert Tent").capacity(2)
-                .unitPriceTtc(new BigDecimal("95.000")).tvaRate(new BigDecimal("7"))
+                .adultPriceTtc(new BigDecimal("47.500")).childPriceTtc(new BigDecimal("47.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(new BigDecimal("7"))
                 .displayOrder(0).active(true).build()).getId();
         suiteId = accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("dune-suite").name("Dune Suite").capacity(4)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(new BigDecimal("7"))
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(new BigDecimal("7"))
                 .displayOrder(2).active(true).build()).getId();
         accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("gold-yurt").name("Gold Yurt").capacity(2)
-                .unitPriceTtc(null).displayOrder(3).active(true).build());
+                .adultPriceTtc(null).displayOrder(3).active(true).build());
 
         Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder()
@@ -135,28 +135,28 @@ class AccommodationBookingIT {
     }
 
     @Test
-    void guestIsChargedTheTierPrice_perUnit_notThePerPersonRate() {
+    void guestIsChargedTheTierPricePerPerson_notTheStayRate() {
         var resp = publicBookingService.createStayBooking(req("dune-suite", 1, 2));
         Reservation res = load(UUID.fromString(resp.getId()));
-        assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");                 // suite, not 999 × 2
+        assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");                 // 2 adults × 82.5, not the stay's 999 × 2
         var line = res.getTourTypes().get(0);
         assertThat(line.isAccommodationPriced()).isTrue();
         assertThat(line.getAccommodations().get(0).getAccommodationName()).isEqualTo("Dune Suite");
-        assertThat(line.getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(line.getAccommodations().get(0).getAdultPriceTtc()).isEqualByComparingTo("82.500");
     }
 
     @Test
-    void partySizeDoesNotInflateAnAccommodationPricedLine() {
+    void aPerPersonTierIsChargedForEveryGuestThatSleepsThere() {
         var resp = publicBookingService.createStayBooking(req("dune-suite", 1, 4));
         Reservation res = load(UUID.fromString(resp.getId()));
-        assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000"); // 1 suite, still 165 — not × party
+        assertThat(res.getTotalAmount()).isEqualByComparingTo("330.000"); // 4 adults × 82.5
     }
 
     @Test
-    void twoTentsAreChargedAsTwoUnits() {
+    void twoTentsForThreeGuestsAreChargedPerGuest() {
         var resp = publicBookingService.createStayBooking(req("desert-tent", 2, 3));
         Reservation res = load(UUID.fromString(resp.getId()));
-        assertThat(res.getTotalAmount()).isEqualByComparingTo("190.000"); // 95 × 2
+        assertThat(res.getTotalAmount()).isEqualByComparingTo("142.500"); // 3 adults × 47.5
     }
 
     @Test
@@ -191,12 +191,12 @@ class AccommodationBookingIT {
         UUID resId = UUID.fromString(resp.getId());
 
         AccommodationType suite = accommodationTypeRepository.findById(suiteId).orElseThrow();
-        suite.setUnitPriceTtc(new BigDecimal("999.000"));
+        suite.setAdultPriceTtc(new BigDecimal("999.000"));
         accommodationTypeRepository.saveAndFlush(suite);
 
         Reservation reloaded = load(resId);
         assertThat(reloaded.getTotalAmount()).isEqualByComparingTo("165.000");
-        assertThat(reloaded.getTourTypes().get(0).getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(reloaded.getTourTypes().get(0).getAccommodations().get(0).getAdultPriceTtc()).isEqualByComparingTo("82.500");
     }
 
     @Test
@@ -257,7 +257,7 @@ class AccommodationBookingIT {
         var line = r.getTourTypes().get(0);
         assertThat(line.isAccommodationPriced()).as("snapshot carried forward").isTrue();
         assertThat(line.getAccommodations().get(0).getAccommodationName()).isEqualTo("Dune Suite");
-        assertThat(line.getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
+        assertThat(line.getAccommodations().get(0).getAdultPriceTtc()).isEqualByComparingTo("82.500");
         assertThat(r.getTotalAmount()).isEqualByComparingTo("165.000");
     }
 
@@ -268,7 +268,7 @@ class AccommodationBookingIT {
 
         tx.executeWithoutResult(t -> {
             AccommodationType s = accommodationTypeRepository.findById(suiteId).orElseThrow();
-            s.setUnitPriceTtc(new BigDecimal("999.000"));
+            s.setAdultPriceTtc(new BigDecimal("999.000"));
             accommodationTypeRepository.save(s);
         });
 

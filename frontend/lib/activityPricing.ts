@@ -24,9 +24,78 @@ export function activityQuantity(
 }
 
 export function activityTotal(
-  activity: Pick<Activity, "pricingUnit" | "priceFrom">,
+  activity: Pick<Activity, "pricingUnit" | "priceFrom"> & ActivityTiming,
   travelers: number,
   nights = 1,
+  minutes?: number,
 ): number {
-  return activity.priceFrom * activityQuantity(activity, travelers, nights);
+  const total = activity.priceFrom * activityQuantity(activity, travelers, nights) * durationFactor(activity, minutes);
+  return Math.round(total * 100) / 100;
+}
+
+/** Back-office timing of a timed activity, all in minutes. */
+export type ActivityTiming = Pick<
+  Activity,
+  "baseDurationMinutes" | "durationStepMinutes" | "maxDurationMinutes"
+>;
+
+export const DEFAULT_ACTIVITY_MINUTES = 30;
+
+export function baseMinutes(activity: ActivityTiming): number {
+  return activity.baseDurationMinutes ?? DEFAULT_ACTIVITY_MINUTES;
+}
+
+function stepMinutes(activity: ActivityTiming): number {
+  return activity.durationStepMinutes ?? DEFAULT_ACTIVITY_MINUTES;
+}
+
+/** The longest session the guest may book; the base itself when the back office allows no extension. */
+export function maxMinutes(activity: ActivityTiming): number {
+  return Math.max(activity.maxDurationMinutes ?? baseMinutes(activity), baseMinutes(activity));
+}
+
+export function canExtend(activity: ActivityTiming): boolean {
+  return maxMinutes(activity) > baseMinutes(activity);
+}
+
+/** Next/previous allowed duration, kept inside [base, max] and on the back-office step. */
+export function stepDuration(activity: ActivityTiming, current: number, direction: 1 | -1): number {
+  const next = current + direction * stepMinutes(activity);
+  return Math.min(Math.max(next, baseMinutes(activity)), maxMinutes(activity));
+}
+
+/**
+ * Label shown between the − and +: "30 min" under an hour, "1 Hour" at 60,
+ * then "1:30H", "2H", "2:30H"…
+ */
+export function formatSessionMinutes(
+  minutes: number,
+  labels: { minutes: (n: number) => string; oneHour: string; hours: (h: number, mm: string) => string },
+): string {
+  if (minutes < 60) return labels.minutes(minutes);
+  if (minutes === 60) return labels.oneHour;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return labels.hours(h, m === 0 ? "" : String(m).padStart(2, "0"));
+}
+
+/** Display estimate for a session of `minutes`: the unit price scales by minutes ÷ base. */
+export function durationFactor(activity: ActivityTiming, minutes: number | undefined): number {
+  return minutes === undefined ? 1 : minutes / baseMinutes(activity);
+}
+
+/** Only the ticked activities the guest actually extended; base-duration picks are left out of the request. */
+export function durationsPayload(
+  activities: Array<Pick<Activity, "slug"> & ActivityTiming>,
+  selectedSlugs: string[],
+  durations: Record<string, number>,
+): Record<string, number> | undefined {
+  const picked: Record<string, number> = {};
+  for (const a of activities) {
+    const minutes = durations[a.slug];
+    if (selectedSlugs.includes(a.slug) && minutes !== undefined && minutes !== baseMinutes(a)) {
+      picked[a.slug] = minutes;
+    }
+  }
+  return Object.keys(picked).length > 0 ? picked : undefined;
 }

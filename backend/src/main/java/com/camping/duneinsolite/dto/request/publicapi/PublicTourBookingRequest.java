@@ -39,9 +39,19 @@ public class PublicTourBookingRequest {
     @Max(value = 11, message = "Number of children cannot exceed 11")
     private Integer numberOfChildren;
 
+    // Infants (0-3): free until priced in the back office, and outside the party-size limit.
+    @Min(value = 0, message = "Number of infants cannot be negative")
+    @Max(value = 6, message = "Number of infants cannot exceed 6")
+    private Integer numberOfInfants;
+
     // Extra add-on activities (ACTIVITY-category Extra slugs), same
     // convention as PublicStayBookingRequest.rideSlugs.
     private List<String> rideSlugs;
+
+    // Minutes chosen per timed activity, keyed by activity slug (the main
+    // activity and any add-on rides). Absent = the activity's base duration.
+    // The server validates each against the back-office base/step/max.
+    private java.util.Map<@Size(max = 120) String, @Min(1) Integer> activityDurations;
 
     // Accommodation tiers from the shared Sabria catalogue. Multi-day
     // circuits require a selection; the same shape is accepted from every

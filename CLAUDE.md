@@ -148,6 +148,15 @@ controller gets an explicit `@PreAuthorize`.
 The existing entities still use `Double` — that is [tracked debt](ARCHITECTURE.md#12-known-architectural-debt),
 not a pattern to copy. New monetary fields use `BigDecimal`.
 
+**Guest types.** Adults are 18+, children 3–18, infants 0–3. Infants are priced on
+their own (0 = free until the back office sets a price) and never count toward
+`MAX_PARTY_SIZE` or a room's capacity. Accommodation tiers are priced **per person
+per night**, one price per guest type (`AccommodationType.adult/child/infantPriceTtc`);
+the legacy `unitPriceTtc` column is kept only so old reservations still total the same.
+A timed activity's `unitPrice` is the price of its base duration
+(`Extra.baseDurationMinutes`, 30 by default); a longer session costs
+unit price × minutes ÷ base, computed server-side (`ExtraDurationPricing`).
+
 
 ### Do not refactor the money path before tests exist
 

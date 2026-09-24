@@ -78,7 +78,7 @@ class PublicBookingIdempotencyIT {
                 .tva(BigDecimal.ZERO).build());
         accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("dune-suite").name("Dune Suite").capacity(4)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(new BigDecimal("7"))
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(new BigDecimal("7"))
                 .maxUnits(3).displayOrder(0).active(true).build());
 
         // The guest user is pre-created so the mock is a plain, thread-safe

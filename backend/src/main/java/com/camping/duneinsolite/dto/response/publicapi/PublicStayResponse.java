@@ -27,6 +27,7 @@ public class PublicStayResponse {
     // booking when the stay has no accommodation types.
     private java.math.BigDecimal adultPrice;
     private java.math.BigDecimal childPrice;
+    private java.math.BigDecimal infantPrice;
     private String groupSize;
     private List<String> included;
     private List<String> notIncluded;
@@ -62,7 +63,12 @@ public class PublicStayResponse {
         private String description;
         private String image;
         private List<String> gallery;
+        // Per person per night, one price per guest type. priceFrom = the adult price.
         private java.math.BigDecimal priceFrom;
+        private java.math.BigDecimal adultPrice;
+        private java.math.BigDecimal childPrice;
+        private java.math.BigDecimal infantPrice;
+        private Integer capacity;
         private String sleeps;
         private List<String> features;
         // AccommodationType.maxUnits - null means inventory isn't configured

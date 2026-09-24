@@ -26,6 +26,7 @@ public class ReservationUpdateRequest {
    // private Currency currency;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private Integer numberOfInfants;
 
 
     // ── Replace lists entirely (send the full desired state) ──

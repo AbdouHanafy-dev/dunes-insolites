@@ -87,7 +87,7 @@ class AccommodationConcurrencyIT {
                 .partnerAdultPrice(new java.math.BigDecimal("999.0")).partnerChildPrice(new java.math.BigDecimal("999.0")).tva(java.math.BigDecimal.ZERO).build());
         accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("suite").name("Dune Suite").capacity(4)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(BigDecimal.ZERO)
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(BigDecimal.ZERO)
                 .maxUnits(1).active(true).build());
         Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenAnswer(inv -> userRepository.save(User.builder().userId(UUID.randomUUID())

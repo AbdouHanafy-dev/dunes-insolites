@@ -388,7 +388,8 @@
     "successBody": "Wir bestätigen Ihre Buchung innerhalb von 24 Stunden. Eine Zusammenfassung ist unterwegs an {email}. Es wurde nichts belastet.",
     "successBrowseMore": "Weitere Aktivitäten ansehen",
     "errorFormSteps": "Einige Angaben sollten Sie noch einmal prüfen — siehe die Schritte oben.",
-    "errorGeneric": "Diese Buchung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+    "errorGeneric": "Diese Buchung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "infantsLabel": "Babys"
   },
   "stayReservationForm": {
     "chooseCamp": "Wählen Sie Ihr Camp",
@@ -416,9 +417,9 @@
     "everyCampBooked": "Für dieses Datum sind alle Camps ausgebucht — versuchen Sie ein anderes.",
     "whosComing": "Wer kommt mit?",
     "adults": "Erwachsene",
-    "adultsAge": "Ab 7 Jahren",
+    "adultsAge": "Ab 18 Jahren",
     "children": "Kinder",
-    "childrenAge": "Bis 6 Jahre",
+    "childrenAge": "3–18 Jahre",
     "howWillYouJoin": "Wie möchten Sie zum Erlebnis kommen?",
     "ownVehicle": "Ich habe mein eigenes Fahrzeug",
     "ownVehicleHint": "Auto, 4x4 oder Motorrad",
@@ -503,7 +504,21 @@
     "pickupLabel": "Abholung",
     "errorPickDate": "Wählen Sie ein Datum.",
     "errorPastDate": "Wählen Sie heute oder ein zukünftiges Datum.",
-    "extrasUnavailable": "Derzeit werden keine zusätzlichen Aktivitäten angeboten."
+    "extrasUnavailable": "Derzeit werden keine zusätzlichen Aktivitäten angeboten.",
+    "infants": "Babys",
+    "infantsAge": "0–3 Jahre",
+    "summaryInfants": "{count, plural, =1 {1 Baby} other {# Babys}} × {price} €",
+    "summaryInfantsFree": "{count, plural, =1 {1 Baby} other {# Babys}} · kostenlos",
+    "tierPerPerson": "pro Person / Nacht",
+    "tierChildPrice": "Kind {price} €",
+    "tierInfantPrice": "Baby {price} €",
+    "tierInfantFree": "Baby kostenlos",
+    "assignTitle": "Wer schläft wo?",
+    "assignLeft": "Noch zu verteilen:",
+    "assignDone": "Alle haben einen Platz",
+    "assignHint": "Sie haben mehrere Unterkünfte gewählt — sagen Sie uns, wer in welcher schläft.",
+    "errorAssignGuests": "Bitte weisen Sie jeden Gast einer Unterkunft zu, bevor Sie fortfahren.",
+    "errorTierCapacity": "Jede Unterkunft braucht mindestens einen Gast und darf nicht überbelegt sein (Babys zählen nicht)."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Rundreisen",
@@ -678,7 +693,8 @@
     "preferredLanguageLabel": "Bevorzugte Sprache",
     "preferredLanguageHint": "Damit wir einen Guide zuweisen können, der Ihre Sprache spricht.",
     "reviewLanguageLabel": "Bevorzugte Sprache",
-    "otherLanguagePlaceholder": "Andere Sprache nicht aufgeführt? Hier angeben (optional)"
+    "otherLanguagePlaceholder": "Andere Sprache nicht aufgeführt? Hier angeben (optional)",
+    "infantsLabel": "Babys"
   },
   "accommodationCard": {
     "exploreThisStay": "Diese Übernachtung entdecken ↗",
@@ -1307,5 +1323,14 @@
     "placeholder": "Datum wählen",
     "previousMonth": "Vorheriger Monat",
     "nextMonth": "Nächster Monat"
+  },
+  "activityDuration": {
+    "label": "Dauer",
+    "minutes": "{n} Min.",
+    "oneHour": "1 Stunde",
+    "hours": "{h}H",
+    "hoursMinutes": "{h}:{mm}H",
+    "decrease": "{title} verkürzen",
+    "increase": "{title} verlängern"
   }
 }

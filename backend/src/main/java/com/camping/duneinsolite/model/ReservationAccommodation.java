@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import com.camping.duneinsolite.money.Money;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -51,4 +53,44 @@ public class ReservationAccommodation {
 
     @Column(name = "accommodation_tva_rate", precision = 6, scale = 3)
     private BigDecimal accommodationTvaRate;
+
+    // Who sleeps in this tier and the per-person, per-night price each guest type
+    // paid at booking. NULL on rows made before per-person pricing: those are
+    // still totalled units x unit price, so an old reservation never moves.
+    @Column(name = "adults")
+    private Integer adults;
+
+    @Column(name = "children")
+    private Integer children;
+
+    @Column(name = "infants")
+    private Integer infants;
+
+    @Column(name = "adult_price_ttc", precision = 15, scale = 3)
+    private BigDecimal adultPriceTtc;
+
+    @Column(name = "child_price_ttc", precision = 15, scale = 3)
+    private BigDecimal childPriceTtc;
+
+    @Column(name = "infant_price_ttc", precision = 15, scale = 3)
+    private BigDecimal infantPriceTtc;
+
+    /** True for a row priced per person; false for a legacy per-unit row. */
+    @Transient
+    public boolean isPerPerson() {
+        return adultPriceTtc != null;
+    }
+
+    /** TTC total of this tier for {@code nights} nights. */
+    @Transient
+    public BigDecimal lineTotal(int nights) {
+        if (!isPerPerson()) {
+            return Money.lineTotal(accommodationUnitPriceTtc, accommodationUnits, nights);
+        }
+        BigDecimal perNight = Money.add(
+                Money.multiply(adultPriceTtc, adults == null ? 0 : adults),
+                Money.multiply(childPriceTtc, children == null ? 0 : children),
+                Money.multiply(infantPriceTtc, infants == null ? 0 : infants));
+        return Money.multiply(perNight, Math.max(nights, 1));
+    }
 }

@@ -134,10 +134,12 @@ public class PaymentServiceImpl implements PaymentService {
         reservation.getTourTypes().forEach(tt -> {
             tt.setAdultPrice(Money.divide(tt.getAdultPrice(), rate));
             tt.setChildPrice(Money.divide(tt.getChildPrice(), rate));
+            tt.setInfantPrice(Money.divide(tt.getInfantPrice(), rate));
         });
         reservation.getTours().forEach(tour -> {
             tour.setAdultPrice(Money.divide(tour.getAdultPrice(), rate));
             tour.setChildPrice(Money.divide(tour.getChildPrice(), rate));
+            tour.setInfantPrice(Money.divide(tour.getInfantPrice(), rate));
             tour.setTotalPrice(Money.divide(tour.getTotalPrice(), rate));
         });
         reservation.getExtras().forEach(extra -> {

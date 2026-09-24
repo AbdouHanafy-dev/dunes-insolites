@@ -17,6 +17,9 @@ public class TourTypeSelectionRequest {
     @Min(value = 0, message = "Number of children cannot be negative")
     private Integer numberOfChildren;
 
+    @Min(value = 0, message = "Number of infants cannot be negative")
+    private Integer numberOfInfants;
+
     @NotNull(message = "Activity date is required for each tour type")
     private LocalDate activityDate;
 

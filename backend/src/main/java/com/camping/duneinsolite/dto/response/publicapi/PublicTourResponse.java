@@ -44,6 +44,7 @@ public class PublicTourResponse {
     private BigDecimal originalPriceFrom;
     private BigDecimal passengerAdultPrice;
     private BigDecimal passengerChildPrice;
+    private BigDecimal passengerInfantPrice;
     private Double averageRating;
     private Integer reviewCount;
     // Real count of CONFIRMED/CHECKED_IN/COMPLETED bookings created

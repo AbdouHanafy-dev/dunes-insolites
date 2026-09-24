@@ -20,6 +20,8 @@ public class TourHebergementRequest {
 
     private Integer numberOfChildren;
 
+    private Integer numberOfInfants;
+
     private List<RepartitionRequest> repartitions;
 
     /** Priced accommodation tiers (Tente/Chambre/Suite) for this night, when

@@ -22,6 +22,9 @@ public class ReservationExtraRequest {
 
     private LocalDate activityDate;
 
+    // Minutes the guest chose for a timed activity. Null = the activity's base duration.
+    private Integer durationMinutes;
+
     private String pickupHotelName;
     private String pickupAirport;
     private String pickupFlightNumber;

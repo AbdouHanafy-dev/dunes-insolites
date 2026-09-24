@@ -17,8 +17,8 @@ const API_PATH = "extras";
 
 const columns: ColumnDef<AdminExtra>[] = [
   { key: "name", label: "Nom" },
-  { key: "duration", label: "Durée" },
-  { key: "unitPrice", label: "Prix unitaire", render: (item) => `${item.unitPrice} €` },
+  { key: "baseDurationMinutes", label: "Durée", render: (item) => `${item.baseDurationMinutes} min` },
+  { key: "unitPrice", label: "Prix unitaire", render: (item) => `${item.unitPrice} € / ${item.baseDurationMinutes} min` },
   {
     key: "isActive",
     label: "Statut",
@@ -37,10 +37,33 @@ const columns: ColumnDef<AdminExtra>[] = [
 const fields: FieldDef[] = [
   { type: "text", key: "name", label: "Nom", required: true },
   { type: "text", key: "slug", label: "Slug (URL)" },
-  { type: "text", key: "duration", label: "Durée", hint: 'ex. "30 minute"' },
   { type: "text", key: "location", label: "Lieu" },
   { type: "textarea", key: "description", label: "Description" },
-  { type: "number", key: "unitPrice", label: "Prix unitaire", required: true },
+  {
+    type: "number",
+    key: "baseDurationMinutes",
+    step: 1,
+    label: "Durée de base (minutes)",
+    required: true,
+    hint: "Durée couverte par le prix unitaire (30 par défaut).",
+  },
+  {
+    type: "number",
+    key: "durationStepMinutes",
+    step: 1,
+    label: "Pas d'allongement (minutes)",
+    required: true,
+    hint: "Ce que le client ajoute à chaque « + ». 30 : 30 min → 1 heure → 1h30…",
+  },
+  {
+    type: "number",
+    key: "maxDurationMinutes",
+    step: 1,
+    label: "Durée maximale (minutes)",
+    required: true,
+    hint: "Égale à la durée de base = le client ne peut pas allonger. Le prix est le prix unitaire × durée ÷ durée de base.",
+  },
+  { type: "number", key: "unitPrice", label: "Prix unitaire (pour la durée de base)", required: true },
   { type: "number", key: "tva", label: "TVA (%)", required: true, step: 0.1 },
   {
     type: "number",
@@ -86,6 +109,9 @@ const emptyForm = {
   name: "",
   slug: "",
   duration: "",
+  baseDurationMinutes: 30,
+  durationStepMinutes: 30,
+  maxDurationMinutes: 30,
   location: "",
   description: "",
   unitPrice: 0,

@@ -33,6 +33,15 @@ public class ExtraRequest {
     @DecimalMin(value = "0.0", inclusive = true, message = "Unit price cannot be negative")
     private java.math.BigDecimal unitPrice;
 
+    @Min(value = 1, message = "Base duration must be at least 1 minute")
+    private Integer baseDurationMinutes = 30;
+
+    @Min(value = 1, message = "Duration step must be at least 1 minute")
+    private Integer durationStepMinutes = 30;
+
+    @Min(value = 1, message = "Maximum duration must be at least 1 minute")
+    private Integer maxDurationMinutes = 30;
+
     private Boolean isActive = true;
 
     /** Null = not configured, no ceiling enforced. */

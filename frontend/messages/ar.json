@@ -388,7 +388,8 @@
     "successBody": "سنؤكد حجزك خلال 24 ساعة. ملخص في طريقه إلى {email}. لم يتم خصم أي مبلغ.",
     "successBrowseMore": "استكشف أنشطة أخرى",
     "errorFormSteps": "بعض الحقول تحتاج إلى مراجعة — تحقّقوا من الخطوات أعلاه.",
-    "errorGeneric": "تعذّر حفظ هذا الحجز. حاولوا مرة أخرى."
+    "errorGeneric": "تعذّر حفظ هذا الحجز. حاولوا مرة أخرى.",
+    "infantsLabel": "الرضّع"
   },
   "stayReservationForm": {
     "chooseCamp": "اختاروا مخيمكم",
@@ -416,9 +417,9 @@
     "everyCampBooked": "جميع المخيمات محجوزة في هذا التاريخ — جرّبوا تاريخًا آخر.",
     "whosComing": "من سيأتي؟",
     "adults": "البالغون",
-    "adultsAge": "7 سنوات فما فوق",
+    "adultsAge": "18 سنة فما فوق",
     "children": "الأطفال",
-    "childrenAge": "6 سنوات فأقل",
+    "childrenAge": "من 3 إلى 18 سنة",
     "howWillYouJoin": "كيف ستصلون إلى التجربة؟",
     "ownVehicle": "لدي وسيلة نقل خاصة",
     "ownVehicleHint": "سيارة أو دفع رباعي أو دراجة نارية",
@@ -503,7 +504,21 @@
     "pickupLabel": "الاستلام",
     "errorPickDate": "اختاروا تاريخًا.",
     "errorPastDate": "اختاروا اليوم أو تاريخًا مستقبليًا.",
-    "extrasUnavailable": "لا توجد أنشطة إضافية متاحة حاليًا."
+    "extrasUnavailable": "لا توجد أنشطة إضافية متاحة حاليًا.",
+    "infants": "الرضّع",
+    "infantsAge": "من 0 إلى 3 سنوات",
+    "summaryInfants": "{count, plural, =1 {رضيع واحد} other {# رضّع}} × {price} €",
+    "summaryInfantsFree": "{count, plural, =1 {رضيع واحد} other {# رضّع}} · مجاني",
+    "tierPerPerson": "للشخص / الليلة",
+    "tierChildPrice": "طفل {price} €",
+    "tierInfantPrice": "رضيع {price} €",
+    "tierInfantFree": "الرضيع مجاني",
+    "assignTitle": "من ينام أين؟",
+    "assignLeft": "ما زال يجب توزيع:",
+    "assignDone": "لكل شخص مكان",
+    "assignHint": "اخترتم عدة أماكن إقامة — أخبرونا من ينام في كل منها.",
+    "errorAssignGuests": "ضع كل ضيف في مكان إقامة قبل المتابعة.",
+    "errorTierCapacity": "يجب أن يضم كل مكان إقامة ضيفًا واحدًا على الأقل ولا يتجاوز سعته (الرضّع غير محسوبين)."
   },
   "tourDetail": {
     "breadcrumbCircuits": "الرحلات",
@@ -678,7 +693,8 @@
     "preferredLanguageLabel": "اللغة المفضلة",
     "preferredLanguageHint": "حتى نتمكن من تعيين مرشد يتحدث لغتك.",
     "reviewLanguageLabel": "اللغة المفضلة",
-    "otherLanguagePlaceholder": "لغة أخرى غير مدرجة؟ حددها هنا (اختياري)"
+    "otherLanguagePlaceholder": "لغة أخرى غير مدرجة؟ حددها هنا (اختياري)",
+    "infantsLabel": "الرضّع"
   },
   "accommodationCard": {
     "exploreThisStay": "اكتشف هذه الإقامة ←",
@@ -1307,5 +1323,14 @@
     "placeholder": "اختر تاريخًا",
     "previousMonth": "الشهر السابق",
     "nextMonth": "الشهر التالي"
+  },
+  "activityDuration": {
+    "label": "المدة",
+    "minutes": "{n} دقيقة",
+    "oneHour": "ساعة واحدة",
+    "hours": "{h}H",
+    "hoursMinutes": "{h}:{mm}H",
+    "decrease": "تقصير {title}",
+    "increase": "تمديد {title}"
   }
 }

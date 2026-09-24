@@ -60,6 +60,11 @@ public class TourTypeRequest {
     @Positive(message = "Price must be positive")
     private java.math.BigDecimal passengerChildPrice;
 
+    // Infants (0-3): free until the back office sets a price.
+    @NotNull(message = "Passenger infant price is required")
+    @PositiveOrZero(message = "Price cannot be negative")
+    private java.math.BigDecimal passengerInfantPrice = java.math.BigDecimal.ZERO;
+
     @NotNull(message = "Partner adult price is required")
     @Positive(message = "Price must be positive")
     private java.math.BigDecimal partnerAdultPrice;

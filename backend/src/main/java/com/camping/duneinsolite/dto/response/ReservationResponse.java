@@ -26,6 +26,7 @@ public class ReservationResponse {
     private String groupLeaderName;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private Integer numberOfInfants;
     private ReservationStatus status;
     private String rejectionReason;
     private java.math.BigDecimal totalAmount;

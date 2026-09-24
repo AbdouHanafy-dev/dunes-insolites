@@ -101,6 +101,7 @@ export default function NewReservationForm({
 
   const [numberOfAdults, setNumberOfAdults] = useState(2);
   const [numberOfChildren, setNumberOfChildren] = useState(0);
+  const [numberOfInfants, setNumberOfInfants] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -220,6 +221,7 @@ export default function NewReservationForm({
             checkOutDate,
             numberOfAdults,
             numberOfChildren,
+            numberOfInfants,
             groupName: groupName.trim() || null,
             demandeSpecial: demandeSpecial.trim() || null,
             tourTypes: [
@@ -227,6 +229,7 @@ export default function NewReservationForm({
                 tourTypeId,
                 numberOfAdults,
                 numberOfChildren,
+                numberOfInfants,
                 activityDate: checkInDate,
                 ...(accommodationId
                   ? { accommodationTypeId: accommodationId, accommodationUnits }
@@ -243,6 +246,7 @@ export default function NewReservationForm({
             serviceDate: departureDate,
             numberOfAdults,
             numberOfChildren,
+            numberOfInfants,
             groupName: groupName.trim() || null,
             demandeSpecial: demandeSpecial.trim() || null,
             tours: [{ tourId }],
@@ -423,7 +427,7 @@ export default function NewReservationForm({
       {reservationKind === "HEBERGEMENT" && (
       <section className="card rounded-2xl p-5">
         <h2 className="text-[15px] font-bold text-navy-800">Nuitée</h2>
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-[13px] text-navy-700/70">
             Type
             <select
@@ -490,6 +494,16 @@ export default function NewReservationForm({
               className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
             />
           </label>
+          <label className="text-[13px] text-navy-700/70">
+            Bébés (0-3 ans)
+            <input
+              type="number"
+              min={0}
+              value={numberOfInfants}
+              onChange={(e) => setNumberOfInfants(Number(e.target.value))}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            />
+          </label>
         </div>
         <p className="mt-2 text-[12px] text-navy-700/50">
           {nights > 0 ? `${nights} nuit(s)` : "La date de départ doit être après la date d'arrivée."}
@@ -498,7 +512,7 @@ export default function NewReservationForm({
         {accommodations.length > 0 && (
           <div className="mt-4 border-t border-navy-700/8 pt-4">
             <label className="text-[13px] text-navy-700/70">
-              Hébergement (optionnel — sinon tarif par personne)
+              Hébergement (optionnel — sinon tarif par personne du séjour)
               <select
                 value={accommodationId}
                 onChange={(e) => setAccommodationId(e.target.value)}
@@ -515,7 +529,7 @@ export default function NewReservationForm({
                         : "";
                   return (
                     <option key={a.id} value={a.id}>
-                      {a.name} ({a.unitPriceTtc} {sym(a.currency)}/nuit){flag}
+                      {a.name} (adulte {a.adultPriceTtc} · enfant {a.childPriceTtc ?? a.adultPriceTtc} · bébé {a.infantPriceTtc ?? 0} {sym(a.currency)}/pers./nuit){flag}
                     </option>
                   );
                 })}
@@ -542,7 +556,7 @@ export default function NewReservationForm({
       {reservationKind === "TOURS" && (
       <section className="card rounded-2xl p-5">
         <h2 className="text-[15px] font-bold text-navy-800">Circuit</h2>
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-[13px] text-navy-700/70">
             Circuit
             <select
@@ -597,6 +611,16 @@ export default function NewReservationForm({
               min={0}
               value={numberOfChildren}
               onChange={(e) => setNumberOfChildren(Number(e.target.value))}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            />
+          </label>
+          <label className="text-[13px] text-navy-700/70">
+            Bébés (0-3 ans)
+            <input
+              type="number"
+              min={0}
+              value={numberOfInfants}
+              onChange={(e) => setNumberOfInfants(Number(e.target.value))}
               className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
             />
           </label>

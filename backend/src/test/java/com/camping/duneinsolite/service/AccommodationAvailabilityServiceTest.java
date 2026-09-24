@@ -34,7 +34,7 @@ class AccommodationAvailabilityServiceTest {
     private AccommodationType tier(Integer maxUnits, boolean active, String price) {
         return AccommodationType.builder()
                 .id(id).slug("dune-suite").name("Dune Suite").capacity(4).active(active)
-                .unitPriceTtc(price == null ? null : new BigDecimal(price))
+                .adultPriceTtc(price == null ? null : new BigDecimal(price))
                 .maxUnits(maxUnits).build();
     }
 

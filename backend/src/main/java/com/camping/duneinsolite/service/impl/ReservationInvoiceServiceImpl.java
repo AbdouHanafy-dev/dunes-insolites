@@ -131,8 +131,8 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
 
             // Group nights into one invoice line only when they're truly the same stay:
             // same tour, same headcount, same price, same set of accommodation tiers.
-            record TourTypeGroupKey(UUID catalogTourTypeId, Integer adults, Integer children,
-                                     String adultPrice, String childPrice,
+            record TourTypeGroupKey(UUID catalogTourTypeId, Integer adults, Integer children, Integer infants,
+                                     String adultPrice, String childPrice, String infantPrice,
                                      List<String> accommodationKey) {}
 
             Map<TourTypeGroupKey, List<ReservationTourType>> grouped = new LinkedHashMap<>();
@@ -142,12 +142,14 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                         : tt.getReservationTourTypeId();
                 List<String> accommodationKey = tt.getAccommodations().stream()
                         .map(a -> a.getAccommodationTypeId() + ":" + a.getAccommodationUnits()
-                                + ":" + plain(a.getAccommodationUnitPriceTtc()))
+                                + ":" + plain(a.getAccommodationUnitPriceTtc())
+                                + ":" + a.getAdults() + "/" + a.getChildren() + "/" + a.getInfants()
+                                + ":" + plain(a.getAdultPriceTtc()) + "/" + plain(a.getChildPriceTtc()) + "/" + plain(a.getInfantPriceTtc()))
                         .sorted()
                         .toList();
                 TourTypeGroupKey key = new TourTypeGroupKey(
-                        catalogId, tt.getNumberOfAdults(), tt.getNumberOfChildren(),
-                        plain(tt.getAdultPrice()), plain(tt.getChildPrice()),
+                        catalogId, tt.getNumberOfAdults(), tt.getNumberOfChildren(), tt.getNumberOfInfants(),
+                        plain(tt.getAdultPrice()), plain(tt.getChildPrice()), plain(tt.getInfantPrice()),
                         accommodationKey);
                 grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(tt);
             }
@@ -158,8 +160,10 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                 BigDecimal rate = Money.nz(first.getTva());
                 int adults      = first.getNumberOfAdults()   != null ? first.getNumberOfAdults()   : 0;
                 int children    = first.getNumberOfChildren() != null ? first.getNumberOfChildren() : 0;
+                int infants     = first.getNumberOfInfants()  != null ? first.getNumberOfInfants()  : 0;
                 BigDecimal ap = Money.nz(first.getAdultPrice());
                 BigDecimal cp = Money.nz(first.getChildPrice());
+                BigDecimal ip = Money.nz(first.getInfantPrice());
 
                 LocalDate minDate = group.stream().map(ReservationTourType::getActivityDate)
                         .filter(d -> d != null).min(Comparator.naturalOrder()).orElse(null);
@@ -172,17 +176,10 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                 // 3 Tentes) gets one invoice item per tier.
                 if (first.isAccommodationPriced()) {
                     for (ReservationAccommodation acc : first.getAccommodations()) {
-                        int units = acc.getAccommodationUnits();
-                        BigDecimal accRate = Money.nz(acc.getAccommodationTvaRate());
-                        BigDecimal lineTtc = Money.lineTotal(acc.getAccommodationUnitPriceTtc(), units, nights);
-                        sumHt  = Money.add(sumHt, Money.htFromTtc(lineTtc, accRate));
-                        sumTva = Money.add(sumTva, Money.taxFromTtc(lineTtc, accRate));
-                        invoice.addItem(InvoiceItem.builder()
-                                .description(acc.getAccommodationName() + (nights > 1 ? " (" + nights + " nuits)" : ""))
-                                .itemType("HEBERGEMENT").quantity(units)
-                                .unitPrice(Money.htFromTtc(
-                                        Money.lineTotal(acc.getAccommodationUnitPriceTtc(), 1, nights), accRate))
-                                .tva(accRate).activityDate(minDate).activityEndDate(endDate).lineNumber(line++).build());
+                        BigDecimal[] added = addTierItems(invoice, acc, nights, minDate, endDate, line);
+                        sumHt  = Money.add(sumHt, added[0]);
+                        sumTva = Money.add(sumTva, added[1]);
+                        line  += added[2].intValue();
                     }
                     continue;
                 }
@@ -207,6 +204,16 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                             .unitPrice(Money.htFromTtc(Money.multiply(cp, nights), rate))
                             .tva(rate).activityDate(minDate).activityEndDate(endDate).lineNumber(line++).build());
                 }
+                if (infants > 0 && ip.signum() > 0) {
+                    BigDecimal lineTtc = Money.lineTotal(ip, infants, nights);
+                    BigDecimal lineHt  = Money.htFromTtc(lineTtc, rate);
+                    sumHt  = Money.add(sumHt, lineHt);
+                    sumTva = Money.add(sumTva, Money.subtract(lineTtc, lineHt));
+                    invoice.addItem(InvoiceItem.builder()
+                            .description(first.getName() + " (Bébé)").itemType("HEBERGEMENT").quantity(infants)
+                            .unitPrice(Money.htFromTtc(Money.multiply(ip, nights), rate))
+                            .tva(rate).activityDate(minDate).activityEndDate(endDate).lineNumber(line++).build());
+                }
             }
         } else if (reservation.getReservationType() == ReservationType.TOURS
                 && reservation.getTours() != null
@@ -215,8 +222,10 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                 BigDecimal rate = Money.nz(t.getTva());
                 int adults   = t.getNumberOfAdults()   != null ? t.getNumberOfAdults()   : 0;
                 int children = t.getNumberOfChildren() != null ? t.getNumberOfChildren() : 0;
+                int infants  = t.getNumberOfInfants()  != null ? t.getNumberOfInfants()  : 0;
                 BigDecimal ap = Money.nz(t.getAdultPrice());
                 BigDecimal cp = Money.nz(t.getChildPrice());
+                BigDecimal ip = Money.nz(t.getInfantPrice());
 
                 if (adults > 0) {
                     BigDecimal lineTtc = Money.multiply(ap, adults);
@@ -238,6 +247,16 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                             .unitPrice(Money.htFromTtc(cp, rate)).tva(rate)
                             .activityDate(t.getDepartureDate()).lineNumber(line++).build());
                 }
+                if (infants > 0 && ip.signum() > 0) {
+                    BigDecimal lineTtc = Money.multiply(ip, infants);
+                    BigDecimal lineHt  = Money.htFromTtc(lineTtc, rate);
+                    sumHt  = Money.add(sumHt, lineHt);
+                    sumTva = Money.add(sumTva, Money.subtract(lineTtc, lineHt));
+                    invoice.addItem(InvoiceItem.builder()
+                            .description(t.getName() + " (Bébé)").itemType("TOURS").quantity(infants)
+                            .unitPrice(Money.htFromTtc(ip, rate)).tva(rate)
+                            .activityDate(t.getDepartureDate()).lineNumber(line++).build());
+                }
 
                 // A circuit that overnights at the camp — one invoice item
                 // per accommodation tier, per night, same as the Stay side.
@@ -245,17 +264,10 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
                     int nights = heb.getNumberOfNights() != null && heb.getNumberOfNights() > 0
                             ? heb.getNumberOfNights() : 1;
                     for (ReservationAccommodation acc : heb.getAccommodations()) {
-                        int units = acc.getAccommodationUnits();
-                        BigDecimal accRate = Money.nz(acc.getAccommodationTvaRate());
-                        BigDecimal lineTtc = Money.lineTotal(acc.getAccommodationUnitPriceTtc(), units, nights);
-                        sumHt  = Money.add(sumHt, Money.htFromTtc(lineTtc, accRate));
-                        sumTva = Money.add(sumTva, Money.taxFromTtc(lineTtc, accRate));
-                        invoice.addItem(InvoiceItem.builder()
-                                .description(acc.getAccommodationName() + (nights > 1 ? " (" + nights + " nuits)" : ""))
-                                .itemType("HEBERGEMENT").quantity(units)
-                                .unitPrice(Money.htFromTtc(
-                                        Money.lineTotal(acc.getAccommodationUnitPriceTtc(), 1, nights), accRate))
-                                .tva(accRate).activityDate(heb.getActivityDate()).lineNumber(line++).build());
+                        BigDecimal[] added = addTierItems(invoice, acc, nights, heb.getActivityDate(), null, line);
+                        sumHt  = Money.add(sumHt, added[0]);
+                        sumTva = Money.add(sumTva, added[1]);
+                        line  += added[2].intValue();
                     }
                 }
             }
@@ -281,6 +293,52 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
         }
 
         return new BigDecimal[]{ Money.round(sumHt), Money.round(sumTva) };
+    }
+
+    /**
+     * Invoice items for one accommodation tier. A per-person tier invoices one item per guest type
+     * (adult, child, infant when it costs something); an older per-unit row keeps its single item.
+     *
+     * @return {ht, tva, number of items added}
+     */
+    private BigDecimal[] addTierItems(Invoice invoice, ReservationAccommodation acc, int nights,
+                                      LocalDate from, LocalDate to, int firstLine) {
+        BigDecimal accRate = Money.nz(acc.getAccommodationTvaRate());
+        String suffix = nights > 1 ? " (" + nights + " nuits)" : "";
+        BigDecimal ht = Money.ZERO, tva = Money.ZERO;
+        int added = 0;
+        if (!acc.isPerPerson()) {
+            int units = acc.getAccommodationUnits();
+            BigDecimal lineTtc = Money.lineTotal(acc.getAccommodationUnitPriceTtc(), units, nights);
+            ht = Money.htFromTtc(lineTtc, accRate);
+            tva = Money.taxFromTtc(lineTtc, accRate);
+            invoice.addItem(InvoiceItem.builder()
+                    .description(acc.getAccommodationName() + suffix)
+                    .itemType("HEBERGEMENT").quantity(units)
+                    .unitPrice(Money.htFromTtc(Money.lineTotal(acc.getAccommodationUnitPriceTtc(), 1, nights), accRate))
+                    .tva(accRate).activityDate(from).activityEndDate(to).lineNumber(firstLine).build());
+            return new BigDecimal[]{ ht, tva, BigDecimal.ONE };
+        }
+        Object[][] guestTypes = {
+                { " (Adulte)", acc.getAdults(), acc.getAdultPriceTtc() },
+                { " (Enfant)", acc.getChildren(), acc.getChildPriceTtc() },
+                { " (Bébé)", acc.getInfants(), acc.getInfantPriceTtc() },
+        };
+        for (Object[] type : guestTypes) {
+            int count = type[1] == null ? 0 : (Integer) type[1];
+            BigDecimal price = Money.nz((BigDecimal) type[2]);
+            if (count < 1 || price.signum() == 0) continue;
+            BigDecimal lineTtc = Money.lineTotal(price, count, nights);
+            ht = Money.add(ht, Money.htFromTtc(lineTtc, accRate));
+            tva = Money.add(tva, Money.taxFromTtc(lineTtc, accRate));
+            invoice.addItem(InvoiceItem.builder()
+                    .description(acc.getAccommodationName() + type[0] + suffix)
+                    .itemType("HEBERGEMENT").quantity(count)
+                    .unitPrice(Money.htFromTtc(Money.multiply(price, nights), accRate))
+                    .tva(accRate).activityDate(from).activityEndDate(to).lineNumber(firstLine + added).build());
+            added++;
+        }
+        return new BigDecimal[]{ ht, tva, BigDecimal.valueOf(added) };
     }
 
     private static String plain(BigDecimal b) {

@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.service.impl;
 
 import com.camping.duneinsolite.dto.request.ReservationRequest;
+import com.camping.duneinsolite.service.AccommodationPricingService.Guests;
 import com.camping.duneinsolite.dto.request.publicapi.PublicStayBookingRequest;
 import com.camping.duneinsolite.dto.request.publicapi.PublicTourBookingRequest;
 import com.camping.duneinsolite.dto.response.ReservationResponse;
@@ -241,7 +242,7 @@ class PublicBookingServiceImplTest {
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "dune-suite"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(accId).slug("dune-suite").name("Dune Suite").capacity(4).active(true)
-                        .unitPriceTtc(new java.math.BigDecimal("165.000")).build()));
+                        .adultPriceTtc(new java.math.BigDecimal("165.000")).build()));
         when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
         PublicStayBookingRequest request = baseRequest();
@@ -252,7 +253,7 @@ class PublicBookingServiceImplTest {
         service.createStayBooking(request);
 
         // fail-closed pre-check ran before any reservation was built
-        verify(accommodationPricingService).resolveById(accId, 2, 1, 2, LocalDate.of(2026, 9, 20));
+        verify(accommodationPricingService).resolveById(accId, 2, 1, new Guests(2, 0, 0), LocalDate.of(2026, 9, 20));
 
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
@@ -275,25 +276,27 @@ class PublicBookingServiceImplTest {
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "dune-suite"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(suiteId).slug("dune-suite").name("Dune Suite").capacity(4).active(true)
-                        .unitPriceTtc(new java.math.BigDecimal("165.000")).build()));
+                        .adultPriceTtc(new java.math.BigDecimal("165.000")).build()));
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-tent"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(tentId).slug("desert-tent").name("Desert Tent").capacity(2).active(true)
-                        .unitPriceTtc(new java.math.BigDecimal("80.000")).build()));
+                        .adultPriceTtc(new java.math.BigDecimal("80.000")).build()));
         when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
         PublicStayBookingRequest request = baseRequest();
         var suiteSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
         suiteSelection.setAccommodationSlug("dune-suite");
         suiteSelection.setQuantity(2);
+        suiteSelection.setAdults(1);
         var tentSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
         tentSelection.setAccommodationSlug("desert-tent");
         tentSelection.setQuantity(3);
+        tentSelection.setAdults(1);
         request.setAccommodations(List.of(suiteSelection, tentSelection));
         service.createStayBooking(request);
 
-        verify(accommodationPricingService).resolveById(suiteId, 2, 1, 2, LocalDate.of(2026, 9, 20));
-        verify(accommodationPricingService).resolveById(tentId, 3, 1, 2, LocalDate.of(2026, 9, 20));
+        verify(accommodationPricingService).resolveById(suiteId, 2, 1, new Guests(1, 0, 0), LocalDate.of(2026, 9, 20));
+        verify(accommodationPricingService).resolveById(tentId, 3, 1, new Guests(1, 0, 0), LocalDate.of(2026, 9, 20));
 
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
@@ -489,7 +492,7 @@ class PublicBookingServiceImplTest {
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-room"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(accommodationId).slug("desert-room").name("Desert Room")
-                        .capacity(3).active(true).unitPriceTtc(new java.math.BigDecimal("120.000")).build()));
+                        .capacity(3).active(true).adultPriceTtc(new java.math.BigDecimal("120.000")).build()));
         when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
         PublicTourBookingRequest request = tourRequest("sabria-circuit");
         com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest sel =
@@ -573,7 +576,7 @@ class PublicBookingServiceImplTest {
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-room"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(accommodationId).slug("desert-room").name("Desert Room")
-                        .capacity(3).active(true).unitPriceTtc(new java.math.BigDecimal("120.000")).build()));
+                        .capacity(3).active(true).adultPriceTtc(new java.math.BigDecimal("120.000")).build()));
         when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
         PublicTourBookingRequest request = tourRequest("sabria-circuit");
@@ -585,7 +588,7 @@ class PublicBookingServiceImplTest {
         service.createTourBooking(request);
 
         verify(accommodationPricingService).resolveById(
-                accommodationId, 2, 1, 3, LocalDate.of(2026, 10, 20));
+                accommodationId, 2, 1, new Guests(2, 1, 0), LocalDate.of(2026, 10, 20));
         ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
         verify(reservationService).createReservation(captor.capture());
         var campNight = captor.getValue().getTours().get(0).getHebergements().get(0);
@@ -609,7 +612,7 @@ class PublicBookingServiceImplTest {
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-tent"))
                 .thenReturn(Optional.of(com.camping.duneinsolite.model.AccommodationType.builder()
                         .id(accommodationId).slug("desert-tent").name("Desert Tent")
-                        .capacity(3).active(true).unitPriceTtc(new java.math.BigDecimal("95.000")).build()));
+                        .capacity(3).active(true).adultPriceTtc(new java.math.BigDecimal("95.000")).build()));
         when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
         PublicTourBookingRequest request = tourRequest("one-day-circuit");

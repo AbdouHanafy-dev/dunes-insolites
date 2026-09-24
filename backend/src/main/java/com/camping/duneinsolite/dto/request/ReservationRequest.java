@@ -45,6 +45,10 @@ public class ReservationRequest {
     @Min(value = 0, message = "Number of children cannot be negative")
     private Integer numberOfChildren;
 
+    // Infants (0-3). Optional, null = 0. Not counted toward capacity or party size.
+    @Min(value = 0, message = "Number of infants cannot be negative")
+    private Integer numberOfInfants;
+
    // private Currency currency;
     private String promoCode;
     private String demandeSpecial;

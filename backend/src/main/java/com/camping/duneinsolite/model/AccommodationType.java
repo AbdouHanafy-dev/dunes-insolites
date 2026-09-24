@@ -67,9 +67,23 @@ public class AccommodationType {
     @Column(name = "max_units")
     private Integer maxUnits;
 
-    /** TTC, per unit per night. NULL = not configured → not bookable. */
+    /**
+     * Legacy: the old per-unit price. No longer used for pricing (kept so the
+     * column and old reservations stay readable) - see the per-person prices.
+     */
     @Column(name = "unit_price_ttc", precision = 15, scale = 3)
     private BigDecimal unitPriceTtc;
+
+    /** TTC, per person per night, one price per guest type. NULL adult price = not configured → not bookable. */
+    @Column(name = "adult_price_ttc", precision = 15, scale = 3)
+    private BigDecimal adultPriceTtc;
+
+    @Column(name = "child_price_ttc", precision = 15, scale = 3)
+    private BigDecimal childPriceTtc;
+
+    /** Infants (0-3). NULL is read as free. */
+    @Column(name = "infant_price_ttc", precision = 15, scale = 3)
+    private BigDecimal infantPriceTtc;
 
     @Column(name = "tva_rate", precision = 6, scale = 3)
     private BigDecimal tvaRate;
@@ -108,6 +122,6 @@ public class AccommodationType {
     /** True when this tier has everything it needs to be booked. */
     @Transient
     public boolean isBookable() {
-        return active && unitPriceTtc != null;
+        return active && adultPriceTtc != null;
     }
 }

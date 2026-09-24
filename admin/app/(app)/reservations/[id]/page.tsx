@@ -44,7 +44,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
       <div className="card grid grid-cols-2 gap-4 rounded-2xl p-5 sm:grid-cols-4">
         <Field label="Statut" value={statusOf(reservation.status).label} />
         <Field label="Type" value={reservation.reservationType} />
-        <Field label="Adultes / Enfants" value={`${reservation.numberOfAdults ?? 0} / ${reservation.numberOfChildren ?? 0}`} />
+        <Field label="Adultes / Enfants / Bébés" value={`${reservation.numberOfAdults ?? 0} / ${reservation.numberOfChildren ?? 0} / ${reservation.numberOfInfants ?? 0}`} />
         <Field label="Montant" value={`${reservation.totalAmount} ${sym(reservation.currency)}`} />
         {reservation.arrivalMode && (
           <Field

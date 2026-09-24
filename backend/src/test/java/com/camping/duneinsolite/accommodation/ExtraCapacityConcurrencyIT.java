@@ -241,7 +241,7 @@ class ExtraCapacityConcurrencyIT {
                 .tva(BigDecimal.ZERO).build());
         accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("suite").name("Dune Suite").capacity(6)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(BigDecimal.ZERO)
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(BigDecimal.ZERO)
                 .maxUnits(20).active(true).build());
         String quadSlug = extraRepository.findById(quadId).orElseThrow().getSlug();
 

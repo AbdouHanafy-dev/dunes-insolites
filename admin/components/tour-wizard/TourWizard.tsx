@@ -71,6 +71,7 @@ type TourForm = {
   passengerAdultPrice: number;
   salePriceAdult: number | null;
   passengerChildPrice: number;
+  passengerInfantPrice: number;
   partnerAdultPrice: number;
   partnerChildPrice: number;
   tva: number;
@@ -121,6 +122,7 @@ const EMPTY_FORM: TourForm = {
   passengerAdultPrice: 0,
   salePriceAdult: null,
   passengerChildPrice: 0,
+  passengerInfantPrice: 0,
   partnerAdultPrice: 0,
   partnerChildPrice: 0,
   tva: 13,
@@ -181,6 +183,7 @@ function fromInitialData(data?: AdminTour): TourForm {
     passengerAdultPrice: data.passengerAdultPrice,
     salePriceAdult: data.salePriceAdult ?? null,
     passengerChildPrice: data.passengerChildPrice,
+    passengerInfantPrice: data.passengerInfantPrice ?? 0,
     partnerAdultPrice: data.partnerAdultPrice,
     partnerChildPrice: data.partnerChildPrice,
     tva: data.tva,
@@ -235,6 +238,7 @@ function toRequestBody(form: TourForm) {
     passengerAdultPrice: form.passengerAdultPrice,
     salePriceAdult: form.salePriceAdult,
     passengerChildPrice: form.passengerChildPrice,
+    passengerInfantPrice: form.passengerInfantPrice,
     partnerAdultPrice: form.partnerAdultPrice,
     partnerChildPrice: form.partnerChildPrice,
     tva: form.tva,
@@ -332,6 +336,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   const pricingValid =
     form.passengerAdultPrice >= 0 &&
     form.passengerChildPrice >= 0 &&
+    form.passengerInfantPrice >= 0 &&
     form.partnerAdultPrice >= 0 &&
     form.partnerChildPrice >= 0 &&
     salePriceValid;
@@ -869,12 +874,21 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 </p>
               )}
             </Field>
-            <Field label="Prix enfant (passager)" required>
+            <Field label="Prix enfant, 3 à 18 ans (passager)" required>
               <input
                 type="number"
                 className={inputClass}
                 value={form.passengerChildPrice}
                 onChange={(e) => patch({ passengerChildPrice: e.target.valueAsNumber })}
+              />
+            </Field>
+            <Field label="Prix bébé, 0 à 3 ans (passager)" required hint="0 = gratuit">
+              <input
+                type="number"
+                min={0}
+                className={inputClass}
+                value={form.passengerInfantPrice}
+                onChange={(e) => patch({ passengerInfantPrice: e.target.valueAsNumber })}
               />
             </Field>
             <Field label="Prix adulte (partenaire)" required>
@@ -1182,6 +1196,10 @@ function PreviewCard({ form }: { form: TourForm }) {
           <div>
             <span className="text-navy-700/50">Enfant : </span>
             <span className="font-semibold">{form.passengerChildPrice} €</span>
+          </div>
+          <div>
+            <span className="text-navy-700/50">Bébé : </span>
+            <span className="font-semibold">{form.passengerInfantPrice > 0 ? `${form.passengerInfantPrice} €` : "gratuit"}</span>
           </div>
         </div>
       </div>

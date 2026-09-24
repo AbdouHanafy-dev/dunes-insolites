@@ -22,6 +22,8 @@ import com.camping.duneinsolite.repository.specification.ReservationSpecificatio
 import com.camping.duneinsolite.money.Money;
 import com.camping.duneinsolite.service.AccommodationAvailabilityService;
 import com.camping.duneinsolite.service.AccommodationPricingService;
+import com.camping.duneinsolite.service.AccommodationPricingService.Guests;
+import com.camping.duneinsolite.service.AccommodationPricingService.PricedAccommodation;
 import com.camping.duneinsolite.service.InvoiceService;
 import com.camping.duneinsolite.service.NotificationPublisher;
 import com.camping.duneinsolite.service.PaymentService;
@@ -133,12 +135,13 @@ public class ReservationServiceImpl implements ReservationService {
 
         int globalAdults   = request.getNumberOfAdults()   != null ? request.getNumberOfAdults()   : 0;
         int globalChildren = request.getNumberOfChildren() != null ? request.getNumberOfChildren() : 0;
+        int globalInfants  = request.getNumberOfInfants()  != null ? request.getNumberOfInfants()  : 0;
 
         ReservationType type = request.getReservationType();
 
         validateReservationByType(request, type);
 
-        Reservation reservation = buildBaseReservation(request, user, source, type, globalAdults, globalChildren);
+        Reservation reservation = buildBaseReservation(request, user, source, type, globalAdults, globalChildren, globalInfants);
 
         applyReservationItems(request, reservation, type, globalAdults, globalChildren, isPartner, user);
 
@@ -211,7 +214,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     private Reservation buildBaseReservation(ReservationRequest request, User user,
                                              Source source, ReservationType type,
-                                             int globalAdults, int globalChildren) {
+                                             int globalAdults, int globalChildren, int globalInfants) {
         return Reservation.builder()
                 .user(user)
                 .sourceRef(source)
@@ -233,6 +236,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .otherLanguageRequested(request.getOtherLanguageRequested())
                 .numberOfAdults(globalAdults)
                 .numberOfChildren(globalChildren)
+                .numberOfInfants(globalInfants)
                 .currency(com.camping.duneinsolite.config.CurrencyConfig.BASE)
                 .promoCode(request.getPromoCode())
                 .status(ReservationStatus.PENDING)
@@ -310,10 +314,11 @@ public class ReservationServiceImpl implements ReservationService {
         if (!singleTourType) {
             validateTourTypePeopleCounts(request, globalAdults, globalChildren);
         }
+        int globalInfants = request.getNumberOfInfants() != null ? request.getNumberOfInfants() : 0;
 
         for (TourTypeSelectionRequest selection : request.getTourTypes()) {
             ReservationTourType snapshot = buildTourTypeSnapshot(
-                    selection, singleTourType, globalAdults, globalChildren, nights, isPartner, user);
+                    selection, singleTourType, globalAdults, globalChildren, globalInfants, nights, isPartner, user);
             reservation.addTourType(snapshot);
 
             if (selection.getRepartitions() != null) {
@@ -345,6 +350,12 @@ public class ReservationServiceImpl implements ReservationService {
                 throw new ReservationValidationException(
                         "Tour type children (" + selChildren + ") cannot exceed group children (" + globalChildren + ")");
             }
+            int selInfants = selection.getNumberOfInfants() != null ? selection.getNumberOfInfants() : 0;
+            int globalInfants = request.getNumberOfInfants() != null ? request.getNumberOfInfants() : 0;
+            if (selInfants > globalInfants) {
+                throw new ReservationValidationException(
+                        "Tour type infants (" + selInfants + ") cannot exceed group infants (" + globalInfants + ")");
+            }
         }
 
         int totalSelAdults = request.getTourTypes().stream()
@@ -368,16 +379,19 @@ public class ReservationServiceImpl implements ReservationService {
 
     private ReservationTourType buildTourTypeSnapshot(TourTypeSelectionRequest selection,
                                                       boolean singleTourType,
-                                                      int globalAdults, int globalChildren,
+                                                      int globalAdults, int globalChildren, int globalInfants,
                                                       long nights, boolean isPartner, User user) {
         TourType tourType = tourTypeRepository.findById(selection.getTourTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("TourType not found: " + selection.getTourTypeId()));
 
         int adults   = singleTourType ? globalAdults   : (selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0);
         int children = singleTourType ? globalChildren : (selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0);
+        int infants  = singleTourType ? globalInfants  : (selection.getNumberOfInfants()  != null ? selection.getNumberOfInfants()  : 0);
 
         java.math.BigDecimal adultPrice = isPartner ? tourType.getPartnerAdultPrice() : tourType.getPassengerAdultPrice();
         java.math.BigDecimal childPrice = isPartner ? tourType.getPartnerChildPrice() : tourType.getPassengerChildPrice();
+        // Infants: one price for everyone (partner rates are out of scope for them).
+        java.math.BigDecimal infantPrice = tourType.getPassengerInfantPrice();
 
         UserProductRemise remise = user.getRemises().stream()
                 .filter(r -> r.getProductId().equals(tourType.getTourTypeId()))
@@ -394,8 +408,10 @@ public class ReservationServiceImpl implements ReservationService {
                 .duration(tourType.getDuration())
                 .adultPrice(adultPrice)
                 .childPrice(childPrice)
+                .infantPrice(infantPrice)
                 .numberOfAdults(adults)
                 .numberOfChildren(children)
+                .numberOfInfants(infants)
                 .numberOfNights(1)
                 .activityDate(selection.getActivityDate())
                 .tva(tourType.getTva());
@@ -407,18 +423,9 @@ public class ReservationServiceImpl implements ReservationService {
         // undersized) and snapshots it — this line is then priced per unit,
         // not per person, summed across every tier (2 Suites + 3 Tentes is
         // two rows here).
-        for (AccommodationSelectionRequest sel : selection.resolvedAccommodationSelections()) {
-            int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
-            var priced = accommodationPricingService.resolveById(
-                    sel.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
-            tourTypeSnapshot.getAccommodations().add(ReservationAccommodation.builder()
-                    .reservationTourType(tourTypeSnapshot)
-                    .accommodationTypeId(priced.accommodationTypeId())
-                    .accommodationName(priced.name())
-                    .accommodationUnits(priced.units())
-                    .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
-                    .accommodationTvaRate(priced.tvaRate())
-                    .build());
+        for (PricedAccommodation priced : priceAccommodations(selection.resolvedAccommodationSelections(),
+                new Guests(adults, children, infants), 1, selection.getActivityDate())) {
+            tourTypeSnapshot.getAccommodations().add(tierSnapshot(priced).reservationTourType(tourTypeSnapshot).build());
         }
 
         return tourTypeSnapshot;
@@ -503,6 +510,44 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setTotalAmount(reservation.calculateTotalToursAmount());
     }
 
+    /** Prices every tier a booking picked, splitting the party across them (see AccommodationPricingService#splitGuests). */
+    private List<PricedAccommodation> priceAccommodations(List<AccommodationSelectionRequest> selections,
+                                                          Guests party, long nights, LocalDate date) {
+        if (selections == null || selections.isEmpty()) return List.of();
+        List<Guests> split = AccommodationPricingService.splitGuests(
+                selections.stream().map(ReservationServiceImpl::guestsOf).toList(), party);
+        List<PricedAccommodation> priced = new java.util.ArrayList<>();
+        for (int i = 0; i < selections.size(); i++) {
+            AccommodationSelectionRequest sel = selections.get(i);
+            int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
+            priced.add(accommodationPricingService.resolveById(
+                    sel.getAccommodationTypeId(), units, Math.toIntExact(nights), split.get(i), date));
+        }
+        return priced;
+    }
+
+    private static Guests guestsOf(AccommodationSelectionRequest sel) {
+        if (sel.getAdults() == null && sel.getChildren() == null && sel.getInfants() == null) return null;
+        return new Guests(sel.getAdults() != null ? sel.getAdults() : 0,
+                sel.getChildren() != null ? sel.getChildren() : 0,
+                sel.getInfants() != null ? sel.getInfants() : 0);
+    }
+
+    /** The per-person snapshot of one tier; the caller attaches its parent line. */
+    private static ReservationAccommodation.ReservationAccommodationBuilder tierSnapshot(PricedAccommodation p) {
+        return ReservationAccommodation.builder()
+                .accommodationTypeId(p.accommodationTypeId())
+                .accommodationName(p.name())
+                .accommodationUnits(p.units())
+                .accommodationTvaRate(p.tvaRate())
+                .adults(p.guests().adults())
+                .children(p.guests().children())
+                .infants(p.guests().infants())
+                .adultPriceTtc(p.adultPrice())
+                .childPriceTtc(p.childPrice())
+                .infantPriceTtc(p.infantPrice());
+    }
+
     // Sum of every hebergement night's accommodation total on this tour line.
     private java.math.BigDecimal accommodationTotalForTour(ReservationTour reservationTour) {
         return Money.sum(reservationTour.getHebergements().stream()
@@ -532,24 +577,15 @@ public class ReservationServiceImpl implements ReservationService {
                     .numberOfNights(nights)
                     .numberOfAdults(h.getNumberOfAdults() != null ? h.getNumberOfAdults() : 0)
                     .numberOfChildren(h.getNumberOfChildren() != null ? h.getNumberOfChildren() : 0)
+                    .numberOfInfants(h.getNumberOfInfants() != null ? h.getNumberOfInfants() : 0)
                     .activityDate(h.getActivityDate())
                     .build();
             reservationTour.addHebergement(snapshot);
 
             if (h.getAccommodations() != null) {
-                int adultsPlusChildren = snapshot.getNumberOfAdults() + snapshot.getNumberOfChildren();
-                for (AccommodationSelectionRequest sel : h.getAccommodations()) {
-                    int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
-                    var priced = accommodationPricingService.resolveById(
-                            sel.getAccommodationTypeId(), units, nights, adultsPlusChildren, h.getActivityDate());
-                    snapshot.getAccommodations().add(ReservationAccommodation.builder()
-                            .reservationTourHebergement(snapshot)
-                            .accommodationTypeId(priced.accommodationTypeId())
-                            .accommodationName(priced.name())
-                            .accommodationUnits(priced.units())
-                            .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
-                            .accommodationTvaRate(priced.tvaRate())
-                            .build());
+                Guests party = new Guests(snapshot.getNumberOfAdults(), snapshot.getNumberOfChildren(), snapshot.getNumberOfInfants());
+                for (PricedAccommodation priced : priceAccommodations(h.getAccommodations(), party, nights, h.getActivityDate())) {
+                    snapshot.getAccommodations().add(tierSnapshot(priced).reservationTourHebergement(snapshot).build());
                 }
             }
 
@@ -584,9 +620,12 @@ public class ReservationServiceImpl implements ReservationService {
 
         java.math.BigDecimal adultPrice = isPartner ? tour.getPartnerAdultPrice() : tour.getPassengerAdultPrice();
         java.math.BigDecimal childPrice = isPartner ? tour.getPartnerChildPrice() : tour.getPassengerChildPrice();
+        java.math.BigDecimal infantPrice = tour.getPassengerInfantPrice();
+        int globalInfants = request.getNumberOfInfants() != null ? request.getNumberOfInfants() : 0;
         java.math.BigDecimal totalPrice = Money.add(
                 Money.multiply(adultPrice, globalAdults),
-                Money.multiply(childPrice, globalChildren));
+                Money.multiply(childPrice, globalChildren),
+                Money.multiply(infantPrice, globalInfants));
 
         return ReservationTour.builder()
                 .catalogTourId(tour.getTourId())
@@ -595,8 +634,10 @@ public class ReservationServiceImpl implements ReservationService {
                 .duration(tour.getDuration())
                 .adultPrice(adultPrice)
                 .childPrice(childPrice)
+                .infantPrice(infantPrice)
                 .numberOfAdults(globalAdults)
                 .numberOfChildren(globalChildren)
+                .numberOfInfants(globalInfants)
                 .departureDate(request.getServiceDate())
                 .totalPrice(totalPrice)
                 .tva(tour.getTva())
@@ -654,6 +695,12 @@ public class ReservationServiceImpl implements ReservationService {
                 case PER_VEHICLE, PER_UNIT -> requestedQuantity;
             };
             java.math.BigDecimal unitPrice = extraPricingService.unitPrice(catalog, activityDate);
+            // Only activities are timed; a guide or transport line ignores any duration sent.
+            Integer bookedMinutes = null;
+            if (catalog.getCategory() == ExtraCategory.ACTIVITY) {
+                bookedMinutes = ExtraDurationPricing.resolveMinutes(catalog, e.getDurationMinutes());
+                unitPrice = ExtraDurationPricing.priceFor(unitPrice, bookedMinutes, catalog.getBaseDurationMinutes());
+            }
             UserProductRemise remise = user.getRemises().stream()
                     .filter(r -> r.getProductId().equals(catalog.getExtraId()))
                     .findFirst().orElse(null);
@@ -667,7 +714,8 @@ public class ReservationServiceImpl implements ReservationService {
                     .catalogExtraId(catalog.getExtraId())
                     .name(catalog.getName())
                     .description(catalog.getDescription())
-                    .duration(catalog.getDuration())
+                    .duration(bookedMinutes != null ? ExtraDurationPricing.label(bookedMinutes) : catalog.getDuration())
+                    .durationMinutes(bookedMinutes)
                     .quantity(pricedQuantity)
                     .unitPrice(unitPrice)
                     .totalPrice(Money.multiply(unitPrice, pricedQuantity))
@@ -1094,6 +1142,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getLocale()           != null) reservation.setLocale(com.camping.duneinsolite.model.enums.MailLocale.from(request.getLocale()).tag());
         if (request.getNumberOfAdults()   != null) reservation.setNumberOfAdults(request.getNumberOfAdults());
         if (request.getNumberOfChildren() != null) reservation.setNumberOfChildren(request.getNumberOfChildren());
+        if (request.getNumberOfInfants()  != null) reservation.setNumberOfInfants(request.getNumberOfInfants());
 
         if (reservation.getStatus() == ReservationStatus.CONFIRMED ||
                 reservation.getStatus() == ReservationStatus.REJECTED) {
@@ -1109,6 +1158,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getTourTypes() != null && !request.getTourTypes().isEmpty()) {
             int globalAdults   = reservation.getNumberOfAdults();
             int globalChildren = reservation.getNumberOfChildren();
+            int globalInfants  = reservation.getNumberOfInfants();
             boolean singleTourType = request.getTourTypes().size() == 1;
 
             if (!singleTourType) {
@@ -1163,6 +1213,7 @@ public class ReservationServiceImpl implements ReservationService {
 
                 int adults   = singleTourType ? globalAdults   : (selection.getNumberOfAdults()   != null ? selection.getNumberOfAdults()   : 0);
                 int children = singleTourType ? globalChildren : (selection.getNumberOfChildren() != null ? selection.getNumberOfChildren() : 0);
+                int infants  = singleTourType ? globalInfants  : (selection.getNumberOfInfants()  != null ? selection.getNumberOfInfants()  : 0);
 
                 java.math.BigDecimal adultPrice = isPartner ? tourType.getPartnerAdultPrice() : tourType.getPassengerAdultPrice();
                 java.math.BigDecimal childPrice = isPartner ? tourType.getPartnerChildPrice() : tourType.getPassengerChildPrice();
@@ -1182,8 +1233,10 @@ public class ReservationServiceImpl implements ReservationService {
                         .duration(tourType.getDuration())
                         .adultPrice(Money.divide(adultPrice, tourTypeRate))
                         .childPrice(Money.divide(childPrice, tourTypeRate))
+                        .infantPrice(Money.divide(tourType.getPassengerInfantPrice(), tourTypeRate))
                         .numberOfAdults(adults)
                         .numberOfChildren(children)
+                        .numberOfInfants(infants)
                         .numberOfNights(1)
                         .activityDate(selection.getActivityDate())
                         .tva(tourType.getTva());
@@ -1193,24 +1246,33 @@ public class ReservationServiceImpl implements ReservationService {
                 List<AccommodationSelectionRequest> explicitSelections = selection.resolvedAccommodationSelections();
                 if (!explicitSelections.isEmpty()) {
                     // Explicit re-selection in the request → reprice (deliberate).
-                    for (AccommodationSelectionRequest sel : explicitSelections) {
-                        int units = sel.getAccommodationUnits() != null ? sel.getAccommodationUnits() : 1;
-                        var priced = accommodationPricingService.resolveById(
-                                sel.getAccommodationTypeId(), units, 1, adults + children, selection.getActivityDate());
-                        snapshot.getAccommodations().add(ReservationAccommodation.builder()
-                                .reservationTourType(snapshot)
-                                .accommodationTypeId(priced.accommodationTypeId())
-                                .accommodationName(priced.name())
-                                .accommodationUnits(priced.units())
-                                .accommodationUnitPriceTtc(priced.snapshotUnitPriceTtc())
-                                .accommodationTvaRate(priced.tvaRate())
-                                .build());
+                    for (PricedAccommodation priced : priceAccommodations(explicitSelections,
+                            new Guests(adults, children, infants), 1, selection.getActivityDate())) {
+                        snapshot.getAccommodations().add(tierSnapshot(priced).reservationTourType(snapshot).build());
                     }
                 } else {
                     // Carry the prior snapshot(s) forward unchanged — no repricing.
                     ReservationTourType prior = priorAccommodation.get(tourType.getTourTypeId());
                     if (prior != null) {
-                        for (ReservationAccommodation priorAcc : prior.getAccommodations()) {
+                        // Per-person rows follow the party: one tier takes whoever is now in the booking;
+                        // several tiers cannot be re-split here, so the party must still match them.
+                        List<ReservationAccommodation> priorRows = prior.getAccommodations();
+                        boolean perPerson = priorRows.stream().allMatch(ReservationAccommodation::isPerPerson);
+                        boolean followsParty = perPerson && priorRows.size() == 1;
+                        if (perPerson && priorRows.size() > 1) {
+                            int a = priorRows.stream().mapToInt(r -> r.getAdults() != null ? r.getAdults() : 0).sum();
+                            int c = priorRows.stream().mapToInt(r -> r.getChildren() != null ? r.getChildren() : 0).sum();
+                            int n = priorRows.stream().mapToInt(r -> r.getInfants() != null ? r.getInfants() : 0).sum();
+                            if (a != adults || c != children || n != infants) {
+                                throw new ReservationValidationException(
+                                        "This booking has several accommodations: to change the number of guests, re-select the accommodations and who sleeps in each.");
+                            }
+                        }
+                        if (followsParty) {
+                            accommodationPricingService.assertFits(priorRows.get(0).getAccommodationTypeId(),
+                                    priorRows.get(0).getAccommodationUnits(), new Guests(adults, children, infants));
+                        }
+                        for (ReservationAccommodation priorAcc : priorRows) {
                             snapshot.getAccommodations().add(ReservationAccommodation.builder()
                                     .reservationTourType(snapshot)
                                     .accommodationTypeId(priorAcc.getAccommodationTypeId())
@@ -1218,6 +1280,12 @@ public class ReservationServiceImpl implements ReservationService {
                                     .accommodationUnits(priorAcc.getAccommodationUnits())
                                     .accommodationUnitPriceTtc(priorAcc.getAccommodationUnitPriceTtc())
                                     .accommodationTvaRate(priorAcc.getAccommodationTvaRate())
+                                    .adults(followsParty ? adults : priorAcc.getAdults())
+                                    .children(followsParty ? children : priorAcc.getChildren())
+                                    .infants(followsParty ? infants : priorAcc.getInfants())
+                                    .adultPriceTtc(priorAcc.getAdultPriceTtc())
+                                    .childPriceTtc(priorAcc.getChildPriceTtc())
+                                    .infantPriceTtc(priorAcc.getInfantPriceTtc())
                                     .build());
                         }
                     }
@@ -1251,7 +1319,8 @@ public class ReservationServiceImpl implements ReservationService {
             // double-count on a second edit.
             java.math.BigDecimal baseTourPrice = Money.add(
                     Money.multiply(existingTour.getAdultPrice(), existingTour.getNumberOfAdults()),
-                    Money.multiply(existingTour.getChildPrice(), existingTour.getNumberOfChildren()));
+                    Money.multiply(existingTour.getChildPrice(), existingTour.getNumberOfChildren()),
+                    Money.multiply(existingTour.getInfantPrice(), existingTour.getNumberOfInfants()));
 
             reservation.getRepartitions().removeIf(r -> r.getReservationTourHebergement() != null);
             existingTour.getHebergements().clear();

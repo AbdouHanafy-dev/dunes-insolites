@@ -25,6 +25,10 @@ public class PublicActivityResponse {
     /** Back-office pricing unit (PER_UNIT, PER_PERSON, PER_DAY, PER_BOOKING, PER_VEHICLE) - lets the site estimate the same total the server charges. */
     private String pricingUnit;
     private Integer durationMins;
+    /** Back-office timing, all in minutes: price is for one base duration; the guest may add steps up to the maximum. */
+    private Integer baseDurationMinutes;
+    private Integer durationStepMinutes;
+    private Integer maxDurationMinutes;
     private String difficulty;
     private String groupSize;
     private List<String> included;

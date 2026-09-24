@@ -532,7 +532,8 @@
     "successBody": "We'll confirm your booking within 24 hours. A summary is on its way to {email}. Nothing has been charged.",
     "successBrowseMore": "Browse more activities",
     "errorFormSteps": "Some details need another look — check the steps above.",
-    "errorGeneric": "We couldn't save that booking. Try again."
+    "errorGeneric": "We couldn't save that booking. Try again.",
+    "infantsLabel": "Infants"
   },
   "stayReservationForm": {
     "chooseCamp": "Choose your camp",
@@ -560,9 +561,9 @@
     "everyCampBooked": "Every camp is booked for this date — try another.",
     "whosComing": "Who's coming?",
     "adults": "Adults",
-    "adultsAge": "Ages 7+",
+    "adultsAge": "Ages 18+",
     "children": "Children",
-    "childrenAge": "Ages 6 and under",
+    "childrenAge": "Ages 3–18",
     "howWillYouJoin": "How will you join the experience?",
     "ownVehicle": "I have my own vehicle",
     "ownVehicleHint": "Car, 4x4 or motorcycle",
@@ -647,7 +648,21 @@
     "pickupLabel": "Pickup",
     "errorPickDate": "Pick a date.",
     "errorPastDate": "Pick today or a future date.",
-    "extrasUnavailable": "No additional activities are currently offered."
+    "extrasUnavailable": "No additional activities are currently offered.",
+    "infants": "Infants",
+    "infantsAge": "Ages 0–3",
+    "summaryInfants": "{count, plural, =1 {1 infant} other {# infants}} × €{price}",
+    "summaryInfantsFree": "{count, plural, =1 {1 infant} other {# infants}} · free",
+    "tierPerPerson": "per person / night",
+    "tierChildPrice": "Child €{price}",
+    "tierInfantPrice": "Infant €{price}",
+    "tierInfantFree": "Infant free",
+    "assignTitle": "Who sleeps where?",
+    "assignLeft": "Still to place:",
+    "assignDone": "Everyone has a place",
+    "assignHint": "You picked several accommodations — tell us who sleeps in each.",
+    "errorAssignGuests": "Place every guest in an accommodation before continuing.",
+    "errorTierCapacity": "Each accommodation needs at least one guest and can’t hold more than it sleeps (infants aren’t counted)."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Circuits",
@@ -822,7 +837,8 @@
     "preferredLanguageLabel": "Preferred language",
     "preferredLanguageHint": "So we can assign a guide who speaks your language.",
     "reviewLanguageLabel": "Preferred language",
-    "otherLanguagePlaceholder": "Other language not listed? Specify here (optional)"
+    "otherLanguagePlaceholder": "Other language not listed? Specify here (optional)",
+    "infantsLabel": "Infants"
   },
   "accommodationCard": {
     "exploreThisStay": "Explore this stay ↗",
@@ -2724,5 +2740,14 @@
     "placeholder": "Choose a date",
     "previousMonth": "Previous month",
     "nextMonth": "Next month"
+  },
+  "activityDuration": {
+    "label": "Duration",
+    "minutes": "{n} min",
+    "oneHour": "1 Hour",
+    "hours": "{h}H",
+    "hoursMinutes": "{h}:{mm}H",
+    "decrease": "Shorten {title}",
+    "increase": "Lengthen {title}"
   }
 }

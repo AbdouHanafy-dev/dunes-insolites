@@ -18,4 +18,16 @@ public class AccommodationSelectionRequest {
 
     @Min(value = 1, message = "Accommodation units must be at least 1")
     private Integer accommodationUnits;
+
+    // Who sleeps in this tier. Optional when the booking picks a single tier (the
+    // whole party goes there); required per tier when several are picked, and the
+    // tiers together must add up to the party.
+    @Min(value = 0, message = "Adults cannot be negative")
+    private Integer adults;
+
+    @Min(value = 0, message = "Children cannot be negative")
+    private Integer children;
+
+    @Min(value = 0, message = "Infants cannot be negative")
+    private Integer infants;
 }

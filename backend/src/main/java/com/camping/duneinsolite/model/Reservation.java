@@ -70,6 +70,10 @@ public class Reservation {
     @Builder.Default
     private Integer numberOfChildren = 0;
 
+    @Column(name = "number_of_infants", nullable = false)
+    @Builder.Default
+    private Integer numberOfInfants = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default

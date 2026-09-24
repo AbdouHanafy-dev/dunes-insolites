@@ -69,6 +69,11 @@ public class TourRequest {
     @NotNull(message = "Passenger child price is required")
     private java.math.BigDecimal passengerChildPrice;
 
+    // Infants (0-3): free until the back office sets a price.
+    @NotNull(message = "Passenger infant price is required")
+    @PositiveOrZero(message = "Price cannot be negative")
+    private java.math.BigDecimal passengerInfantPrice = java.math.BigDecimal.ZERO;
+
     @NotNull(message = "Partner adult price is required")
     private java.math.BigDecimal partnerAdultPrice;
 

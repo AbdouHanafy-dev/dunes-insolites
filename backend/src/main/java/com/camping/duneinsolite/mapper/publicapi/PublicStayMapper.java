@@ -57,6 +57,7 @@ public class PublicStayMapper {
         response.setPriceFrom(tourType.getPassengerAdultPrice());
         response.setAdultPrice(tourType.getPassengerAdultPrice());
         response.setChildPrice(tourType.getPassengerChildPrice());
+        response.setInfantPrice(tourType.getPassengerInfantPrice());
         response.setGroupSize(PublicCatalogText.groupSize(tourType.getGroupSizeType()));
         response.setIncluded(included);
         response.setNotIncluded(notIncluded);
@@ -87,7 +88,11 @@ public class PublicStayMapper {
                     dto.setDescription(a.getDescription());
                     dto.setImage(a.getImageUrl());
                     dto.setGallery(List.copyOf(a.getGallery()));
-                    dto.setPriceFrom(a.getUnitPriceTtc());
+                    dto.setPriceFrom(a.getAdultPriceTtc());
+                    dto.setAdultPrice(a.getAdultPriceTtc());
+                    dto.setChildPrice(a.getChildPriceTtc() != null ? a.getChildPriceTtc() : a.getAdultPriceTtc());
+                    dto.setInfantPrice(a.getInfantPriceTtc() != null ? a.getInfantPriceTtc() : java.math.BigDecimal.ZERO);
+                    dto.setCapacity(a.getCapacity());
                     dto.setSleeps("Jusqu'à " + a.getCapacity()
                             + (a.getCapacity() > 1 ? " personnes" : " personne"));
                     dto.setFeatures(List.copyOf(a.getFeatures()));

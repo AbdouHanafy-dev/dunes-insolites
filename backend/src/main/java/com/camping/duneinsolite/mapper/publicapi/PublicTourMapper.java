@@ -87,6 +87,7 @@ public class PublicTourMapper {
         response.setOriginalPriceFrom(saleActive ? tour.getPassengerAdultPrice() : null);
         response.setPassengerAdultPrice(tour.getPassengerAdultPrice());
         response.setPassengerChildPrice(tour.getPassengerChildPrice());
+        response.setPassengerInfantPrice(tour.getPassengerInfantPrice());
         response.setAverageRating(tour.getAverageRating());
         response.setReviewCount(tour.getReviewCount());
         response.setBookedYesterdayCount(bookedYesterdayCount);
@@ -126,7 +127,11 @@ public class PublicTourMapper {
                     dto.setDescription(a.getDescription());
                     dto.setImage(a.getImageUrl());
                     dto.setGallery(List.copyOf(a.getGallery()));
-                    dto.setPriceFrom(a.getUnitPriceTtc());
+                    dto.setPriceFrom(a.getAdultPriceTtc());
+                    dto.setAdultPrice(a.getAdultPriceTtc());
+                    dto.setChildPrice(a.getChildPriceTtc() != null ? a.getChildPriceTtc() : a.getAdultPriceTtc());
+                    dto.setInfantPrice(a.getInfantPriceTtc() != null ? a.getInfantPriceTtc() : java.math.BigDecimal.ZERO);
+                    dto.setCapacity(a.getCapacity());
                     dto.setSleeps("Jusqu'\u00e0 " + a.getCapacity()
                             + (a.getCapacity() > 1 ? " personnes" : " personne"));
                     dto.setFeatures(List.copyOf(a.getFeatures()));

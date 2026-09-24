@@ -16,6 +16,7 @@ public class ProduitResponse {
     // Prices — null when not applicable
     private java.math.BigDecimal passengerAdultPrice;
     private java.math.BigDecimal passengerChildPrice;
+    private java.math.BigDecimal passengerInfantPrice;
     private java.math.BigDecimal partnerAdultPrice;
     private java.math.BigDecimal partnerChildPrice;
     // For EXTRA only

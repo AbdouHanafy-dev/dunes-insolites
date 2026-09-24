@@ -14,8 +14,10 @@ public class ReservationTourResponse {
     private String duration;
     private java.math.BigDecimal adultPrice;
     private java.math.BigDecimal childPrice;
+    private java.math.BigDecimal infantPrice;
     private Integer numberOfAdults;
     private Integer numberOfChildren;
+    private Integer numberOfInfants;
     private LocalDate departureDate;
     private java.math.BigDecimal totalPrice;
     private java.math.BigDecimal tva;

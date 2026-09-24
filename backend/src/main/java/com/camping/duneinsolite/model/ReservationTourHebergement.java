@@ -44,6 +44,10 @@ public class ReservationTourHebergement {
     @Column(name = "number_of_children", nullable = false)
     private Integer numberOfChildren;
 
+    @Column(name = "number_of_infants", nullable = false)
+    @Builder.Default
+    private Integer numberOfInfants = 0;
+
     @Column(name = "catalog_tour_type_id")
     private UUID catalogTourTypeId;
 
@@ -71,7 +75,7 @@ public class ReservationTourHebergement {
     public BigDecimal getAccommodationTotalPrice() {
         int nights = numberOfNights != null && numberOfNights > 0 ? numberOfNights : 1;
         return Money.sum(accommodations.stream()
-                .map(a -> Money.lineTotal(a.getAccommodationUnitPriceTtc(), a.getAccommodationUnits(), nights))
+                .map(a -> a.lineTotal(nights))
                 .toList());
     }
 }

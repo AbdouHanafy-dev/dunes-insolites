@@ -184,6 +184,7 @@ export type AdminReservationDetail = AdminReservation & {
   groupLeaderName: string | null;
   numberOfAdults: number | null;
   numberOfChildren: number | null;
+  numberOfInfants?: number | null;
   demandeSpecial: string | null;
   // The client's preferred language(s) for this booking (set from the
   // public Tour booking form today) - lets staff pick a Guide who speaks
@@ -405,6 +406,8 @@ export type AdminTourType = {
   maxNights: number;
   passengerAdultPrice: number;
   passengerChildPrice: number;
+  /** 0-3 years, per night. 0 = free. */
+  passengerInfantPrice: number;
   partnerAdultPrice: number;
   partnerChildPrice: number;
   tva: number;
@@ -458,6 +461,9 @@ export type AdminExtra = {
   description: string | null;
   duration: string | null;
   unitPrice: number;
+  baseDurationMinutes: number;
+  durationStepMinutes: number;
+  maxDurationMinutes: number;
   tva: number;
   isActive: boolean;
   location: string | null;
@@ -504,7 +510,10 @@ export type AdminAccommodationType = {
   gallery: string[];
   capacity: number;
   maxUnits: number | null;
-  unitPriceTtc: number | null;
+  /** TTC per person per night, one price per guest type. A null adult price = not configured (not bookable). */
+  adultPriceTtc: number | null;
+  childPriceTtc: number | null;
+  infantPriceTtc: number | null;
   tvaRate: number | null;
   currency: string;
   displayOrder: number;
@@ -524,7 +533,9 @@ export type AdminAccommodationTypeInput = {
   gallery?: string[];
   capacity: number;
   maxUnits?: number | null;
-  unitPriceTtc?: number | null;
+  adultPriceTtc?: number | null;
+  childPriceTtc?: number | null;
+  infantPriceTtc?: number | null;
   tvaRate?: number | null;
   currency?: string;
   displayOrder?: number;
@@ -586,6 +597,8 @@ export type AdminTour = {
   passengerAdultPrice: number;
   salePriceAdult: number | null;
   passengerChildPrice: number;
+  /** 0-3 years. 0 = free. */
+  passengerInfantPrice: number;
   partnerAdultPrice: number;
   partnerChildPrice: number;
   tva: number;

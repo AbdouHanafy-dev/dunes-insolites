@@ -60,6 +60,10 @@ public class ReservationExtra {
     @Column(name = "selected_extra_id")
     private UUID selectedExtraId;
 
+    // Minutes booked for a timed activity; null when it was not timed.
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 

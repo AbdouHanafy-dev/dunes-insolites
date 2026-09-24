@@ -388,7 +388,8 @@
     "successBody": "Vi bekræfter din booking inden for 24 timer. Et resumé er på vej til {email}. Der er ikke opkrævet noget.",
     "successBrowseMore": "Se flere aktiviteter",
     "errorFormSteps": "Nogle felter skal tjekkes igen — se trinene ovenfor.",
-    "errorGeneric": "Vi kunne ikke gemme den booking. Prøv igen."
+    "errorGeneric": "Vi kunne ikke gemme den booking. Prøv igen.",
+    "infantsLabel": "Babyer"
   },
   "stayReservationForm": {
     "chooseCamp": "Vælg din lejr",
@@ -416,9 +417,9 @@
     "everyCampBooked": "Alle lejre er booket på den dato — prøv en anden.",
     "whosComing": "Hvem kommer med?",
     "adults": "Voksne",
-    "adultsAge": "7 år og opefter",
+    "adultsAge": "18 år og opefter",
     "children": "Børn",
-    "childrenAge": "6 år og derunder",
+    "childrenAge": "3–18 år",
     "howWillYouJoin": "Hvordan vil du komme til oplevelsen?",
     "ownVehicle": "Jeg har mit eget køretøj",
     "ownVehicleHint": "Bil, 4x4 eller motorcykel",
@@ -503,7 +504,21 @@
     "pickupLabel": "Afhentning",
     "errorPickDate": "Vælg en dato.",
     "errorPastDate": "Vælg i dag eller en fremtidig dato.",
-    "extrasUnavailable": "Der tilbydes ingen ekstra aktiviteter i øjeblikket."
+    "extrasUnavailable": "Der tilbydes ingen ekstra aktiviteter i øjeblikket.",
+    "infants": "Babyer",
+    "infantsAge": "0–3 år",
+    "summaryInfants": "{count, plural, =1 {1 baby} other {# babyer}} × {price} €",
+    "summaryInfantsFree": "{count, plural, =1 {1 baby} other {# babyer}} · gratis",
+    "tierPerPerson": "pr. person / nat",
+    "tierChildPrice": "Barn {price} €",
+    "tierInfantPrice": "Baby {price} €",
+    "tierInfantFree": "Baby gratis",
+    "assignTitle": "Hvem sover hvor?",
+    "assignLeft": "Mangler at placere:",
+    "assignDone": "Alle har en plads",
+    "assignHint": "Du har valgt flere overnatninger — fortæl os, hvem der sover i hver.",
+    "errorAssignGuests": "Placér hver gæst i en overnatning, før du fortsætter.",
+    "errorTierCapacity": "Hver overnatning skal have mindst én gæst og må ikke overfyldes (babyer tæller ikke)."
   },
   "tourDetail": {
     "breadcrumbCircuits": "Ture",
@@ -678,7 +693,8 @@
     "preferredLanguageLabel": "Foretrukket sprog",
     "preferredLanguageHint": "Så vi kan tildele en guide, der taler dit sprog.",
     "reviewLanguageLabel": "Foretrukket sprog",
-    "otherLanguagePlaceholder": "Andet sprog, der ikke er angivet? Angiv her (valgfrit)"
+    "otherLanguagePlaceholder": "Andet sprog, der ikke er angivet? Angiv her (valgfrit)",
+    "infantsLabel": "Babyer"
   },
   "accommodationCard": {
     "exploreThisStay": "Udforsk dette ophold ↗",
@@ -1307,5 +1323,14 @@
     "placeholder": "Vælg en dato",
     "previousMonth": "Forrige måned",
     "nextMonth": "Næste måned"
+  },
+  "activityDuration": {
+    "label": "Varighed",
+    "minutes": "{n} min",
+    "oneHour": "1 time",
+    "hours": "{h}H",
+    "hoursMinutes": "{h}:{mm}H",
+    "decrease": "Forkort {title}",
+    "increase": "Forlæng {title}"
   }
 }

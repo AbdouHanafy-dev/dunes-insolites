@@ -35,9 +35,16 @@ public class AccommodationTypeRequest {
     @Min(value = 0, message = "Unit count cannot be negative")
     private Integer maxUnits;
 
-    /** TTC, per unit per night. Null = not configured (tier stays unbookable). */
+    /** TTC, per person per night. A null adult price = not configured (tier stays unbookable). */
     @DecimalMin(value = "0.0", message = "Price cannot be negative")
-    private BigDecimal unitPriceTtc;
+    private BigDecimal adultPriceTtc;
+
+    @DecimalMin(value = "0.0", message = "Price cannot be negative")
+    private BigDecimal childPriceTtc;
+
+    /** Infants (0-3). Null is read as free. */
+    @DecimalMin(value = "0.0", message = "Price cannot be negative")
+    private BigDecimal infantPriceTtc;
 
     @DecimalMin(value = "0.0", message = "TVA rate cannot be negative")
     private BigDecimal tvaRate;

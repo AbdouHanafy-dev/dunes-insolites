@@ -16,7 +16,9 @@ const emptyTier = (tourTypeId: string): AdminAccommodationTypeInput => ({
   gallery: [],
   capacity: 2,
   maxUnits: null,
-  unitPriceTtc: null,
+  adultPriceTtc: null,
+  childPriceTtc: null,
+  infantPriceTtc: null,
   tvaRate: 13,
   currency: "EUR",
   displayOrder: 0,
@@ -27,7 +29,7 @@ const emptyTier = (tourTypeId: string): AdminAccommodationTypeInput => ({
 /**
  * Nested CRUD for a nuitée's accommodation tiers (Desert Tent / Desert Room
  * / Dune Suite) — the three products the vitrine's `/en/camp/[slug]` page
- * lists as separate bookable cards, priced per unit per night. Rendered
+ * lists as separate bookable cards, priced per person per night (adult, child, infant). Rendered
  * inside HebergementEditor's extraSection, so it shares the same page as
  * the parent Hébergement but saves independently (each tier is its own
  * backend resource, /api/accommodation-types) rather than as part of the
@@ -86,7 +88,9 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
       gallery: t.gallery ?? [],
       capacity: t.capacity,
       maxUnits: t.maxUnits,
-      unitPriceTtc: t.unitPriceTtc,
+      adultPriceTtc: t.adultPriceTtc,
+      childPriceTtc: t.childPriceTtc,
+      infantPriceTtc: t.infantPriceTtc,
       tvaRate: t.tvaRate,
       currency: t.currency,
       displayOrder: t.displayOrder,
@@ -169,7 +173,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
                 <th className="px-4 py-2.5 font-medium">Nom</th>
-                <th className="px-4 py-2.5 font-medium">Prix / nuit</th>
+                <th className="px-4 py-2.5 font-medium">Prix / pers. / nuit</th>
                 <th className="px-4 py-2.5 font-medium">Capacité</th>
                 <th className="px-4 py-2.5 font-medium">Unités max.</th>
                 <th className="px-4 py-2.5 font-medium">Statut</th>
@@ -181,7 +185,9 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
                 <tr key={t.id}>
                   <td className="px-4 py-2.5 text-gray-700">{t.name}</td>
                   <td className="px-4 py-2.5 text-gray-700">
-                    {t.unitPriceTtc != null ? `${t.unitPriceTtc} €` : "Non configuré"}
+                    {t.adultPriceTtc != null
+                      ? `Adulte ${t.adultPriceTtc} € · Enfant ${t.childPriceTtc ?? t.adultPriceTtc} € · Bébé ${t.infantPriceTtc ?? 0} €`
+                      : "Non configuré"}
                   </td>
                   <td className="px-4 py-2.5 text-gray-700">{t.capacity}</td>
                   <td className="px-4 py-2.5 text-gray-700">{t.maxUnits ?? "—"}</td>
@@ -275,16 +281,46 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className={labelClass}>Prix / unité / nuit (TTC)</label>
+              <label className={labelClass}>Prix adulte, 18 ans et + / personne / nuit (TTC)</label>
               <input
                 type="number"
                 step="0.001"
+                min={0}
                 className={inputClass}
-                value={editing.unitPriceTtc ?? ""}
+                value={editing.adultPriceTtc ?? ""}
                 onChange={(e) =>
-                  patch({ unitPriceTtc: e.target.value === "" ? null : e.target.valueAsNumber })
+                  patch({ adultPriceTtc: e.target.value === "" ? null : e.target.valueAsNumber })
                 }
               />
+              <p className="text-[12px] text-gray-500">Vide = non configuré : le type reste invisible sur le site.</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass}>Prix enfant, 3 à 18 ans / personne / nuit (TTC)</label>
+              <input
+                type="number"
+                step="0.001"
+                min={0}
+                className={inputClass}
+                value={editing.childPriceTtc ?? ""}
+                onChange={(e) =>
+                  patch({ childPriceTtc: e.target.value === "" ? null : e.target.valueAsNumber })
+                }
+              />
+              <p className="text-[12px] text-gray-500">Vide = même prix qu’un adulte.</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className={labelClass}>Prix bébé, 0 à 3 ans / personne / nuit (TTC)</label>
+              <input
+                type="number"
+                step="0.001"
+                min={0}
+                className={inputClass}
+                value={editing.infantPriceTtc ?? ""}
+                onChange={(e) =>
+                  patch({ infantPriceTtc: e.target.value === "" ? null : e.target.valueAsNumber })
+                }
+              />
+              <p className="text-[12px] text-gray-500">0 ou vide = gratuit. Les bébés ne comptent pas dans la capacité.</p>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass}>TVA (%)</label>

@@ -52,6 +52,13 @@ export type BookingStatus = "pending" | "confirmed" | "cancelled";
  */
 export const MAX_PARTY_SIZE = 12;
 
+/**
+ * Infants (0-3) are a third guest type: priced on their own (free while the back office
+ * leaves the price at 0), and they never count toward MAX_PARTY_SIZE or a room's capacity.
+ * Adults are 18+, children 3-18. Same rule on the client and the server.
+ */
+export const MAX_INFANTS = 6;
+
 /* -------------------------------------------------------------- catalogue */
 
 /**
@@ -77,6 +84,11 @@ export type Activity = {
   /** Per person, in the currency the endpoint was asked for. */
   priceFrom: number;
   durationMins: number;
+  /** Back-office timing in minutes. `priceFrom` is the price of one base duration; the guest may add
+   *  steps up to the maximum, and the price scales with the minutes. Max = base means no extension. */
+  baseDurationMinutes?: number;
+  durationStepMinutes?: number;
+  maxDurationMinutes?: number;
   difficulty: Difficulty;
   groupSize: string;
   included: string[];
@@ -106,6 +118,8 @@ export type Stay = {
    *  the booking when the stay has no accommodation types (e.g. the bivouac). */
   adultPrice?: number;
   childPrice?: number;
+  /** 0-3 years, per night. 0 = free. */
+  infantPrice?: number;
   groupSize: string;
   included: string[];
   notIncluded: string[];
@@ -179,6 +193,8 @@ export type Tour = {
   originalPriceFrom: number | null;
   passengerAdultPrice: number;
   passengerChildPrice: number;
+  /** 0-3 years. 0 = free. */
+  passengerInfantPrice: number;
   averageRating: number | null;
   reviewCount: number | null;
   /** Real count of confirmed/checked-in/completed bookings made yesterday (server-local
@@ -237,7 +253,12 @@ export type TourBooking = {
   date: string;
   numberOfAdults: number;
   numberOfChildren: number;
+  /** 0-3 years. Free until priced in the back office; outside MAX_PARTY_SIZE. */
+  numberOfInfants?: number;
   rideSlugs: string[];
+  /** Minutes chosen per timed activity, keyed by activity slug (the main activity and any add-on).
+   *  Omitted = the activity's base duration. Validated server-side against its base/step/max. */
+  activityDurations?: Record<string, number>;
   /** Required when the selected circuit overnights at the Sabria camp. */
   accommodations?: AccommodationSelection[];
   /** How the guest reaches the meeting point; validated against selected transport options. */
@@ -281,7 +302,14 @@ export type Accommodation = {
   /** Additional photos beyond `image` for this tier's own detail page.
    *  Absent/empty means the detail page falls back to just `image`. */
   gallery?: string[];
+  /** The adult price per person per night. */
   priceFrom: number;
+  /** Per person per night, one price per guest type, set in the back office per tier. */
+  adultPrice?: number;
+  childPrice?: number;
+  infantPrice?: number;
+  /** Guests one unit sleeps (infants not counted). */
+  capacity?: number;
   sleeps: string;
   features: string[];
   // Max bookable units of this tier for a given stay, when configured.
@@ -376,9 +404,12 @@ export type Booking = {
    *  Tour) doesn't differentiate by age — kept for headcount accuracy. */
   numberOfAdults: number;
   numberOfChildren: number;
+  numberOfInfants?: number;
   /** Other ACTIVITY-category Extra slugs added on top of this one, same
    *  convention as `TourBooking.rideSlugs`. */
   rideSlugs: string[];
+  /** Minutes chosen per timed activity, keyed by activity slug. Omitted = its base duration. */
+  activityDurations?: Record<string, number>;
   /** How the guest reaches the activity; same "Getting There" step as a
    *  Tour/Stay booking — a standalone activity guest may not already be
    *  at the camp. */
@@ -444,6 +475,11 @@ export type ServiceOptionSelection = {
 export type AccommodationSelection = {
   accommodationSlug: string;
   quantity: number;
+  /** Who sleeps in this tier. Omit for a single tier (the whole party sleeps there); required per
+   *  tier when several are picked, and together they must equal the party. */
+  adults?: number;
+  children?: number;
+  infants?: number;
 };
 
 export type StayBooking = {
@@ -462,7 +498,11 @@ export type StayBooking = {
   /** How many of `partySize` are children, priced at the stay's child rate.
    *  Omitted = 0. At least one adult must remain. */
   children?: number;
+  /** 0-3 years, on top of `partySize`. Priced in the back office, free at 0. */
+  infants?: number;
   rideSlugs: string[];
+  /** Minutes chosen per timed activity, keyed by activity slug. Omitted = its base duration. */
+  activityDurations?: Record<string, number>;
   /** How the guest reaches the experience; validated against selected transport options. */
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
   /** Where the guest departs from for pickup. Optional — not every guest arranges pickup through the site. */

@@ -17,4 +17,14 @@ public class PublicAccommodationSelectionRequest {
 
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
+
+    // Who sleeps in this tier - see AccommodationSelectionRequest. Optional for a single tier.
+    @Min(value = 0, message = "Adults cannot be negative")
+    private Integer adults;
+
+    @Min(value = 0, message = "Children cannot be negative")
+    private Integer children;
+
+    @Min(value = 0, message = "Infants cannot be negative")
+    private Integer infants;
 }

@@ -44,6 +44,21 @@ public class Extra {
     @Column(name = "unit_price", nullable = false)
     private java.math.BigDecimal unitPrice;
 
+    // unitPrice is the price of one base duration; a longer session costs
+    // unitPrice x (minutes / baseDurationMinutes). All in minutes.
+    @Column(name = "base_duration_minutes", nullable = false)
+    @Builder.Default
+    private Integer baseDurationMinutes = 30;
+
+    @Column(name = "duration_step_minutes", nullable = false)
+    @Builder.Default
+    private Integer durationStepMinutes = 30;
+
+    // Equal to the base = the guest cannot extend the session.
+    @Column(name = "max_duration_minutes", nullable = false)
+    @Builder.Default
+    private Integer maxDurationMinutes = 30;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
