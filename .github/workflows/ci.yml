@@ -112,6 +112,11 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             cd backend
+            # A previous deploy that died mid-recreate leaves a never-started
+            # container ("Created") holding a "<id>_dunes-v2-*" name, which makes every
+            # later "up" fail with "name already in use". Created = never ran, so
+            # removing it can never take the live site down.
+            docker ps -aq --filter "name=dunes-v2" --filter "status=created" | xargs -r docker rm -f
             docker compose -p dunes-v2 -f docker-compose.vps.yml --env-file .env.vps build frontend admin backend
             docker compose -p dunes-v2 -f docker-compose.vps.yml --env-file .env.vps up -d frontend admin backend
 
