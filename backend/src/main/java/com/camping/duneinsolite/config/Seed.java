@@ -738,6 +738,10 @@ public class Seed implements CommandLineRunner {
             com.camping.duneinsolite.model.User user = keycloakUserSyncService.adminCreateInvitedDriver(
                     s.first() + " " + s.last(), s.email(), s.phone());
 
+            // No Keycloak user (e.g. the integration tests replace the sync service with
+            // a mock that returns nothing): there is nobody to attach a profile to.
+            if (user == null) continue;
+
             // adminCreateInvitedDriver deliberately never discloses the
             // Keycloak-generated password it sets (see its own comment) -
             // correct for a real invited driver, useless for a local dev
