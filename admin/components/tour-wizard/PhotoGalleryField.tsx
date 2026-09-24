@@ -1,9 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useToast } from "@/components/Toast";
+import { useState } from "react";
+import MediaPicker from "@/components/MediaPicker";
 import { inputClass } from "@/components/payload/fields";
-import { uploadImage } from "@/lib/uploadImage";
 
 export type TourPhoto = { url: string; caption: string | null };
 
@@ -22,39 +21,7 @@ export default function PhotoGalleryField({
   photos: TourPhoto[];
   onPhotosChange: (photos: TourPhoto[]) => void;
 }) {
-  const toast = useToast();
-  const coverInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
-
-  async function onCoverChosen(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setUploadingCover(true);
-    const result = await uploadImage(file);
-    setUploadingCover(false);
-    if (result.url === null) {
-      toast.error(result.error);
-      return;
-    }
-    onCoverChange(result.url);
-  }
-
-  async function onGalleryFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setUploadingGallery(true);
-    const result = await uploadImage(file);
-    setUploadingGallery(false);
-    if (result.url === null) {
-      toast.error(result.error);
-      return;
-    }
-    onPhotosChange([...photos, { url: result.url, caption: "" }]);
-  }
+  const [picker, setPicker] = useState<"cover" | "gallery" | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -75,20 +42,8 @@ export default function PhotoGalleryField({
         ) : (
           <p className="mb-2 text-sm text-gray-400">Aucune photo de couverture.</p>
         )}
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="hidden"
-          onChange={onCoverChosen}
-        />
-        <button
-          type="button"
-          onClick={() => coverInputRef.current?.click()}
-          disabled={uploadingCover}
-          className="btn btn-secondary btn-sm mt-2"
-        >
-          {uploadingCover ? "Envoi…" : coverPhotoUrl ? "Changer" : "+ Choisir une photo"}
+        <button type="button" onClick={() => setPicker("cover")} className="btn btn-secondary btn-sm mt-2">
+          {coverPhotoUrl ? "Changer" : "+ Choisir une photo"}
         </button>
       </div>
 
@@ -123,22 +78,36 @@ export default function PhotoGalleryField({
             ))}
           </div>
         )}
-        <input
-          ref={galleryInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="hidden"
-          onChange={onGalleryFileChosen}
-        />
         <button
           type="button"
-          onClick={() => galleryInputRef.current?.click()}
-          disabled={uploadingGallery}
+          onClick={() => setPicker("gallery")}
           className="rounded-lg border border-dashed border-navy-700/20 px-4 py-3 text-sm font-medium text-navy-700/70 hover:border-gold/50 hover:text-navy-800"
         >
-          {uploadingGallery ? "Envoi…" : "+ Ajouter une photo à la galerie"}
+          + Ajouter des photos à la galerie
         </button>
       </div>
+
+      {picker === "cover" && (
+        <MediaPicker
+          title="Photo de couverture"
+          onClose={() => setPicker(null)}
+          onPick={([url]) => {
+            onCoverChange(url);
+            setPicker(null);
+          }}
+        />
+      )}
+      {picker === "gallery" && (
+        <MediaPicker
+          title="Ajouter à la galerie"
+          multiple
+          onClose={() => setPicker(null)}
+          onPick={(urls) => {
+            onPhotosChange([...photos, ...urls.map((url) => ({ url, caption: "" }))]);
+            setPicker(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { SITE_IMAGE_SLOTS } from "@dunes/api-types";
 import { useToast } from "@/components/Toast";
 import type { AdminSiteImage } from "@/lib/api";
-import { uploadImage } from "@/lib/uploadImage";
+import MediaPicker from "@/components/MediaPicker";
 
 /**
  * Every photo the site shows that isn't tied to a catalogue item (home,
@@ -18,30 +18,14 @@ export default function SiteImagesManager({ images }: { images: AdminSiteImage[]
   const router = useRouter();
   const toast = useToast();
   const [busyKey, setBusyKey] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const pendingKey = useRef<string | null>(null);
+  const [pickingKey, setPickingKey] = useState<string | null>(null);
 
   const byKey = new Map(images.map((i) => [i.key, i]));
   const groups = [...new Set(SITE_IMAGE_SLOTS.map((s) => s.group))];
 
-  function choose(key: string) {
-    pendingKey.current = key;
-    inputRef.current?.click();
-  }
-
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    const key = pendingKey.current;
-    if (!file || !key) return;
+  async function replace(key: string, url: string) {
+    setPickingKey(null);
     setBusyKey(key);
-    const uploaded = await uploadImage(file);
-    if (uploaded.url === null) {
-      setBusyKey(null);
-      toast.error(uploaded.error);
-      return;
-    }
-    const url = uploaded.url;
     const res = await fetch(`/api/proxy/site-images/${key}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -79,7 +63,13 @@ export default function SiteImagesManager({ images }: { images: AdminSiteImage[]
         </p>
       </div>
 
-      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={onFile} />
+      {pickingKey && (
+        <MediaPicker
+          title="Remplacer la photo"
+          onClose={() => setPickingKey(null)}
+          onPick={([url]) => replace(pickingKey, url)}
+        />
+      )}
 
       {groups.map((group) => (
         <section key={group} className="card rounded-2xl p-6">
@@ -102,7 +92,7 @@ export default function SiteImagesManager({ images }: { images: AdminSiteImage[]
                   </div>
                   <p className="text-[13px] font-semibold text-navy-800">{slot.label}</p>
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" disabled={busy} onClick={() => choose(slot.key)} className="btn btn-secondary btn-sm">
+                    <button type="button" disabled={busy} onClick={() => setPickingKey(slot.key)} className="btn btn-secondary btn-sm">
                       {busy ? "Envoi…" : current ? "Changer" : "+ Choisir une photo"}
                     </button>
                     {current && (
