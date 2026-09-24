@@ -60,7 +60,8 @@ export type AdminReservation = {
   checkOutDate: string | null;
   serviceDate: string | null;
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
-  departureCity: "TUNIS" | "SOUSSE" | "HAMMAMET" | "DJERBA" | "MAHDIA" | "MONASTIR" | null;
+  departureCity: "TUNIS" | "SOUSSE" | "HAMMAMET" | "DJERBA" | "MAHDIA" | "MONASTIR" | "TOZEUR" | null;
+  meetUpPlace?: string | null;
   totalAmount: number;
   currency: string;
   createdAt: string;

@@ -149,6 +149,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
         reservationRequest.setReturnCity(request.getReturnCity() == null ? null
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
+        reservationRequest.setMeetUpPlace(request.getMeetUpPlace());
         reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
         reservationRequest.setOtherLanguageRequested(
                 request.getOtherLanguageRequested() != null && !request.getOtherLanguageRequested().isBlank()
@@ -306,6 +307,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
         reservationRequest.setReturnCity(request.getReturnCity() == null ? null
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
+        reservationRequest.setMeetUpPlace(request.getMeetUpPlace());
         reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
         reservationRequest.setOtherLanguageRequested(
                 request.getOtherLanguageRequested() != null && !request.getOtherLanguageRequested().isBlank()
@@ -515,6 +517,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
         reservationRequest.setReturnCity(request.getReturnCity() == null ? null
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
+        reservationRequest.setMeetUpPlace(request.getMeetUpPlace());
 
         TourTypeSelectionRequest selection = new TourTypeSelectionRequest();
         selection.setTourTypeId(tourType.getTourTypeId());

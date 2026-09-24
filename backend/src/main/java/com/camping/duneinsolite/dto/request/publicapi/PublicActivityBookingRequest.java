@@ -56,16 +56,21 @@ public class PublicActivityBookingRequest {
     private String arrivalMode;
 
     @jakarta.validation.constraints.Pattern(
-            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
-            message = "Departure city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR|TOZEUR",
+            message = "Departure city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR, TOZEUR")
     private String departureCity;
 
     // Optional return leg after the activity - same city catalog as
     // departureCity. The guest may skip it; staff arrange the driver later.
     @jakarta.validation.constraints.Pattern(
-            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR",
-            message = "Return city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR")
+            regexp = "TUNIS|SOUSSE|HAMMAMET|DJERBA|MAHDIA|MONASTIR|TOZEUR",
+            message = "Return city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR, TOZEUR")
     private String returnCity;
+
+    // Optional, TRANSPORT only: where the guest would like to be met. Support
+    // sees and edits it in the backoffice; it is never echoed back to guests.
+    @jakarta.validation.constraints.Size(max = 255)
+    private String meetUpPlace;
 
     // The guest's preferred language(s), from the admin-managed catalog, so
     // staff can assign an instructor/guide who speaks one. Same convention

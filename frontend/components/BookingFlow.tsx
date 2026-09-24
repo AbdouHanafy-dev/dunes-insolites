@@ -123,6 +123,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
   const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
   const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
+  const [meetUpPlace, setMeetUpPlace] = useState("");
 
   // ---------- stay-only: transport catalogue ----------
   const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
@@ -466,6 +467,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
+      meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       preferredLanguageIds: preferredLanguageIds.length > 0 ? preferredLanguageIds : undefined,
       otherLanguageRequested: otherLanguageRequested.trim() || undefined,
       name,
@@ -519,6 +521,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
+      meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,
       email,
@@ -843,6 +846,19 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           </div>
           {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
           {hasOwnVehicle === false && (
+            <div className="field" style={{ marginTop: 12 }}>
+              <label htmlFor="bf-meet-up-place">{t("meetUpPlaceLabel")}</label>
+              <p className="hint">{t("meetUpPlaceHint")}</p>
+              <input
+                id="bf-meet-up-place"
+                maxLength={255}
+                placeholder={t("meetUpPlacePlaceholder")}
+                value={meetUpPlace}
+                onChange={(e) => setMeetUpPlace(e.target.value)}
+              />
+            </div>
+          )}
+          {hasOwnVehicle === false && (
             <div className="booking-empty-state">
               <span aria-hidden="true">T</span>
               <div>
@@ -996,6 +1012,19 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             </label>
           </div>
           {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
+          {hasOwnVehicle === false && (
+            <div className="field" style={{ marginTop: 12 }}>
+              <label htmlFor="bf-s-meet-up-place">{ts("meetUpPlaceLabel")}</label>
+              <p className="hint">{ts("meetUpPlaceHint")}</p>
+              <input
+                id="bf-s-meet-up-place"
+                maxLength={255}
+                placeholder={ts("meetUpPlacePlaceholder")}
+                value={meetUpPlace}
+                onChange={(e) => setMeetUpPlace(e.target.value)}
+              />
+            </div>
+          )}
 
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-s-departure-city">{ts("departureCityLabel")}</label>

@@ -124,6 +124,11 @@ public class Reservation {
     @Column(name = "return_city", length = 20)
     private DepartureCity returnCity;
 
+    // Staff-only free text: where the support team meets the guest in the
+    // departure city. Written from the backoffice, never by the guest.
+    @Column(name = "meet_up_place", length = 255)
+    private String meetUpPlace;
+
     // Client's preferred language(s) for this booking (currently only
     // captured by the Tour public booking form, where staff assign a
     // translating Guide) - lets admin match Guide.languages to the guest

@@ -6,6 +6,7 @@ import { getDriverProfiles, getGuideProfiles, getPaymentPolicy, getReservationBy
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 import ReservationStatusPanel from "@/components/payload/ReservationStatusPanel";
 import ReservationPaymentPanel from "@/components/reservations/ReservationPaymentPanel";
+import MeetUpPlacePanel from "@/components/reservations/MeetUpPlacePanel";
 import ReservationEditForm from "@/components/reservations/ReservationEditForm";
 import { isEditable, statusOf } from "@/components/reservations/reservationStatus";
 
@@ -98,6 +99,12 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         </div>
       )}
 
+      <MeetUpPlacePanel
+        reservationId={reservation.reservationId}
+        departureCityLabel={reservation.departureCity ? DEPARTURE_CITY_LABELS[reservation.departureCity] : null}
+        initialValue={reservation.meetUpPlace ?? null}
+      />
+
       <ReservationStaffPanel
         reservationId={reservation.reservationId}
         reservationType={reservation.reservationType}
@@ -120,6 +127,7 @@ const DEPARTURE_CITY_LABELS: Record<string, string> = {
   DJERBA: "Djerba",
   MAHDIA: "Mahdia",
   MONASTIR: "Monastir",
+  TOZEUR: "Tozeur",
 };
 
 function Field({ label, value }: { label: string; value: string }) {

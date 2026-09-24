@@ -13,5 +13,6 @@ public enum DepartureCity {
     HAMMAMET,
     DJERBA,
     MAHDIA,
-    MONASTIR
+    MONASTIR,
+    TOZEUR
 }

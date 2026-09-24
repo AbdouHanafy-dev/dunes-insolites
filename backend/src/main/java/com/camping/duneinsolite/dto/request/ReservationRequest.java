@@ -56,6 +56,8 @@ public class ReservationRequest {
     private DepartureCity departureCity;
     // Optional return leg after the stay/tour, same DepartureCity catalog.
     private DepartureCity returnCity;
+    // Optional meeting place, kept only for ArrivalMode.TRANSPORT.
+    private String meetUpPlace;
 
     // Client's preferred language(s) — SpokenLanguage ids — so staff can
     // pick a Guide who speaks one. Free-text fallback if not in the catalog.

@@ -221,6 +221,7 @@ export const DEPARTURE_CITIES = [
   "DJERBA",
   "MAHDIA",
   "MONASTIR",
+  "TOZEUR",
 ] as const;
 export type DepartureCity = (typeof DEPARTURE_CITIES)[number];
 
@@ -247,6 +248,9 @@ export type TourBooking = {
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */
   returnCity?: DepartureCity;
+  /** Optional, TRANSPORT only: where the guest would like to be met. The
+   *  server ignores it for OWN_VEHICLE and never returns it to guests. */
+  meetUpPlace?: string;
   serviceOptions?: ServiceOptionSelection[];
   /** SpokenLanguage ids the guest prefers, from the admin-managed catalog
    *  (see Language / getLanguages), so staff can assign a Guide who speaks
@@ -385,6 +389,9 @@ export type Booking = {
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */
   returnCity?: DepartureCity;
+  /** Optional, TRANSPORT only: where the guest would like to be met. The
+   *  server ignores it for OWN_VEHICLE and never returns it to guests. */
+  meetUpPlace?: string;
   /** SpokenLanguage ids the guest prefers, from the admin-managed catalog,
    *  so staff can assign an instructor/guide who speaks one. */
   preferredLanguageIds?: string[];
@@ -464,6 +471,9 @@ export type StayBooking = {
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */
   returnCity?: DepartureCity;
+  /** Optional, TRANSPORT only: where the guest would like to be met. The
+   *  server ignores it for OWN_VEHICLE and never returns it to guests. */
+  meetUpPlace?: string;
   serviceOptions?: ServiceOptionSelection[];
   name: string;
   email: string;

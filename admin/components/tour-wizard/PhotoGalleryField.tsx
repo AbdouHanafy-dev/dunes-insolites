@@ -22,6 +22,22 @@ export default function PhotoGalleryField({
   onPhotosChange: (photos: TourPhoto[]) => void;
 }) {
   const [picker, setPicker] = useState<"cover" | "gallery" | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  /** Moves one photo to a new position; the array order is the display order. */
+  function move(from: number, to: number) {
+    if (from === to || to < 0 || to >= photos.length) return;
+    const next = [...photos];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onPhotosChange(next);
+  }
+
+  function endDrag() {
+    setDragIndex(null);
+    setOverIndex(null);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -49,14 +65,50 @@ export default function PhotoGalleryField({
 
       <div>
         <p className="mb-2 text-[13px] font-medium text-navy-700/70">Galerie</p>
+        {photos.length > 1 && (
+          <p className="mb-2 text-[12px] text-navy-700/45">
+            Glissez-déposez les photos (ou utilisez les flèches) pour définir leur ordre d’affichage.
+          </p>
+        )}
         {photos.length === 0 ? (
           <p className="mb-2 text-sm text-gray-400">Aucune photo dans la galerie.</p>
         ) : (
           <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {photos.map((photo, index) => (
-              <div key={index} className="overflow-hidden rounded-xl border border-navy-700/10">
+              <div
+                key={index}
+                draggable
+                onDragStart={(e) => {
+                  setDragIndex(index);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  if (dragIndex === null) return;
+                  e.preventDefault();
+                  setOverIndex(index);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (dragIndex !== null) move(dragIndex, index);
+                  endDrag();
+                }}
+                onDragEnd={endDrag}
+                className={`relative cursor-grab overflow-hidden rounded-xl border bg-white active:cursor-grabbing ${
+                  overIndex === index && dragIndex !== index
+                    ? "border-gold ring-2 ring-gold/40"
+                    : "border-navy-700/10"
+                } ${dragIndex === index ? "opacity-40" : ""}`}
+              >
+                <span className="absolute left-2 top-2 z-10 rounded-md bg-white/90 px-1.5 py-0.5 text-[11px] font-bold text-navy-800">
+                  {index + 1}
+                </span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo.url} alt={photo.caption ?? ""} className="aspect-square w-full object-cover" />
+                <img
+                  src={photo.url}
+                  alt={photo.caption ?? ""}
+                  draggable={false}
+                  className="aspect-square w-full select-none object-cover"
+                />
                 <div className="flex flex-col gap-1.5 p-2">
                   <input
                     className={`${inputClass} !py-1.5 !text-[12px]`}
@@ -66,6 +118,26 @@ export default function PhotoGalleryField({
                       onPhotosChange(photos.map((p, i) => (i === index ? { ...p, caption: e.target.value } : p)))
                     }
                   />
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      aria-label="Déplacer vers le début"
+                      disabled={index === 0}
+                      onClick={() => move(index, index - 1)}
+                      className="flex-1 rounded-md border border-navy-700/15 py-1 text-xs text-navy-700/70 hover:bg-navy-700/5 disabled:opacity-30"
+                    >
+                      <i className="bi bi-arrow-left" aria-hidden />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Déplacer vers la fin"
+                      disabled={index === photos.length - 1}
+                      onClick={() => move(index, index + 1)}
+                      className="flex-1 rounded-md border border-navy-700/15 py-1 text-xs text-navy-700/70 hover:bg-navy-700/5 disabled:opacity-30"
+                    >
+                      <i className="bi bi-arrow-right" aria-hidden />
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => onPhotosChange(photos.filter((_, i) => i !== index))}

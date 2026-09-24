@@ -138,6 +138,7 @@ export default function StayReservationForm({
   // Optional return leg after the stay ends - same city list as
   // departureCity, entirely skippable.
   const [returnCity, setReturnCity] = useState<DepartureCity | "">(initialDraft?.returnCity ?? "");
+  const [meetUpPlace, setMeetUpPlace] = useState("");
   const [guideOptions, setGuideOptions] = useState<ServiceOptionCatalogItem[]>([]);
   const [transportOptions, setTransportOptions] = useState<ServiceOptionCatalogItem[]>([]);
   const [guideSlug, setGuideSlug] = useState(initialDraft?.guideSlug ?? "");
@@ -480,6 +481,7 @@ export default function StayReservationForm({
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
+      meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,
       email,
@@ -670,6 +672,19 @@ export default function StayReservationForm({
           </label>
         </div>
         {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
+        {hasOwnVehicle === false && (
+          <div className="field" style={{ marginTop: 12 }}>
+            <label htmlFor="sf-meet-up-place">{t("meetUpPlaceLabel")}</label>
+            <p className="hint">{t("meetUpPlaceHint")}</p>
+            <input
+              id="sf-meet-up-place"
+              maxLength={255}
+              placeholder={t("meetUpPlacePlaceholder")}
+              value={meetUpPlace}
+              onChange={(e) => setMeetUpPlace(e.target.value)}
+            />
+          </div>
+        )}
 
         <div className="field" style={{ marginTop: 12 }}>
           <label htmlFor="sf-departure-city">{t("departureCityLabel")}</label>

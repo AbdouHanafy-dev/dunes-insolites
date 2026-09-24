@@ -37,6 +37,8 @@ public interface ReservationService {
     Page<ReservationResponse> searchReservationsByName(String name, Pageable pageable);
 
 
+    ReservationResponse updateMeetUpPlace(UUID reservationId, String meetUpPlace);
+
     ReservationResponse addStaffToReservation(UUID reservationId, ReservationStaffRequest request);
 
     ReservationResponse updateGuide(UUID reservationId, UUID guideId, GuideUpdateRequest request);

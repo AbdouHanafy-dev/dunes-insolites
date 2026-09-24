@@ -159,6 +159,17 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationsFiltered(status, name, date, pageable));
     }
 
+    // Support-team field: where to meet the guest. Deliberately open to
+    // CAMPING as well as ADMIN, and not gated on reservation status - the
+    // meet-up is arranged right up to the day.
+    @PatchMapping("/{reservationId}/meet-up-place")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    public ResponseEntity<ReservationResponse> updateMeetUpPlace(
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody MeetUpPlaceRequest request) {
+        return ResponseEntity.ok(reservationService.updateMeetUpPlace(reservationId, request.getMeetUpPlace()));
+    }
+
     // ── Staff management — ADMIN only
 
     @PatchMapping("/{reservationId}/staff/guides/{guideId}")

@@ -81,6 +81,7 @@ export default function TourBookingFlow({
   // Optional return leg after the tour ends - same city list as
   // departureCity, entirely skippable.
   const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
+  const [meetUpPlace, setMeetUpPlace] = useState("");
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
@@ -204,6 +205,7 @@ export default function TourBookingFlow({
       arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
       departureCity: departureCity || undefined,
       returnCity: returnCity || undefined,
+      meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       preferredLanguageIds: preferredLanguageIds.length > 0 ? preferredLanguageIds : undefined,
       otherLanguageRequested: otherLanguageRequested.trim() || undefined,
       name,
@@ -385,6 +387,19 @@ export default function TourBookingFlow({
             </label>
           </div>
           {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
+          {hasOwnVehicle === false && (
+            <div className="field" style={{ marginTop: 12 }}>
+              <label htmlFor="tf-meet-up-place">{t("meetUpPlaceLabel")}</label>
+              <p className="hint">{t("meetUpPlaceHint")}</p>
+              <input
+                id="tf-meet-up-place"
+                maxLength={255}
+                placeholder={t("meetUpPlacePlaceholder")}
+                value={meetUpPlace}
+                onChange={(e) => setMeetUpPlace(e.target.value)}
+              />
+            </div>
+          )}
           {hasOwnVehicle === false && (
             <div className="booking-empty-state">
               <span aria-hidden="true">T</span>

@@ -226,6 +226,9 @@ public class ReservationServiceImpl implements ReservationService {
                 .arrivalMode(request.getArrivalMode())
                 .departureCity(request.getDepartureCity())
                 .returnCity(request.getReturnCity())
+                .meetUpPlace(request.getArrivalMode() == com.camping.duneinsolite.model.enums.ArrivalMode.TRANSPORT
+                        && request.getMeetUpPlace() != null && !request.getMeetUpPlace().isBlank()
+                        ? request.getMeetUpPlace().trim() : null)
                 .preferredLanguages(resolveLanguages(request.getPreferredLanguageIds()))
                 .otherLanguageRequested(request.getOtherLanguageRequested())
                 .numberOfAdults(globalAdults)
@@ -1584,6 +1587,15 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Transactional
+    public ReservationResponse updateMeetUpPlace(UUID reservationId, String meetUpPlace) {
+        Reservation reservation = findById(reservationId);
+        String cleaned = meetUpPlace == null ? "" : meetUpPlace.trim();
+        reservation.setMeetUpPlace(cleaned.isEmpty() ? null : cleaned);
+        return toEnrichedResponse(reservationRepository.save(reservation));
+    }
+
+    @Override
+    @Transactional
     public ReservationResponse updateGuide(UUID reservationId, UUID guideId, GuideUpdateRequest request) {
         Reservation reservation = findById(reservationId);
         validateIsTourReservation(reservation);
@@ -1848,6 +1860,11 @@ public class ReservationServiceImpl implements ReservationService {
 
     private ReservationResponse toEnrichedResponse(Reservation reservation) {
         ReservationResponse response = reservationMapper.toResponse(reservation);
+        // The meet-up place is an internal support note; guests are reached by
+        // phone and never see it.
+        if (!caller.isStaff()) {
+            response.setMeetUpPlace(null);
+        }
         PaymentSummary summary = paymentService.computePaymentSummary(reservation);
         response.setPaymentSummary(summary);
         response.setTotalAmount(summary.getOriginalMainAmount());

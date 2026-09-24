@@ -61,6 +61,7 @@ export const DEPARTURE_CITY_LABELS: Record<DepartureCity, string> = {
   DJERBA: "Djerba",
   MAHDIA: "Mahdia",
   MONASTIR: "Monastir",
+  TOZEUR: "Tozeur",
 };
 
 /** How each review platform is credited in the UI. */
