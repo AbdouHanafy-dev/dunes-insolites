@@ -233,13 +233,14 @@ class ReservationInvoiceIT {
 
         InvoiceResponse facture = invoiceOfType(resId, InvoiceType.STANDARD);
         assertThat(facture.getInvoiceType()).isEqualTo(InvoiceType.STANDARD);
-        // 165.000 TTC @ 7% → 154.206 HT + 10.794 TVA, plus 1.000 TND timbre fiscal
+        // 165.000 TTC @ 7% → 154.206 HT + 10.794 TVA, plus the timbre fiscal: 1 TND
+        // expressed in the reservation currency (EUR, base) = 1 / 3.4 = 0.294
         assertThat(facture.getTotalHt()).isEqualByComparingTo("154.206");
         assertThat(facture.getTvaAmount()).isEqualByComparingTo("10.794");
-        assertThat(facture.getTimbreFiscal()).isEqualByComparingTo("1.000");
+        assertThat(facture.getTimbreFiscal()).isEqualByComparingTo("0.294");
         assertThat(facture.getTotalTtc())
                 .as("FACTURE TTC = HT + TVA + timbre fiscal, to the millime")
-                .isEqualByComparingTo("166.000");
+                .isEqualByComparingTo("165.294");
         assertThat(facture.getInvoiceDate()).isEqualTo(LocalDate.now());
         assertThat(facture.getPaymentStatus()).isEqualTo(PaymentStatus.UNPAID);
         assertThat(facture.getPaidAmount()).isEqualByComparingTo("0.000");
@@ -265,7 +266,7 @@ class ReservationInvoiceIT {
         InvoiceResponse facture = reservationService.generateFactureLater(resId, null);
         assertThat(facture.getInvoiceType()).isEqualTo(InvoiceType.STANDARD);
         assertThat(facture.getCompanyType()).isEqualTo(CompanyType.DUNES_INSOLITES);
-        assertThat(facture.getTotalTtc()).isEqualByComparingTo("166.000");
+        assertThat(facture.getTotalTtc()).isEqualByComparingTo("165.294");
         assertThat(facture.getInvoiceDate())
                 .as("not completed → invoice date is today")
                 .isEqualTo(LocalDate.now());
