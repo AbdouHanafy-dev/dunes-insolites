@@ -218,6 +218,7 @@ services:
         NEXT_PUBLIC_API_URL: https://api.dunesinsolites.com/api
         NEXT_PUBLIC_ADMIN_APP_URL: https://admin.dunesinsolites.com
         MAINTENANCE_FAIL_CLOSED: ${MAINTENANCE_FAIL_CLOSED:-true}
+        MAINTENANCE_BYPASS_SECRET: ${MAINTENANCE_BYPASS_SECRET:-}
     image: dunes-v2-frontend
     container_name: dunes-v2-frontend
     restart: unless-stopped

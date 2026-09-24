@@ -18,9 +18,13 @@ COPY frontend ./frontend
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_ADMIN_APP_URL
 ARG MAINTENANCE_FAIL_CLOSED=false
+# middleware.ts is bundled at build time, so the bypass secret must be present
+# here too - as a runtime-only variable it compiled to empty and ?bypass= never worked.
+ARG MAINTENANCE_BYPASS_SECRET=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_ADMIN_APP_URL=$NEXT_PUBLIC_ADMIN_APP_URL \
     MAINTENANCE_FAIL_CLOSED=$MAINTENANCE_FAIL_CLOSED \
+    MAINTENANCE_BYPASS_SECRET=$MAINTENANCE_BYPASS_SECRET \
     NEXT_TELEMETRY_DISABLED=1
 RUN npm run build --workspace frontend
 
