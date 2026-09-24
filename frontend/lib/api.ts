@@ -47,6 +47,34 @@ import type { SlotAvailability } from "@/lib/bookings";
 
 const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
+/**
+ * Uploaded photos are stored as absolute URLs, and one saved while the backoffice
+ * reached the API by its internal hostname points somewhere a visitor's browser
+ * cannot go (a broken image on the card). Whatever host a stored /media/ link
+ * carries, serve it from the public API origin.
+ */
+const MEDIA_ORIGIN = (() => {
+  try {
+    return BASE ? new URL(BASE).origin : "";
+  } catch {
+    return "";
+  }
+})();
+const STORED_MEDIA_URL = /^https?:\/\/[^/\s]+(\/media\/[^\s]+)$/;
+
+function withPublicMedia<T>(value: T): T {
+  if (!MEDIA_ORIGIN) return value;
+  if (typeof value === "string") {
+    const m = STORED_MEDIA_URL.exec(value);
+    return (m ? MEDIA_ORIGIN + m[1] : value) as T;
+  }
+  if (Array.isArray(value)) return value.map(withPublicMedia) as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, withPublicMedia(v)])) as T;
+  }
+  return value;
+}
+
 // ── Fail closed (production-hardening item 3) ──────────────────────────────
 //
 // Serving seed/placeholder content as though it were live business data — stale
@@ -142,7 +170,7 @@ async function get<T>(
       }
       return empty;
     }
-    return (await res.json()) as T;
+    return withPublicMedia((await res.json()) as T);
   } catch (err) {
     // Cancelled on purpose (e.g. the date changed and a newer availability
     // request replaced this one): stay quiet - callers ignore aborted results.
