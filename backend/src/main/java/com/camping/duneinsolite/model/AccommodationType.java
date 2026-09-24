@@ -15,12 +15,11 @@ import java.util.UUID;
  * Room / Dune Suite. Belongs to one {@link TourType} (the nuitée). The
  * bivouac nuitée has none.
  *
- * <p>Pricing is <b>per unit, per night</b> (the inference documented in
- * docs/reports/phase1-accommodation-pricing.md — F-1). Prices are stored
- * <b>TTC</b> (tax-inclusive) with a {@code tvaRate}, matching the rest of the
- * platform.
+ * <p>Pricing is <b>per person, per night</b>, one price per guest type (adult, child,
+ * infant). Prices are stored <b>TTC</b> (tax-inclusive) with a {@code tvaRate}, matching
+ * the rest of the platform. The older per-unit {@code unitPriceTtc} is legacy only.
  *
- * <p><b>{@code unitPriceTtc} is nullable and that means "price not configured".</b>
+ * <p><b>{@code adultPriceTtc} is nullable and that means "price not configured".</b>
  * Such a tier is invisible on the vitrine and any booking that selects it is
  * rejected ({@code AccommodationPricingException}). Real prices are entered by
  * an admin once F-2 is answered — nothing here invents them.

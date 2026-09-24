@@ -52,7 +52,7 @@ public class PricingRule {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    /** TTC, per unit per night — same unit as {@code AccommodationType.unitPriceTtc}. */
+    /** TTC adult price per person per night for the rule's dates; child and infant scale by the same ratio. */
     @Column(name = "price_ttc", nullable = false, precision = 15, scale = 3)
     private BigDecimal priceTtc;
 

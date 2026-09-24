@@ -93,7 +93,7 @@ class ReservationOwnershipIdorIT {
                 .tva(BigDecimal.ZERO).build());
         accommodationTypeRepository.save(AccommodationType.builder()
                 .tourType(stay).slug("dune-suite").name("Dune Suite").capacity(4)
-                .unitPriceTtc(new BigDecimal("165.000")).tvaRate(new BigDecimal("7"))
+                .adultPriceTtc(new BigDecimal("82.500")).childPriceTtc(new BigDecimal("82.500")).infantPriceTtc(BigDecimal.ZERO).tvaRate(new BigDecimal("7"))
                 .displayOrder(0).active(true).build());
 
         Mockito.when(keycloakUserSyncService.createInvitedGuestUser(Mockito.any(), Mockito.any(), Mockito.any()))
