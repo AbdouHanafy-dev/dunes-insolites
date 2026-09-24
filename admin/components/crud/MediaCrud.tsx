@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { AdminMediaAsset } from "@/lib/api";
+import { uploadImage } from "@/lib/uploadImage";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} o`;
@@ -29,20 +30,12 @@ export function MediaLibrary({ initialItems }: { initialItems: AdminMediaAsset[]
 
     setUploading(true);
     setError("");
-    const form = new FormData();
-    form.set("file", file);
-
-    const res = await fetch("/api/proxy/media-upload?companyType=DUNES_INSOLITES", {
-      method: "POST",
-      body: form,
-    });
+    const result = await uploadImage(file);
     setUploading(false);
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Envoi impossible.";
-      setError(message);
-      toast.error(message);
+    if (result.url === null) {
+      setError(result.error);
+      toast.error(result.error);
       return;
     }
     toast.success("Fichier envoyé");

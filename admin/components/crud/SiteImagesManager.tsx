@@ -5,15 +5,7 @@ import { useRef, useState } from "react";
 import { SITE_IMAGE_SLOTS } from "@dunes/api-types";
 import { useToast } from "@/components/Toast";
 import type { AdminSiteImage } from "@/lib/api";
-
-async function uploadFile(file: File): Promise<string | null> {
-  const form = new FormData();
-  form.set("file", file);
-  const res = await fetch("/api/proxy/media-upload?companyType=DUNES_INSOLITES", { method: "POST", body: form });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.url as string;
-}
+import { uploadImage } from "@/lib/uploadImage";
 
 /**
  * Every photo the site shows that isn't tied to a catalogue item (home,
@@ -43,12 +35,13 @@ export default function SiteImagesManager({ images }: { images: AdminSiteImage[]
     const key = pendingKey.current;
     if (!file || !key) return;
     setBusyKey(key);
-    const url = await uploadFile(file);
-    if (!url) {
+    const uploaded = await uploadImage(file);
+    if (uploaded.url === null) {
       setBusyKey(null);
-      toast.error("Envoi impossible (image JPG, PNG, WebP ou GIF).");
+      toast.error(uploaded.error);
       return;
     }
+    const url = uploaded.url;
     const res = await fetch(`/api/proxy/site-images/${key}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

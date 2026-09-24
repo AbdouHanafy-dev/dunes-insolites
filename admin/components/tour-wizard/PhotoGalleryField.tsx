@@ -3,20 +3,9 @@
 import { useRef, useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass } from "@/components/payload/fields";
+import { uploadImage } from "@/lib/uploadImage";
 
 export type TourPhoto = { url: string; caption: string | null };
-
-async function uploadFile(file: File): Promise<string | null> {
-  const form = new FormData();
-  form.set("file", file);
-  const res = await fetch("/api/proxy/media-upload?companyType=DUNES_INSOLITES", {
-    method: "POST",
-    body: form,
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.url as string;
-}
 
 /** Cover photo (single) + gallery (many, with captions) — both upload
  *  through the same media library the rest of the admin already uses
@@ -44,13 +33,13 @@ export default function PhotoGalleryField({
     e.target.value = "";
     if (!file) return;
     setUploadingCover(true);
-    const url = await uploadFile(file);
+    const result = await uploadImage(file);
     setUploadingCover(false);
-    if (!url) {
-      toast.error("Envoi impossible.");
+    if (result.url === null) {
+      toast.error(result.error);
       return;
     }
-    onCoverChange(url);
+    onCoverChange(result.url);
   }
 
   async function onGalleryFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
@@ -58,13 +47,13 @@ export default function PhotoGalleryField({
     e.target.value = "";
     if (!file) return;
     setUploadingGallery(true);
-    const url = await uploadFile(file);
+    const result = await uploadImage(file);
     setUploadingGallery(false);
-    if (!url) {
-      toast.error("Envoi impossible.");
+    if (result.url === null) {
+      toast.error(result.error);
       return;
     }
-    onPhotosChange([...photos, { url, caption: "" }]);
+    onPhotosChange([...photos, { url: result.url, caption: "" }]);
   }
 
   return (
