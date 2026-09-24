@@ -101,6 +101,7 @@ services:
     restart: unless-stopped
     environment:
       DEPLOY_ENV: production
+      APP_PUBLIC_URL: https://api.dunesinsolites.com
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duneinsolite
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}

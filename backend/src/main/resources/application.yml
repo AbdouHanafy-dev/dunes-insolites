@@ -189,6 +189,7 @@ logging:
 
 # ── App-level properties (used in EmailService) ─────────────────
 app:
+  public-url: ${APP_PUBLIC_URL:}   # origin used for uploaded-file links; blank = from the request
   upload-dir: ${APP_UPLOAD_DIR:uploads}   # local disk, see MediaServiceImpl/WebConfig
   mail:
     # Was never actually configurable - EmailService's @Value default

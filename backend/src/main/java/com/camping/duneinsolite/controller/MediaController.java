@@ -4,6 +4,7 @@ import com.camping.duneinsolite.dto.response.MediaAssetResponse;
 import com.camping.duneinsolite.model.enums.CompanyType;
 import com.camping.duneinsolite.service.MediaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +31,10 @@ public class MediaController {
 
     private final MediaService mediaService;
 
+    /** Public origin of this API (e.g. https://api.dunesinsolites.com). Blank = derive from the request. */
+    @Value("${app.public-url:}")
+    private String publicUrl;
+
     @PostMapping(consumes = "multipart/form-data")
     @PreAuthorize("@perm.can('MEDIA', 'FULL')")
     public ResponseEntity<MediaAssetResponse> upload(
@@ -51,10 +56,16 @@ public class MediaController {
         return ResponseEntity.noContent().build();
     }
 
-    /** Rewrites the service's relative "/media/xyz.jpg" into an absolute
-     *  URL against whatever host this request actually came in on. */
+    /** Rewrites the service's relative "/media/xyz.jpg" into an absolute URL.
+     *  Uses app.public-url when set: the backoffice calls this API over the
+     *  internal network, so the request's own host is not one a visitor's
+     *  browser can reach and the stored image address would be broken. */
     private MediaAssetResponse absolute(MediaAssetResponse response) {
-        response.setUrl(ServletUriComponentsBuilder.fromCurrentContextPath().path(response.getUrl()).toUriString());
+        if (publicUrl != null && !publicUrl.isBlank()) {
+            response.setUrl(publicUrl.replaceAll("/+$", "") + response.getUrl());
+        } else {
+            response.setUrl(ServletUriComponentsBuilder.fromCurrentContextPath().path(response.getUrl()).toUriString());
+        }
         return response;
     }
 }
