@@ -93,6 +93,12 @@ jobs:
     needs: [unit, integration]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    # Two pushes to main in quick succession ran two deploys at once on the same
+    # VPS; the second hit a half-recreated container ("name already in use").
+    # One deploy at a time, queued rather than cancelled mid-recreate.
+    concurrency:
+      group: deploy-vps
+      cancel-in-progress: false
     steps:
       - name: Deploy to the VPS
         uses: appleboy/ssh-action@v1.2.5
