@@ -157,6 +157,19 @@ class ReservationInvoiceIT {
                 .filter(i -> i.getInvoiceType() == type).reduce((a, b) -> b).orElseThrow();
     }
 
+    /**
+     * Loads a reservation with its lines AND each line's accommodation snapshot
+     * while the session is still open: getAccommodations() is lazy, so reading
+     * it after the transaction closed threw LazyInitializationException.
+     */
+    private Reservation load(UUID id) {
+        return tx.execute(t -> {
+            Reservation r = reservationRepository.findByIdWithTourTypes(id).orElseThrow();
+            r.getTourTypes().forEach(line -> line.getAccommodations().size());
+            return r;
+        });
+    }
+
     @Test
     void confirmGeneratesAProformaWhoseHtPlusTvaReconcilesToTheAuthoritativeTtc() {
         var resp = publicBookingService.createStayBooking(req());
@@ -198,8 +211,7 @@ class ReservationInvoiceIT {
         assertThat(reloaded.getTotalTtc()).as("issued invoice is immutable to catalogue changes")
                 .isEqualByComparingTo("165.000");
 
-        Reservation res = tx.execute(t ->
-                reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
+        Reservation res = load(resId);
         assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");
         assertThat(res.getTourTypes().get(0).getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
     }

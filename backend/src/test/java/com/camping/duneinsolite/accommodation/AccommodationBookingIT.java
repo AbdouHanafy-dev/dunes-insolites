@@ -116,15 +116,28 @@ class AccommodationBookingIT {
         var accSelection = new com.camping.duneinsolite.dto.request.publicapi.PublicAccommodationSelectionRequest();
         accSelection.setAccommodationSlug(accSlug);
         accSelection.setQuantity(qty);
-        r.setAccommodations(java.util.List.of(accSelection));
+        r.setAccommodations(accSlug == null ? java.util.List.of() : java.util.List.of(accSelection));
         r.setName("Guest"); r.setEmail("guest@example.com"); r.setPhone("+21650000000");
         return r;
+    }
+
+    /**
+     * Loads a reservation with its lines AND each line's accommodation snapshot
+     * while the session is still open: getAccommodations() is lazy, so reading
+     * it after the transaction closed threw LazyInitializationException.
+     */
+    private Reservation load(UUID id) {
+        return tx.execute(t -> {
+            Reservation r = reservationRepository.findByIdWithTourTypes(id).orElseThrow();
+            r.getTourTypes().forEach(line -> line.getAccommodations().size());
+            return r;
+        });
     }
 
     @Test
     void guestIsChargedTheTierPrice_perUnit_notThePerPersonRate() {
         var resp = publicBookingService.createStayBooking(req("dune-suite", 1, 2));
-        Reservation res = tx.execute(t -> reservationRepository.findByIdWithTourTypes(UUID.fromString(resp.getId())).orElseThrow());
+        Reservation res = load(UUID.fromString(resp.getId()));
         assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000");                 // suite, not 999 × 2
         var line = res.getTourTypes().get(0);
         assertThat(line.isAccommodationPriced()).isTrue();
@@ -135,14 +148,14 @@ class AccommodationBookingIT {
     @Test
     void partySizeDoesNotInflateAnAccommodationPricedLine() {
         var resp = publicBookingService.createStayBooking(req("dune-suite", 1, 4));
-        Reservation res = tx.execute(t -> reservationRepository.findByIdWithTourTypes(UUID.fromString(resp.getId())).orElseThrow());
+        Reservation res = load(UUID.fromString(resp.getId()));
         assertThat(res.getTotalAmount()).isEqualByComparingTo("165.000"); // 1 suite, still 165 — not × party
     }
 
     @Test
     void twoTentsAreChargedAsTwoUnits() {
         var resp = publicBookingService.createStayBooking(req("desert-tent", 2, 3));
-        Reservation res = tx.execute(t -> reservationRepository.findByIdWithTourTypes(UUID.fromString(resp.getId())).orElseThrow());
+        Reservation res = load(UUID.fromString(resp.getId()));
         assertThat(res.getTotalAmount()).isEqualByComparingTo("190.000"); // 95 × 2
     }
 
@@ -167,7 +180,7 @@ class AccommodationBookingIT {
     void bookingWithoutAnAccommodationKeepsLegacyPerPersonPricing() {
         var r = req(null, null, 2);
         var resp = publicBookingService.createStayBooking(r);
-        Reservation res = tx.execute(t -> reservationRepository.findByIdWithTourTypes(UUID.fromString(resp.getId())).orElseThrow());
+        Reservation res = load(UUID.fromString(resp.getId()));
         assertThat(res.getTourTypes().get(0).isAccommodationPriced()).isFalse();
         assertThat(res.getTotalAmount()).isEqualByComparingTo("1998.000"); // 999 × 2, unchanged behaviour
     }
@@ -181,7 +194,7 @@ class AccommodationBookingIT {
         suite.setUnitPriceTtc(new BigDecimal("999.000"));
         accommodationTypeRepository.saveAndFlush(suite);
 
-        Reservation reloaded = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
+        Reservation reloaded = load(resId);
         assertThat(reloaded.getTotalAmount()).isEqualByComparingTo("165.000");
         assertThat(reloaded.getTourTypes().get(0).getAccommodations().get(0).getAccommodationUnitPriceTtc()).isEqualByComparingTo("165.000");
     }
@@ -219,7 +232,7 @@ class AccommodationBookingIT {
         upd.setGroupName("Renamed by admin"); // no tourTypes in the request
         reservationService.updateReservation(resId, upd);
 
-        Reservation r = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
+        Reservation r = load(resId);
         assertThat(r.getTourTypes().get(0).isAccommodationPriced()).isTrue();
         assertThat(r.getTotalAmount()).isEqualByComparingTo("165.000");
     }
@@ -232,7 +245,7 @@ class AccommodationBookingIT {
 
         // the admin form sends the tourTypes array back (without accommodation info)
         var sel = new com.camping.duneinsolite.dto.request.TourTypeSelectionRequest();
-        Reservation before = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
+        Reservation before = load(resId);
         sel.setTourTypeId(before.getTourTypes().get(0).getCatalogTourTypeId());
         sel.setNumberOfAdults(2);
         sel.setActivityDate(before.getCheckInDate());
@@ -240,7 +253,7 @@ class AccommodationBookingIT {
         upd.setTourTypes(java.util.List.of(sel));
         reservationService.updateReservation(resId, upd);
 
-        Reservation r = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
+        Reservation r = load(resId);
         var line = r.getTourTypes().get(0);
         assertThat(line.isAccommodationPriced()).as("snapshot carried forward").isTrue();
         assertThat(line.getAccommodations().get(0).getAccommodationName()).isEqualTo("Dune Suite");
@@ -264,7 +277,7 @@ class AccommodationBookingIT {
         upd.setGroupName("Edited after a price change");
         reservationService.updateReservation(resId, upd);
 
-        Reservation r = tx.execute(t -> reservationRepository.findByIdWithTourTypes(resId).orElseThrow());
+        Reservation r = load(resId);
         assertThat(r.getTotalAmount()).as("historical reservation stays financially stable").isEqualByComparingTo("165.000");
     }
 
