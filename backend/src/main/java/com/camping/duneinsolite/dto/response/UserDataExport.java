@@ -27,7 +27,8 @@ public record UserDataExport(
         List<TransactionResponse> transactions,
         List<NotificationResponse> notifications,
         List<ReviewResponse> reviews,
-        Newsletter newsletter
+        Newsletter newsletter,
+        List<FavoriteResponse> favorites
 ) {
     /** Marketing list membership for this user's email, if any. */
     public record Newsletter(boolean subscribed, LocalDateTime subscribedAt) {}

@@ -226,7 +226,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             />
             <Header activities={activities} stays={stays} tours={tours} navItems={navItems} />
             <main>{children}</main>
-            <Footer settings={settings} />
+            <Footer settings={settings} tours={tours} stays={stays} activities={activities} />
             <CookieConsent />
             <ScrollToTop />
             <Analytics />

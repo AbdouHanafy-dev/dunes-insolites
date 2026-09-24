@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { getTours } from "@/lib/api";
+import { getSiteImages, getTours } from "@/lib/api";
 import type { Tour } from "@/lib/types";
 import TourCard from "@/components/TourCard";
 import CircuitsFilterBar, { type CircuitsSort } from "@/components/CircuitsFilterBar";
@@ -85,13 +85,13 @@ export default async function CircuitsPage({
 }) {
   const { locale } = await params;
   const { q, sort } = await searchParams;
-  const [allTours, t] = await Promise.all([getTours(locale), getTranslations("circuitsPage")]);
+  const [allTours, t, images] = await Promise.all([getTours(locale), getTranslations("circuitsPage"), getSiteImages()]);
   const tours = applyFilters(allTours, q, sort);
   const isFiltered = !!q || !!sort;
 
   return (
     <>
-      <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image="/images/quad.jpg" />
+      <PageHead eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} image={images["pagehead.circuits"]} />
 
       <section className="block activities" style={{ paddingTop: 110 }}>
         <div className="wrap">

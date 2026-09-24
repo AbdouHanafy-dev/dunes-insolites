@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { getStay } from "@/lib/api";
+import { getReviews, getSiteSettings, getStay } from "@/lib/api";
 import { getStays } from "@/lib/data/stays";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import AccommodationView from "@/components/AccommodationView";
 
 type Props = { params: Promise<{ locale: string; slug: string; accommodation: string }> };
 
@@ -40,10 +39,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AccommodationDetail({ params }: Props) {
   const { locale } = await params;
-  const [{ stay, accommodation }, t, tNav] = await Promise.all([
+  const [{ stay, accommodation }, tNav, reviews, settings] = await Promise.all([
     getAccommodation(params),
-    getTranslations("accommodationPage"),
     getTranslations("nav"),
+    getReviews(),
+    getSiteSettings(),
   ]);
   if (!stay || !accommodation) notFound();
 
@@ -61,63 +61,13 @@ export default async function AccommodationDetail({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <section className="accommodation-hero">
-        {isDisplayableImageSrc(accommodation.image) && (
-          <Image src={accommodation.image} alt={accommodation.title} fill sizes="100vw" preload style={{ objectFit: "cover" }} />
-        )}
-        <div className="wrap">
-          <Link href={`/camp/${stay.slug}`} className="back-link">{t("backTo", { stay: stay.title })}</Link>
-          <p className="kicker">{t("kicker")}</p>
-          <h1>{accommodation.title}</h1>
-          <p>{accommodation.tagline}</p>
-        </div>
-      </section>
-      <section className="detail-body">
-        <div className="wrap">
-          {accommodation.gallery && accommodation.gallery.length > 0 && (
-            <div
-              style={{
-                maxWidth: 960,
-                margin: "0 auto 40px",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 12,
-              }}
-            >
-              {accommodation.gallery.filter(isDisplayableImageSrc).map((src, index) => (
-                <div key={src} style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: 12, overflow: "hidden" }}>
-                  <Image
-                    src={src}
-                    alt={`${accommodation.title} — ${index + 2}`}
-                    fill
-                    sizes="(max-width: 700px) 100vw, 320px"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="prose accommodation-detail-copy" style={{ maxWidth: 720, margin: "0 auto" }}>
-            <p className="sect-eyebrow">{t("theDetails")}</p>
-            <h2>{t("nightThatFits")}</h2>
-            <p>{accommodation.description}</p>
-            <ul className="feature-list">
-              {accommodation.features.map((feature) => <li key={feature}>{feature}</li>)}
-            </ul>
-            <p style={{ marginTop: 32 }}>
-              <strong>{t("perNight", { price: accommodation.priceFrom, sleeps: accommodation.sleeps })}</strong>
-            </p>
-          </div>
-          <div style={{ maxWidth: 720, margin: "24px auto 0", textAlign: "center" }}>
-            <Link
-              href={`/camp/${stay.slug}?accommodation=${accommodation.slug}#reserve`}
-              className="btn-accent"
-            >
-              {t("reserveThisStay")}
-            </Link>
-          </div>
-        </div>
-      </section>
+      <AccommodationView
+        stay={stay}
+        accommodation={accommodation}
+        locale={locale}
+        reviews={reviews}
+        whatsapp={settings.whatsapp}
+      />
     </>
   );
 }

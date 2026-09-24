@@ -43,6 +43,16 @@ const ICONS: Record<string, React.ReactNode> = {
       />
     </svg>
   ),
+  tabFavorites: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   tabTrips: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path
@@ -61,6 +71,7 @@ const ICONS: Record<string, React.ReactNode> = {
 const TABS = [
   { href: "/account", key: "tabBookings", contextKey: "upcomingCount" },
   { href: "/account/payments", key: "tabPayments", contextKey: "actionRequiredCount" },
+  { href: "/account/favorites", key: "tabFavorites", contextKey: null },
   { href: "/account/reviews", key: "tabReviews", contextKey: null },
   { href: "/account/support", key: "tabSupport", contextKey: null },
   { href: "/account/profile", key: "tabAccount", contextKey: null },

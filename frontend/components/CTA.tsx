@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
+import { getSiteImages } from "@/lib/api";
 
 /**
  * Reused across ~14 pages with the same {title,body,href,label} signature —
@@ -31,7 +32,7 @@ export default async function CTA({
   // Defaults come from translations rather than parameter defaults, since a
   // parameter default can't be an awaited translation call. Callers that
   // pass their own title/body/label (most detail pages) skip this entirely.
-  const t = await getTranslations("ctaDefault");
+  const [t, images] = await Promise.all([getTranslations("ctaDefault"), getSiteImages()]);
 
   return (
     <section className="block cta-split">
@@ -44,7 +45,7 @@ export default async function CTA({
       </div>
       <div className="cta-split-media">
         <Image
-          src="/images/gate.jpg"
+          src={images["home.cta"]}
           alt="Desert gate at dusk"
           fill
           sizes="(max-width: 900px) 100vw, 44vw"

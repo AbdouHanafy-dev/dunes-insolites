@@ -38,6 +38,7 @@ public class UserDataExportService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
     private final NewsletterSubscriberRepository newsletterSubscriberRepository;
+    private final com.camping.duneinsolite.repository.FavoriteRepository favoriteRepository;
 
     @Transactional(readOnly = true)
     public UserDataExport exportForCurrentUser() {
@@ -63,6 +64,12 @@ public class UserDataExportService {
                 .map(s -> new UserDataExport.Newsletter(true, s.getSubscribedAt()))
                 .orElse(new UserDataExport.Newsletter(false, null));
 
+        List<com.camping.duneinsolite.dto.response.FavoriteResponse> favorites = favoriteRepository
+                .findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(f -> com.camping.duneinsolite.dto.response.FavoriteResponse.builder()
+                        .type(f.getItemType()).slug(f.getItemSlug()).createdAt(f.getCreatedAt()).build())
+                .toList();
+
         return new UserDataExport(
                 Instant.now(),
                 userMapper.toResponse(user),
@@ -71,6 +78,7 @@ public class UserDataExportService {
                 transactions,
                 notifications,
                 reviews,
-                newsletter);
+                newsletter,
+                favorites);
     }
 }

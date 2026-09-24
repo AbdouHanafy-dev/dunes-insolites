@@ -4,6 +4,8 @@ import { getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import { getSiteImages } from "@/lib/api";
+import { stayCardFallback } from "@/lib/siteImages";
 
 /**
  * Homepage accommodation section (restructured 24 Sep 2026, on request):
@@ -15,10 +17,11 @@ import { isDisplayableImageSrc } from "@/lib/imageSrc";
  * placeholder rather than an invented image.
  */
 export default async function Stays() {
-  const [stays, t, tCard] = await Promise.all([
+  const [stays, t, tCard, images] = await Promise.all([
     getStays(await getLocale()),
     getTranslations("staysSection"),
     getTranslations("accommodationCard"),
+    getSiteImages(),
   ]);
   if (!stays.length) return null;
 
@@ -42,17 +45,13 @@ export default async function Stays() {
             <Reveal key={stay.slug} delay={i * 80}>
               <Link href={`/camp/${stay.slug}`} className="stay-tile">
                 <span className="stay-tile-media">
-                  {isDisplayableImageSrc(stay.image) ? (
-                    <Image
-                      src={stay.image}
-                      alt={stay.tagline || stay.title}
-                      fill
-                      sizes="(max-width: 900px) 100vw, 50vw"
-                      style={{ objectFit: "cover" }}
-                    />
-                  ) : (
-                    <span className="stay-tile-placeholder" aria-hidden="true" />
-                  )}
+                  <Image
+                    src={isDisplayableImageSrc(stay.image) ? stay.image : stayCardFallback(images, stay.slug)}
+                    alt={stay.tagline || stay.title}
+                    fill
+                    sizes="(max-width: 900px) 100vw, 50vw"
+                    style={{ objectFit: "cover" }}
+                  />
                 </span>
                 <span className="stay-tile-body">
                   <span className="idx-label">

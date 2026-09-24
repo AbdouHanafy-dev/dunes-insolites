@@ -496,3 +496,43 @@ export type ApiError = {
   message: string;
   errors?: Record<string, string>;
 };
+
+/* ------------------------------------------------------------- site photos */
+
+/**
+ * The photo slots support can replace from the back office. The site ships a
+ * built-in photo for each slot and shows it until a replacement is set
+ * (GET /api/public/site-images returns only the replaced slots). The
+ * backend accepts any well-formed key; this list is what both apps offer and
+ * read, so a slot renamed here fails to compile on both sides.
+ */
+export const SITE_IMAGE_SLOTS = [
+  { key: "home.hero", group: "Accueil", label: "Grande photo de l’accueil (« SABRIA »)" },
+  { key: "home.cta", group: "Accueil", label: "Photo du bandeau final « Réservez votre nuit » (toutes les pages)" },
+  { key: "pagehead.circuits", group: "En-têtes de pages", label: "Page Circuits" },
+  { key: "pagehead.activities", group: "En-têtes de pages", label: "Page Activités" },
+  { key: "pagehead.camp", group: "En-têtes de pages", label: "Page Hébergements" },
+  { key: "about.hero", group: "Page « Qui sommes-nous ? »", label: "Photo du haut de page" },
+  { key: "about.story", group: "Page « Qui sommes-nous ? »", label: "Notre histoire" },
+  { key: "about.sleep", group: "Page « Qui sommes-nous ? »", label: "Carte « Dormir dans le désert »" },
+  { key: "about.traditions", group: "Page « Qui sommes-nous ? »", label: "Carte « Découvrir les traditions »" },
+  { key: "about.dunes", group: "Page « Qui sommes-nous ? »", label: "Carte « Vivre les dunes »" },
+  { key: "about.share", group: "Page « Qui sommes-nous ? »", label: "Carte « Partager un moment »" },
+  { key: "about.team", group: "Page « Qui sommes-nous ? »", label: "Grande photo de l’équipe" },
+  { key: "about.final", group: "Page « Qui sommes-nous ? »", label: "Photo du bandeau final" },
+  { key: "activity.quad", group: "Activités (photo par défaut)", label: "Quad" },
+  { key: "activity.camel", group: "Activités (photo par défaut)", label: "Balade à dos de chameau" },
+  { key: "activity.sandboarding", group: "Activités (photo par défaut)", label: "Sandboard" },
+  { key: "activity.fourx4", group: "Activités (photo par défaut)", label: "Expérience 4x4" },
+  { key: "stay.campement", group: "Cartes sans photo (photo par défaut)", label: "Séjour « Nuitée au campement »" },
+  { key: "stay.bivouac", group: "Cartes sans photo (photo par défaut)", label: "Séjour « Nuitée en bivouac »" },
+  { key: "circuit.default", group: "Cartes sans photo (photo par défaut)", label: "Circuits sans photo de couverture" },
+  { key: "accommodation.final", group: "Pages Tente / Chambre / Suite", label: "Photo du bandeau final « Votre nuit dans le Sahara »" },
+  { key: "gallery.1", group: "Photos complémentaires des galeries", label: "Photo complémentaire 1" },
+  { key: "gallery.2", group: "Photos complémentaires des galeries", label: "Photo complémentaire 2" },
+  { key: "gallery.3", group: "Photos complémentaires des galeries", label: "Photo complémentaire 3" },
+  { key: "gallery.4", group: "Photos complémentaires des galeries", label: "Photo complémentaire 4" },
+  { key: "gallery.5", group: "Photos complémentaires des galeries", label: "Photo complémentaire 5" },
+] as const;
+
+export type SiteImageKey = (typeof SITE_IMAGE_SLOTS)[number]["key"];

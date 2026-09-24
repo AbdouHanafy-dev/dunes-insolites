@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import FavoritesLink from "@/components/FavoritesLink";
 import { logout } from "@/lib/api";
 import { site } from "@/lib/site";
 import type { Activity, Stay, Tour } from "@/lib/types";
@@ -316,6 +317,8 @@ export default function Header({
               <LanguageSwitcher panelAnchor="header" />
             </div>
 
+            <FavoritesLink loggedIn={loggedIn} />
+
             {loggedIn ? (
               <>
                 <NotificationBell loggedIn />
@@ -449,6 +452,7 @@ export default function Header({
                 <span>{loggedIn ? t("myAccount") : t("logIn")}</span>
                 <MenuChevron />
               </Link>
+              <FavoritesLink loggedIn={loggedIn} showLabel />
               {loggedIn && <NotificationBell loggedIn showLabel />}
               <div className="drawer-language-row">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z" /></svg>

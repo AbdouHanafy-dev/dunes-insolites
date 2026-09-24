@@ -9,6 +9,7 @@ import TranslationsField, {
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
 import AccommodationTiersManager from "@/components/crud/AccommodationTiersManager";
+import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import type { AdminTourType } from "@/lib/api";
 
 const BASE_PATH = "/catalogue/hebergements";
@@ -124,6 +125,19 @@ export function HebergementEditor({ id, initialData }: { id?: string; initialDat
   function extraSection(form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) {
     return (
       <div className="flex flex-col gap-8">
+        <div>
+          <h2 className="text-[15px] font-bold text-navy-800">Photos du séjour</h2>
+          <p className="mb-4 mt-1 text-[13px] text-navy-700/60">
+            Photo de couverture et galerie de ce séjour. Les photos de chaque hébergement (tente, chambre, suite) se
+            changent plus bas, dans « Tiers d’hébergement ».
+          </p>
+          <PhotoGalleryField
+            coverPhotoUrl={(form.coverPhotoUrl as string | null) ?? null}
+            onCoverChange={(url) => patch({ coverPhotoUrl: url })}
+            photos={((form.photos as TourPhoto[] | undefined) ?? []).map((p) => ({ url: p.url, caption: p.caption ?? null }))}
+            onPhotosChange={(photos) => patch({ photos })}
+          />
+        </div>
         {translationsSection(form, patch)}
         {(form.hasAccommodationTypes !== false || form.circuitCamp === true) && (
           <div className="border-t border-navy-700/8 pt-6">

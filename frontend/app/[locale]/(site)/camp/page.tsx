@@ -1,11 +1,31 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { getStays } from "@/lib/api";
+import { getSiteImages, getStays } from "@/lib/api";
+import type { Stay } from "@/lib/types";
 import StayCard from "@/components/StayCard";
+import CircuitsFilterBar, { type CircuitsSort } from "@/components/CircuitsFilterBar";
 import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+
+function applyFilters(items: Stay[], q: string | undefined, sort: string | undefined): Stay[] {
+  let result = items;
+
+  const needle = q?.trim().toLowerCase();
+  if (needle) {
+    result = result.filter((s) =>
+      [s.title, s.description, s.kicker ?? ""].some((field) => field.toLowerCase().includes(needle)),
+    );
+  }
+
+  if (sort === "price_asc") result = [...result].sort((a, b) => a.priceFrom - b.priceFrom);
+  if (sort === "price_desc") result = [...result].sort((a, b) => b.priceFrom - a.priceFrom);
+
+  return result;
+}
+
+const STAY_SORTS: CircuitsSort[] = ["price_asc", "price_desc"];
 
 export async function generateMetadata({
   params,
@@ -21,17 +41,27 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Same page structure as /circuits: header, search + sort bar, a grid of
+ * `edit-card` cards, and a closing contact banner.
+ */
 export default async function CampPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string; sort?: string }>;
 }) {
   const { locale } = await params;
-  const [stays, t, tCta] = await Promise.all([
+  const { q, sort } = await searchParams;
+  const [allStays, t, tCta, images] = await Promise.all([
     getStays(locale),
     getTranslations("campPage"),
     getTranslations("ctaCamp"),
+    getSiteImages(),
   ]);
+  const stays = applyFilters(allStays, q, sort);
+  const isFiltered = !!q || !!sort;
 
   return (
     <>
@@ -45,18 +75,27 @@ export default async function CampPage({
           </>
         }
         lead={t("lead")}
-        image="/images/under-hero.jpg"
+        image={images["pagehead.camp"]}
       />
 
       <section className="block activities" style={{ paddingTop: 110 }}>
         <div className="wrap">
-          <div className="cards cols-2">
-            {stays.map((stay, i) => (
-              <Reveal key={stay.slug} delay={i * 90}>
-                <StayCard stay={stay} />
-              </Reveal>
-            ))}
-          </div>
+          {allStays.length > 0 && (
+            <CircuitsFilterBar resultCount={stays.length} namespace="campPage" sorts={STAY_SORTS} />
+          )}
+          {stays.length > 0 ? (
+            <div className="cards cols-2">
+              {stays.map((stay, i) => (
+                <Reveal key={stay.slug} delay={i * 90}>
+                  <StayCard stay={stay} />
+                </Reveal>
+              ))}
+            </div>
+          ) : (
+            <Reveal>
+              <p className="lead">{isFiltered ? t("noResults") : ""}</p>
+            </Reveal>
+          )}
         </div>
       </section>
 

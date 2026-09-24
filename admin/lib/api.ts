@@ -415,6 +415,7 @@ export type AdminTourType = {
   circuitCamp: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
+  photos?: AdminTourPhoto[];
   translations: AdminCatalogTranslation[];
 };
 
@@ -460,6 +461,7 @@ export type AdminExtra = {
   isActive: boolean;
   location: string | null;
   coverPhotoUrl: string | null;
+  photos?: AdminTourPhoto[];
   maxUnitsPerDay: number | null;
   category: "ACTIVITY" | "GUIDE" | "TRANSPORT" | "RESOURCE";
   serviceType: string | null;
@@ -1096,4 +1098,13 @@ export function getSearchConsoleQueries(accessToken: string): Promise<SearchCons
     error: "Impossible de contacter le serveur.",
     topQueries: [],
   });
+}
+
+/* ------------------------------------------------------------ site photos */
+
+/** A replaced photo slot; a slot missing from the list still shows the site's built-in photo. */
+export type AdminSiteImage = { key: string; url: string; updatedAt: string };
+
+export function getAllSiteImages(accessToken: string): Promise<AdminSiteImage[]> {
+  return authedGet<AdminSiteImage[]>("/site-images", accessToken, []);
 }

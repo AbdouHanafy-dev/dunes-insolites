@@ -9,6 +9,7 @@ import TranslationsField, {
   translationsToArray,
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
+import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import type { AdminExtra } from "@/lib/api";
 
 const BASE_PATH = "/catalogue/extras";
@@ -145,6 +146,28 @@ function serviceRequest(form: Record<string, unknown>) {
     translations: translationsToArray(form.translations as Record<string, CatalogTranslationForm>) };
 }
 
+/** Cover photo + gallery of an activity, shown on its page and in the activity lists. */
+function activityExtraSection(form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) {
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="text-[15px] font-bold text-navy-800">Photos</h2>
+        <p className="mb-4 mt-1 text-[13px] text-navy-700/60">
+          La photo de couverture s’affiche en grand en haut de la page et dans la liste des activités ; la galerie
+          complète la page. Sans photo, le site garde sa photo par défaut.
+        </p>
+        <PhotoGalleryField
+          coverPhotoUrl={(form.coverPhotoUrl as string | null) ?? null}
+          onCoverChange={(url) => patch({ coverPhotoUrl: url })}
+          photos={((form.photos as TourPhoto[] | undefined) ?? []).map((p) => ({ url: p.url, caption: p.caption ?? null }))}
+          onPhotosChange={(photos) => patch({ photos })}
+        />
+      </div>
+      {translationsSection(form, patch)}
+    </div>
+  );
+}
+
 function translationsSection(form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) {
   return (
     <TranslationsField
@@ -178,7 +201,7 @@ export function ExtraEditor({ id, initialData }: { id?: string; initialData?: Ad
       initialData={extraForm(initialData)}
       fields={fields}
       toRequestBody={extraRequest}
-      extraSection={translationsSection}
+      extraSection={activityExtraSection}
     />
   );
 }

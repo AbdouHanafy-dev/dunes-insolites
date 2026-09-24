@@ -15,8 +15,18 @@ const SORT_VALUES: CircuitsSort[] = ["price_asc", "price_desc", "duration_asc", 
  * updates the URL — no client-side data fetching or state duplication, so
  * the results stay SSR'd and shareable/bookmarkable as a link.
  */
-export default function CircuitsFilterBar({ resultCount }: { resultCount: number }) {
-  const t = useTranslations("circuitsPage");
+export default function CircuitsFilterBar({
+  resultCount,
+  namespace = "circuitsPage",
+  sorts = SORT_VALUES,
+}: {
+  resultCount: number;
+  /** Message namespace holding the search/sort labels (same keys as circuitsPage). */
+  namespace?: string;
+  /** Which sort options to offer; a listing without durations omits the duration ones. */
+  sorts?: CircuitsSort[];
+}) {
+  const t = useTranslations(namespace);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -69,7 +79,7 @@ export default function CircuitsFilterBar({ resultCount }: { resultCount: number
           aria-label={t("sortLabel")}
         >
           <option value="">{t("sortDefault")}</option>
-          {SORT_VALUES.map((value) => (
+          {sorts.map((value) => (
             <option key={value} value={value}>
               {t(
                 value === "price_asc"

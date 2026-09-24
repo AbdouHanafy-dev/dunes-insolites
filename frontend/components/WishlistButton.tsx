@@ -1,66 +1,29 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/Toast";
-
-const STORAGE_KEY = "wishlist";
-const CHANGE_EVENT = "wishlist:change";
-
-function readWishlist(): Set<string> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function writeWishlist(slugs: Set<string>) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...slugs]));
-  } catch {
-    // Private window / blocked storage - the toggle still works for this
-    // render, it just won't persist. Not worth surfacing an error for a
-    // per-viewer convenience.
-  }
-  window.dispatchEvent(new Event(CHANGE_EVENT));
-}
-
-function subscribe(onChange: () => void) {
-  window.addEventListener(CHANGE_EVENT, onChange);
-  window.addEventListener("storage", onChange);
-  return () => {
-    window.removeEventListener(CHANGE_EVENT, onChange);
-    window.removeEventListener("storage", onChange);
-  };
-}
+import { toggleFavorite, useFavoriteKeys, type FavoriteKind } from "@/lib/favorites";
 
 /**
- * Per-browser "save for later" heart, same convenience-only role as any
- * other localStorage read in this app — never synced, never read
- * server-side, never authoritative. `useSyncExternalStore` (not
- * useState+useEffect) so the server snapshot is always "unsaved" and the
- * client one reads localStorage — no cascading-render setState-in-effect,
- * and every WishlistButton on the page re-renders in sync when any one of
- * them is toggled.
+ * Heart on a card or a detail page. The list is per browser and, for a
+ * logged-in customer, also saved to their account — see lib/favorites.ts.
  */
 export default function WishlistButton({
   slug,
+  kind = "tour",
   variant = "card",
 }: {
   slug: string;
+  /** What the slug belongs to; a circuit unless told otherwise. */
+  kind?: FavoriteKind;
   /** "card" = absolute-positioned corner heart (grid/carousel cards).
    *  "inline" = static button with a text label (detail-page header row). */
   variant?: "card" | "inline";
 }) {
   const t = useTranslations("tourCard");
   const toast = useToast();
-  const saved = useSyncExternalStore(
-    subscribe,
-    () => readWishlist().has(slug),
-    () => false,
-  );
+  const keys = useFavoriteKeys();
+  const saved = keys.includes(`${kind}:${slug}`);
   const label = saved ? t("removeFromWishlist") : t("addToWishlist");
 
   return (
@@ -72,15 +35,8 @@ export default function WishlistButton({
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        const current = readWishlist();
-        if (current.has(slug)) {
-          current.delete(slug);
-          toast.success(t("wishlistRemoved"));
-        } else {
-          current.add(slug);
-          toast.success(t("wishlistAdded"));
-        }
-        writeWishlist(current);
+        const nowSaved = toggleFavorite(kind, slug);
+        toast.success(nowSaved ? t("wishlistAdded") : t("wishlistRemoved"));
       }}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">

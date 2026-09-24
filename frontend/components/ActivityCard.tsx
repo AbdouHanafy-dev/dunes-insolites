@@ -1,7 +1,11 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Activity } from "@/lib/types";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import { getSiteImages } from "@/lib/api";
+import WishlistButton from "@/components/WishlistButton";
+import { activityCardFallback } from "@/lib/siteImages";
 
 /**
  * Used by the /activities listing page and "also on the sand" related
@@ -11,19 +15,23 @@ import { isDisplayableImageSrc } from "@/lib/imageSrc";
  * photo, no zoom, matching the editorial language the homepage now uses
  * instead of leaving this one card grid on the old template.
  */
-export default function ActivityCard({
+export default async function ActivityCard({
   activity,
   preload = false,
 }: {
   activity: Activity;
   preload?: boolean;
 }) {
+  const [t, images] = await Promise.all([getTranslations("activitiesSection"), getSiteImages()]);
+  const photo = isDisplayableImageSrc(activity.cardImage) ? activity.cardImage : activityCardFallback(images, activity.slug);
+
   return (
     <Link className="edit-card" href={`/activities/${activity.slug}`}>
       <span className="edit-card-media">
-        {isDisplayableImageSrc(activity.cardImage) && (
+        <WishlistButton slug={activity.slug} kind="activity" />
+        {(
           <Image
-            src={activity.cardImage}
+            src={photo}
             alt={activity.tagline}
             fill
             sizes="(max-width: 900px) 100vw, 33vw"
@@ -36,6 +44,11 @@ export default function ActivityCard({
         <span className="idx-label">{activity.kicker}</span>
         <span className="edit-card-title">{activity.title}</span>
         <span className="edit-card-desc">{activity.description}</span>
+        <span className="edit-card-meta">
+          <span className="edit-card-price">
+            {activity.priceFrom > 0 ? t("fromPrice", { price: activity.priceFrom }) : t("included")}
+          </span>
+        </span>
         <span className="edit-card-arrow" aria-hidden="true">
           →
         </span>

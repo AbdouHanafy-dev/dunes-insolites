@@ -110,6 +110,7 @@ public class Seed implements CommandLineRunner {
         seedTourTypes();
         seedTours();
         seedExtras();
+        seedCampActivities();
         seedGallery();
         seedCircuitsNavItem();
 
@@ -536,6 +537,55 @@ public class Seed implements CommandLineRunner {
                         "جولات بأقصى سرعة عبر بحر الرمال برفقة مرشد يقود المجموعة وتجهيزات كاملة."}
         );
         quadTranslations.forEach((locale, text) -> extra.getTranslations().add(
+                ExtraTranslation.builder().extra(extra).locale(locale).name(text[0]).description(text[1]).build()));
+        extraRepository.save(extra);
+        log.info("Seed: created extra {}", name);
+    }
+
+    /**
+     * The camp's other two on-site activities (camel ride, sandboarding), so
+     * their detail pages exist. Each is created only when its slug is
+     * missing, so an edit made in the back office is never overwritten.
+     * Prices are in TND (the base currency): the camel ride is the owner's
+     * stated 50 TND per person; sandboarding is included for camp guests, so
+     * its unit price is 0. Adjust both under Catalogue > Extras.
+     */
+    private void seedCampActivities() {
+        seedActivity("camel-trek", "Balade à dos de chameau",
+                "Balade guidée d'environ une heure à dos de chameau dans les dunes autour du campement.",
+                "1 heure", new java.math.BigDecimal("50.0"),
+                Map.of(
+                        ContentLocale.EN, new String[]{"Camel ride", "A guided ride of about one hour through the dunes around the camp."},
+                        ContentLocale.DE, new String[]{"Kamelritt", "Ein geführter Ritt von etwa einer Stunde durch die Dünen rund um das Camp."},
+                        ContentLocale.IT, new String[]{"Giro in cammello", "Un giro guidato di circa un'ora tra le dune intorno al campo."},
+                        ContentLocale.DA, new String[]{"Kameltur", "En guidet tur på cirka en time gennem klitterne omkring lejren."},
+                        ContentLocale.AR, new String[]{"رحلة على ظهر الجمل", "رحلة مع مرشد لمدة ساعة تقريباً عبر الكثبان المحيطة بالمخيم."}));
+        seedActivity("sandboarding-desert", "Sandboard",
+                "Glissez sur les dunes du Sahara : planche fournie, aucune expérience nécessaire.",
+                "Durée flexible", java.math.BigDecimal.ZERO,
+                Map.of(
+                        ContentLocale.EN, new String[]{"Sandboarding", "Slide down the Sahara dunes: board provided, no experience needed."},
+                        ContentLocale.DE, new String[]{"Sandboarding", "Gleiten Sie die Dünen der Sahara hinunter: Board inklusive, keine Erfahrung nötig."},
+                        ContentLocale.IT, new String[]{"Sandboard", "Scivola sulle dune del Sahara: tavola inclusa, nessuna esperienza richiesta."},
+                        ContentLocale.DA, new String[]{"Sandboarding", "Glid ned ad Saharas klitter: board medfølger, ingen erfaring nødvendig."},
+                        ContentLocale.AR, new String[]{"التزلج على الرمال", "انزلقوا على كثبان الصحراء: اللوح متوفر ولا حاجة إلى خبرة سابقة."}));
+    }
+
+    private void seedActivity(String slug, String name, String description, String duration,
+                              java.math.BigDecimal unitPrice, Map<ContentLocale, String[]> translations) {
+        if (extraRepository.existsBySlug(slug) || extraRepository.existsByName(name)) return;
+
+        Extra extra = extraRepository.save(Extra.builder()
+                .name(name)
+                .slug(slug)
+                .description(description)
+                .duration(duration)
+                .unitPrice(unitPrice)
+                .pricingUnit(com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON)
+                .tva(new java.math.BigDecimal("13.0"))
+                .isActive(true)
+                .build());
+        translations.forEach((locale, text) -> extra.getTranslations().add(
                 ExtraTranslation.builder().extra(extra).locale(locale).name(text[0]).description(text[1]).build()));
         extraRepository.save(extra);
         log.info("Seed: created extra {}", name);

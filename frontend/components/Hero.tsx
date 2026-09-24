@@ -2,10 +2,11 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { site } from "@/lib/site";
+import { getSiteImages } from "@/lib/api";
 import type { Stats } from "@/lib/types";
 
 export default async function Hero({ stats }: { stats: Stats }) {
-  const t = await getTranslations("hero");
+  const [t, images] = await Promise.all([getTranslations("hero"), getSiteImages()]);
   const years = stats.yearsRunning.match(/\d+/)?.[0] ?? stats.yearsRunning;
 
   return (
@@ -13,7 +14,7 @@ export default async function Hero({ stats }: { stats: Stats }) {
       <div className="static-gate-frame" aria-hidden="true">
         <Image
           className="static-gate-plate"
-          src="/images/gate.jpg"
+          src={images["home.hero"]}
           alt=""
           fill
           sizes="100vw"

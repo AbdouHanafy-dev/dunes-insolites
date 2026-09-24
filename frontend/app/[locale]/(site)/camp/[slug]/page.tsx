@@ -127,7 +127,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
               <h1>{stay.title}</h1>
               <div className="tour-header-actions">
                 <span className="tour-header-desktop-action">
-                  <WishlistButton slug={stay.slug} variant="inline" />
+                  <WishlistButton slug={stay.slug} kind="stay" variant="inline" />
                 </span>
                 <span className="tour-header-desktop-action">
                   <ShareButton title={stay.title} />

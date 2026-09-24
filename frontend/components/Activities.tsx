@@ -5,6 +5,8 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatDuration } from "@/lib/data/activities";
 import Reveal from "@/components/Reveal";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import { getSiteImages } from "@/lib/api";
+import { activityCardFallback } from "@/lib/siteImages";
 
 /**
  * Redesigned (visual identity pass, 14 Sep 2026 — see
@@ -24,10 +26,11 @@ import { isDisplayableImageSrc } from "@/lib/imageSrc";
  * enum value "Easy"/"Moderate"/"Adventurous").
  */
 export default async function Activities() {
-  const [activities, t, tPage] = await Promise.all([
+  const [activities, t, tPage, images] = await Promise.all([
     getActivities(await getLocale()),
     getTranslations("activitiesSection"),
     getTranslations("activitiesPage"),
+    getSiteImages(),
   ]);
   const difficultyLabel: Record<string, string> = {
     Easy: tPage("difficultyEasy"),
@@ -56,9 +59,9 @@ export default async function Activities() {
               <Link href={`/activities/${activity.slug}`} className="field-row">
                 <span className="idx-label field-row-idx">{String(i + 1).padStart(2, "0")}</span>
                 <span className="field-row-media">
-                  {isDisplayableImageSrc(activity.cardImage) && (
+                  {(
                     <Image
-                      src={activity.cardImage}
+                      src={isDisplayableImageSrc(activity.cardImage) ? activity.cardImage : activityCardFallback(images, activity.slug)}
                       alt={activity.tagline}
                       fill
                       sizes="(max-width: 900px) 100vw, 320px"
@@ -70,14 +73,20 @@ export default async function Activities() {
                   <span className="field-row-title">{activity.title}</span>
                   <span className="field-row-tagline">{activity.description}</span>
                   <span className="field-row-meta">
-                    <span>{formatDuration(activity.durationMins)}</span>
-                    <span aria-hidden="true">·</span>
+                    {activity.durationMins > 0 && (
+                      <>
+                        <span>{formatDuration(activity.durationMins)}</span>
+                        <span aria-hidden="true">·</span>
+                      </>
+                    )}
                     <span>{difficultyLabel[activity.difficulty] ?? activity.difficulty}</span>
                     <span aria-hidden="true">·</span>
                     <span>{activity.groupSize}</span>
                   </span>
                 </span>
-                <span className="field-row-price">{t("fromPrice", { price: activity.priceFrom })}</span>
+                <span className="field-row-price">
+                  {activity.priceFrom > 0 ? t("fromPrice", { price: activity.priceFrom }) : t("included")}
+                </span>
                 <span className="field-row-arrow" aria-hidden="true">
                   →
                 </span>

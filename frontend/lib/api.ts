@@ -22,6 +22,8 @@ import { fullGallery as seedGallery, galleryItems as seedStrip } from "@/lib/dat
 import { reviews as seedReviews } from "@/lib/data/reviews";
 import { stats as seedStats } from "@/lib/data/stats";
 import { site } from "@/lib/site";
+import type { SiteImageKey } from "@dunes/api-types";
+import { resolveSiteImages } from "@/lib/siteImages";
 import {
   getStays as seedStays,
   getStay as seedStay,
@@ -797,6 +799,13 @@ export function register(input: {
 }
 
 export function logout(): Promise<void> {
+  // The account's saved-items list must not stay on a shared device.
+  try {
+    localStorage.removeItem("wishlist"); // same key as lib/favorites.ts
+    window.dispatchEvent(new Event("wishlist:change"));
+  } catch {
+    // storage blocked: nothing to clear
+  }
   return fetch("/api/auth/logout", { method: "POST" }).then(() => undefined);
 }
 
@@ -984,7 +993,7 @@ export function getUnreadNotificationCount(accessToken: string): Promise<number>
   return authedGet<number>("/notifications/unread-count", accessToken, 0);
 }
 
-async function authedMutate(path: string, accessToken: string, method: "PATCH" | "DELETE"): Promise<boolean> {
+async function authedMutate(path: string, accessToken: string, method: "PATCH" | "DELETE" | "PUT"): Promise<boolean> {
   if (!BASE) return false;
   try {
     const res = await fetch(`${BASE}${path}`, {
@@ -1007,4 +1016,47 @@ export function markAllNotificationsRead(accessToken: string): Promise<boolean> 
 
 export function deleteNotification(accessToken: string, notificationId: string): Promise<boolean> {
   return authedMutate(`/notifications/${notificationId}`, accessToken, "DELETE");
+}
+
+/* ------------------------------------------------------------- site photos */
+
+/**
+ * The photo for every replaceable slot: the site's built-in photo, unless
+ * support has replaced it in the back office ("Photos du site"). Cached for
+ * a minute so a change shows up quickly without a request per page view.
+ */
+export async function getSiteImages(): Promise<Record<SiteImageKey, string>> {
+  const data = await get<{ images: Record<string, string> }>(
+    "/public/site-images",
+    { seed: { images: {} }, empty: { images: {} } },
+    { revalidate: 60, quietOn404: true },
+  );
+  return resolveSiteImages(data.images ?? {});
+}
+
+/* ---------------------------------------------------------------- favourites */
+
+export type MyFavorite = { type: "TOUR" | "STAY" | "ACTIVITY"; slug: string; createdAt?: string };
+
+export function getMyFavorites(accessToken: string): Promise<MyFavorite[]> {
+  return authedGet<MyFavorite[]>("/favorites", accessToken, []);
+}
+
+/** Saves the given items to the account and returns its full list, or null when the backend refused. */
+export async function mergeMyFavorites(accessToken: string, items: { type: string; slug: string }[]): Promise<MyFavorite[] | null> {
+  if (!BASE) return null;
+  try {
+    const res = await fetch(`${BASE}/favorites/merge`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ items }),
+    });
+    return res.ok ? ((await res.json()) as MyFavorite[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setMyFavorite(accessToken: string, type: string, slug: string, on: boolean): Promise<boolean> {
+  return authedMutate(`/favorites/${type}/${encodeURIComponent(slug)}`, accessToken, on ? "PUT" : "DELETE");
 }

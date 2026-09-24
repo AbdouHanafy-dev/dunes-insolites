@@ -48,7 +48,12 @@
     "follow": "Suivez-nous",
     "privacy": "Confidentialité",
     "terms": "Conditions",
-    "location": "Sahara · Tunisie"
+    "location": "Sahara · Tunisie",
+    "info": "Informations",
+    "favorites": "Mes favoris",
+    "allCircuits": "Tous les circuits",
+    "allAccommodation": "Tous les hébergements",
+    "allActivities": "Toutes les activités"
   },
   "cookieConsent": {
     "dialogLabel": "Choix des cookies",
@@ -196,6 +201,145 @@
     "guide2Bio": "Ancienne mécanicienne de rallye. Yasmine trace chaque itinéraire dans la mer de sable, briefe chaque conducteur, et garde la flotte en meilleur état que la plupart des voitures de route.",
     "guide3Role": "Moniteur de planche",
     "guide3Bio": "Snowboardeur devenu rider de dunes. Karim peut faire glisser quelqu'un qui n'est jamais monté sur une planche en dix minutes, et il en filme la preuve."
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "Qui sommes-nous ?",
+      "title": "Dunes Insolites – Une expérience authentique au cœur du Sahara tunisien",
+      "lead": "Un camp situé près de Sabria, entouré par les paysages désertiques du Sud tunisien, où se mêlent découverte, traditions, hospitalité et confort.",
+      "cta": "Découvrir le camp"
+    },
+    "story": {
+      "eyebrow": "Notre histoire",
+      "title": "Une aventure née de notre passion pour le désert",
+      "p1": "Dunes Insolites est un projet local, créé pour faire découvrir le Sahara tunisien autrement : sans précipitation, au plus près de ceux qui y vivent.",
+      "p2": "Le camp est bien plus qu’un simple hébergement. C’est un lieu de rencontre et de partage, où l’on découvre les traditions du Sud, où l’on se reconnecte au silence du désert et où chaque voyageur est accueilli comme un invité.",
+      "cta": "Voir les hébergements",
+      "photoAlt": "Le camp Dunes Insolites au coucher du soleil"
+    },
+    "experience": {
+      "eyebrow": "L’expérience",
+      "title": "Une expérience, pas seulement une nuit",
+      "items": [
+        {
+          "title": "Dormir dans le désert",
+          "text": "Des hébergements authentiques et plusieurs options de confort, pour dormir au calme, au milieu des dunes.",
+          "cta": "Nos hébergements",
+          "href": "/camp"
+        },
+        {
+          "title": "Découvrir les traditions",
+          "text": "Pain de sable Mella, musique folklorique, dîner traditionnel et moments partagés autour du feu.",
+          "cta": "Découvrir le camp",
+          "href": "/camp"
+        },
+        {
+          "title": "Vivre les dunes",
+          "text": "Coucher de soleil, sandboard, balade à dos de chameau, quad et excursion en 4x4.",
+          "cta": "Nos activités",
+          "href": "/activities"
+        },
+        {
+          "title": "Partager un moment",
+          "text": "Thé de bienvenue, ciel étoilé et ambiance conviviale au camp.",
+          "cta": "Réserver une nuit",
+          "href": "/book"
+        }
+      ]
+    },
+    "philosophy": {
+      "eyebrow": "Notre philosophie",
+      "title": "Un Sahara authentique, accessible et accueillant",
+      "text": "Dunes Insolites souhaite préserver l’esprit du désert et les traditions locales, tout en assurant le confort nécessaire aux voyageurs. Ici, on vient pour se poser, partager et goûter à la vie du Sud tunisien.",
+      "words": [
+        "Hospitalité",
+        "Authenticité",
+        "Partage",
+        "Simplicité",
+        "Culture locale"
+      ]
+    },
+    "why": {
+      "eyebrow": "Pourquoi nous choisir",
+      "title": "Pourquoi choisir Dunes Insolites ?",
+      "items": [
+        {
+          "title": "Une équipe locale",
+          "text": "Une équipe qui connaît parfaitement la région."
+        },
+        {
+          "title": "À 3 km de Sabria",
+          "text": "Un camp situé à environ 3 km du village de Sabria."
+        },
+        {
+          "title": "Accès facile",
+          "text": "Accessible en voiture normale."
+        },
+        {
+          "title": "Plusieurs hébergements",
+          "text": "Plusieurs catégories d’hébergement pour tous les budgets et tous les confort."
+        },
+        {
+          "title": "Activités sur place",
+          "text": "Chameau, quad, 4x4 et sandboard, directement depuis le camp."
+        },
+        {
+          "title": "Pour tous les voyageurs",
+          "text": "Adapté aux couples, familles, amis, voyageurs individuels et groupes."
+        }
+      ]
+    },
+    "team": {
+      "eyebrow": "L’équipe",
+      "title": "Les visages derrière Dunes Insolites",
+      "text": "Guides, chauffeurs, cuisiniers et équipe du camp travaillent ensemble pour accueillir les voyageurs et leur faire découvrir le désert dans les meilleures conditions.",
+      "photoAlt": "L’équipe de Dunes Insolites",
+      "cta": "Nous contacter"
+    },
+    "region": {
+      "eyebrow": "Notre région",
+      "title": "Sabria, aux portes du Grand Sud tunisien",
+      "text": "Sabria, dans la région de Kébili, est une véritable porte d’entrée vers le Sahara. Le camp s’intègre facilement à un voyage en Tunisie, sur la route du Grand Sud.",
+      "stopsLabel": "Une étape naturelle entre",
+      "stops": [
+        "Douz",
+        "Matmata",
+        "Chott El Jerid",
+        "Tozeur",
+        "Les oasis de montagne"
+      ],
+      "cta": "Voir nos circuits",
+      "mapTitle": "Carte : emplacement du camp près de Sabria"
+    },
+    "values": {
+      "eyebrow": "Nos valeurs",
+      "title": "Ce qui guide notre accueil",
+      "items": [
+        {
+          "title": "Authenticité",
+          "text": "Préserver l’esprit et les traditions du désert."
+        },
+        {
+          "title": "Hospitalité",
+          "text": "Accueillir chaque voyageur avec attention."
+        },
+        {
+          "title": "Partage",
+          "text": "Favoriser les rencontres et les échanges."
+        },
+        {
+          "title": "Simplicité",
+          "text": "Profiter du silence, des dunes, du feu et du ciel étoilé."
+        }
+      ]
+    },
+    "final": {
+      "title": "Votre expérience du Sahara commence ici.",
+      "text": "Découvrez Dunes Insolites, passez une nuit dans le désert ou intégrez le camp à votre circuit en Tunisie.",
+      "accommodations": "Découvrir nos hébergements",
+      "experiences": "Voir nos expériences",
+      "book": "Réserver votre séjour"
+    }
   },
   "contact": {
     "eyebrow": "Dites bonjour",
@@ -691,6 +835,19 @@
     "shareFailed": "Impossible de partager ce lien."
   },
   "activitiesPage": {
+    "searchLabel": "Rechercher",
+    "searchPlaceholder": "Rechercher une activité…",
+    "sortLabel": "Trier par",
+    "sortDefault": "Pertinence",
+    "sortPriceAsc": "Prix croissant",
+    "sortPriceDesc": "Prix décroissant",
+    "sortDurationAsc": "Durée croissante",
+    "sortDurationDesc": "Durée décroissante",
+    "noResults": "Aucune activité ne correspond à votre recherche.",
+    "resetFilters": "Réinitialiser",
+    "ctaTitle": "Une question avant de réserver ?",
+    "ctaBody": "Écrivez-nous : nous vous aidons à choisir l’activité qui vous convient.",
+    "ctaLabel": "Nous contacter",
     "eyebrow": "Choisissez votre monture",
     "titleLine1": "Trois façons",
     "titleLine2": "de traverser le sable.",
@@ -706,6 +863,14 @@
     "difficultyAdventurous": "Sportif"
   },
   "campPage": {
+    "searchLabel": "Rechercher",
+    "searchPlaceholder": "Rechercher un séjour…",
+    "sortLabel": "Trier par",
+    "sortDefault": "Pertinence",
+    "sortPriceAsc": "Prix croissant",
+    "sortPriceDesc": "Prix décroissant",
+    "noResults": "Aucun séjour ne correspond à votre recherche.",
+    "resetFilters": "Réinitialiser",
     "eyebrow": "Choisissez votre nuit",
     "titleLine1": "Deux façons de dormir",
     "titleLine2": "dans les dunes.",
@@ -800,6 +965,1032 @@
     "perNight": "À partir de {price} € par nuit · {sleeps}",
     "reserveThisStay": "Découvrir ce séjour →"
   },
+  "accDetail": {
+    "ui": {
+      "back": "← Retour aux hébergements",
+      "from": "À partir de",
+      "perNight": "par nuit",
+      "bookNow": "Réserver",
+      "viewPhotos": "Voir les photos",
+      "viewAllPhotos": "Voir toutes les photos",
+      "close": "Fermer",
+      "previous": "Photo précédente",
+      "next": "Photo suivante",
+      "photoOf": "Photo {n} sur {total}",
+      "galleryTitle": "Photos",
+      "aboutEyebrow": "L’hébergement",
+      "featuresEyebrow": "Équipements",
+      "featuresTitle": "Ce que vous trouverez sur place",
+      "comfort": "Confort",
+      "bathroom": "Salle de bain",
+      "campFacilities": "Installations du camp",
+      "timelineEyebrow": "Le déroulé",
+      "forWhomEyebrow": "Pour qui ?",
+      "importantEyebrow": "Bon à savoir",
+      "compareEyebrow": "Comparer",
+      "reviewsEyebrow": "Avis",
+      "seeMoreReviews": "Voir plus d’avis",
+      "locationEyebrow": "Accès",
+      "viewAccommodation": "Voir cet hébergement",
+      "current": "Vous consultez",
+      "whatsapp": "Nous écrire sur WhatsApp",
+      "checkAvailability": "Vérifier les disponibilités",
+      "stickyFrom": "Dès {price} €",
+      "map": "Carte : emplacement du camp près de Sabria"
+    },
+    "trust": [
+      "Réservation directe",
+      "Équipe locale",
+      "Assistance flexible",
+      "Support WhatsApp"
+    ],
+    "included": {
+      "eyebrow": "Inclus",
+      "title": "Votre séjour, c’est plus qu’une nuit",
+      "note": "Certaines animations et activités peuvent dépendre du programme du jour et des conditions sur place.",
+      "items": [
+        {
+          "icon": "tea",
+          "text": "Thé de bienvenue"
+        },
+        {
+          "icon": "sun",
+          "text": "Coucher de soleil dans les dunes"
+        },
+        {
+          "icon": "board",
+          "text": "Sandboard"
+        },
+        {
+          "icon": "bread",
+          "text": "Démonstration du pain de sable Mella"
+        },
+        {
+          "icon": "meal",
+          "text": "Dîner"
+        },
+        {
+          "icon": "cup",
+          "text": "Petit-déjeuner"
+        },
+        {
+          "icon": "music",
+          "text": "Ambiance folklorique traditionnelle"
+        },
+        {
+          "icon": "fire",
+          "text": "Veillée autour du feu"
+        },
+        {
+          "icon": "star",
+          "text": "Observation des étoiles"
+        },
+        {
+          "icon": "camp",
+          "text": "Accès aux installations du camp"
+        }
+      ]
+    },
+    "campFacilities": [
+      "Restaurant",
+      "Café",
+      "Espaces communs",
+      "Wi-Fi dans les espaces communs",
+      "Parking",
+      "Espace feu de camp",
+      "Accès direct aux dunes"
+    ],
+    "activities": {
+      "eyebrow": "En option",
+      "title": "Rendez votre séjour au Sahara inoubliable",
+      "lead": "Ajoutez une activité à votre nuit. Nous confirmons les horaires sur place.",
+      "included": "Inclus dans votre séjour",
+      "items": [
+        {
+          "title": "Balade à dos de chameau",
+          "text": "Une balade lente dans les dunes, au rythme des chameaux.",
+          "cta": "Demander cette activité",
+          "photo": "camel"
+        },
+        {
+          "title": "Quad",
+          "text": "Une sortie en quad à travers la mer de sable.",
+          "cta": "Demander cette activité",
+          "photo": "quad"
+        },
+        {
+          "title": "Expérience 4x4 dans les dunes",
+          "text": "Une traversée en 4x4 des paysages autour du camp.",
+          "cta": "Demander cette activité",
+          "photo": "fourx4"
+        },
+        {
+          "title": "Sandboard",
+          "text": "Glissez sur les dunes, sans expérience nécessaire.",
+          "cta": "Voir dans le séjour",
+          "photo": "board",
+          "included": true
+        }
+      ]
+    },
+    "timeline": {
+      "title": "Une soirée et une nuit au camp",
+      "note": "Les horaires peuvent varier selon la saison.",
+      "steps": [
+        {
+          "time": "16h00",
+          "text": "Arrivée et thé de bienvenue"
+        },
+        {
+          "time": "17h00",
+          "text": "Découverte des dunes et activités en option"
+        },
+        {
+          "time": "Coucher du soleil",
+          "text": "Le soleil disparaît derrière le Sahara"
+        },
+        {
+          "time": "Soirée",
+          "text": "Dîner traditionnel et ambiance du désert"
+        },
+        {
+          "time": "Nuit",
+          "text": "Feu de camp et ciel étoilé"
+        },
+        {
+          "time": "Matin",
+          "text": "Petit-déjeuner dans le désert"
+        },
+        {
+          "time": "11h00",
+          "text": "Départ"
+        }
+      ]
+    },
+    "important": {
+      "title": "Questions fréquentes",
+      "common": [
+        {
+          "q": "Peut-on rejoindre le camp avec une voiture normale ?",
+          "a": "Oui. Le camp Dunes Insolites est accessible avec un véhicule ordinaire : un 4x4 n’est pas nécessaire."
+        },
+        {
+          "q": "Y a-t-il un parking ?",
+          "a": "Oui, un parking est disponible au camp."
+        },
+        {
+          "q": "À quelle heure arriver ?",
+          "a": "Une arrivée vers 16h00 est recommandée pour s’installer et profiter du coucher de soleil."
+        },
+        {
+          "q": "Y a-t-il du Wi-Fi ?",
+          "a": "Le Wi-Fi est disponible principalement dans les espaces communs."
+        },
+        {
+          "q": "Le linge de lit et les serviettes sont-ils fournis ?",
+          "a": "Le linge de lit et les serviettes font partie du confort proposé dans nos hébergements."
+        },
+        {
+          "q": "Le camp convient-il aux familles ?",
+          "a": "Oui."
+        }
+      ]
+    },
+    "compare": {
+      "title": "Quel séjour vous convient ?",
+      "lead": "Trois façons de dormir au camp : la même ambiance, un niveau de confort et d’intimité différent.",
+      "rows": {
+        "experience": "Style d’expérience",
+        "bathroom": "Salle de bain",
+        "ac": "Climatisation",
+        "privacy": "Intimité",
+        "recommended": "Recommandé pour",
+        "price": "À partir de"
+      }
+    },
+    "reviews": {
+      "title": "Nos voyageurs retiennent plus qu’une nuit"
+    },
+    "location": {
+      "title": "Au bord du Sahara",
+      "text": "Le camp Dunes Insolites se trouve près de Sabria, dans la région de Kébili, entouré de paysages désertiques et à environ 3 km du village de Sabria.",
+      "points": [
+        "Accessible en voiture normale",
+        "Parking disponible",
+        "Transferts possibles depuis différentes destinations tunisiennes"
+      ]
+    },
+    "final": {
+      "title": "Votre nuit dans le Sahara commence ici.",
+      "text": "Réveillez-vous entouré de dunes, de silence et de lumière du désert.",
+      "included": "Dîner et petit-déjeuner inclus."
+    },
+    "types": {
+      "desert-tent": {
+        "eyebrow": "Tente du désert authentique",
+        "tagline": "Dormez dans le silence et la beauté du Sahara tunisien.",
+        "highlights": [
+          "Dîner et petit-déjeuner inclus",
+          "Douches chaudes",
+          "Activités dans le désert",
+          "Expérience de camp traditionnelle"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Lits confortables"
+          },
+          {
+            "icon": "shower",
+            "label": "Douches chaudes partagées"
+          },
+          {
+            "icon": "meal",
+            "label": "Demi-pension incluse"
+          },
+          {
+            "icon": "plug",
+            "label": "Électricité disponible"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi dans les espaces communs"
+          }
+        ],
+        "about": [
+          "Pensée pour les voyageurs qui cherchent une expérience authentique du Sahara, la tente authentique associe l’ambiance traditionnelle du désert aux conforts essentiels pour une nuit reposante sous les étoiles.",
+          "Vous disposez de sanitaires partagés propres avec douches chaudes, et de toutes les installations du camp Dunes Insolites."
+        ],
+        "bathroomText": "Sanitaires partagés avec toilettes et douches chaudes.",
+        "comfort": [
+          "Literie confortable",
+          "Électricité",
+          "Linge de lit",
+          "Serviettes",
+          "Éclairage"
+        ],
+        "forWhom": [
+          {
+            "title": "Voyageurs en quête d’authenticité",
+            "text": "Pour vivre le désert simplement."
+          },
+          {
+            "title": "Couples",
+            "text": "Une nuit calme sous les étoiles."
+          },
+          {
+            "title": "Amis",
+            "text": "Une ambiance conviviale autour du feu."
+          },
+          {
+            "title": "Voyageurs aventuriers",
+            "text": "Pour profiter des dunes et des activités."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Les sanitaires sont-ils privés ?",
+            "a": "Non. Les tentes authentiques utilisent des sanitaires partagés propres, avec toilettes et douches chaudes."
+          }
+        ],
+        "compare": {
+          "experience": "Authentique, ambiance traditionnelle",
+          "bathroom": "Partagée, douches chaudes",
+          "ac": "—",
+          "privacy": "Tente privée",
+          "recommended": "Voyageurs en quête d’authenticité, couples, amis"
+        }
+      },
+      "desert-room": {
+        "eyebrow": "Chambre du désert",
+        "tagline": "L’ambiance du camp avec un intérieur plus structuré.",
+        "highlights": [
+          "Dîner et petit-déjeuner inclus",
+          "Chambre fermée",
+          "Espace de couchage privé",
+          "Toutes les installations du camp"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Espace de couchage privé"
+          },
+          {
+            "icon": "shower",
+            "label": "Sanitaires précisés à la réservation"
+          },
+          {
+            "icon": "meal",
+            "label": "Demi-pension incluse"
+          },
+          {
+            "icon": "plug",
+            "label": "Électricité disponible"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi dans les espaces communs"
+          }
+        ],
+        "about": [
+          "Une option plus confortable pour les voyageurs qui veulent l’atmosphère de notre camp du désert avec un intérieur plus structuré, de type chambre.",
+          "Idéale pour les couples, les amis et les familles qui souhaitent un peu plus de confort pendant leur séjour au Sahara."
+        ],
+        "bathroomText": "Nous vous précisons la configuration des sanitaires au moment de la réservation.",
+        "comfort": [
+          "Chambre fermée",
+          "Literie confortable",
+          "Électricité",
+          "Linge de lit",
+          "Serviettes",
+          "Éclairage"
+        ],
+        "forWhom": [
+          {
+            "title": "Couples",
+            "text": "Un peu plus d’intimité et de confort."
+          },
+          {
+            "title": "Familles",
+            "text": "Jusqu’à 3 personnes dans la même chambre."
+          },
+          {
+            "title": "Amis",
+            "text": "Le camp, avec un intérieur de type chambre."
+          },
+          {
+            "title": "Voyageurs en quête de confort",
+            "text": "Le désert sans renoncer aux repères d’une chambre."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Les sanitaires sont-ils privés ?",
+            "a": "Nous précisons la configuration des sanitaires de la chambre au moment de la réservation."
+          }
+        ],
+        "compare": {
+          "experience": "Ambiance du camp, intérieur type chambre",
+          "bathroom": "Précisée à la réservation",
+          "ac": "—",
+          "privacy": "Chambre fermée",
+          "recommended": "Couples, amis, familles"
+        }
+      },
+      "dune-suite": {
+        "eyebrow": "Suite des dunes",
+        "tagline": "Notre hébergement le plus confortable, avec plus d’intimité.",
+        "highlights": [
+          "Salle de bain privée",
+          "Climatisation",
+          "Dîner et petit-déjeuner inclus",
+          "Plus d’intimité et d’espace"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Literie haut de gamme"
+          },
+          {
+            "icon": "shower",
+            "label": "Salle de bain et toilettes privées"
+          },
+          {
+            "icon": "snow",
+            "label": "Climatisation (soir et nuit)"
+          },
+          {
+            "icon": "meal",
+            "label": "Demi-pension incluse"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi dans les espaces communs"
+          }
+        ],
+        "about": [
+          "Notre hébergement le plus confortable du désert : l’atmosphère du Sahara, avec plus d’intimité et de commodité.",
+          "La suite comprend une salle de bain privée et une climatisation disponible principalement le soir et pendant la nuit. Idéale pour les couples, les familles et les voyageurs qui veulent une expérience plus haut de gamme."
+        ],
+        "bathroomText": "Salle de bain et toilettes privées.",
+        "comfort": [
+          "Literie haut de gamme",
+          "Espace salon supplémentaire",
+          "Électricité",
+          "Linge de lit",
+          "Serviettes",
+          "Éclairage",
+          "Climatisation (principalement le soir et la nuit)"
+        ],
+        "forWhom": [
+          {
+            "title": "Couples en quête de confort",
+            "text": "Intimité et calme, dans le désert."
+          },
+          {
+            "title": "Familles",
+            "text": "Jusqu’à 4 personnes dans une suite spacieuse."
+          },
+          {
+            "title": "Une salle de bain privée",
+            "text": "Pour ceux qui y tiennent."
+          },
+          {
+            "title": "Séjours haut de gamme",
+            "text": "Le confort en plus, l’esprit du camp en moins de compromis."
+          }
+        ],
+        "faq": [
+          {
+            "q": "La suite a-t-elle une salle de bain privée ?",
+            "a": "Oui."
+          },
+          {
+            "q": "Y a-t-il la climatisation ?",
+            "a": "Oui. La climatisation est disponible principalement le soir et pendant la nuit."
+          }
+        ],
+        "compare": {
+          "experience": "Confort renforcé, plus d’intimité",
+          "bathroom": "Privée, avec toilettes",
+          "ac": "Oui (soir et nuit)",
+          "privacy": "Suite privée spacieuse",
+          "recommended": "Couples, familles, séjours haut de gamme"
+        }
+      },
+      "default": {
+        "eyebrow": "Hébergement du camp",
+        "tagline": "",
+        "highlights": [
+          "Dîner et petit-déjeuner inclus",
+          "Activités dans le désert",
+          "Installations du camp",
+          "Expérience de camp traditionnelle"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "meal",
+            "label": "Demi-pension incluse"
+          },
+          {
+            "icon": "plug",
+            "label": "Électricité disponible"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi dans les espaces communs"
+          }
+        ],
+        "about": [],
+        "bathroomText": "Nous vous précisons la configuration des sanitaires au moment de la réservation.",
+        "comfort": [
+          "Literie confortable",
+          "Électricité",
+          "Éclairage"
+        ],
+        "forWhom": [
+          {
+            "title": "Couples",
+            "text": "Une nuit dans le désert à deux."
+          },
+          {
+            "title": "Familles",
+            "text": "Un séjour partagé au camp."
+          },
+          {
+            "title": "Amis",
+            "text": "Une ambiance conviviale."
+          }
+        ],
+        "faq": [],
+        "compare": {
+          "experience": "Ambiance du camp",
+          "bathroom": "Précisée à la réservation",
+          "ac": "—",
+          "privacy": "—",
+          "recommended": "Tous les voyageurs"
+        }
+      }
+    }
+  },
+  "actDetail": {
+    "ui": {
+      "back": "← Toutes les activités",
+      "from": "À partir de",
+      "perPerson": "/ personne",
+      "included": "Inclus",
+      "viewPhotos": "Voir les photos",
+      "viewAllPhotos": "Voir toutes les photos",
+      "close": "Fermer",
+      "previous": "Photo précédente",
+      "next": "Photo suivante",
+      "photoOf": "Photo {n} sur {total}",
+      "aboutEyebrow": "L’expérience",
+      "optionsEyebrow": "Formules",
+      "expectEyebrow": "Le déroulé",
+      "bestEyebrow": "Quand y aller",
+      "forWhomEyebrow": "Pour qui ?",
+      "safetyEyebrow": "Sécurité et pratique",
+      "bringEyebrow": "À prévoir",
+      "combineEyebrow": "Avec votre séjour",
+      "othersEyebrow": "À découvrir aussi",
+      "faqEyebrow": "Questions",
+      "faqTitle": "Questions fréquentes",
+      "exploreAccommodation": "Découvrir nos hébergements",
+      "discoverActivity": "Découvrir",
+      "askTeam": "Nous demander",
+      "askAbout": "Nous demander",
+      "sleeps": "{sleeps}",
+      "fromNight": "À partir de {price} € la nuit",
+      "map": "Carte"
+    },
+    "trust": [
+      "Réservation directe",
+      "Équipe locale",
+      "Assistance flexible",
+      "Support WhatsApp"
+    ],
+    "best": {
+      "title": "Le meilleur moment",
+      "morning": {
+        "title": "Matin",
+        "text": "Températures plus fraîches et atmosphère calme du désert."
+      },
+      "afternoon": {
+        "title": "Fin d’après-midi",
+        "text": "Belle lumière et conditions idéales pour les photos."
+      },
+      "sunset": {
+        "title": "Coucher du soleil",
+        "text": "Le moment le plus envoûtant, selon la disponibilité et la saison."
+      }
+    },
+    "bring": {
+      "title": "Ce qu’il faut apporter",
+      "items": [
+        {
+          "icon": "glasses",
+          "text": "Lunettes de soleil"
+        },
+        {
+          "icon": "sun",
+          "text": "Protection solaire"
+        },
+        {
+          "icon": "shirt",
+          "text": "Vêtements confortables"
+        },
+        {
+          "icon": "shoe",
+          "text": "Chaussures fermées"
+        },
+        {
+          "icon": "drop",
+          "text": "De l’eau"
+        },
+        {
+          "icon": "camera",
+          "text": "Téléphone ou appareil photo"
+        }
+      ],
+      "cool": "En saison fraîche : une veste légère pour la fin d’après-midi et la soirée."
+    },
+    "combine": {
+      "title": "Faites-en une partie de votre expérience au Sahara",
+      "text": "Pendant votre séjour à Dunes Insolites, combinez votre hébergement avec des activités dans le désert.",
+      "cross": "Vous séjournez chez nous ? Combinez plusieurs activités avant le coucher du soleil."
+    },
+    "others": {
+      "title": "D’autres activités qui pourraient vous plaire",
+      "items": {
+        "quad-desert": {
+          "title": "Quad",
+          "text": "De l’adrénaline sur les dunes.",
+          "photo": "quad"
+        },
+        "camel-trek": {
+          "title": "Balade à dos de chameau",
+          "text": "Le Sahara à un rythme plus lent.",
+          "photo": "camel"
+        },
+        "sandboarding-desert": {
+          "title": "Sandboard",
+          "text": "Glissez sur les dunes en famille ou entre amis.",
+          "photo": "board"
+        },
+        "4x4": {
+          "title": "Expérience 4x4 dans les dunes",
+          "text": "Une traversée des paysages autour du camp.",
+          "photo": "fourx4"
+        }
+      }
+    },
+    "faqCommon": [
+      {
+        "q": "Ai-je besoin d’expérience ?",
+        "a": "Non, aucune expérience préalable n’est requise : l’équipe vous explique tout avant le départ."
+      },
+      {
+        "q": "Les enfants peuvent-ils participer ?",
+        "a": "Oui, dans le respect des consignes de l’équipe et sous la surveillance d’un adulte. N’hésitez pas à nous demander pour l’âge de vos enfants."
+      },
+      {
+        "q": "Puis-je réserver l’activité après mon arrivée au camp ?",
+        "a": "Selon la disponibilité, oui. Le plus simple est de réserver à l’avance ou de nous écrire."
+      },
+      {
+        "q": "Puis-je payer sur place ?",
+        "a": "Les modalités de paiement vous sont confirmées au moment de la réservation."
+      },
+      {
+        "q": "L’activité est-elle disponible tous les jours ?",
+        "a": "Sous réserve de disponibilité et des conditions du jour. Vérifiez lors de la réservation."
+      },
+      {
+        "q": "Puis-je la faire au coucher du soleil ?",
+        "a": "Oui, selon la disponibilité et la saison. C’est un moment très demandé : réservez à l’avance."
+      },
+      {
+        "q": "Faut-il une tenue particulière ?",
+        "a": "Des vêtements confortables et des chaussures fermées suffisent. Voir la liste « Ce qu’il faut apporter »."
+      },
+      {
+        "q": "L’activité est-elle privée ou partagée ?",
+        "a": "Demandez-nous lors de la réservation : nous vous confirmons la formule possible selon les dates."
+      }
+    ],
+    "types": {
+      "quad-desert": {
+        "eyebrow": "Quad dans le Sahara",
+        "h1": "Quad dans le Sahara",
+        "tagline": "Traversez les dunes et découvrez le désert sous un tout autre angle.",
+        "highlights": [
+          "Dunes du Sahara",
+          "Plusieurs durées au choix",
+          "Départ directement du camp",
+          "Adapté aux débutants"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "1 h / 2 h / demi-journée / journée"
+          },
+          {
+            "icon": "pin",
+            "label": "Départ du camp Dunes Insolites"
+          },
+          {
+            "icon": "dune",
+            "label": "Dunes du désert"
+          },
+          {
+            "icon": "helmet",
+            "label": "Équipement de sécurité fourni"
+          },
+          {
+            "icon": "users",
+            "label": "Seul ou en groupe"
+          },
+          {
+            "icon": "sun",
+            "label": "Option coucher de soleil"
+          }
+        ],
+        "about": [
+          "Quittez le camp et roulez à travers les paysages de sable qui entourent Dunes Insolites. Le quad est idéal pour les voyageurs qui veulent plus d’adrénaline et une façon dynamique d’explorer le Sahara.",
+          "Plusieurs durées sont proposées selon le temps que vous souhaitez passer dans le désert."
+        ],
+        "optionsTitle": "Choisissez votre sortie",
+        "options": [
+          {
+            "name": "1 heure",
+            "price": "80 TND",
+            "text": "Parfait pour une première sortie dans le désert."
+          },
+          {
+            "name": "2 heures",
+            "price": "160 TND",
+            "text": "Plus de temps pour explorer les dunes."
+          },
+          {
+            "name": "Demi-journée",
+            "price": "250 TND",
+            "text": "Une aventure plus longue dans le Sahara."
+          },
+          {
+            "name": "Journée",
+            "price": "350 TND",
+            "text": "Pour une expérience plus complète du désert."
+          }
+        ],
+        "optionCta": "Choisir cette sortie",
+        "steps": [
+          "Rencontre avec l’équipe",
+          "Consignes de sécurité",
+          "Préparation du casque et de l’équipement",
+          "Départ en quad",
+          "Exploration des dunes alentour",
+          "Pause photo",
+          "Retour au camp Dunes Insolites"
+        ],
+        "bestNote": "Le coucher de soleil est l’une de nos sorties les plus prisées : une expérience haut de gamme.",
+        "forWhom": [
+          "Amateurs d’aventure",
+          "Couples",
+          "Amis",
+          "Groupes",
+          "Voyageurs en quête d’adrénaline"
+        ],
+        "safety": [
+          "Des consignes de sécurité sont données avant le départ.",
+          "Les casques sont fournis.",
+          "Suivez les instructions du guide pendant l’activité.",
+          "Des chaussures fermées confortables sont recommandées.",
+          "Lunettes de soleil et protection solaire recommandées.",
+          "L’activité peut être adaptée selon la météo ou les conditions d’exploitation."
+        ],
+        "faq": [
+          {
+            "q": "Deux personnes peuvent-elles partager le même quad ?",
+            "a": "Demandez-nous lors de la réservation : l’équipe vous confirme ce qui est possible."
+          },
+          {
+            "q": "Que se passe-t-il si la météo n’est pas adaptée ?",
+            "a": "L’activité peut être adaptée ou reportée selon la météo et les conditions d’exploitation."
+          }
+        ],
+        "final": {
+          "title": "Prêt à traverser le Sahara en quad ?",
+          "text": "Ajoutez un peu d’adrénaline à votre séjour à Dunes Insolites.",
+          "cta": "Réserver votre sortie quad"
+        },
+        "hero": {
+          "cta": "Réserver votre sortie quad"
+        },
+        "sticky": "Réserver le quad"
+      },
+      "camel-trek": {
+        "eyebrow": "Balade à dos de chameau à Dunes Insolites",
+        "h1": "Balade à dos de chameau",
+        "tagline": "Vivez le Sahara à un rythme plus lent et profitez de l’atmosphère intemporelle du désert.",
+        "highlights": [
+          "Expérience traditionnelle du désert",
+          "Balade d’environ 1 heure",
+          "Beaux paysages de dunes",
+          "Idéale au coucher du soleil"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Environ 1 heure"
+          },
+          {
+            "icon": "pin",
+            "label": "Depuis le camp"
+          },
+          {
+            "icon": "camel",
+            "label": "Balade guidée à dos de chameau"
+          },
+          {
+            "icon": "users",
+            "label": "Adaptée aux familles"
+          },
+          {
+            "icon": "sun",
+            "label": "Idéale au coucher du soleil"
+          }
+        ],
+        "about": [
+          "Découvrez le Sahara de l’une de ses façons les plus traditionnelles. La balade à dos de chameau vous conduit à travers les dunes qui entourent le camp et offre un moment paisible pour profiter du paysage, du silence et de l’atmosphère du désert.",
+          "Elle est particulièrement belle au coucher du soleil."
+        ],
+        "optionsTitle": "Votre balade",
+        "options": [
+          {
+            "name": "Balade à dos de chameau (1 heure)",
+            "price": "50 TND",
+            "text": "Une balade guidée dans les dunes autour du camp."
+          }
+        ],
+        "optionCta": "Réserver la balade",
+        "steps": [
+          "Rencontre avec votre guide chamelier",
+          "Présentation de votre chameau",
+          "Départ depuis le camp",
+          "Traversée des dunes proches",
+          "Profitez du paysage du Sahara",
+          "Pause photo au coucher du soleil (en option)",
+          "Retour au camp"
+        ],
+        "bestNote": "Le coucher de soleil est l’un des moments les plus demandés pour la balade à dos de chameau.",
+        "forWhom": [
+          "Couples",
+          "Familles",
+          "Premiers visiteurs du Sahara",
+          "Photographes",
+          "Voyageurs en quête d’authenticité"
+        ],
+        "safety": [
+          "L’activité est encadrée par des accompagnateurs locaux.",
+          "Des vêtements confortables sont recommandés.",
+          "Les chaussures fermées sont préférables.",
+          "Suivez les instructions du guide pour monter et descendre.",
+          "La durée peut varier légèrement selon les conditions."
+        ],
+        "faq": [
+          {
+            "q": "Combien de temps dure la balade ?",
+            "a": "Environ 1 heure. La durée peut varier légèrement selon les conditions."
+          },
+          {
+            "q": "La balade à dos de chameau convient-elle aux enfants ?",
+            "a": "Elle est adaptée aux familles. Demandez-nous lors de la réservation pour l’âge de vos enfants."
+          }
+        ],
+        "final": {
+          "title": "Découvrez le Sahara à un autre rythme",
+          "text": "Traversez les dunes et vivez l’une des traditions les plus emblématiques du désert.",
+          "cta": "Réserver votre balade à dos de chameau"
+        },
+        "hero": {
+          "cta": "Réserver votre balade à dos de chameau"
+        },
+        "sticky": "Réserver la balade"
+      },
+      "sandboarding-desert": {
+        "eyebrow": "Sandboard dans le Sahara",
+        "h1": "Sandboard dans le Sahara",
+        "tagline": "Grimpez les dunes, prenez votre planche et profitez de l’une des activités les plus amusantes du camp.",
+        "highlights": [
+          "Facile à essayer",
+          "Idéal en famille ou entre amis",
+          "Directement sur les dunes",
+          "Aucune expérience nécessaire"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Durée flexible"
+          },
+          {
+            "icon": "pin",
+            "label": "Directement sur les dunes"
+          },
+          {
+            "icon": "board",
+            "label": "Planche fournie"
+          },
+          {
+            "icon": "users",
+            "label": "Adapté aux familles"
+          },
+          {
+            "icon": "star",
+            "label": "Accessible aux débutants"
+          }
+        ],
+        "about": [
+          "Une activité simple, amusante et inoubliable, pour tous les âges. Montez sur la dune, prenez votre planche et glissez sur le sable doux du Sahara.",
+          "Aucune expérience préalable n’est nécessaire."
+        ],
+        "optionsTitle": "Votre activité",
+        "options": [
+          {
+            "name": "Sandboard",
+            "price": "",
+            "text": "Inclus pour les clients du camp, selon les cas. Vérifiez la disponibilité auprès du camp."
+          }
+        ],
+        "optionCta": "Nous demander",
+        "steps": [
+          "Récupérez votre planche",
+          "Marchez jusqu’aux dunes proches",
+          "Une explication rapide",
+          "Choisissez votre dune",
+          "Glissez",
+          "Recommencez autant de fois que vous voulez"
+        ],
+        "bestNote": "Nous recommandons le matin ou la fin d’après-midi, quand le sable est plus agréable.",
+        "forWhom": [
+          "Familles",
+          "Amis",
+          "Enfants",
+          "Voyageurs aventuriers",
+          "Tous ceux qui veulent une activité amusante dans le désert"
+        ],
+        "safety": [
+          "Aucune expérience préalable n’est nécessaire.",
+          "Les planches sont fournies.",
+          "Suivez les instructions de l’équipe.",
+          "Les enfants doivent être surveillés.",
+          "Évitez si possible l’activité pendant la chaleur extrême de la mi-journée."
+        ],
+        "faq": [
+          {
+            "q": "Le sandboard est-il difficile ?",
+            "a": "Non, c’est facile à essayer, sans expérience préalable."
+          },
+          {
+            "q": "La planche est-elle fournie ?",
+            "a": "Oui, les planches sont fournies."
+          }
+        ],
+        "final": {
+          "title": "Prêt à glisser sur les dunes ?",
+          "text": "Une expérience simple et amusante du Sahara, pour toute la famille.",
+          "cta": "Essayer le sandboard"
+        },
+        "hero": {
+          "cta": "Découvrir le sandboard"
+        },
+        "sticky": "Nous demander"
+      },
+      "default": {
+        "eyebrow": "Activité au camp",
+        "h1": "",
+        "tagline": "",
+        "highlights": [
+          "Dans le désert",
+          "Départ du camp",
+          "Encadré par l’équipe",
+          "À vivre pendant votre séjour"
+        ],
+        "quick": [
+          {
+            "icon": "pin",
+            "label": "Départ du camp"
+          },
+          {
+            "icon": "users",
+            "label": "Seul ou en groupe"
+          }
+        ],
+        "about": [],
+        "optionsTitle": "Votre activité",
+        "options": [],
+        "optionCta": "Réserver",
+        "steps": [],
+        "bestNote": "",
+        "forWhom": [
+          "Couples",
+          "Familles",
+          "Amis"
+        ],
+        "safety": [
+          "Suivez les instructions de l’équipe.",
+          "L’activité peut être adaptée selon la météo ou les conditions d’exploitation."
+        ],
+        "faq": [],
+        "final": {
+          "title": "Prêt à vivre le Sahara ?",
+          "text": "Ajoutez une activité à votre séjour à Dunes Insolites.",
+          "cta": "Réserver cette activité"
+        },
+        "hero": {
+          "cta": "Réserver cette activité"
+        },
+        "sticky": "Réserver"
+      }
+    }
+  },
+  "favorites": {
+    "eyebrow": "Vos favoris",
+    "title": "Mes favoris",
+    "lead": "Les circuits, séjours et activités que vous avez mis de côté.",
+    "accountLead": "Les circuits, séjours et activités que vous avez mis de côté. Ils vous suivent sur tous vos appareils.",
+    "linkLabel": "Favoris",
+    "linkWithCount": "Favoris ({count})",
+    "guestNote": "Vos favoris sont gardés sur cet appareil. Connectez-vous pour les retrouver dans votre espace, sur tous vos appareils.",
+    "logIn": "Se connecter",
+    "empty": "Vous n’avez pas encore de favori. Touchez le cœur d’une carte pour la garder ici.",
+    "browseStays": "Voir les hébergements",
+    "browseActivities": "Voir les activités",
+    "browseCircuits": "Voir les circuits",
+    "count": "{count, plural, one {# favori} other {# favoris}}",
+    "fromPrice": "À partir de {price} €",
+    "kind": {
+      "tour": "Circuit",
+      "stay": "Séjour",
+      "activity": "Activité"
+    }
+  },
   "newsletter": {
     "label": "Dépêche des dunes",
     "placeholder": "vous@email.com",
@@ -813,6 +2004,7 @@
     "tabBookings": "Mes séjours",
     "tabPayments": "Paiements",
     "tabReviews": "Avis",
+    "tabFavorites": "Favoris",
     "tabSupport": "Aide",
     "logout": "Déconnexion",
     "welcomeBack": "Bon retour, {name}",
@@ -937,8 +2129,8 @@
   },
   "meta": {
     "about": {
-      "title": "À propos",
-      "description": "Dunes Insolites est une entreprise familiale du désert à Sabria, dans le sud tunisien. Découvrez les guides qui vous font traverser le sable."
+      "title": "Qui sommes-nous ?",
+      "description": "Dunes Insolites, un camp authentique près de Sabria, dans la région de Kébili : notre histoire, nos valeurs, notre équipe et l’expérience du Sahara tunisien."
     },
     "activities": {
       "title": "Expériences",
@@ -1503,7 +2695,8 @@
   "activitiesSection": {
     "eyebrow": "Carnet de route",
     "lead": "Du pas lent d'un chameau à l'heure dorée au rugissement d'un quad sur les dunes — chaque sortie à Sabria se termine de la même façon, à regarder le soleil disparaître derrière le Sahara.",
-    "fromPrice": "À partir de {price} €"
+    "fromPrice": "À partir de {price} €",
+    "included": "Inclus pour les clients du camp"
   },
   "circuitsSection": {
     "eyebrow": "Route Insolite",
