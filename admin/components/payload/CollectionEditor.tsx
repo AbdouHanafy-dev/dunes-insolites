@@ -98,6 +98,10 @@ export default function CollectionEditor({
     router.refresh();
   }
 
+  // An extra section may render nothing for the current form state (e.g. a
+  // conditional block) - then no empty card is shown.
+  const extra = extraSection?.(form, (patch) => setForm((s) => ({ ...s, ...patch })));
+
   return (
     <div className="flex flex-col gap-5">
       <div>
@@ -130,10 +134,8 @@ export default function CollectionEditor({
           ))}
         </div>
 
-        {extraSection && (
-          <div className="card rounded-2xl p-6 lg:col-span-2 lg:col-start-1 lg:row-start-2">
-            {extraSection(form, (patch) => setForm((s) => ({ ...s, ...patch })))}
-          </div>
+        {extra && (
+          <div className="card rounded-2xl p-6 lg:col-span-2 lg:col-start-1 lg:row-start-2">{extra}</div>
         )}
 
         {/* Sidebar panel — Payload's signature: save/status/delete live here, not inline with fields */}

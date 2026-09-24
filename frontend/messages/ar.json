@@ -115,6 +115,24 @@
     "there6": "لا صور مشمولة",
     "cta": "احجز مباشرة الآن"
   },
+  "heroBanner": {
+    "ratingCount": "{count} تقييم على Google",
+    "fromLabel": "ابتداءً من",
+    "nightUnit": "لليلة في المخيم",
+    "circuitsCount": "{count, plural, one {# جولة} other {# جولات}}",
+    "circuitsUnit": "متعددة الأيام",
+    "cta": "احجز مباشرة",
+    "ariaLabel": "أبرز المزايا",
+    "salam": "مرحباً بكم في قلب الصحراء",
+    "dream": "مغامرة لا تُنسى بانتظاركم",
+    "invite": "احجزوا ليلتكم تحت النجوم",
+    "welcome": "أهلاً بكم في Dunes Insolites",
+    "magic": "عيشوا الصحراء بطريقة مختلفة",
+    "stars": "ليلة تحت النجوم",
+    "camel": "رحلة على ظهر الجمل في الصحراء",
+    "sunset": "غروب الشمس فوق الكثبان",
+    "quad": "الكواد وركوب الرمال في الصحراء"
+  },
   "reviewsShowcase": {
     "eyebrow": "التقييمات",
     "title": "لماذا يحبنا الناس.",
@@ -129,7 +147,12 @@
     "proofLabel": "Dunes Insolites بالأرقام",
     "guestsLabel": "مسافر تمت مرافقتهم",
     "yearsLabel": "من الخبرة المحلية",
-    "verifiedOnly": "لا شهادات مختلقة: تظهر هنا فقط التقييمات المنشورة فعليًا."
+    "verifiedOnly": "لا شهادات مختلقة: تظهر هنا فقط التقييمات المنشورة فعليًا.",
+    "ownerReply": "رد المالك",
+    "googleSummary": "{rating} من 5 · {count} تقييم على Google",
+    "seeAllOnGoogle": "عرض جميع التقييمات على Google",
+    "previous": "التقييم السابق",
+    "next": "التقييم التالي"
   },
   "galleryStrip": {
     "eyebrow": "من الرمال",
@@ -1250,7 +1273,8 @@
     "titleLine1": "طريقتان",
     "titleLine2": "للنوم بين الكثبان.",
     "lead": "المخيم الثابت، أو مبيت أبعد داخل الكثبان — كلاهما ينتهي بالطريقة نفسها، حول نار المخيم، تحت السماء نفسها.",
-    "fromPrice": "ابتداءً من {price}€"
+    "fromPrice": "ابتداءً من {price}€",
+    "chooseAccommodation": "اختر إقامتك"
   },
   "activitiesSection": {
     "eyebrow": "دليل الميدان",

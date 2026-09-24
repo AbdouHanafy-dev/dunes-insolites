@@ -47,6 +47,7 @@ const GROUPS: NavGroup[] = [
       { label: "Médiathèque", href: "/content/media", icon: "bi-images" },
       { label: "Galerie photos", href: "/content/gallery", icon: "bi-image" },
       { label: "Avis clients", href: "/content/avis", icon: "bi-star" },
+      { label: "Avis Google & autres", href: "/content/avis-externes", icon: "bi-google" },
     ],
   },
   {

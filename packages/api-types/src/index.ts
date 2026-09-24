@@ -36,7 +36,10 @@ export type ReviewSource =
   | "google"
   | "airbnb"
   | "booking"
-  | "wetravel";
+  | "wetravel"
+  /** A platform added by staff that the site has no built-in key for; its
+   *  name and colour come with the review (platformName / platformColor). */
+  | "other";
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
 
@@ -327,6 +330,20 @@ export type Review = {
   /** The specific Tour circuit this review is about, if any. */
   tourSlug?: string;
   source: ReviewSource;
+  /** Display name of the platform an external review was copied from. */
+  platformName?: string;
+  /** The platform's colour, "#RRGGBB" — every platform has its own. */
+  platformColor?: string;
+  /** Only on reviews copied from another platform (Google, TripAdvisor...):
+   *  the trip type as that platform shows it, e.g. "Vacances · Amis". */
+  tripType?: string;
+  /** Link to the original review on its platform, when known. */
+  sourceUrl?: string;
+  /** The business's own public answer on that platform, if any. Kept in
+   *  the language it was written in. */
+  ownerReply?: string;
+  /** ISO date, YYYY-MM-DD. */
+  ownerReplyDate?: string;
 };
 
 /* --------------------------------------------------------------- bookings */

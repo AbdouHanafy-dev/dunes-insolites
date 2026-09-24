@@ -62,6 +62,8 @@ public class SiteSettingsServiceImpl implements SiteSettingsService {
             settings.setGoogleRatingFetchedAt(null);
         }
         settings.setGooglePlaceId(blankToNull(request.getGooglePlaceId()));
+        settings.setManualGoogleRating(request.getManualGoogleRating());
+        settings.setManualGoogleRatingCount(request.getManualGoogleRatingCount());
         SiteSettings saved = siteSettingsRepository.save(settings);
         refreshGoogleRatingIfStale(saved);
         return toResponse(saved);
@@ -107,8 +109,13 @@ public class SiteSettingsServiceImpl implements SiteSettingsService {
         response.setGuestsGuided(settings.getGuestsGuided());
         response.setYearsRunning(settings.getYearsRunning());
         response.setGooglePlaceId(settings.getGooglePlaceId());
-        response.setGoogleRating(settings.getGoogleRating());
-        response.setGoogleRatingCount(settings.getGoogleRatingCount());
+        // The automatic Google fetch wins when it has a value; the
+        // hand-entered rating only fills the gap.
+        boolean fetched = settings.getGoogleRating() != null;
+        response.setGoogleRating(fetched ? settings.getGoogleRating() : settings.getManualGoogleRating());
+        response.setGoogleRatingCount(fetched ? settings.getGoogleRatingCount() : settings.getManualGoogleRatingCount());
+        response.setManualGoogleRating(settings.getManualGoogleRating());
+        response.setManualGoogleRatingCount(settings.getManualGoogleRatingCount());
         response.setUpdatedAt(settings.getUpdatedAt());
         return response;
     }

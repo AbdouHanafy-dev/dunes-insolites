@@ -735,6 +735,55 @@ export type AdminGalleryImage = {
   updatedAt: string;
 };
 
+export type AdminReviewPlatform = {
+  platformId: string;
+  name: string;
+  /** "#RRGGBB" — the colour this platform's reviews are shown in. */
+  color: string;
+  /** One of the platforms the site already recognises (Google, TripAdvisor...). */
+  builtIn: boolean;
+  /** How many reviews use it; a platform in use can't be deleted. */
+  reviewCount: number;
+};
+
+export function getAllReviewPlatforms(accessToken: string): Promise<AdminReviewPlatform[]> {
+  return authedGet<AdminReviewPlatform[]>("/review-platforms", accessToken, []);
+}
+
+export type AdminExternalReview = {
+  externalReviewId: string;
+  authorName: string;
+  country: string | null;
+  rating: number;
+  /** ISO date, YYYY-MM-DD. */
+  reviewDate: string;
+  title: string | null;
+  body: string;
+  platformId: string;
+  platformName: string;
+  platformColor: string;
+  sourceUrl: string | null;
+  tripType: string | null;
+  ownerReply: string | null;
+  ownerReplyDate: string | null;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function getAllExternalReviews(accessToken: string): Promise<AdminExternalReview[]> {
+  return authedGet<AdminExternalReview[]>("/external-reviews", accessToken, []);
+}
+
+export async function getExternalReviewById(
+  accessToken: string,
+  id: string,
+): Promise<AdminExternalReview | null> {
+  // No single-item endpoint: the list is small and hand-curated.
+  const all = await getAllExternalReviews(accessToken);
+  return all.find((r) => r.externalReviewId === id) ?? null;
+}
+
 export function getAllGalleryImages(accessToken: string): Promise<AdminGalleryImage[]> {
   return authedGet<AdminGalleryImage[]>("/gallery", accessToken, []);
 }
@@ -984,6 +1033,9 @@ export type AdminSiteSettings = {
   // never a fabricated value. See backend GooglePlacesService.
   googleRating: number | null;
   googleRatingCount: number | null;
+  // Hand-entered from the Google profile; the two above already fall back to these.
+  manualGoogleRating: number | null;
+  manualGoogleRatingCount: number | null;
   updatedAt: string | null;
 };
 

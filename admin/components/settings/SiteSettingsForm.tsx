@@ -31,6 +31,8 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
     guestsGuided: initialData?.guestsGuided ?? "",
     yearsRunning: initialData?.yearsRunning ?? "",
     googlePlaceId: initialData?.googlePlaceId ?? "",
+    manualGoogleRating: initialData?.manualGoogleRating != null ? String(initialData.manualGoogleRating) : "",
+    manualGoogleRatingCount: initialData?.manualGoogleRatingCount != null ? String(initialData.manualGoogleRatingCount) : "",
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -53,6 +55,8 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
         ...form,
         latitude: form.latitude ? Number(form.latitude) : null,
         longitude: form.longitude ? Number(form.longitude) : null,
+        manualGoogleRating: form.manualGoogleRating ? Number(form.manualGoogleRating.replace(",", ".")) : null,
+        manualGoogleRatingCount: form.manualGoogleRatingCount ? Number(form.manualGoogleRatingCount) : null,
       }),
     });
 
@@ -175,6 +179,21 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
           <input id="googlePlaceId" type="text" placeholder="ChIJ..." className={inputClass}
             value={form.googlePlaceId} onChange={(e) => set("googlePlaceId", e.target.value)} />
         </div>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="manualGoogleRating" className="text-[12px] text-navy-700/50">Note Google (saisie manuelle, ex. 4,8)</label>
+            <input id="manualGoogleRating" type="text" inputMode="decimal" placeholder="4,8" className={inputClass}
+              value={form.manualGoogleRating} onChange={(e) => set("manualGoogleRating", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="manualGoogleRatingCount" className="text-[12px] text-navy-700/50">Nombre d&apos;avis Google</label>
+            <input id="manualGoogleRatingCount" type="number" min={0} placeholder="496" className={inputClass}
+              value={form.manualGoogleRatingCount} onChange={(e) => set("manualGoogleRatingCount", e.target.value)} />
+          </div>
+        </div>
+        <p className="mt-2 text-[12px] text-navy-700/50">
+          À recopier depuis votre fiche Google. Utilisée seulement tant que la récupération automatique n&apos;a rien renvoyé ; laissez vide pour ne rien afficher.
+        </p>
         <p className="mt-2 text-[13px] text-navy-700/60">
           {initialData?.googleRating != null ? (
             <>

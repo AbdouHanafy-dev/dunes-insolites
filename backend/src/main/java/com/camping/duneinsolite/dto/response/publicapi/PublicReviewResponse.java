@@ -32,8 +32,18 @@ public class PublicReviewResponse {
     private String activitySlug;
     private String staySlug;
     private String tourSlug;
-    /** Always "direct" - the only source this in-app review system ever
-     *  produces. A future import from GetYourGuide/TripAdvisor/Google would
-     *  need its own real ingestion path, not this one relabeled. */
+    /** "direct" for this app's own in-app reviews; otherwise the platform an
+     *  ExternalReview was copied from (google, tripadvisor, ...). */
     private String source;
+
+    // Only set for reviews copied from another platform (ExternalReview);
+    // null for in-app reviews, which have none of these.
+    private String platformName;
+    private String platformColor;
+    private String country;
+    private String title;
+    private String tripType;
+    private String sourceUrl;
+    private String ownerReply;
+    private String ownerReplyDate;
 }

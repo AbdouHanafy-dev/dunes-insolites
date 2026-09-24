@@ -18,6 +18,7 @@ import com.camping.duneinsolite.repository.ReviewRepository;
 import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import com.camping.duneinsolite.repository.UserRepository;
+import com.camping.duneinsolite.service.ExternalReviewService;
 import com.camping.duneinsolite.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,6 +43,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final TourRepository tourRepository;
     private final TourTypeRepository tourTypeRepository;
     private final ExtraRepository extraRepository;
+    private final ExternalReviewService externalReviewService;
 
     @Override
     public ReviewResponse createReview(UUID userId, ReviewRequest request) {
@@ -144,7 +146,15 @@ public class ReviewServiceImpl implements ReviewService {
 
         DateTimeFormatter iso = DateTimeFormatter.ISO_LOCAL_DATE;
         ProductType effectiveFilterType = filterType;
-        return reviews.stream().map(r -> toPublicResponse(r, effectiveFilterType, iso)).toList();
+        List<PublicReviewResponse> inApp =
+                reviews.stream().map(r -> toPublicResponse(r, effectiveFilterType, iso)).toList();
+
+        // Reviews copied from Google/TripAdvisor aren't tied to a product, so
+        // they only belong in the site-wide feed - never a product-scoped one.
+        if (effectiveFilterType != null) return inApp;
+        return java.util.stream.Stream.concat(externalReviewService.getPublished().stream(), inApp.stream())
+                .sorted(java.util.Comparator.comparing(PublicReviewResponse::getDate).reversed())
+                .toList();
     }
 
     private PublicReviewResponse toPublicResponse(Review r, ProductType knownFilterType, DateTimeFormatter iso) {

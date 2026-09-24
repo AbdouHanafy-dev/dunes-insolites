@@ -115,6 +115,24 @@
     "there6": "Ingen billeder inkluderet",
     "cta": "Book direkte nu"
   },
+  "heroBanner": {
+    "ratingCount": "{count} Google-anmeldelser",
+    "fromLabel": "Fra",
+    "nightUnit": "pr. nat i lejren",
+    "circuitsCount": "{count, plural, one {# rundrejse} other {# rundrejser}}",
+    "circuitsUnit": "flerdages",
+    "cta": "Book direkte",
+    "ariaLabel": "Højdepunkter",
+    "salam": "Marhba! Velkommen til Saharas hjerte",
+    "dream": "Et uforglemmeligt eventyr venter dig",
+    "invite": "Book din nat under stjernerne",
+    "welcome": "Velkommen til Dunes Insolites",
+    "magic": "Oplev Sahara på en ny måde",
+    "stars": "En nat under stjernerne",
+    "camel": "Kameltur i ørkenen",
+    "sunset": "Solnedgang over klitterne",
+    "quad": "Quad og sandboarding i ørkenen"
+  },
   "reviewsShowcase": {
     "eyebrow": "Anmeldelser",
     "title": "Derfor elsker folk os.",
@@ -129,7 +147,12 @@
     "proofLabel": "Dunes Insolites i tal",
     "guestsLabel": "guidede rejsende",
     "yearsLabel": "med lokal erfaring",
-    "verifiedOnly": "Ingen opdigtede udtalelser: Kun ægte offentliggjorte anmeldelser vises her."
+    "verifiedOnly": "Ingen opdigtede udtalelser: Kun ægte offentliggjorte anmeldelser vises her.",
+    "ownerReply": "Svar fra ejeren",
+    "googleSummary": "{rating} af 5 · {count} Google-anmeldelser",
+    "seeAllOnGoogle": "Se alle anmeldelser på Google",
+    "previous": "Forrige anmeldelse",
+    "next": "Næste anmeldelse"
   },
   "galleryStrip": {
     "eyebrow": "Fra sandet",
@@ -1250,7 +1273,8 @@
     "titleLine1": "To måder",
     "titleLine2": "at sove i klitterne.",
     "lead": "Den faste lejr, eller en bivuak længere ude i klitterne — begge ender på samme måde, ved et bål, under den samme himmel.",
-    "fromPrice": "Fra €{price}"
+    "fromPrice": "Fra €{price}",
+    "chooseAccommodation": "Vælg din overnatning"
   },
   "activitiesSection": {
     "eyebrow": "Feltguide",

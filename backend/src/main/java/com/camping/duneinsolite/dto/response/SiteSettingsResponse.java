@@ -23,5 +23,9 @@ public class SiteSettingsResponse {
     // never a fabricated value. See GooglePlacesService.
     private BigDecimal googleRating;
     private Integer googleRatingCount;
+    // The hand-entered values, exposed so the admin form can edit them;
+    // googleRating/googleRatingCount above already fall back to these.
+    private BigDecimal manualGoogleRating;
+    private Integer manualGoogleRatingCount;
     private LocalDateTime updatedAt;
 }

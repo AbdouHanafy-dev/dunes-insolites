@@ -115,6 +115,24 @@
     "there6": "No photos included",
     "cta": "Book direct now"
   },
+  "heroBanner": {
+    "ratingCount": "{count} Google reviews",
+    "fromLabel": "From",
+    "nightUnit": "per night at the camp",
+    "circuitsCount": "{count, plural, one {# circuit} other {# circuits}}",
+    "circuitsUnit": "multi-day",
+    "cta": "Book direct",
+    "ariaLabel": "Highlights",
+    "salam": "Marhba! Welcome to the heart of the Sahara",
+    "dream": "An unforgettable adventure awaits you",
+    "invite": "Book your night under the stars",
+    "welcome": "Welcome to Dunes Insolites",
+    "magic": "Experience the Sahara differently",
+    "stars": "A night under the stars",
+    "camel": "Camel trek in the desert",
+    "sunset": "Sunsets over the dunes",
+    "quad": "Quad & sandboarding in the desert"
+  },
   "reviewsShowcase": {
     "eyebrow": "Reviews",
     "title": "Why people love us.",
@@ -129,7 +147,12 @@
     "proofLabel": "Dunes Insolites in numbers",
     "guestsLabel": "travellers guided",
     "yearsLabel": "of local experience",
-    "verifiedOnly": "No invented testimonials: only genuinely published reviews appear here."
+    "verifiedOnly": "No invented testimonials: only genuinely published reviews appear here.",
+    "ownerReply": "Response from the owner",
+    "googleSummary": "{rating} out of 5 · {count} Google reviews",
+    "seeAllOnGoogle": "See all reviews on Google",
+    "previous": "Previous review",
+    "next": "Next review"
   },
   "galleryStrip": {
     "eyebrow": "From the sand",
@@ -1474,7 +1497,8 @@
     "titleLine1": "Two ways",
     "titleLine2": "to sleep in the dunes.",
     "lead": "The fixed camp, or a bivouac further into the dunes — both end the same way, at a fire circle, under the same sky.",
-    "fromPrice": "From €{price}"
+    "fromPrice": "From €{price}",
+    "chooseAccommodation": "Choose your accommodation"
   },
   "activitiesSection": {
     "eyebrow": "Field guide",

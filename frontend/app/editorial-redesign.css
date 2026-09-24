@@ -472,7 +472,8 @@ html { scroll-padding-top: 96px; }
   min-height: 100svh;
   overflow: hidden;
   background: #20262a;
-  color: #fff8ed;
+  /* Same warm beige as the header panel (.site-header, rgb 244 233 216). */
+  color: #f4e9d8;
 }
 
 .static-gate-frame {
@@ -567,7 +568,7 @@ html { scroll-padding-top: 96px; }
   justify-content: center;
   min-height: 48px;
   padding: 0 22px;
-  border: 1px solid rgba(255, 248, 237, 0.65);
+  border: 1px solid rgba(244, 233, 216, 0.65);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -576,8 +577,8 @@ html { scroll-padding-top: 96px; }
 
 .static-gate-primary {
   gap: 24px;
-  border-color: #fff8ed;
-  background: #fff8ed;
+  border-color: #f4e9d8;
+  background: #f4e9d8;
   color: #201d19;
 }
 
@@ -3110,3 +3111,661 @@ footer.site-footer.pro-footer .bar a:hover {
   }
   .acc-card-foot { padding-inline-start: 14px; }
 }
+
+/* ---------- Homepage restructure (24 Sep 2026) ---------- */
+
+/* Circuits: intro on top, four equal cards in a row, one button below. */
+.route-ledger--grid { padding: 110px 0 120px; }
+
+.route-ledger--grid .route-ledger-layout {
+  grid-template-columns: 1fr;
+  gap: 56px;
+}
+
+.route-ledger--grid .route-ledger-intro {
+  position: static;
+  max-width: 720px;
+}
+
+.route-ledger--grid .route-dossiers {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 28px 22px;
+}
+
+.route-ledger--grid .route-dossiers > :nth-child(even) { margin-top: 0; }
+.route-ledger--grid .route-dossier { height: 100%; }
+.route-ledger--grid .route-dossier-media { aspect-ratio: 4 / 3.4; }
+.route-ledger--grid .route-dossier-cap { padding-right: 0; }
+
+.route-ledger--grid .route-dossier-cap strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: clamp(18px, 1.6vw, 22px);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.route-ledger--grid .route-dossier-arrow { display: none; }
+
+.route-ledger-more {
+  display: flex;
+  justify-content: center;
+}
+
+/* Stays: two nights side by side, accommodation choices underneath. */
+.stays--split { padding-bottom: 120px; }
+
+.stay-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 56px;
+}
+
+.stay-tile {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  border: 1px solid rgba(36, 27, 23, 0.14);
+  background: rgba(255, 252, 246, 0.55);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.stay-tile:hover { border-color: var(--color-ember); transform: translateY(-2px); }
+
+.stay-tile-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #d9cdb9;
+}
+
+.stay-tile-media img { transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.stay-tile:hover .stay-tile-media img { transform: scale(1.03); }
+
+/* Shown only when the stay has no photo uploaded yet. */
+.stay-tile-placeholder {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(217, 154, 92, 0.45), rgba(160, 74, 47, 0.2));
+}
+
+.stay-tile-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px 28px 24px;
+}
+
+.stay-tile-body strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.stay-tile-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  color: rgba(36, 27, 23, 0.7);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.stay-tile-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(36, 27, 23, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.stay-tile-cta {
+  color: var(--color-ember);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stay-choices { margin-top: 72px; }
+
+.stay-choices-title {
+  margin: 0 0 26px;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.stay-choices-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.stay-choice {
+  display: block;
+  height: 100%;
+  border: 1px solid rgba(36, 27, 23, 0.14);
+  background: rgba(255, 252, 246, 0.55);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.stay-choice:hover { border-color: var(--color-ember); transform: translateY(-2px); }
+
+.stay-choice-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #d9cdb9;
+}
+
+.stay-choice-media img { transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.stay-choice:hover .stay-choice-media img { transform: scale(1.03); }
+
+.stay-choice-body {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px 20px;
+}
+
+.stay-choice-body strong {
+  font-family: var(--font-display), sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.stay-choice-sleeps { color: rgba(36, 27, 23, 0.62); font-size: 13px; }
+.stay-choice-price { color: var(--color-ember); font-size: 13px; font-weight: 700; }
+
+@media (max-width: 1100px) {
+  .route-ledger--grid .route-dossiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .stay-duo { grid-template-columns: 1fr; }
+  .stay-choices-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .route-ledger--grid { padding: 84px 0 92px; }
+  .route-ledger--grid .route-dossiers { grid-template-columns: 1fr; }
+  .stay-tile-body { padding: 22px 20px 20px; }
+}
+
+/* ---------- Review wall (24 Sep 2026): real reviews, platform-style cards ---------- */
+.reviews-wall-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.reviews-wall-summary {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  text-align: right;
+}
+
+.reviews-wall-summary .rating-line { justify-content: flex-end; margin: 0; }
+.reviews-wall-summary .of { color: rgba(36, 27, 23, 0.7); font-size: 14px; }
+
+/* Carousel: swipe or use the arrows; cards in a row share the tallest height. */
+.reviews-carousel-track {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.reviews-carousel-track::-webkit-scrollbar { display: none; }
+.reviews-carousel-track:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 4px; }
+
+.reviews-carousel-slide {
+  display: flex;
+  flex: 0 0 calc((100% - 44px) / 3);
+  scroll-snap-align: start;
+}
+.reviews-carousel-slide > .review-card { width: 100%; align-content: start; }
+
+.reviews-carousel { position: relative; }
+
+/* Previous on the left edge, next on the right, centred on the cards. */
+.reviews-carousel-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.reviews-carousel-nav button {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(36, 27, 23, 0.18);
+  border-radius: 50%;
+  background: #fffcf6;
+  box-shadow: 0 6px 18px rgba(36, 27, 23, 0.18);
+  color: var(--ink);
+  font-size: 20px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+.reviews-carousel-nav button:first-child { margin-inline-start: -24px; }
+.reviews-carousel-nav button:last-child { margin-inline-end: -24px; }
+.reviews-carousel-nav button:hover:not(:disabled) {
+  border-color: var(--color-night);
+  background: var(--color-night);
+  color: var(--color-desert-paper);
+}
+.reviews-carousel-nav button:disabled { opacity: 0; pointer-events: none; }
+/* The arrows point the way the page reads. */
+[dir="rtl"] .reviews-carousel-nav button span { display: inline-block; transform: scaleX(-1); }
+
+/* ---- Review card ---- */
+.review-card {
+  --platform: var(--color-ember);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 26px 26px 22px;
+  border: 1px solid rgba(36, 27, 23, 0.1);
+  border-top: 3px solid var(--platform);
+  background: #fffcf6;
+  box-shadow: 0 1px 2px rgba(36, 27, 23, 0.04), 0 14px 30px -20px rgba(36, 27, 23, 0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.review-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgba(36, 27, 23, 0.05), 0 22px 38px -20px rgba(36, 27, 23, 0.45);
+}
+
+.review-card-head { display: flex; align-items: center; gap: 12px; }
+
+.review-card-avatar {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #fffcf6, 0 0 0 4px rgba(36, 27, 23, 0.12);
+  color: #fff8ed;
+  font-family: var(--font-display), sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.review-card-who { display: grid; flex: 1; min-width: 0; gap: 3px; }
+.review-card-who strong { font-size: 15px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.review-card-who span { color: rgba(36, 27, 23, 0.58); font-size: 12px; }
+
+/* The platform's own colour, as a pill. */
+.review-card-platform {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--platform) 13%, transparent);
+  color: color-mix(in srgb, var(--platform) 70%, #1a1410);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.review-card-platform::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--platform);
+}
+
+.review-card-rating { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.review-card-rating .stars { color: #e2a01a; font-size: 16px; letter-spacing: 0.08em; }
+.review-card-trip {
+  padding: 3px 10px;
+  border: 1px solid rgba(36, 27, 23, 0.14);
+  border-radius: 999px;
+  color: rgba(36, 27, 23, 0.62);
+  font-size: 12px;
+}
+
+.review-card-quote { position: relative; margin: 0; padding-top: 14px; }
+.review-card-quote::before {
+  content: "“";
+  position: absolute;
+  top: -10px;
+  inset-inline-start: -2px;
+  color: var(--platform);
+  font-family: var(--font-display), serif;
+  font-size: 64px;
+  line-height: 1;
+  opacity: 0.28;
+  pointer-events: none;
+}
+.review-card-title { position: relative; margin: 0 0 8px; font-size: 16px; font-weight: 700; line-height: 1.3; }
+.review-card-body {
+  position: relative;
+  margin: 0;
+  color: rgba(36, 27, 23, 0.84);
+  font-size: 14.5px;
+  line-height: 1.7;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.review-card-reply {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-inline-start: 3px solid var(--platform);
+  background: color-mix(in srgb, var(--platform) 7%, #f4ecdf);
+}
+.review-card-reply-label {
+  color: rgba(36, 27, 23, 0.66);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.review-card-reply p {
+  margin: 0;
+  color: rgba(36, 27, 23, 0.8);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+
+@media (max-width: 760px) {
+  .reviews-wall-head { align-items: flex-start; flex-direction: column; margin-bottom: 32px; }
+  .reviews-wall-summary { justify-items: start; text-align: left; }
+  .reviews-wall-summary .rating-line { justify-content: flex-start; }
+  .reviews-carousel-slide { flex-basis: 85%; }
+}
+
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .reviews-carousel-slide { flex-basis: calc((100% - 22px) / 2); }
+}
+
+@media (max-width: 1280px) {
+  .reviews-carousel-nav button:first-child { margin-inline-start: 6px; }
+  .reviews-carousel-nav button:last-child { margin-inline-end: 6px; }
+}
+@media (max-width: 760px) {
+  .reviews-carousel-nav button { width: 40px; height: 40px; font-size: 17px; }
+}
+
+/* Card header: keep name and date on one line each so every card lines up. */
+.review-card-who strong,
+.review-card-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-card-platform { padding: 4px 9px; font-size: 10px; letter-spacing: 0.05em; }
+.reviews-wall-summary .stars { color: #e2a01a; }
+
+/* ---------- Homepage compact rhythm (24 Sep 2026) ----------
+   Headings were 57-72px and every section carried 110-130px of padding top
+   and bottom, so visitors scrolled through mostly empty space. One
+   spacing scale for all homepage sections, and smaller headings. Kept last
+   in the file so it wins over the earlier per-section values. */
+.route-ledger--grid,
+.stays,
+.activities,
+.direct,
+.reviews-showcase {
+  padding-block: clamp(56px, 6.5vw, 88px);
+}
+
+.route-ledger--grid .sect-title,
+.stays .sect-title,
+.activities .sect-title,
+.direct .sect-title,
+.reviews-showcase .sect-title,
+.cta-split-message h2 {
+  margin-top: 12px;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.06;
+}
+
+.cta-split-message h2 { max-width: 18ch; }
+
+/* Lead paragraphs under a heading: a little smaller, closer to it. */
+.route-ledger--grid .route-ledger-intro > p:not(.idx-label),
+.stays .head p,
+.activities .head p,
+.direct .lead {
+  margin-top: 14px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Gaps between a section's heading and its content. */
+.route-ledger--grid .route-ledger-layout { gap: 36px; }
+.route-ledger--grid .route-dossiers { gap: 24px 20px; }
+.route-ledger--grid .route-dossier-media { aspect-ratio: 4 / 3; }
+.stay-duo { margin-top: 36px; gap: 22px; }
+.stay-tile-media { aspect-ratio: 16 / 8.5; }
+.stay-tile-body { padding: 22px 24px 20px; }
+.stay-choices { margin-top: 44px; }
+.stay-choices-title { margin-bottom: 20px; }
+.stay-choices-grid { gap: 20px; }
+.stay-choice-media { aspect-ratio: 16 / 10; }
+.field-list { margin-top: 36px; }
+.field-row { padding: 20px 0; gap: 24px; grid-template-columns: 40px 160px 1fr auto auto; }
+.field-row-media { width: 160px; height: 104px; }
+.direct-grid { gap: 48px; }
+.reviews-wall-head { margin-bottom: 32px; }
+
+/* Closing call to action: shorter, tighter. */
+.cta-split { min-height: 44vh; }
+.cta-split-media { min-height: 44vh; }
+.cta-split-message { padding: 56px 56px; }
+.cta-split-message p { margin-top: 16px; }
+
+@media (max-width: 900px) {
+  .field-row { grid-template-columns: 1fr; gap: 12px; }
+  .field-row-media { width: 100%; height: 160px; }
+  .cta-split { min-height: 0; }
+  .cta-split-media { min-height: 220px; }
+  .cta-split-message { padding: 44px 24px; }
+}
+
+/* Phones: swipe instead of stacking tall cards one under another. */
+@media (max-width: 560px) {
+  .route-ledger--grid .route-dossiers {
+    display: flex;
+    gap: 16px;
+    margin-inline: -20px;
+    padding-inline: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .route-ledger--grid .route-dossiers::-webkit-scrollbar { display: none; }
+  .route-ledger--grid .route-dossiers > * { flex: 0 0 78%; scroll-snap-align: start; }
+
+  .stay-choices { margin-top: 32px; }
+  .stay-choices-grid { gap: 12px; }
+  .stay-choice { display: grid; grid-template-columns: 112px 1fr; }
+  .stay-choice-media { aspect-ratio: auto; min-height: 100%; }
+  .stay-choice-body { align-content: center; padding: 14px 16px; }
+  .stay-tile-media { aspect-ratio: 16 / 9; }
+}
+
+/* Two consecutive light sections (accommodation, then activities) shouldn't
+   stack both paddings into a wide empty band. */
+.stays--split { padding-bottom: 40px; }
+.stays + .activities { padding-top: 48px; }
+
+/* ---------- Hero: calmer, more professional (24 Sep 2026) ----------
+   The title was 260px with 8-9px labels and every block placed at a fixed
+   percentage of the screen. Now title, tagline and buttons sit in one
+   centred column, at sizes that hold together from phone to widescreen. */
+/* Hero + banner (about 66px tall) together fill the first screen exactly. */
+.static-gate-hero { min-height: clamp(520px, calc(100svh - 66px), 940px); }
+
+.static-gate-content {
+  position: absolute;
+  z-index: 3;
+  top: 78px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 24px 84px;
+  text-align: center;
+}
+
+.static-gate-content .static-gate-word {
+  position: static;
+  padding: 0;
+  pointer-events: auto;
+}
+.static-gate-content .static-gate-copy {
+  position: static;
+  width: min(100%, 560px);
+  margin-top: 26px;
+  transform: none;
+}
+
+.static-gate-word p {
+  margin: 0 0 16px;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+}
+.static-gate-word h1 {
+  font-size: clamp(72px, 12vw, 176px);
+  letter-spacing: -0.06em;
+  line-height: 0.82;
+}
+.static-gate-copy > p { font-size: clamp(16px, 1.4vw, 20px); line-height: 1.4; }
+.static-gate-actions { margin-top: 22px; }
+.static-gate-primary,
+.static-gate-secondary { min-height: 46px; padding: 0 24px; font-size: 11px; }
+.static-gate-stats dd { font-size: 26px; }
+.static-gate-stats dt { font-size: 10px; }
+
+@media (max-width: 560px) {
+  .static-gate-hero { min-height: clamp(520px, calc(100svh - 56px), 760px); }
+  .static-gate-content { padding-bottom: 120px; }
+  .static-gate-word h1 { font-size: clamp(56px, 18vw, 92px); }
+  .static-gate-word p { font-size: 10px; letter-spacing: 0.18em; }
+  .static-gate-content .static-gate-copy { margin-top: 20px; }
+  .static-gate-stats dt { font-size: 9px; }
+}
+
+/* ---------- Hero marquee: the scrolling strip under the hero ---------- */
+.hero-marquee {
+  position: relative;
+  z-index: 5;
+  overflow: hidden;
+  width: 100%;
+  background: #2c2722;
+  color: #f4e9d8;
+  border-block: 2px solid var(--color-amber);
+}
+/* Soft fades so items glide in and out instead of being cut. */
+.hero-marquee::before,
+.hero-marquee::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  width: clamp(24px, 4vw, 64px);
+  pointer-events: none;
+}
+.hero-marquee::before { left: 0; background: linear-gradient(90deg, #2c2722, transparent); }
+.hero-marquee::after { right: 0; background: linear-gradient(270deg, #2c2722, transparent); }
+
+.hero-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: hero-marquee-slide 60s linear infinite;
+}
+.hero-marquee:hover .hero-marquee-track,
+.hero-marquee:focus-within .hero-marquee-track { animation-play-state: paused; }
+
+.hero-marquee-group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-marquee-group li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 0;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.hero-marquee-group li strong { color: #fff8ed; font-weight: 700; }
+/* Diamond between items — also after the last one, so copies join up. */
+.hero-marquee-group li::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-inline: 28px;
+  background: var(--color-amber);
+  transform: rotate(45deg);
+}
+.hero-marquee-star { color: #e2a01a; font-size: 15px; }
+.hero-marquee-link { color: var(--color-amber); text-decoration: underline; text-underline-offset: 6px; }
+.hero-marquee-link:hover { text-decoration: underline; }
+
+/* One copy's width = one quarter of the track (4 identical copies). */
+@keyframes hero-marquee-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-25%); }
+}
+[dir="rtl"] .hero-marquee-track { animation-direction: reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-marquee { overflow-x: auto; }
+  .hero-marquee-track { animation: none; }
+  .hero-marquee::before,
+  .hero-marquee::after { display: none; }
+}
+@media (max-width: 560px) {
+  .hero-marquee-group li { padding: 16px 0; font-size: 12px; letter-spacing: 0.12em; }
+  .hero-marquee-group li::after { margin-inline: 24px; }
+  .hero-marquee-track { animation-duration: 45s; }
+}
+
+/* The circuits section starts right under the marquee — less air on top. */
+.hero-marquee + .route-ledger--grid { padding-top: 40px; }
+/* This section's heading sits right under the banner: show it at once
+   instead of fading in, so the banner isn't followed by a blank gap. */
+.route-ledger--grid .route-ledger-intro.reveal { opacity: 1; transform: none; }

@@ -18,27 +18,28 @@ import Reveal from "@/components/Reveal";
  * It still renders only catalogue data and disappears when that catalogue
  * is empty (no fabricated content).
  */
+/** The homepage shows the first few circuits only; /circuits lists them all. */
+const MAX_HOME_CIRCUITS = 4;
+
 export default async function Circuits() {
   const [tours, t] = await Promise.all([
     getTours(await getLocale()),
     getTranslations("circuitsSection"),
   ]);
   if (!tours.length) return null;
+  const featured = tours.slice(0, MAX_HOME_CIRCUITS);
 
   return (
-    <section className="block route-ledger" id="circuits">
+    <section className="block route-ledger route-ledger--grid" id="circuits">
       <div className="wrap route-ledger-layout">
         <Reveal className="route-ledger-intro">
           <p className="idx-label">{t("eyebrow")}</p>
           <h2 className="sect-title">{t("title")}</h2>
           <p>{t("lead")}</p>
-          <Link href="/circuits" className="editorial-link">
-            {t("seeAll")}
-          </Link>
         </Reveal>
 
         <div className="route-dossiers">
-          {tours.map((tour, i) => (
+          {featured.map((tour, i) => (
             <Reveal key={tour.slug} delay={i * 80}>
               <Link href={`/circuits/${tour.slug}`} className="route-dossier">
                 <span className="route-dossier-media">
@@ -94,6 +95,12 @@ export default async function Circuits() {
             </Reveal>
           ))}
         </div>
+
+        <Reveal className="route-ledger-more">
+          <Link href="/circuits" className="btn-accent">
+            {t("seeAll")}
+          </Link>
+        </Reveal>
       </div>
     </section>
   );

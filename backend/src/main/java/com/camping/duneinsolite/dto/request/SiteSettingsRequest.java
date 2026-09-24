@@ -1,5 +1,8 @@
 package com.camping.duneinsolite.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -38,4 +41,13 @@ public class SiteSettingsRequest {
     // Optional - clearing this clears the cached rating too (see
     // SiteSettingsServiceImpl.updateSettings).
     private String googlePlaceId;
+
+    // Optional - the rating and review count as shown on the Google
+    // profile. Both blank = show none.
+    @DecimalMin(value = "1.0", message = "La note doit être comprise entre 1 et 5")
+    @DecimalMax(value = "5.0", message = "La note doit être comprise entre 1 et 5")
+    private BigDecimal manualGoogleRating;
+
+    @Min(value = 0, message = "Le nombre d'avis ne peut pas être négatif")
+    private Integer manualGoogleRatingCount;
 }

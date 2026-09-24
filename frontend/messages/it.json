@@ -115,6 +115,24 @@
     "there6": "Nessuna foto inclusa",
     "cta": "Prenota direttamente ora"
   },
+  "heroBanner": {
+    "ratingCount": "{count} recensioni Google",
+    "fromLabel": "Da",
+    "nightUnit": "a notte al campo",
+    "circuitsCount": "{count, plural, one {# circuito} other {# circuiti}}",
+    "circuitsUnit": "di più giorni",
+    "cta": "Prenota direttamente",
+    "ariaLabel": "In evidenza",
+    "salam": "Marhba! Benvenuti nel cuore del Sahara",
+    "dream": "Un'avventura indimenticabile vi aspetta",
+    "invite": "Prenota la tua notte sotto le stelle",
+    "welcome": "Benvenuti a Dunes Insolites",
+    "magic": "Vivi il Sahara in modo diverso",
+    "stars": "Una notte sotto le stelle",
+    "camel": "Trekking in cammello nel deserto",
+    "sunset": "Tramonto sulle dune",
+    "quad": "Quad e sandboard nel deserto"
+  },
   "reviewsShowcase": {
     "eyebrow": "Recensioni",
     "title": "Perché ci amano.",
@@ -129,7 +147,12 @@
     "proofLabel": "Dunes Insolites in numeri",
     "guestsLabel": "viaggiatori accompagnati",
     "yearsLabel": "di esperienza locale",
-    "verifiedOnly": "Nessuna testimonianza inventata: qui compaiono solo recensioni realmente pubblicate."
+    "verifiedOnly": "Nessuna testimonianza inventata: qui compaiono solo recensioni realmente pubblicate.",
+    "ownerReply": "Risposta del proprietario",
+    "googleSummary": "{rating} su 5 · {count} recensioni Google",
+    "seeAllOnGoogle": "Vedi tutte le recensioni su Google",
+    "previous": "Recensione precedente",
+    "next": "Recensione successiva"
   },
   "galleryStrip": {
     "eyebrow": "Dalla sabbia",
@@ -1250,7 +1273,8 @@
     "titleLine1": "Due modi",
     "titleLine2": "per dormire tra le dune.",
     "lead": "Il campo fisso, oppure un bivacco più all'interno delle dune — entrambi finiscono nello stesso modo, attorno a un fuoco, sotto il medesimo cielo.",
-    "fromPrice": "A partire da €{price}"
+    "fromPrice": "A partire da €{price}",
+    "chooseAccommodation": "Scegli il tuo alloggio"
   },
   "activitiesSection": {
     "eyebrow": "Guida sul campo",

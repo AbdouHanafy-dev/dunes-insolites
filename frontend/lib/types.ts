@@ -72,6 +72,7 @@ export const REVIEW_SOURCE_LABELS: Record<Review["source"], string> = {
   tripadvisor: "TripAdvisor",
   getyourguide: "GetYourGuide",
   google: "Google",
+  other: "Other",
 };
 
 /** Who guides a Tour's customers — Tour["guideType"], never null when present. */

@@ -23,31 +23,30 @@ export default async function Hero({ stats }: { stats: Stats }) {
         <div className="static-gate-shade" />
       </div>
 
-      <div className="static-gate-word">
-        <p>{site.name} · Sabria · Southern Tunisia</p>
-        <h1 id="static-gate-title">{site.hero}</h1>
-      </div>
-
-      <div className="static-gate-copy">
-        <p>{site.tagline}</p>
-        <div className="static-gate-actions">
-          <Link href="/activities" className="static-gate-primary">
-            {t("exploreExperiences")} <span aria-hidden="true">↗</span>
-          </Link>
-          <Link href="/about" className="static-gate-secondary">
-            {t("discoverSabria")}
-          </Link>
+      <div className="static-gate-content">
+        <div className="static-gate-word">
+          <p>{site.name} · Sabria · Southern Tunisia</p>
+          <h1 id="static-gate-title">{site.hero}</h1>
         </div>
+
+        <div className="static-gate-copy">
+          <p>{site.tagline}</p>
+          <div className="static-gate-actions">
+            <Link href="/activities" className="static-gate-primary">
+              {t("exploreExperiences")} <span aria-hidden="true">↗</span>
+            </Link>
+            <Link href="/about" className="static-gate-secondary">
+              {t("discoverSabria")}
+            </Link>
+          </div>
+        </div>
+
       </div>
 
       <dl className="static-gate-stats">
         <div>
           <dd>{stats.guestsGuided}</dd>
           <dt>{t("guestsGuided")}</dt>
-        </div>
-        <div>
-          <dd>{stats.avgRating ?? t("newRating")}</dd>
-          <dt>{t("averageRating")}</dt>
         </div>
         <div>
           <dd>{years}+</dd>

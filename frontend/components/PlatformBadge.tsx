@@ -12,13 +12,27 @@ const PLATFORM: Record<Review["source"], { label: string; color: string }> = {
   getyourguide: { label: "GetYourGuide", color: "#FF5533" },
   wetravel: { label: "WeTravel", color: "#0F8B8D" },
   direct: { label: "Verified booking", color: "var(--accent)" },
+  other: { label: "Other", color: "#6B7280" },
 };
 
-export default function PlatformBadge({ source }: { source: Review["source"] }) {
+/**
+ * `name` / `color` come with a review copied from another platform (each
+ * platform has its own, and staff can add new ones); without them the
+ * built-in wordmark for `source` is used.
+ */
+export default function PlatformBadge({
+  source,
+  name,
+  color,
+}: {
+  source: Review["source"];
+  name?: string;
+  color?: string;
+}) {
   const p = PLATFORM[source];
   return (
-    <span className="platform-badge" style={{ color: p.color }}>
-      {p.label}
+    <span className="platform-badge" style={{ color: color ?? p.color }}>
+      {name ?? p.label}
     </span>
   );
 }

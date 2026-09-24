@@ -47,7 +47,7 @@ export default async function BookDirect({ override }: { override?: Record<strin
       <div className="wrap direct-grid">
         <Reveal className="direct-intro">
           <p className="idx-label direct-eyebrow">{eyebrow}</p>
-          <h2 className="sect-title" style={{ fontSize: "clamp(32px,4.4vw,64px)" }}>
+          <h2 className="sect-title">
             {t("titleLine1")}
             <br />
             {DIRECT_DISCOUNT} {t("titleDiscountSuffix")}

@@ -1,30 +1,20 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import Stars from "@/components/Stars";
-import PlatformBadge from "@/components/PlatformBadge";
-import ReviewCarousel from "@/components/ReviewCarousel";
+import ReviewCard from "@/components/ReviewCard";
+import ReviewsCarousel from "@/components/ReviewsCarousel";
 import { getReviews, getSiteSettings } from "@/lib/api";
 import { averageRating } from "@/lib/data/reviews";
-import type { Review } from "@/lib/types";
 import { Link } from "@/i18n/navigation";
 
-const SOURCE_ORDER: Review["source"][] = [
-  "google",
-  "airbnb",
-  "booking",
-  "tripadvisor",
-  "getyourguide",
-  "wetravel",
-  "direct",
-];
-
 /**
- * The homepage's trust section — every review grouped by where it was
- * actually left, each with its own real average and an interactive
- * carousel. Activity/stay pages keep the simpler flat `Reviews` list;
- * this is the one place all platforms get shown side by side.
+ * The homepage's trust section: a carousel of real guest reviews, newest first,
+ * each shown the way its platform shows it (see ReviewCard). With no
+ * reviews yet it falls back to a plain invitation - nothing is invented.
+ * Activity/stay pages keep the simpler flat `Reviews` list.
  */
 export default async function ReviewsShowcase() {
+  const locale = await getLocale();
   const [all, settings, t] = await Promise.all([
     getReviews(),
     getSiteSettings(),
@@ -61,53 +51,62 @@ export default async function ReviewsShowcase() {
     );
   }
 
-  const groups = SOURCE_ORDER.map((source) => ({
-    source,
-    reviews: all.filter((r) => r.source === source),
-  })).filter((g) => g.reviews.length > 0);
+  // Newest first, whichever platform each one came from: a visitor wants to
+  // read recent guests, not browse per-platform lists.
+  const wall = [...all].sort((a, b) => b.date.localeCompare(a.date));
 
-  const avg = averageRating(all);
+  // The headline figure is the business's real Google rating when we have
+  // it (the number a visitor will compare against), otherwise the average
+  // of the reviews shown - never a made-up value.
+  const googleRating = settings.googleRating;
+  const googleCount = settings.googleRatingCount;
+  const avg = googleRating != null ? googleRating.toFixed(1) : averageRating(all);
+  const allOnGoogleHref = settings.googlePlaceId
+    ? `https://search.google.com/local/reviews?placeid=${encodeURIComponent(settings.googlePlaceId)}`
+    : null;
 
   return (
     <section className="block reviews-showcase" id="reviews">
       <div className="wrap">
-        <Reveal>
-          <p className="idx-label">{t("eyebrow")}</p>
-          <h2 className="sect-title" style={{ fontSize: "clamp(32px,4vw,60px)" }}>
-            {t("title")}
-          </h2>
-          <div className="rating-line">
-            <span className="score">{avg}</span>
-            <Stars n={Math.round(Number(avg))} />
+        <Reveal className="reviews-wall-head">
+          <div>
+            <p className="idx-label">{t("eyebrow")}</p>
+            <h2 className="sect-title">
+              {t("title")}
+            </h2>
+          </div>
+          <div className="reviews-wall-summary">
+            <div className="rating-line">
+              <span className="score">{avg}</span>
+              <Stars n={Math.round(Number(avg))} />
+            </div>
             <span className="of">
-              {all.length === 1
-                ? t("reviewCountOne", { count: all.length })
-                : t("reviewCountOther", { count: all.length })}
+              {googleRating != null && googleCount != null
+                ? t("googleSummary", { rating: avg, count: googleCount })
+                : all.length === 1
+                  ? t("reviewCountOne", { count: all.length })
+                  : t("reviewCountOther", { count: all.length })}
             </span>
+            {allOnGoogleHref && (
+              <a href={allOnGoogleHref} target="_blank" rel="noreferrer noopener" className="editorial-link">
+                {t("seeAllOnGoogle")} ↗
+              </a>
+            )}
           </div>
         </Reveal>
 
-        <div className="platform-groups">
-          {groups.map(({ source, reviews }, i) => {
-            const groupAvg = averageRating(reviews);
-            return (
-              <Reveal key={source} className="platform-group" delay={i * 80}>
-                <div className="platform-header">
-                  <PlatformBadge source={source} />
-                  <div className="platform-rating">
-                    <Stars n={Math.round(Number(groupAvg))} />
-                    <span>
-                      {reviews.length === 1
-                        ? t("platformRatingOne", { avg: groupAvg, count: reviews.length })
-                        : t("platformRatingOther", { avg: groupAvg, count: reviews.length })}
-                    </span>
-                  </div>
-                </div>
-                <ReviewCarousel reviews={reviews} />
-              </Reveal>
-            );
-          })}
-        </div>
+        <Reveal>
+          <ReviewsCarousel previousLabel={t("previous")} nextLabel={t("next")}>
+            {wall.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                locale={locale}
+                ownerReplyLabel={t("ownerReply")}
+              />
+            ))}
+          </ReviewsCarousel>
+        </Reveal>
       </div>
     </section>
   );

@@ -115,6 +115,24 @@
     "there6": "Keine Fotos inklusive",
     "cta": "Jetzt direkt buchen"
   },
+  "heroBanner": {
+    "ratingCount": "{count} Google-Bewertungen",
+    "fromLabel": "Ab",
+    "nightUnit": "pro Nacht im Camp",
+    "circuitsCount": "{count, plural, one {# Rundreise} other {# Rundreisen}}",
+    "circuitsUnit": "mehrtägig",
+    "cta": "Direkt buchen",
+    "ariaLabel": "Highlights",
+    "salam": "Marhba! Willkommen im Herzen der Sahara",
+    "dream": "Ein unvergessliches Abenteuer erwartet Sie",
+    "invite": "Buchen Sie Ihre Nacht unter den Sternen",
+    "welcome": "Willkommen bei Dunes Insolites",
+    "magic": "Die Sahara neu erleben",
+    "stars": "Eine Nacht unter den Sternen",
+    "camel": "Kamelritt in der Wüste",
+    "sunset": "Sonnenuntergang über den Dünen",
+    "quad": "Quad & Sandboarding in der Wüste"
+  },
   "reviewsShowcase": {
     "eyebrow": "Bewertungen",
     "title": "Warum man uns liebt.",
@@ -129,7 +147,12 @@
     "proofLabel": "Dunes Insolites in Zahlen",
     "guestsLabel": "begleitete Reisende",
     "yearsLabel": "lokale Erfahrung",
-    "verifiedOnly": "Keine erfundenen Erfahrungsberichte: Hier erscheinen nur tatsächlich veröffentlichte Bewertungen."
+    "verifiedOnly": "Keine erfundenen Erfahrungsberichte: Hier erscheinen nur tatsächlich veröffentlichte Bewertungen.",
+    "ownerReply": "Antwort des Inhabers",
+    "googleSummary": "{rating} von 5 · {count} Google-Bewertungen",
+    "seeAllOnGoogle": "Alle Bewertungen auf Google ansehen",
+    "previous": "Vorherige Bewertung",
+    "next": "Nächste Bewertung"
   },
   "galleryStrip": {
     "eyebrow": "Aus dem Sand",
@@ -1250,7 +1273,8 @@
     "titleLine1": "Zwei Wege",
     "titleLine2": "in den Dünen zu schlafen.",
     "lead": "Das feste Camp oder ein Biwak weiter in den Dünen — beide enden auf dieselbe Weise, an einem Lagerfeuer, unter demselben Himmel.",
-    "fromPrice": "Ab €{price}"
+    "fromPrice": "Ab €{price}",
+    "chooseAccommodation": "Wählen Sie Ihre Unterkunft"
   },
   "activitiesSection": {
     "eyebrow": "Feldführer",

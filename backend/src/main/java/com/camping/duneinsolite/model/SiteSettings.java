@@ -72,6 +72,14 @@ public class SiteSettings {
     @Column(name = "google_rating_fetched_at")
     private LocalDateTime googleRatingFetchedAt;
 
+    // Hand-entered from the Google profile; used only when no fetched
+    // rating exists (see SiteSettingsServiceImpl.toResponse).
+    @Column(name = "manual_google_rating")
+    private BigDecimal manualGoogleRating;
+
+    @Column(name = "manual_google_rating_count")
+    private Integer manualGoogleRatingCount;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

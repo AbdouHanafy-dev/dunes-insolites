@@ -115,6 +115,24 @@
     "there6": "Aucune photo incluse",
     "cta": "Réserver en direct maintenant"
   },
+  "heroBanner": {
+    "ratingCount": "{count} avis Google",
+    "fromLabel": "À partir de",
+    "nightUnit": "la nuit au campement",
+    "circuitsCount": "{count, plural, one {# circuit} other {# circuits}}",
+    "circuitsUnit": "multi-jours",
+    "cta": "Réserver en direct",
+    "ariaLabel": "Points forts",
+    "salam": "Marhba ! Bienvenue au cœur du Sahara",
+    "dream": "Une aventure inoubliable vous attend",
+    "invite": "Réservez votre nuit sous les étoiles",
+    "welcome": "Bienvenue chez Dunes Insolites",
+    "magic": "Vivez le Sahara autrement",
+    "stars": "Une nuit sous les étoiles",
+    "camel": "Balade à dos de dromadaire",
+    "sunset": "Coucher de soleil sur les dunes",
+    "quad": "Quad & sandboard dans le désert"
+  },
   "reviewsShowcase": {
     "eyebrow": "Avis",
     "title": "Pourquoi on nous aime.",
@@ -129,7 +147,12 @@
     "proofLabel": "Dunes Insolites en chiffres",
     "guestsLabel": "voyageurs accompagnés",
     "yearsLabel": "d'expérience locale",
-    "verifiedOnly": "Aucun témoignage inventé : seuls les avis réellement publiés apparaissent ici."
+    "verifiedOnly": "Aucun témoignage inventé : seuls les avis réellement publiés apparaissent ici.",
+    "ownerReply": "Réponse du propriétaire",
+    "googleSummary": "{rating} sur 5 · {count} avis Google",
+    "seeAllOnGoogle": "Voir tous les avis sur Google",
+    "previous": "Avis précédent",
+    "next": "Avis suivant"
   },
   "galleryStrip": {
     "eyebrow": "Depuis le sable",
@@ -1474,7 +1497,8 @@
     "titleLine1": "Deux façons",
     "titleLine2": "de dormir dans les dunes.",
     "lead": "Le campement fixe, ou un bivouac plus loin dans les dunes — les deux se terminent de la même façon, autour d'un feu, sous le même ciel.",
-    "fromPrice": "À partir de {price} €"
+    "fromPrice": "À partir de {price} €",
+    "chooseAccommodation": "Choisissez votre hébergement"
   },
   "activitiesSection": {
     "eyebrow": "Carnet de route",

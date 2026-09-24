@@ -3,6 +3,7 @@ export type FieldDef =
   | { type: "textarea"; key: string; label: string; hint?: string }
   | { type: "number"; key: string; label: string; required?: boolean; step?: number; hint?: string }
   | { type: "datetime"; key: string; label: string; hint?: string }
+  | { type: "date"; key: string; label: string; required?: boolean; hint?: string }
   | { type: "select"; key: string; label: string; options: { value: string; label: string }[]; hint?: string }
   | { type: "checkbox"; key: string; label: string }
   // A repeatable group — an array of objects, each shaped by `fields`.
@@ -60,6 +61,20 @@ export function FieldInput({
           </option>
         ))}
       </select>
+    );
+  }
+  if (field.type === "date") {
+    // A calendar date (YYYY-MM-DD) — for backend LocalDate fields, which
+    // reject the time part a datetime-local value carries.
+    const raw = (value as string) ?? "";
+    return (
+      <input
+        id={field.key}
+        type="date"
+        value={raw.slice(0, 10)}
+        onChange={(e) => onChange(e.target.value || null)}
+        className={inputClass}
+      />
     );
   }
   if (field.type === "datetime") {
