@@ -157,6 +157,8 @@ services:
       # an otherwise working API fail deployment.
       MANAGEMENT_HEALTH_MAIL_ENABLED: "true"
     volumes:
+      # Uploaded photos survive redeploys (the container filesystem does not).
+      - dunes_v2_uploads:/data/uploads
       # No-op (mounts /dev/null onto itself) until GOOGLE_SERVICE_ACCOUNT_
       # KEY_PATH is actually set in .env.vps - same host path on both
       # sides of the mount, read-only, so the JSON key file the seo-
@@ -228,6 +230,7 @@ services:
 volumes:
   dunes_v2_pgdata:
   dunes_v2_rabbitdata:
+  dunes_v2_uploads:
 
 networks:
   dunes-v2:

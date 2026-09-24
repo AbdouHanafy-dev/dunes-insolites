@@ -25,6 +25,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN addgroup --system spring && adduser --system --ingroup spring spring
+
+# Uploaded photos live here, on a named volume (see docker-compose.vps.yml). The
+# directory must exist and belong to `spring` in the image: /app is root-owned, so
+# the app could not create its own upload folder and every upload answered 500.
+RUN mkdir -p /data/uploads && chown -R spring:spring /data
+ENV APP_UPLOAD_DIR=/data/uploads
 USER spring:spring
 
 COPY --from=build /app/target/*.jar app.jar
