@@ -6773,6 +6773,20 @@ body:has(.auth-page) footer.site-footer {
   }
 }
 
+/* The cookie buttons borrow .header-cta's look, but the mobile header rules
+   hide every .header-cta (the bar is just brand + burger). Re-show them, and
+   let the two buttons share the row on narrow screens. */
+.header-cta.cookie-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 520px) {
+  .header-cta.cookie-btn {
+    flex: 1 1 100%;
+  }
+}
+
 /* ---------- back to top ----------
    Appears after the first screen of scrolling. Sits at the reading-end
    corner, opposite the cookie notice (reading-start, z-index 50), and below
