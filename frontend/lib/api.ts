@@ -660,7 +660,7 @@ export async function getReviews(filter?: {
   const data = await get<{ reviews: Review[] }>(
     path,
     { seed: { reviews: seed }, empty: { reviews: [] } },
-    { revalidate: 600 },
+    { revalidate: 60 },
   );
   return data.reviews ?? [];
 }
