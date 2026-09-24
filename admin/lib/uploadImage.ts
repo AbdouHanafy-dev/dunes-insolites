@@ -2,6 +2,34 @@
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
 
+const MAX_SIDE = 2400;
+
+/**
+ * Shrinks a big photo in the browser (max 2400 px, JPEG) so phone photos of
+ * 10 Mo upload without the user doing anything. SVG/GIF are left untouched, and
+ * if the browser cannot decode the file we send the original as-is.
+ */
+async function shrink(file: File): Promise<File> {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file;
+  if (file.size < 1024 * 1024) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+  } catch {
+    return file;
+  }
+}
+
 export type UploadResult = { url: string; error: null } | { url: null; error: string };
 
 /**
@@ -9,7 +37,8 @@ export type UploadResult = { url: string; error: null } | { url: null; error: st
  * or a message that says WHY it failed (too big, wrong format, no permission,
  * expired session...) instead of a bare "Envoi impossible".
  */
-export async function uploadImage(file: File): Promise<UploadResult> {
+export async function uploadImage(original: File): Promise<UploadResult> {
+  const file = await shrink(original);
   if (file.size > MAX_UPLOAD_BYTES) {
     const mb = (file.size / (1024 * 1024)).toFixed(1).replace(".", ",");
     return { url: null, error: `Photo trop lourde (${mb} Mo) : maximum 8 Mo. Réduisez-la puis réessayez.` };
