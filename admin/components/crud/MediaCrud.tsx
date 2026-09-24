@@ -24,22 +24,28 @@ export function MediaLibrary({ initialItems }: { initialItems: AdminMediaAsset[]
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   async function onFileChosen(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = ""; // allow re-selecting the same file later
-    if (!file) return;
+    if (files.length === 0) return;
 
     setUploading(true);
     setError("");
-    const result = await uploadImage(file);
+    let sent = 0;
+    for (const file of files) {
+      const result = await uploadImage(file);
+      if (result.url === null) {
+        setError(result.error);
+        toast.error(files.length > 1 ? `${file.name} : ${result.error}` : result.error);
+      } else {
+        sent += 1;
+      }
+    }
     setUploading(false);
 
-    if (result.url === null) {
-      setError(result.error);
-      toast.error(result.error);
-      return;
+    if (sent > 0) {
+      toast.success(sent > 1 ? `${sent} fichiers envoyés` : "Fichier envoyé");
+      router.refresh();
     }
-    toast.success("Fichier envoyé");
-    router.refresh();
   }
 
   async function onDelete() {
@@ -78,6 +84,7 @@ export function MediaLibrary({ initialItems }: { initialItems: AdminMediaAsset[]
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
             className="hidden"
             onChange={onFileChosen}
