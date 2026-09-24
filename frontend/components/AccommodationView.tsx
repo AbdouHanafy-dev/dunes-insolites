@@ -77,10 +77,10 @@ export default async function AccommodationView({
   const waDigits = whatsapp.replace(/[^\d]/g, "");
   const waHref = waDigits ? `https://wa.me/${waDigits}` : "/contact";
 
-  // Gallery: own photos first, padded with library photos up to five.
-  const own = [accommodation.image, ...(accommodation.gallery ?? [])].filter(isDisplayableImageSrc);
-  const photos = [...own];
-  for (const f of FILLER) if (photos.length < 6 && !photos.includes(f)) photos.push(f);
+  // Gallery: this accommodation's own photos only; the site's library photos
+  // stand in just when none was uploaded.
+  const own = [...new Set([accommodation.image, ...(accommodation.gallery ?? [])].filter(isDisplayableImageSrc))];
+  const photos = own.length > 0 ? own : FILLER.slice(0, 5);
 
   const quick = copy.quick.map((q) => (q.icon === "users" ? { ...q, label: accommodation.sleeps } : q));
   const topReviews = [...reviews].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);

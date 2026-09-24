@@ -81,8 +81,10 @@ export default async function ActivityView({
   const waHref = waDigits ? `https://wa.me/${waDigits}` : "/contact";
 
   const heroImage = isDisplayableImageSrc(activity.heroImage) ? activity.heroImage : (OWN_PHOTO[activity.slug] ?? FILLER[1]);
-  const photos = [heroImage, ...(activity.gallery ?? []).filter(isDisplayableImageSrc)];
-  for (const f of [...Object.values(OWN_PHOTO), ...FILLER]) if (photos.length < 6 && !photos.includes(f)) photos.push(f);
+  // Only this activity's own photos: padding with other activities' pictures made
+  // every page show the same generic set. The default photo stands in only when
+  // nothing was uploaded for it at all.
+  const photos = [...new Set([heroImage, ...(activity.gallery ?? []).filter(isDisplayableImageSrc)])];
 
   const title = copy.h1 || activity.title;
   const steps = copy.steps;

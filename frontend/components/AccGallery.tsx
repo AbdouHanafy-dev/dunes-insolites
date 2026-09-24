@@ -38,7 +38,7 @@ export default function AccGallery({
 
   return (
     <div className="acc-gallery">
-      <div className="acc-gallery-grid">
+      <div className="acc-gallery-grid" data-count={preview.length}>
         {preview.map((src, i) => (
           <button
             key={src + i}
