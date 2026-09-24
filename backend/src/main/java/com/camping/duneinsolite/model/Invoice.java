@@ -61,7 +61,7 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", length = 3, nullable = false)
     @Builder.Default
-    private Currency currency = Currency.TND;
+    private Currency currency = Currency.EUR;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)

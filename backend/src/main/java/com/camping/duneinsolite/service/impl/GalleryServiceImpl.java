@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +52,17 @@ public class GalleryServiceImpl implements GalleryService {
         galleryImageMapper.updateEntity(request, image);
         applyDefaults(image, request);
         return galleryImageMapper.toResponse(galleryImageRepository.save(image));
+    }
+
+    @Override
+    public void reorder(List<UUID> ids) {
+        Map<UUID, GalleryImage> byId = galleryImageRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(GalleryImage::getGalleryItemId, g -> g));
+        int position = 1;
+        for (UUID id : ids) {
+            GalleryImage image = byId.get(id);
+            if (image != null) image.setPosition(position++);
+        }
     }
 
     @Override

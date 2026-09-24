@@ -144,7 +144,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         if (request.getInitialPayment() != null
                 && request.getInitialPayment().getCurrency() != null
-                && request.getInitialPayment().getCurrency() != Currency.TND) {
+                && request.getInitialPayment().getCurrency() != com.camping.duneinsolite.config.CurrencyConfig.BASE) {
             applyReservationCurrencyConversion(reservation, request.getInitialPayment().getCurrency());
         }
 
@@ -233,7 +233,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .otherLanguageRequested(request.getOtherLanguageRequested())
                 .numberOfAdults(globalAdults)
                 .numberOfChildren(globalChildren)
-                .currency(Currency.TND)
+                .currency(com.camping.duneinsolite.config.CurrencyConfig.BASE)
                 .promoCode(request.getPromoCode())
                 .status(ReservationStatus.PENDING)
                 .holdExpiresAt(request.getHoldExpiresAt())
@@ -1932,10 +1932,10 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     // Converts every price field so the DB always holds values in the target currency.
-    // Called once at reservation creation when initial payment currency != TND.
+    // Called once at reservation creation when initial payment currency != the base currency (EUR).
     private void applyReservationCurrencyConversion(Reservation reservation, Currency targetCurrency) {
-        if (targetCurrency == Currency.TND) {
-            reservation.setCurrency(Currency.TND);
+        if (targetCurrency == com.camping.duneinsolite.config.CurrencyConfig.BASE) {
+            reservation.setCurrency(targetCurrency);
             return;
         }
         java.math.BigDecimal rate = currencyConfig.rateFor(targetCurrency);

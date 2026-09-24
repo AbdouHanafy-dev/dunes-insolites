@@ -8,6 +8,7 @@ import { inputClass, labelClass } from "@/components/payload/fields";
 import { statusOf } from "@/components/reservations/reservationStatus";
 import { suggestedDeposit } from "@/components/reservations/paymentSuggest";
 import type { AdminPaymentPolicy } from "@/lib/api";
+import { sym } from "@/lib/currency";
 
 /**
  * The only place in this app that changes a reservation's status. Calls the
@@ -140,7 +141,7 @@ export default function ReservationStatusPanel({
     e.preventDefault();
     const value = amount.trim() === "" ? null : Number(amount);
     if (value !== null && (!Number.isFinite(value) || value < 0 || value > total)) {
-      toast.error(`Le montant doit être compris entre 0 et ${total} ${currency}.`);
+      toast.error(`Le montant doit être compris entre 0 et ${total} ${sym(currency)}.`);
       return;
     }
 
@@ -218,7 +219,7 @@ export default function ReservationStatusPanel({
             </p>
             <div className="flex flex-col gap-1">
               <label htmlFor="cf-amount" className={labelClass}>
-                À payer maintenant ({currency}) — 0 pour ne rien demander à l&apos;avance
+                À payer maintenant ({sym(currency)}) — 0 pour ne rien demander à l&apos;avance
               </label>
               <input
                 id="cf-amount"
@@ -232,7 +233,7 @@ export default function ReservationStatusPanel({
                 disabled={busy}
               />
               <p className="text-[12px] text-navy-700/45">
-                Total de la réservation : {total} {currency}. Proposé d&apos;après les règles de paiement, modifiable.
+                Total de la réservation : {total} {sym(currency)}. Proposé d&apos;après les règles de paiement, modifiable.
               </p>
             </div>
             <div className="flex flex-col gap-1">

@@ -204,7 +204,7 @@ public class PaymentRequestService {
     }
 
     private static String currencyOf(Reservation r) {
-        return r.getCurrency() != null ? r.getCurrency().name() : "TND";
+        return r.getCurrency() != null ? r.getCurrency().name() : "EUR";
     }
 
     /** Only http(s) links go into an email href - never javascript: or data: URLs. */

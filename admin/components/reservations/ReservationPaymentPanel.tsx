@@ -7,6 +7,7 @@ import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminPaymentPolicy, AdminPaymentSummary, AdminTransaction } from "@/lib/api";
 import { paymentStatusOf } from "./reservationStatus";
 import { suggestedDeposit } from "./paymentSuggest";
+import { sym } from "@/lib/currency";
 
 /**
  * Payment side of a reservation. Two things staff do here, both server-backed:
@@ -70,12 +71,17 @@ export default function ReservationPaymentPanel({
   );
   const [notify, setNotify] = useState(true);
   const [sending, setSending] = useState(false);
-  const [amount, setAmount] = useState("");
+  // null = follow the balance: the field pre-fills with what is still owed
+  // (deposit paid online, the rest in cash on site) until someone types.
+  const [typedAmount, setAmount] = useState<string | null>(null);
   const [method, setMethod] = useState("CASH");
   const [recording, setRecording] = useState(false);
 
   const status = paymentStatusOf(summary?.paymentStatus);
   const remaining = summary?.remainingTotal ?? 0;
+  const amount = typedAmount ?? (remaining > 0 ? trimMoney(remaining) : "");
+  const enteredValue = Number(amount);
+  const balanceAfter = amount.trim() !== "" && Number.isFinite(enteredValue) ? round3(remaining - enteredValue) : null;
   const done = transactions.filter((t) => t.status === "COMPLETED");
 
   async function sendRequest() {
@@ -96,7 +102,7 @@ export default function ReservationPaymentPanel({
     }
     toast.success(
       data.amountDue > 0
-        ? `Demande envoyée à ${data.sentTo} — ${data.amountDue} ${data.currency} à régler`
+        ? `Demande envoyée à ${data.sentTo} — ${data.amountDue} ${sym(data.currency)} à régler`
         : `Modalités de paiement envoyées à ${data.sentTo}`,
     );
     router.refresh();
@@ -124,7 +130,7 @@ export default function ReservationPaymentPanel({
       return;
     }
     toast.success(notify ? "Paiement enregistré — client prévenu par email" : "Paiement enregistré");
-    setAmount("");
+    setAmount(null);
     router.refresh();
   }
 
@@ -137,9 +143,9 @@ export default function ReservationPaymentPanel({
 
       {summary && (
         <div className="grid grid-cols-3 gap-3 text-sm">
-          <Figure label="Total" value={`${summary.originalTotalAmount} ${currency}`} />
-          <Figure label="Reçu" value={`${summary.totalPaid} ${currency}`} />
-          <Figure label="Reste à payer" value={`${summary.remainingTotal} ${currency}`} strong />
+          <Figure label="Total" value={`${summary.originalTotalAmount} ${sym(currency)}`} />
+          <Figure label="Reçu" value={`${summary.totalPaid} ${sym(currency)}`} />
+          <Figure label="Reste à payer" value={`${summary.remainingTotal} ${sym(currency)}`} strong />
         </div>
       )}
 
@@ -153,7 +159,7 @@ export default function ReservationPaymentPanel({
             <p className="mt-0.5 min-h-8 text-[12px] leading-4 text-navy-700/55">{policyText(policy)}</p>
           </div>
           <div className="flex flex-col gap-1">
-            <label className={labelClass} htmlFor="askamount">À demander maintenant ({currency})</label>
+            <label className={labelClass} htmlFor="askamount">À demander maintenant ({sym(currency)})</label>
             <input
               id="askamount"
               type="number"
@@ -199,12 +205,12 @@ export default function ReservationPaymentPanel({
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <div className="flex items-baseline justify-between">
-                <label className={labelClass} htmlFor="payamount">Montant ({currency})</label>
+                <label className={labelClass} htmlFor="payamount">Montant ({sym(currency)})</label>
                 {remaining > 0 && (
                   <button
                     type="button"
                     className="text-[11px] text-navy-700/55 underline hover:text-navy-800"
-                    onClick={() => setAmount(String(remaining))}
+                    onClick={() => setAmount(trimMoney(remaining))}
                   >
                     Tout le reste
                   </button>
@@ -217,9 +223,15 @@ export default function ReservationPaymentPanel({
                 step="0.001"
                 className={inputClass}
                 value={amount}
-                placeholder={remaining > 0 ? String(remaining) : ""}
                 onChange={(e) => setAmount(e.target.value)}
               />
+              {balanceAfter !== null && (
+                <p className={`text-[12px] ${balanceAfter < 0 ? "text-rose" : "text-navy-700/55"}`}>
+                  {balanceAfter < 0
+                    ? `Dépasse le reste à payer de ${trimMoney(-balanceAfter)} ${sym(currency)}`
+                    : `Reste après ce paiement : ${trimMoney(balanceAfter)} ${sym(currency)}`}
+                </p>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <label className={labelClass} htmlFor="paymethod">Moyen</label>
@@ -255,7 +267,7 @@ export default function ReservationPaymentPanel({
                   {new Date(t.transactionDate).toLocaleDateString("fr-FR")} · {methodLabel(t.paymentMethod)}
                 </span>
                 <span className="font-medium tabular-nums text-navy-800">
-                  {t.amount} {t.currency}
+                  {t.amount} {sym(t.currency)}
                 </span>
               </li>
             ))}
@@ -264,6 +276,15 @@ export default function ReservationPaymentPanel({
       )}
     </div>
   );
+}
+
+/** Amounts are in millimes (3 decimals): round like the server, show without trailing zeros. */
+function round3(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
+function trimMoney(n: number): string {
+  return String(round3(n));
 }
 
 function Figure({ label, value, strong }: { label: string; value: string; strong?: boolean }) {

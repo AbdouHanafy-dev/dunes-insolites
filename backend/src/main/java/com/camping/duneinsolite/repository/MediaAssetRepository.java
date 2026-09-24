@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface MediaAssetRepository extends JpaRepository<MediaAsset, UUID> {
     List<MediaAsset> findAllByOrderByCreatedAtDesc();
+
+    List<MediaAsset> findAllByOrderBySortOrderAscCreatedAtDesc();
 }

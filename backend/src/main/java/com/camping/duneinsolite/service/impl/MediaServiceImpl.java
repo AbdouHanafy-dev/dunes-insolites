@@ -18,8 +18,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Local-disk storage — files live under `app.upload-dir` (default
@@ -101,9 +103,21 @@ public class MediaServiceImpl implements MediaService {
     }
 
     @Override
+    @Transactional
+    public void reorder(List<UUID> ids) {
+        Map<UUID, MediaAsset> byId = mediaAssetRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(MediaAsset::getAssetId, a -> a));
+        int position = 1;
+        for (UUID id : ids) {
+            MediaAsset asset = byId.get(id);
+            if (asset != null) asset.setSortOrder(position++);
+        }
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<MediaAssetResponse> getAllAssets() {
-        return mediaAssetRepository.findAllByOrderByCreatedAtDesc().stream()
+        return mediaAssetRepository.findAllByOrderBySortOrderAscCreatedAtDesc().stream()
                 .map(this::toResponse)
                 .toList();
     }

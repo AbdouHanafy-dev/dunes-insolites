@@ -56,7 +56,7 @@ public class AccommodationTypeAdminService {
                 .maxUnits(req.getMaxUnits())
                 .unitPriceTtc(Money.round(req.getUnitPriceTtc()))
                 .tvaRate(req.getTvaRate())
-                .currency(req.getCurrency() != null ? req.getCurrency() : Currency.TND)
+                .currency(req.getCurrency() != null ? req.getCurrency() : Currency.EUR)
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .active(req.getActive() == null || req.getActive())
                 .features(req.getFeatures() != null ? new ArrayList<>(req.getFeatures()) : new ArrayList<>())

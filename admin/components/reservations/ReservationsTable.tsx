@@ -7,6 +7,7 @@ import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { AdminReservation } from "@/lib/api";
 import { isEditable, paymentStatusOf, statusOf } from "./reservationStatus";
+import { sym } from "@/lib/currency";
 
 const prestation = (r: AdminReservation) => [...r.tourTypes, ...r.tours][0]?.name ?? r.reservationType;
 const dateOf = (r: AdminReservation) => r.checkInDate ?? r.serviceDate ?? "";
@@ -203,7 +204,7 @@ export default function ReservationsTable({
                       <td className="px-6 py-3 text-navy-700/75">{dateOf(r) || "—"}</td>
                       <td className="px-6 py-3 text-navy-700/55">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</td>
                       <td className="px-6 py-3 text-right font-medium tabular-nums text-navy-800">
-                        {r.totalAmount} {r.currency}
+                        {r.totalAmount} {sym(r.currency)}
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex items-center justify-end gap-0.5">
@@ -311,7 +312,7 @@ export default function ReservationsTable({
             />
             <Info label="Arrivée" value={viewing.checkInDate ?? viewing.serviceDate ?? "—"} />
             <Info label="Départ" value={viewing.checkOutDate ?? "—"} />
-            <Info label="Montant" value={`${viewing.totalAmount} ${viewing.currency}`} />
+            <Info label="Montant" value={`${viewing.totalAmount} ${sym(viewing.currency)}`} />
             <Info label="Créée le" value={new Date(viewing.createdAt).toLocaleDateString("fr-FR")} />
           </dl>
           <div className="mt-6 flex justify-end gap-2">

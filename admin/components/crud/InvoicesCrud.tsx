@@ -6,6 +6,7 @@ import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import Breadcrumb from "@/components/payload/Breadcrumb";
 import type { AdminInvoice } from "@/lib/api";
+import { sym } from "@/lib/currency";
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Brouillon",
@@ -90,7 +91,7 @@ export function InvoicesList({
                     <td className="px-6 py-3 font-medium text-gray-800">{inv.invoiceNumber}</td>
                     <td className="px-6 py-3 text-gray-700">{inv.userName ?? "—"}</td>
                     <td className="px-6 py-3 text-gray-700">
-                      {inv.totalAmount.toFixed(3)} {inv.currency}
+                      {inv.totalAmount.toFixed(3)} {sym(inv.currency)}
                     </td>
                     <td className="px-6 py-3 text-gray-700">{STATUS_LABEL[inv.status] ?? inv.status}</td>
                     <td className="px-6 py-3 text-gray-700">
@@ -183,13 +184,13 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
             <div>
               <dt className="text-navy-700/45">Montant total</dt>
               <dd className="text-navy-800">
-                {invoice.totalAmount.toFixed(3)} {invoice.currency}
+                {invoice.totalAmount.toFixed(3)} {sym(invoice.currency)}
               </dd>
             </div>
             <div>
               <dt className="text-navy-700/45">Payé / restant</dt>
               <dd className="text-navy-800">
-                {invoice.paidAmount.toFixed(3)} / {invoice.remainingAmount.toFixed(3)} {invoice.currency}
+                {invoice.paidAmount.toFixed(3)} / {invoice.remainingAmount.toFixed(3)} {sym(invoice.currency)}
               </dd>
             </div>
             <div>

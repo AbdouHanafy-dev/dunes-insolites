@@ -1,6 +1,7 @@
 package com.camping.duneinsolite.controller;
 
 import com.camping.duneinsolite.dto.request.GalleryImageRequest;
+import com.camping.duneinsolite.dto.request.ReorderRequest;
 import com.camping.duneinsolite.dto.response.GalleryImageResponse;
 import com.camping.duneinsolite.service.GalleryService;
 import jakarta.validation.Valid;
@@ -50,6 +51,14 @@ public class GalleryController {
     public ResponseEntity<GalleryImageResponse> update(
             @PathVariable UUID galleryItemId, @Valid @RequestBody GalleryImageRequest request) {
         return ResponseEntity.ok(galleryService.update(galleryItemId, request));
+    }
+
+    // Drag-and-drop order; the public gallery reads position ascending.
+    @PutMapping("/order")
+    @PreAuthorize("@perm.can('GALLERY', 'EDIT')")
+    public ResponseEntity<Void> reorder(@Valid @RequestBody ReorderRequest request) {
+        galleryService.reorder(request.getIds());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{galleryItemId}")

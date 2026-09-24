@@ -22,9 +22,9 @@ public class CurrencyController {
     @GetMapping("/rates")
     public ResponseEntity<Map<String, java.math.BigDecimal>> getRates() {
         return ResponseEntity.ok(Map.of(
-                "TND", java.math.BigDecimal.ONE,
-                "EUR", currencyConfig.getEurRate(),
-                "USD", currencyConfig.getUsdRate()
+                "EUR", currencyConfig.rateFor(com.camping.duneinsolite.model.enums.Currency.EUR),
+                "TND", currencyConfig.rateFor(com.camping.duneinsolite.model.enums.Currency.TND),
+                "USD", currencyConfig.rateFor(com.camping.duneinsolite.model.enums.Currency.USD)
         ));
     }
 }

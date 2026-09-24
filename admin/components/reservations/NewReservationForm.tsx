@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { MAIL_LOCALES } from "./mailLocales";
 import type { AdminTourType, AdminExtra, AdminSource, AdminAccommodationType, AdminUser, AdminTour } from "@/lib/api";
+import { sym } from "@/lib/currency";
 
 /**
  * Staff-facing "book on behalf of a client" form (phone/walk-in booking) —
@@ -271,7 +272,7 @@ export default function NewReservationForm({
         <span className="grid h-14 w-14 place-items-center rounded-full bg-emerald/12 text-2xl text-emerald">✓</span>
         <h1 className="text-xl font-bold text-navy-800">Réservation créée</h1>
         <p className="text-sm text-navy-700/65">
-          Montant total : <strong>{result.totalAmount} {result.currency}</strong>
+          Montant total : <strong>{result.totalAmount} {sym(result.currency)}</strong>
         </p>
         <div className="flex gap-2">
           <button onClick={() => router.push("/reservations")} className="btn btn-secondary">
@@ -514,7 +515,7 @@ export default function NewReservationForm({
                         : "";
                   return (
                     <option key={a.id} value={a.id}>
-                      {a.name} ({a.unitPriceTtc} {a.currency}/nuit){flag}
+                      {a.name} ({a.unitPriceTtc} {sym(a.currency)}/nuit){flag}
                     </option>
                   );
                 })}

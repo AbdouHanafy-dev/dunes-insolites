@@ -227,7 +227,7 @@ public class ReservationMailer {
     static String money(BigDecimal amount, String currency) {
         BigDecimal a = amount.stripTrailingZeros();
         if (a.scale() < 0) a = a.setScale(0);
-        return a.toPlainString() + " " + currency;
+        return a.toPlainString() + " " + ("EUR".equals(currency) ? "€" : currency);
     }
 
     static String longDate(LocalDate date, MailLocale l) {

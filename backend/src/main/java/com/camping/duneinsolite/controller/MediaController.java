@@ -1,6 +1,8 @@
 package com.camping.duneinsolite.controller;
 
+import com.camping.duneinsolite.dto.request.ReorderRequest;
 import com.camping.duneinsolite.dto.response.MediaAssetResponse;
+import jakarta.validation.Valid;
 import com.camping.duneinsolite.model.enums.CompanyType;
 import com.camping.duneinsolite.service.MediaService;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,14 @@ public class MediaController {
     @PreAuthorize("@perm.can('MEDIA', 'READ')")
     public ResponseEntity<List<MediaAssetResponse>> getAllAssets() {
         return ResponseEntity.ok(mediaService.getAllAssets().stream().map(this::absolute).toList());
+    }
+
+    // Drag-and-drop order of the library; ids[0] shows first everywhere.
+    @PutMapping("/order")
+    @PreAuthorize("@perm.can('MEDIA', 'FULL')")
+    public ResponseEntity<Void> reorder(@Valid @RequestBody ReorderRequest request) {
+        mediaService.reorder(request.getIds());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{assetId}")

@@ -77,7 +77,7 @@ public class AccommodationType {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", length = 3, nullable = false)
     @Builder.Default
-    private Currency currency = Currency.TND;
+    private Currency currency = Currency.EUR;
 
     @Column(name = "display_order", nullable = false)
     @Builder.Default

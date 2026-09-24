@@ -11,4 +11,7 @@ public interface MediaService {
     MediaAssetResponse upload(MultipartFile file, CompanyType companyType);
     List<MediaAssetResponse> getAllAssets();
     void deleteAsset(UUID assetId);
+
+    /** Persists the library order: ids[0] is shown first. */
+    void reorder(List<UUID> ids);
 }

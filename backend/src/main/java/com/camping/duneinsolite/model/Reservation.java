@@ -85,7 +85,7 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", length = 3)
     @Builder.Default
-    private Currency currency = Currency.TND;
+    private Currency currency = Currency.EUR;
 
     @Column(name = "promo_code")
     private String promoCode;
@@ -94,7 +94,7 @@ public class Reservation {
     @Builder.Default
     private java.math.BigDecimal totalExtrasAmount = java.math.BigDecimal.ZERO;
 
-    // Exchange rate (TND per unit of `currency`) locked in at the first non-TND payment.
+    // Exchange rate (base-currency EUR per unit of `currency`) locked in at the first non-EUR payment.
     // Reused for every conversion afterwards so a reservation never drifts against a
     // later config change.
     @Column(name = "exchange_rate_applied")

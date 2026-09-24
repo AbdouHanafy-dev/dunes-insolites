@@ -4,6 +4,7 @@ import CollectionList from "@/components/payload/CollectionList";
 import CollectionEditor from "@/components/payload/CollectionEditor";
 import type { ColumnDef, FieldDef } from "@/components/payload/fields";
 import type { AdminGalleryImage } from "@/lib/api";
+import GalleryReorder from "./GalleryReorder";
 
 const BASE_PATH = "/content/gallery";
 const API_PATH = "gallery";
@@ -54,15 +55,18 @@ const emptyForm = { imageUrl: "", alt: "", tag: "", position: 0, tall: false };
 
 export function GalleryList({ initialItems }: { initialItems: AdminGalleryImage[] }) {
   return (
-    <CollectionList
-      title="Galerie photos"
-      basePath={BASE_PATH}
-      apiPath={API_PATH}
-      idKey="galleryItemId"
-      titleKey="alt"
-      items={initialItems}
-      columns={columns}
-    />
+    <div className="flex flex-col gap-6">
+      <GalleryReorder initialItems={initialItems} />
+      <CollectionList
+        title="Galerie photos"
+        basePath={BASE_PATH}
+        apiPath={API_PATH}
+        idKey="galleryItemId"
+        titleKey="alt"
+        items={initialItems}
+        columns={columns}
+      />
+    </div>
   );
 }
 

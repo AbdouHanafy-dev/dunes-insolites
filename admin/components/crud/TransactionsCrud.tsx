@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toast";
 import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminReservation, AdminTransaction } from "@/lib/api";
+import { sym } from "@/lib/currency";
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "En attente",
@@ -80,7 +81,7 @@ export function TransactionsList({ initialItems }: { initialItems: AdminTransact
                   <tr key={t.transactionId} className="hover:bg-gray-50">
                     <td className="px-6 py-3 font-medium text-gray-800">{t.transactionNumber}</td>
                     <td className="px-6 py-3 text-gray-700">
-                      {t.amount.toFixed(3)} {t.currency}
+                      {t.amount.toFixed(3)} {sym(t.currency)}
                     </td>
                     <td className="px-6 py-3 text-gray-700">{METHOD_LABEL[t.paymentMethod] ?? t.paymentMethod}</td>
                     <td className="px-6 py-3 text-gray-700">{STATUS_LABEL[t.status] ?? t.status}</td>
@@ -107,7 +108,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
   const [reservationId, setReservationId] = useState("");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("CASH");
-  const [currency, setCurrency] = useState("TND");
+  const [currency, setCurrency] = useState("EUR");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -163,7 +164,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
             <option value="">— Choisir —</option>
             {reservations.map((r) => (
               <option key={r.reservationId} value={r.reservationId}>
-                {r.userName} · {r.reservationType} · {r.totalAmount} {r.currency}
+                {r.userName} · {r.reservationType} · {r.totalAmount} {sym(r.currency)}
               </option>
             ))}
           </select>
@@ -208,9 +209,9 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
           >
+            <option value="EUR">€ (EUR)</option>
             <option value="TND">TND</option>
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
+            <option value="USD">$ (USD)</option>
           </select>
         </div>
 

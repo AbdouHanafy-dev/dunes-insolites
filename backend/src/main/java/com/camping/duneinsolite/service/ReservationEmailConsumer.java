@@ -86,7 +86,7 @@ public class ReservationEmailConsumer {
                 ? reservation.getCheckInDate() : reservation.getServiceDate();
         java.math.BigDecimal total = com.camping.duneinsolite.money.Money.add(
                 reservation.getTotalAmount(), reservation.getTotalExtrasAmount());
-        String currency = reservation.getCurrency() != null ? reservation.getCurrency().name() : "TND";
+        String currency = reservation.getCurrency() != null ? reservation.getCurrency().name() : "EUR";
         return new RecipientView(user.getEmail(), user.getName(),
                 com.camping.duneinsolite.model.enums.MailLocale.from(reservation.getLocale()), date, total, currency);
     }

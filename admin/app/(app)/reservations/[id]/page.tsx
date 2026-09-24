@@ -9,6 +9,7 @@ import ReservationPaymentPanel from "@/components/reservations/ReservationPaymen
 import MeetUpPlacePanel from "@/components/reservations/MeetUpPlacePanel";
 import ReservationEditForm from "@/components/reservations/ReservationEditForm";
 import { isEditable, statusOf } from "@/components/reservations/reservationStatus";
+import { sym } from "@/lib/currency";
 
 export const metadata: Metadata = { title: "Réservation" };
 
@@ -44,7 +45,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         <Field label="Statut" value={statusOf(reservation.status).label} />
         <Field label="Type" value={reservation.reservationType} />
         <Field label="Adultes / Enfants" value={`${reservation.numberOfAdults ?? 0} / ${reservation.numberOfChildren ?? 0}`} />
-        <Field label="Montant" value={`${reservation.totalAmount} ${reservation.currency}`} />
+        <Field label="Montant" value={`${reservation.totalAmount} ${sym(reservation.currency)}`} />
         {reservation.arrivalMode && (
           <Field
             label="Transport client"

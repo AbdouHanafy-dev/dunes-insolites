@@ -18,7 +18,7 @@ const emptyTier = (tourTypeId: string): AdminAccommodationTypeInput => ({
   maxUnits: null,
   unitPriceTtc: null,
   tvaRate: 13,
-  currency: "TND",
+  currency: "EUR",
   displayOrder: 0,
   active: true,
   features: [],

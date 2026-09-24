@@ -19,6 +19,9 @@ public interface GalleryService {
 
     void delete(UUID galleryItemId);
 
+    /** Persists the display order: ids[0] is shown first on the site. */
+    void reorder(List<UUID> ids);
+
     /** Vitrine-facing: the DUNES_INSOLITES gallery, ordered for display. */
     List<PublicGalleryItemResponse> getPublicGallery();
 }

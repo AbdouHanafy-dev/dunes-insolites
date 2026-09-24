@@ -46,6 +46,12 @@ public class MediaAsset {
     @Column(name = "company_type", nullable = false)
     private CompanyType companyType;
 
+    // Manual library order (drag and drop). Lower first; 0 = not placed yet,
+    // so a fresh upload shows at the top.
+    @Column(name = "sort_order", nullable = false)
+    @Builder.Default
+    private Integer sortOrder = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

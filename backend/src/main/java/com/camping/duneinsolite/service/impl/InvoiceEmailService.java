@@ -130,7 +130,7 @@ public class InvoiceEmailService {
     private String buildPageHtml(Invoice inv, boolean isFacture, List<ItemRow> items) {
         String logoSrc   = logoDataUri(inv.getCompanyType() == CompanyType.ROUTE_INSOLITE ? LOGO_ROUTE : LOGO_DUNES);
         String stampSrc  = stampDataUri(inv.getCompanyType());
-        String cur       = currencyLabel(inv.getCurrency() != null ? inv.getCurrency().name() : "TND");
+        String cur       = currencyLabel(inv.getCurrency() != null ? inv.getCurrency().name() : "EUR");
 
         // Totals are recomputed from the same item rows shown in the table below —
         // exactly what the in-app facture/proforma modal does — instead of trusting
@@ -342,7 +342,7 @@ public class InvoiceEmailService {
                                   boolean isFacture, java.math.BigDecimal total, java.math.BigDecimal paid, Currency currency) {
         java.math.BigDecimal remaining = com.camping.duneinsolite.money.Money.subtract(total, paid);
         String typeLabel = isFacture ? "facture" : "proforma";
-        String cur = currencyLabel(currency != null ? currency.name() : "TND");
+        String cur = currencyLabel(currency != null ? currency.name() : "EUR");
         return "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"/></head>"
                 + "<body style=\"margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;\">"
                 + "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f4f5;padding:36px 0;\">"

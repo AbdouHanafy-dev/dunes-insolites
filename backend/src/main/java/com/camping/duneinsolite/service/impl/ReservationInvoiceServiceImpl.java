@@ -79,7 +79,7 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
         BigDecimal rawTotal = Money.add(
                 reservation.getTotalAmount(), reservation.getTotalExtrasAmount());
 
-        Currency currency = reservation.getCurrency() != null ? reservation.getCurrency() : Currency.TND;
+        Currency currency = reservation.getCurrency() != null ? reservation.getCurrency() : CurrencyConfig.BASE;
         BigDecimal timbreFiscal = getTimbreFiscal(reservation);
         LocalDate invoiceDate = reservation.getCompletedAt() != null
                 ? reservation.getCompletedAt().toLocalDate() : LocalDate.now();
@@ -302,8 +302,7 @@ public class ReservationInvoiceServiceImpl implements ReservationInvoiceService 
 
     /** Tunisian stamp duty: 1.000 TND, expressed in the reservation's currency. */
     private BigDecimal getTimbreFiscal(Reservation reservation) {
-        Currency currency = reservation.getCurrency() != null ? reservation.getCurrency() : Currency.TND;
-        if (currency == Currency.TND) return Money.of("1.000");
-        return Money.divide(Money.of("1.000"), currencyConfig.effectiveRate(reservation));
+        // 1 TND in base units, then into the reservation's own currency.
+        return Money.divide(currencyConfig.rateFor(Currency.TND), currencyConfig.effectiveRate(reservation));
     }
 }

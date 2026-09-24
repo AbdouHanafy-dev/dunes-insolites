@@ -121,8 +121,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     // ── Currency conversion ───────────────────────────────────────
     private void applyCurrencyConversion(Reservation reservation, Currency targetCurrency) {
-        if (targetCurrency == Currency.TND) {
-            reservation.setCurrency(Currency.TND);
+        if (targetCurrency == com.camping.duneinsolite.config.CurrencyConfig.BASE) {
+            reservation.setCurrency(targetCurrency);
             return;
         }
         java.math.BigDecimal rate = currencyConfig.rateFor(targetCurrency);
