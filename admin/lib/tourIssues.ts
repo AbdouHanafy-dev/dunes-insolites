@@ -15,10 +15,13 @@ export type Issue = {
   label: string;
   /** What is wrong with it. */
   message: string;
+  /** True when this stops a plain save (the rest only block "send for review"). */
+  blocking?: boolean;
 };
 
 export type TourIssueInput = {
   name: string;
+  description: string;
   photos: unknown[];
   coverPhotoUrl: string | null;
   copyrightConfirmed: boolean;
@@ -42,8 +45,8 @@ export const STEP_KEYWORDS = 3;
 export const STEP_PRICING = 8;
 export const STEP_REVIEW = 10;
 
-/** Steps whose problems stop a plain "Enregistrer" (the rest only block review). */
-export const SAVE_BLOCKING_STEPS: readonly number[] = [STEP_BASICS, STEP_PRICING];
+/** Problems that stop a plain "Enregistrer" (the others only block "Envoyer pour vérification"). */
+export const isSaveBlocking = (i: Issue): boolean => i.blocking === true;
 
 const PRICE_FIELDS: [keyof TourIssueInput, string][] = [
   ["passengerAdultPrice", "Prix adulte (passager)"],
@@ -58,15 +61,21 @@ const MIN_PHOTOS = 4;
 
 export function localIssues(f: TourIssueInput): Issue[] {
   const out: Issue[] = [];
-  const add = (step: number, field: string, label: string, message: string) =>
-    out.push({ step, field, label, message });
+  const add = (step: number, field: string, label: string, message: string, blocking = false) =>
+    out.push({ step, field, label, message, blocking });
 
-  if (f.name.trim().length === 0) add(STEP_BASICS, "name", "Nom du circuit", "requis — saisissez le nom du circuit.");
+  if (f.name.trim().length === 0) {
+    add(STEP_BASICS, "name", "Nom du circuit", "requis — saisissez le nom du circuit.", true);
+  }
+  // The server refuses to send a circuit for review without a description.
+  if (f.description.trim().length === 0) {
+    add(STEP_BASICS, "description", "Description courte", "requise pour l'envoi en vérification — elle est vide.");
+  }
 
   for (const [key, label] of PRICE_FIELDS) {
     const value = f[key] as number;
-    if (!Number.isFinite(value)) add(STEP_PRICING, key, label, "saisissez un nombre (le champ est vide ou invalide).");
-    else if (value < 0) add(STEP_PRICING, key, label, `ne peut pas être négatif (saisi : ${value}).`);
+    if (!Number.isFinite(value)) add(STEP_PRICING, key, label, "saisissez un nombre (le champ est vide ou invalide).", true);
+    else if (value < 0) add(STEP_PRICING, key, label, `ne peut pas être négatif (saisi : ${value}).`, true);
   }
   if (
     f.salePriceAdult != null &&
@@ -79,6 +88,7 @@ export function localIssues(f: TourIssueInput): Issue[] {
       "salePriceAdult",
       "Prix promotionnel adulte",
       `doit être inférieur au prix adulte (promo ${f.salePriceAdult} ≥ prix adulte ${f.passengerAdultPrice}).`,
+      true,
     );
   }
 
@@ -177,9 +187,90 @@ export function describePath(path: string): { base: string; label: string } {
   return formatPath(path, FIELD_LABEL[base] ?? base);
 }
 
+/**
+ * A database constraint (duplicate slug, missing column) comes back with no
+ * per-field map — only a sentence naming the COLUMN, e.g.
+ * "Another record already uses the same value for: slug." (409) or
+ * "A required value is missing: cover_photo_url." (400). Read the column out so
+ * the problem can still be pinned to its field.
+ */
+export function parseConstraintMessage(message: string): { kind: "duplicate" | "missing"; columns: string[] } | null {
+  const dup = /same value for:\s*([A-Za-z0-9_,\s]+?)\./.exec(message);
+  if (dup) return { kind: "duplicate", columns: dup[1].split(",").map((c) => c.trim()).filter(Boolean) };
+  const missing = /required value is missing:\s*([A-Za-z0-9_]+)\./.exec(message);
+  if (missing) return { kind: "missing", columns: [missing[1]] };
+  return null;
+}
+
+/** snake_case column -> camelCase form key ("cover_photo_url" -> "coverPhotoUrl"). */
+export function columnToKey(column: string): string {
+  return column.trim().replace(/_([a-z0-9])/g, (_m, c: string) => c.toUpperCase());
+}
+
+export const CONSTRAINT_TEXT = {
+  duplicate: "cette valeur est déjà utilisée par un autre enregistrement — choisissez-en une autre.",
+  missing: "le serveur exige une valeur ici — renseignez ce champ.",
+};
+
+const INCOMPLETE_ITEMS: Record<string, { field: string; message: string }> = {
+  "name": { field: "name", message: "requis — le circuit n'a pas de nom." },
+  "description": { field: "description", message: "requise — la description courte est vide." },
+  "at least one keyword": { field: "keywords", message: "ajoutez au moins un mot-clé." },
+  "at least one itinerary step": { field: "programSteps", message: "ajoutez au moins une étape d'itinéraire." },
+  "at least 4 photos (cover + gallery)": { field: "photos", message: "il faut au moins 4 photos (couverture + galerie)." },
+  "copyright confirmation": { field: "copyrightConfirmed", message: "confirmez que vous détenez les droits des photos." },
+  "insurance confirmation": { field: "insuranceConfirmed", message: "cochez l'attestation de responsabilité civile." },
+  "compliance confirmation": { field: "complianceConfirmed", message: "cochez l'attestation de conformité réglementaire." },
+};
+
+const issueFor = (field: string, message: string): Issue => ({
+  step: FIELD_STEP[field] ?? -1,
+  field,
+  label: FIELD_LABEL[field] ?? field,
+  message,
+});
+
+/**
+ * Three refusals arrive as one plain sentence with no per-field map (the
+ * tour service throws them itself). Read the sentence so each still lands on
+ * its own field and step instead of a generic "Serveur" line.
+ */
+export function knownTourMessageIssues(message: string): Issue[] | null {
+  const dup = /A tour with the name '(.*)' already exists/.exec(message);
+  if (dup) return [issueFor("name", `un circuit nommé « ${dup[1]} » existe déjà — changez le nom.`)];
+
+  if (/Sale price must be lower than the regular passenger adult price/.test(message)) {
+    return [issueFor("salePriceAdult", "doit être inférieur au prix adulte normal — baissez la promo ou augmentez le prix adulte.")];
+  }
+
+  const incomplete = /Tour is not complete:\s*(.*?)(?:\s+[—-]\s+\(HTTP \d+\))?\s*$/.exec(message);
+  if (incomplete) {
+    const items = incomplete[1].split(", ").map((s) => s.trim()).filter(Boolean);
+    return items.map((item) => {
+      const known = INCOMPLETE_ITEMS[item];
+      return known ? issueFor(known.field, known.message) : { step: -1, field: "", label: "Circuit incomplet", message: item };
+    });
+  }
+  return null;
+}
+
 export function serverIssues(fields: Record<string, string>, fallbackMessage: string): Issue[] {
   const entries = Object.entries(fields);
   if (entries.length === 0) {
+    const known = knownTourMessageIssues(fallbackMessage);
+    if (known) return known;
+    const constraint = parseConstraintMessage(fallbackMessage);
+    if (constraint) {
+      return constraint.columns.map((column) => {
+        const key = columnToKey(column);
+        return {
+          step: FIELD_STEP[key] ?? -1,
+          field: key,
+          label: FIELD_LABEL[key] ?? column,
+          message: CONSTRAINT_TEXT[constraint.kind],
+        };
+      });
+    }
     return [{ step: -1, field: "", label: "Serveur", message: fallbackMessage }];
   }
   return entries.map(([path, reason]) => {

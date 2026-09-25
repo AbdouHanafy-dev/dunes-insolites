@@ -1,10 +1,10 @@
 "use client";
 
-import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
-import { inputClass, labelClass } from "@/components/payload/fields";
+import { labelClass } from "@/components/payload/fields";
 import type { AdminPaymentPolicy } from "@/lib/api";
 
 /**
@@ -28,9 +28,17 @@ const METHODS: { key: keyof Pick<AdminPaymentPolicy, "acceptOnlineLink" | "accep
   { key: "acceptCheque", label: "Chèque" },
 ];
 
+const POLICY_FIELDS = [
+  { key: "depositPercent", label: "Pourcentage du total (%)", type: "number" },
+  { key: "deadlineDaysBefore", label: "Jours avant l'arrivée", type: "number" },
+  { key: "note", label: "Message ajouté à l'email", type: "text" },
+  { key: "depositMode", label: "Acompte", type: "text" },
+];
+
 export default function PaymentPolicyForm({ initialData }: { initialData: AdminPaymentPolicy | null }) {
   const router = useRouter();
   const toast = useToast();
+  const fi = useFormIssues(POLICY_FIELDS);
   const [form, setForm] = useState<AdminPaymentPolicy>(
     initialData ?? {
       depositMode: "PERCENT",
@@ -52,6 +60,18 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
+    fi.clear();
+    const problems = [];
+    if (form.depositMode === "PERCENT" && (!Number.isFinite(form.depositPercent) || form.depositPercent < 0 || form.depositPercent > 100)) {
+      problems.push(fi.issue("depositPercent", `doit être entre 0 et 100 (saisi : ${Number.isFinite(form.depositPercent) ? form.depositPercent : "vide"}).`));
+    }
+    if (form.depositMode !== "NONE" && form.deadlineDaysBefore != null && (!Number.isInteger(form.deadlineDaysBefore) || form.deadlineDaysBefore < 0)) {
+      problems.push(fi.issue("deadlineDaysBefore", `doit être un entier ≥ 0, ou vide pour le jour de l'arrivée (saisi : ${form.deadlineDaysBefore}).`));
+    }
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
     setBusy(true);
     const res = await fetch("/api/proxy/payment-policy", {
       method: "PUT",
@@ -60,7 +80,7 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
     });
     setBusy(false);
     if (!res.ok) {
-      toast.error(await readApiError(res, "Enregistrement impossible"));
+      toast.error(await fi.fromResponse(res, "Enregistrement des règles de paiement refusé"));
       return;
     }
     toast.success("Règles de paiement enregistrées");
@@ -70,7 +90,7 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
   const needsAmount = form.depositMode !== "NONE";
 
   return (
-    <form onSubmit={onSave} className="card flex max-w-2xl flex-col gap-5 rounded-2xl p-6">
+    <form onSubmit={onSave} noValidate className="card flex max-w-2xl flex-col gap-5 rounded-2xl p-6">
       <div>
         <h2 className="text-[15px] font-bold text-navy-800">Règles de paiement</h2>
         <p className="mt-1 text-[13px] text-navy-700/55">
@@ -120,10 +140,11 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
                 min={0}
                 max={100}
                 step="0.01"
-                className={inputClass}
+                className={fi.inputClass("depositPercent")}
                 value={form.depositPercent}
                 onChange={(e) => patch({ depositPercent: Number(e.target.value) })}
               />
+              {fi.errs("depositPercent")}
             </div>
           )}
           <div className="flex flex-col gap-1.5">
@@ -133,10 +154,11 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
               type="number"
               min={0}
               placeholder="vide = le jour de l'arrivée"
-              className={inputClass}
+              className={fi.inputClass("deadlineDaysBefore")}
               value={form.deadlineDaysBefore ?? ""}
               onChange={(e) => patch({ deadlineDaysBefore: e.target.value === "" ? null : Number(e.target.value) })}
             />
+            {fi.errs("deadlineDaysBefore")}
           </div>
         </div>
       )}
@@ -159,11 +181,14 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
           id="note"
           rows={3}
           maxLength={1000}
-          className={inputClass}
+          className={fi.inputClass("note")}
           value={form.note ?? ""}
           onChange={(e) => patch({ note: e.target.value })}
         />
+        {fi.errs("note")}
       </div>
+
+      {fi.panel()}
 
       <div className="flex justify-end">
         <button type="submit" className="btn btn-primary" disabled={busy}>

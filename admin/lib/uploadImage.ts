@@ -76,7 +76,7 @@ export async function uploadImage(original: File): Promise<UploadResult> {
     default:
       return {
         url: null,
-        error: `Erreur du serveur (${res.status}) : la photo n’a pas pu être enregistrée. Réessayez ; si cela continue, prévenez le support technique.`,
+        error: `Erreur du serveur (${res.status}) : la photo n’a pas pu être enregistrée${detail ? ` — ${detail}` : ""}. Réessayez ; si cela continue, prévenez le support technique.`,
       };
   }
 }

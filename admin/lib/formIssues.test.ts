@@ -40,6 +40,12 @@ describe("issuesFromServer", () => {
     expect(issues[1]).toMatchObject({ key: "", label: "Photo n° 1 — adresse de la photo" });
   });
 
+  it("attaches a duplicate-value constraint to the matching input", () => {
+    const [issue] = issuesFromServer(fields, {}, "Another record already uses the same value for: name.");
+    expect(issue).toMatchObject({ key: "name", label: "Nom" });
+    expect(issue.message).toContain("déjà utilisée");
+  });
+
   it("uses the server message when no field detail is available", () => {
     expect(issuesFromServer(fields, {}, "Slug déjà utilisé")).toEqual([
       { key: "", path: "", label: "Serveur", message: "Slug déjà utilisé" },

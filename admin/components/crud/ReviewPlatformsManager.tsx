@@ -1,6 +1,6 @@
 "use client";
 
-import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -9,6 +9,10 @@ import type { AdminReviewPlatform } from "@/lib/api";
 import { PlatformChip } from "./ExternalReviewsCrud";
 
 const DEFAULT_COLOR = "#6b7280";
+const PLATFORM_FIELDS = [
+  { key: "name", label: "Nom de la plateforme", type: "text", required: true },
+  { key: "color", label: "Couleur", type: "text" },
+];
 
 /**
  * The review platforms and the colour each one is shown in on the site.
@@ -19,6 +23,7 @@ const DEFAULT_COLOR = "#6b7280";
 export default function ReviewPlatformsManager({ platforms }: { platforms: AdminReviewPlatform[] }) {
   const router = useRouter();
   const toast = useToast();
+  const fi = useFormIssues(PLATFORM_FIELDS);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, { name: string; color: string }>>({});
   const [newName, setNewName] = useState("");
@@ -28,7 +33,25 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
   const setDraft = (p: AdminReviewPlatform, patch: Partial<{ name: string; color: string }>) =>
     setDrafts((d) => ({ ...d, [p.platformId]: { ...draftOf(p), ...patch } }));
 
+  /** Local checks shared by rename and add; `self` is the platform being edited, if any. */
+  function validate(name: string, color: string, self?: AdminReviewPlatform) {
+    const problems = [];
+    const who = self ? `« ${self.name} » — ` : "";
+    if (!name.trim()) problems.push(fi.issue("name", `${who}nom obligatoire — il est vide.`));
+    else {
+      const clash = platforms.find(
+        (p) => p.platformId !== self?.platformId && p.name.trim().toLowerCase() === name.trim().toLowerCase(),
+      );
+      if (clash) problems.push(fi.issue("name", `${who}« ${clash.name} » existe déjà — choisissez un autre nom.`));
+    }
+    if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+      problems.push(fi.issue("color", `${who}couleur invalide (attendu #rrggbb, saisi : ${color}).`));
+    }
+    return problems;
+  }
+
   async function call(id: string, url: string, method: string, body: unknown, ok: string) {
+    fi.clear();
     setBusyId(id);
     const res = await fetch(url, {
       method,
@@ -37,7 +60,7 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
     });
     setBusyId(null);
     if (!res.ok) {
-      toast.error(await readApiError(res));
+      toast.error(await fi.fromResponse(res, "Action refusée par le serveur"));
       return false;
     }
     toast.success(ok);
@@ -47,6 +70,11 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
 
   async function onSave(p: AdminReviewPlatform) {
     const d = draftOf(p);
+    const problems = validate(d.name, d.color, p);
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
     if (await call(p.platformId, `/api/proxy/review-platforms/${p.platformId}`, "PUT", d, "Plateforme enregistrée")) {
       setDrafts((all) => {
         const rest = { ...all };
@@ -58,7 +86,12 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (await call("new", "/api/proxy/review-platforms", "POST", { name: newName, color: newColor }, "Plateforme ajoutée")) {
+    const problems = validate(newName, newColor);
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
+    if (await call("new", "/api/proxy/review-platforms", "POST", { name: newName.trim(), color: newColor }, "Plateforme ajoutée")) {
       setNewName("");
       setNewColor(DEFAULT_COLOR);
     }
@@ -72,6 +105,8 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
           Chaque plateforme a sa couleur, utilisée sur le site pour ses avis. Ajoutez-en une nouvelle ici, ou directement en saisissant un avis.
         </p>
       </div>
+
+      {fi.panel()}
 
       <ul className="flex flex-col divide-y divide-navy-700/8">
         {platforms.map((p) => {
@@ -122,7 +157,7 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
         })}
       </ul>
 
-      <form onSubmit={onAdd} className="flex flex-wrap items-end gap-3 border-t border-navy-700/8 pt-4">
+      <form onSubmit={onAdd} noValidate className="flex flex-wrap items-end gap-3 border-t border-navy-700/8 pt-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="platform-new-name" className="text-[13px] font-medium text-navy-700/70">Nouvelle plateforme</label>
           <input

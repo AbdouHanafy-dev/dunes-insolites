@@ -23,11 +23,17 @@ export async function POST(request: Request) {
   if (!file) return Response.json({ error: "No file provided" }, { status: 400 });
   outgoing.set("file", file);
 
-  const res = await fetch(`${BACKEND_BASE}/media?companyType=${encodeURIComponent(companyType)}`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${session.accessToken}` },
-    body: outgoing,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BACKEND_BASE}/media?companyType=${encodeURIComponent(companyType)}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+      body: outgoing,
+    });
+  } catch (cause) {
+    const detail = cause instanceof Error && cause.message ? ` (${cause.message})` : "";
+    return Response.json({ message: `Le backend est injoignable — POST /media${detail}` }, { status: 502 });
+  }
 
   const text = await res.text();
   return new Response(text || null, {

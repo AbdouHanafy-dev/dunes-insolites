@@ -52,7 +52,8 @@ export default function ReservationStaffPanel({
     reservationType === "TOURS" &&
     !["CANCELLED", "REJECTED", "COMPLETED"].includes(status);
 
-  async function addStaff(kind: "guides" | "chauffeurs", entry: Record<string, unknown>) {
+  /** Returns null on success, or the exact reason the assignment was refused. */
+  async function addStaff(kind: "guides" | "chauffeurs", entry: Record<string, unknown>): Promise<string | null> {
     setBusy(true);
     const res = await fetch(`/api/proxy/reservations/${reservationId}/staff`, {
       method: "POST",
@@ -61,13 +62,15 @@ export default function ReservationStaffPanel({
     });
     setBusy(false);
     if (!res.ok) {
-      toast.error(await readApiError(res, "Impossible d'affecter ce membre du personnel"));
-      return;
+      const message = await readApiError(res, "Affectation refusée par le serveur");
+      toast.error(message);
+      return message;
     }
     const updated = await res.json();
     setGuides(updated.guides ?? []);
     setChauffeurs(updated.chauffeurs ?? []);
     toast.success(kind === "guides" ? "Guide affecté" : "Chauffeur affecté");
+    return null;
   }
 
   async function removeStaff(kind: "guides" | "chauffeurs", id: string) {
@@ -163,18 +166,27 @@ function GuideList({
   items: AdminReservationStaffMember[];
   preferredLanguages: AdminSpokenLanguage[];
   guideProfiles: AdminGuideProfile[];
-  onAdd: (entry: Record<string, unknown>) => Promise<void>;
+  onAdd: (entry: Record<string, unknown>) => Promise<string | null>;
   onRemove: (id: string) => Promise<void>;
   disabled: boolean;
 }) {
+  const [formError, setFormError] = useState("");
   const activeGuides = guideProfiles.filter((guide) => guide.active);
   const [guideProfileId, setGuideProfileId] = useState("");
   const preferredIds = new Set(preferredLanguages.map((l) => l.languageId));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!guideProfileId) return;
-    await onAdd({ guideProfileId });
+    setFormError("");
+    if (!guideProfileId) {
+      setFormError("Guide de l’annuaire : aucun guide sélectionné — choisissez-en un dans la liste.");
+      return;
+    }
+    const failure = await onAdd({ guideProfileId });
+    if (failure) {
+      setFormError(failure);
+      return;
+    }
     setGuideProfileId("");
   }
 
@@ -225,8 +237,7 @@ function GuideList({
           <div className="flex flex-1 flex-col gap-1">
             <label className={labelClass}>Guide de l’annuaire</label>
             <select
-              required
-              className={inputClass}
+              className={formError && !guideProfileId ? inputClass.replace("border-navy-700/15", "border-rose") : inputClass}
               value={guideProfileId}
               onChange={(event) => setGuideProfileId(event.target.value)}
             >
@@ -250,6 +261,11 @@ function GuideList({
           {activeGuides.length === 0 && (
             <p className="text-xs text-amber-700">Créez d’abord un guide dans l’annuaire.</p>
           )}
+          {formError && (
+            <div role="alert" className="basis-full rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+              {formError}
+            </div>
+          )}
         </form>
       )}
     </div>
@@ -265,17 +281,26 @@ function ChauffeurList({
 }: {
   items: AdminReservationStaffMember[];
   driverProfiles: AdminDriverProfile[];
-  onAdd: (entry: Record<string, unknown>) => Promise<void>;
+  onAdd: (entry: Record<string, unknown>) => Promise<string | null>;
   onRemove: (id: string) => Promise<void>;
   disabled: boolean;
 }) {
+  const [formError, setFormError] = useState("");
   const activeDrivers = driverProfiles.filter((driver) => driver.active);
   const [driverProfileId, setDriverProfileId] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!driverProfileId) return;
-    await onAdd({ driverProfileId });
+    setFormError("");
+    if (!driverProfileId) {
+      setFormError("Chauffeur de l’annuaire : aucun chauffeur sélectionné — choisissez-en un dans la liste.");
+      return;
+    }
+    const failure = await onAdd({ driverProfileId });
+    if (failure) {
+      setFormError(failure);
+      return;
+    }
     setDriverProfileId("");
   }
 
@@ -322,7 +347,7 @@ function ChauffeurList({
         <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex flex-1 flex-col gap-1">
             <label className={labelClass}>Chauffeur de l’annuaire</label>
-            <select required className={inputClass} value={driverProfileId} onChange={(event) => setDriverProfileId(event.target.value)}>
+            <select className={formError && !driverProfileId ? inputClass.replace("border-navy-700/15", "border-rose") : inputClass} value={driverProfileId} onChange={(event) => setDriverProfileId(event.target.value)}>
               <option value="">Sélectionner un chauffeur</option>
               {activeDrivers.map((driver) => (
                 <option key={driver.driverProfileId} value={driver.driverProfileId}>
@@ -334,6 +359,11 @@ function ChauffeurList({
           <button type="submit" className="btn btn-primary" disabled={activeDrivers.length === 0}>Affecter</button>
           {activeDrivers.length === 0 && (
             <p className="text-xs text-amber-700">Créez d’abord un chauffeur dans l’annuaire.</p>
+          )}
+          {formError && (
+            <div role="alert" className="basis-full rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+              {formError}
+            </div>
           )}
         </form>
       )}

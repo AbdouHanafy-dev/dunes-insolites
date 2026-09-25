@@ -1,12 +1,19 @@
 "use client";
 
 import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { CustomRole } from "@/lib/api";
+
+const ROLE_FIELDS = [
+  { key: "name", label: "Nom (identifiant technique)", type: "text", required: true },
+  { key: "label", label: "Libellé affiché", type: "text", required: true },
+];
+const MODAL_INPUT = "mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60";
 
 /**
  * Admin-creatable roles (on request, 15 Sep 2026) — additive to the fixed
@@ -18,6 +25,8 @@ import type { CustomRole } from "@/lib/api";
 export default function CustomRolesList({ initialItems }: { initialItems: CustomRole[] }) {
   const router = useRouter();
   const toast = useToast();
+  const fi = useFormIssues(ROLE_FIELDS);
+  const cls = (key: string) => (fi.has(key) ? MODAL_INPUT.replace("border-navy-700/15", "border-rose") : MODAL_INPUT);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<CustomRole | null>(null);
   const [name, setName] = useState("");
@@ -27,19 +36,34 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
 
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
     setError("");
+    fi.clear();
+    const technicalName = name.trim().toUpperCase();
+    const problems = [];
+    if (!technicalName) problems.push(fi.issue("name", "champ obligatoire — il est vide."));
+    else if (!/^[A-Z0-9_]+$/.test(technicalName)) {
+      problems.push(fi.issue("name", `majuscules, chiffres et underscore uniquement (saisi : ${name.trim()}).`));
+    } else if (initialItems.some((r) => r.name === technicalName)) {
+      problems.push(fi.issue("name", `ce rôle existe déjà (${technicalName}).`));
+    }
+    if (!label.trim()) problems.push(fi.issue("label", "champ obligatoire — il est vide."));
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
+    setBusy(true);
     const res = await fetch("/api/proxy/admin/custom-roles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.toUpperCase(), label }),
+      body: JSON.stringify({ name: technicalName, label: label.trim() }),
     });
     setBusy(false);
     if (!res.ok) {
-      setError(await readApiError(res, "Création impossible"));
+      toast.error(await fi.fromResponse(res, "Création du rôle refusée"));
       return;
     }
     toast.success("Rôle créé.");
+    fi.clear();
     setCreateOpen(false);
     setName("");
     setLabel("");
@@ -131,17 +155,19 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
 
       {createOpen && (
         <Modal title="Créer un rôle personnalisé" onClose={() => setCreateOpen(false)}>
-          <form onSubmit={onCreate} className="flex flex-col gap-3">
+          <form onSubmit={onCreate} noValidate className="flex flex-col gap-3">
             <label className="text-[13px] text-navy-700/70">
               Nom (identifiant technique)
               <input
+                id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="SUPPORT"
                 required
-                className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+                className={cls("name")}
               />
+              {fi.errs("name")}
               <span className="mt-1 block text-[12px] text-navy-700/45">
                 Majuscules, chiffres, underscore uniquement — ne peut plus être changé après.
               </span>
@@ -149,19 +175,17 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
             <label className="text-[13px] text-navy-700/70">
               Libellé affiché
               <input
+                id="label"
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Support client"
                 required
-                className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+                className={cls("label")}
               />
+              {fi.errs("label")}
             </label>
-            {error && (
-              <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
-                {error}
-              </div>
-            )}
+            {fi.panel()}
             <div className="mt-2 flex justify-end gap-2">
               <button type="button" onClick={() => setCreateOpen(false)} className="btn btn-secondary">
                 Annuler

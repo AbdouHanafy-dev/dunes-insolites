@@ -1,4 +1,4 @@
-import { formatPath } from "./tourIssues";
+import { CONSTRAINT_TEXT, columnToKey, formatPath, parseConstraintMessage } from "./tourIssues";
 
 /**
  * Exact per-field problems for the generic admin forms (CollectionEditor and
@@ -46,7 +46,17 @@ export function issuesFromServer(
   fallbackMessage: string,
 ): FormIssue[] {
   const entries = Object.entries(errors);
-  if (entries.length === 0) return [{ key: "", path: "", label: "Serveur", message: fallbackMessage }];
+  if (entries.length === 0) {
+    const constraint = parseConstraintMessage(fallbackMessage);
+    if (constraint) {
+      return constraint.columns.map((column) => {
+        const key = columnToKey(column);
+        const field = fields.find((f) => f.key === key);
+        return { key: field ? field.key : "", path: column, label: field?.label ?? column, message: CONSTRAINT_TEXT[constraint.kind] };
+      });
+    }
+    return [{ key: "", path: "", label: "Serveur", message: fallbackMessage }];
+  }
   return entries.map(([path, reason]) => {
     const base = /^[A-Za-z0-9_]+/.exec(path)?.[0] ?? path;
     const field = fields.find((f) => f.key === base);

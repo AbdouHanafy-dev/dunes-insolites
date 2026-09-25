@@ -1,13 +1,23 @@
 "use client";
 
 import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminGuideProfile, AdminSpokenLanguage } from "@/lib/api";
 
+const GUIDE_FIELDS = [
+  { key: "firstName", label: "Prénom", type: "text", required: true },
+  { key: "lastName", label: "Nom", type: "text", required: true },
+  { key: "email", label: "Email", type: "text" },
+  { key: "phoneNumber", label: "Téléphone", type: "text" },
+  { key: "languageIds", label: "Langues parlées", type: "text" },
+];
+
 export default function GuideDirectory({ initialGuides, languages }: { initialGuides: AdminGuideProfile[]; languages: AdminSpokenLanguage[] }) {
   const toast = useToast();
+  const fi = useFormIssues(GUIDE_FIELDS);
   const [guides, setGuides] = useState(initialGuides);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", languageIds: [] as string[] });
@@ -23,6 +33,17 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
 
   async function createGuide(event: React.FormEvent) {
     event.preventDefault();
+    fi.clear();
+    const problems = [];
+    if (!form.firstName.trim()) problems.push(fi.issue("firstName", "champ obligatoire — il est vide."));
+    if (!form.lastName.trim()) problems.push(fi.issue("lastName", "champ obligatoire — il est vide."));
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      problems.push(fi.issue("email", `adresse invalide (saisi : ${form.email.trim()}).`));
+    }
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
     setBusy(true);
     const response = await fetch("/api/proxy/guide-profiles", {
       method: "POST",
@@ -31,11 +52,12 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
     });
     setBusy(false);
     if (!response.ok) {
-      toast.error(await readApiError(response, "Impossible de créer le guide"));
+      toast.error(await fi.fromResponse(response, "Création du guide refusée"));
       return;
     }
     const created = (await response.json()) as AdminGuideProfile;
     setGuides((current) => [created, ...current]);
+    fi.clear();
     setForm({ firstName: "", lastName: "", email: "", phoneNumber: "", languageIds: [] });
     toast.success("Guide ajouté à l’annuaire");
   }
@@ -59,15 +81,17 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
 
   return (
     <div className="flex flex-col gap-6">
-      <form onSubmit={createGuide} className="card rounded-2xl p-5">
+      <form onSubmit={createGuide} noValidate className="card rounded-2xl p-5">
         <h2 className="text-sm font-bold text-navy-800">Ajouter un guide</h2>
         <p className="mt-1 text-xs text-navy-700/50">Ce profil permanent pourra être affecté à plusieurs réservations selon ses langues et sa disponibilité.</p>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Input label="Prénom" required value={form.firstName} onChange={(value) => field("firstName", value)} />
-          <Input label="Nom" required value={form.lastName} onChange={(value) => field("lastName", value)} />
-          <Input label="Email" type="email" value={form.email} onChange={(value) => field("email", value)} />
-          <Input label="Téléphone" value={form.phoneNumber} onChange={(value) => field("phoneNumber", value)} />
+          <Input id="firstName" label="Prénom" required cls={fi.inputClass("firstName")} errs={fi.errs("firstName")} value={form.firstName} onChange={(value) => field("firstName", value)} />
+          <Input id="lastName" label="Nom" required cls={fi.inputClass("lastName")} errs={fi.errs("lastName")} value={form.lastName} onChange={(value) => field("lastName", value)} />
+          <Input id="email" label="Email" type="email" cls={fi.inputClass("email")} errs={fi.errs("email")} value={form.email} onChange={(value) => field("email", value)} />
+          <Input id="phoneNumber" label="Téléphone" cls={fi.inputClass("phoneNumber")} errs={fi.errs("phoneNumber")} value={form.phoneNumber} onChange={(value) => field("phoneNumber", value)} />
         </div>
+        {fi.errs("languageIds")}
+        <div className="mt-4">{fi.panel()}</div>
         <fieldset className="mt-4">
           <legend className={labelClass}>Langues parlées</legend>
           <div className="mt-2 flex flex-wrap gap-3">
@@ -105,6 +129,6 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
   );
 }
 
-function Input({ label, onChange, ...props }: { label: string; onChange: (value: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) {
-  return <label className="flex flex-col gap-1"><span className={labelClass}>{label}</span><input {...props} className={inputClass} onChange={(event) => onChange(event.target.value)} /></label>;
+function Input({ label, onChange, cls, errs, ...props }: { label: string; onChange: (value: string) => void; cls?: string; errs?: React.ReactNode } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) {
+  return <label className="flex flex-col gap-1"><span className={labelClass}>{label}</span><input {...props} className={cls ?? inputClass} onChange={(event) => onChange(event.target.value)} />{errs}</label>;
 }

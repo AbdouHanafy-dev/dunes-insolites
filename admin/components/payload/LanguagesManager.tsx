@@ -1,9 +1,10 @@
 "use client";
 
 import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
-import { inputClass, labelClass } from "@/components/payload/fields";
+import { labelClass } from "@/components/payload/fields";
 import type { AdminSpokenLanguage } from "@/lib/api";
 
 /**
@@ -14,15 +15,28 @@ import type { AdminSpokenLanguage } from "@/lib/api";
  * reference or need a cascade nobody asked for — "deactivate" (hide it from
  * new selections, keep it on what already used it) is the safe operation.
  */
+const LANGUAGE_FIELDS = [{ key: "name", label: "Nouvelle langue", type: "text", required: true }];
+
 export default function LanguagesManager({ initialLanguages }: { initialLanguages: AdminSpokenLanguage[] }) {
   const toast = useToast();
+  const fi = useFormIssues(LANGUAGE_FIELDS);
   const [languages, setLanguages] = useState(initialLanguages);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function addLanguage(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    fi.clear();
+    const wanted = name.trim();
+    if (!wanted) {
+      toast.error(fi.local([fi.issue("name", "champ obligatoire — saisissez le nom de la langue.")]));
+      return;
+    }
+    const existing = languages.find((l) => l.name.toLowerCase() === wanted.toLowerCase());
+    if (existing) {
+      toast.error(fi.local([fi.issue("name", `cette langue existe déjà (${existing.name}${existing.active ? "" : ", actuellement désactivée — réactivez-la"}).`)]));
+      return;
+    }
     setBusy(true);
     const res = await fetch("/api/proxy/languages", {
       method: "POST",
@@ -31,12 +45,13 @@ export default function LanguagesManager({ initialLanguages }: { initialLanguage
     });
     setBusy(false);
     if (!res.ok) {
-      toast.error(await readApiError(res, "Impossible d'ajouter cette langue"));
+      toast.error(await fi.fromResponse(res, "Ajout de la langue refusé"));
       return;
     }
     const created = await res.json();
     setLanguages((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
     setName("");
+    fi.clear();
     toast.success("Langue ajoutée");
   }
 
@@ -84,19 +99,22 @@ export default function LanguagesManager({ initialLanguages }: { initialLanguage
         </ul>
       )}
 
-      <form onSubmit={addLanguage} className="mt-4 flex items-end gap-3">
+      <form onSubmit={addLanguage} noValidate className="mt-4 flex flex-wrap items-end gap-3">
         <div className="flex flex-1 flex-col gap-1">
           <label className={labelClass}>Nouvelle langue</label>
           <input
+            id="name"
             placeholder="ex. Espagnol"
-            className={inputClass}
+            className={fi.inputClass("name")}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+          {fi.errs("name")}
         </div>
-        <button type="submit" disabled={busy || !name.trim()} className="btn btn-primary disabled:opacity-40">
+        <button type="submit" disabled={busy} className="btn btn-primary disabled:opacity-40">
           Ajouter
         </button>
+        <div className="basis-full">{fi.panel()}</div>
       </form>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -140,6 +141,14 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
   );
 }
 
+const BLOCK_FIELDS = [
+  { key: "label", label: "Libellé", type: "text", required: true },
+  { key: "type", label: "Type de bloc", type: "text" },
+  { key: "locale", label: "Langue", type: "text" },
+  { key: "companyType", label: "Marque", type: "text" },
+  { key: "dataJson", label: "Contenu du bloc", type: "text" },
+];
+
 const emptyForm: Omit<AdminContentBlock, "blockId" | "createdAt" | "updatedAt"> = {
   label: "",
   type: "richText",
@@ -160,6 +169,7 @@ export function ContentBlockEditor({
   const router = useRouter();
   const toast = useToast();
   const isEdit = !!id;
+  const fi = useFormIssues(BLOCK_FIELDS);
   const [form, setForm] = useState<Omit<AdminContentBlock, "blockId" | "createdAt" | "updatedAt">>(
     initialData ?? emptyForm,
   );
@@ -173,8 +183,13 @@ export function ContentBlockEditor({
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
     setError("");
+    fi.clear();
+    if (!form.label.trim()) {
+      toast.error(fi.local([fi.issue("label", "champ obligatoire — il est vide.")]));
+      return;
+    }
+    setBusy(true);
 
     const url = isEdit ? `/api/proxy/${API_PATH}/${id}` : `/api/proxy/${API_PATH}`;
     const res = await fetch(url, {
@@ -184,7 +199,7 @@ export function ContentBlockEditor({
     });
 
     if (!res.ok) {
-      const message = await readApiError(res);
+      const message = await fi.fromResponse(res, "Enregistrement du bloc refusé");
       setError(message);
       toast.error(message);
       setBusy(false);
@@ -228,17 +243,20 @@ export function ContentBlockEditor({
         </h1>
       </div>
 
-      <form onSubmit={onSave} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+      <form onSubmit={onSave} noValidate className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
         <div className="card flex flex-col gap-4 rounded-2xl p-6">
+          {fi.panel()}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <label className={labelClass}>Libellé (usage interne, jamais public)</label>
               <input
+                id="label"
                 required
-                className={inputClass}
+                className={fi.inputClass("label")}
                 value={form.label}
                 onChange={(e) => patch({ label: e.target.value })}
               />
+              {fi.errs("label")}
             </div>
             <div className="flex flex-col gap-1.5">
               <label className={labelClass}>Type de bloc</label>
@@ -308,7 +326,7 @@ export function ContentBlockEditor({
                 Supprimer
               </button>
             )}
-            {error && (
+            {fi.issues.length === 0 && error && (
               <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-3 py-2.5 text-[13px] text-rose">
                 {error}
               </div>

@@ -2,7 +2,7 @@
 
 import { formatApiFailure, parseApiFailure } from "@/lib/apiError";
 import {
-  SAVE_BLOCKING_STEPS,
+  isSaveBlocking,
   localIssues,
   serverIssues,
   summarizeIssues,
@@ -382,7 +382,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   const liveLocalIssues =
     attempt === null
       ? []
-      : localIssues(form).filter((i) => attempt === "review" || SAVE_BLOCKING_STEPS.includes(i.step));
+      : localIssues(form).filter((i) => attempt === "review" || isSaveBlocking(i));
   const issues = [...liveLocalIssues, ...serverIssueList];
   const issueSteps = new Map<number, number>();
   for (const i of issues) if (i.step >= 0) issueSteps.set(i.step, (issueSteps.get(i.step) ?? 0) + 1);
@@ -403,7 +403,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   async function onSubmit() {
     setServerIssueList([]);
     setAttempt("save");
-    const blocking = localIssues(form).filter((i) => SAVE_BLOCKING_STEPS.includes(i.step));
+    const blocking = localIssues(form).filter(isSaveBlocking);
     if (blocking.length > 0) {
       goTo(blocking[0].step);
       toast.error(`Enregistrement impossible — ${summarizeIssues(blocking, STEPS)}`);
@@ -562,6 +562,20 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
       )}
 
       <div className="card rounded-2xl p-6">
+        {issues.some((i) => i.step === step) && (
+          <div className="mb-5 rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+            <p className="font-semibold">À corriger sur cette étape ({STEPS[step]}) :</p>
+            <ul className="mt-1.5 list-disc pl-5">
+              {issues
+                .filter((i) => i.step === step)
+                .map((i, n) => (
+                  <li key={`${i.field}-${n}`}>
+                    <strong>{i.label}</strong> : {i.message}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
         {step === 0 && (
           <div className="flex flex-col gap-4">
             <Field label="Nom du circuit" required error={errorFor("name")}>
@@ -1017,7 +1031,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
               <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
                 Enregistrement impossible pour l&apos;instant :{" "}
                 {summarizeIssues(
-                  localIssues(form).filter((i) => SAVE_BLOCKING_STEPS.includes(i.step)),
+                  localIssues(form).filter(isSaveBlocking),
                   STEPS,
                   10,
                 )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -103,9 +103,17 @@ export function TransactionsList({ initialItems }: { initialItems: AdminTransact
   );
 }
 
+const NEW_PAYMENT_FIELDS = [
+  { key: "reservationId", label: "Réservation", type: "text", required: true },
+  { key: "amount", label: "Montant", type: "number", required: true },
+  { key: "paymentMethod", label: "Méthode", type: "text" },
+  { key: "currency", label: "Devise", type: "text" },
+];
+
 export function NewPaymentForm({ reservations }: { reservations: AdminReservation[] }) {
   const router = useRouter();
   const toast = useToast();
+  const fi = useFormIssues(NEW_PAYMENT_FIELDS);
   const [reservationId, setReservationId] = useState("");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("CASH");
@@ -115,8 +123,15 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!reservationId) {
-      setError("Choisissez une réservation.");
+    fi.clear();
+    const problems = [];
+    if (!reservationId) problems.push(fi.issue("reservationId", "aucune réservation sélectionnée — choisissez-en une dans la liste."));
+    const value = Number(amount);
+    if (amount.trim() === "") problems.push(fi.issue("amount", "champ obligatoire — saisissez le montant."));
+    else if (!Number.isFinite(value) || value <= 0) problems.push(fi.issue("amount", `doit être supérieur à zéro (saisi : ${amount}).`));
+    if (problems.length > 0) {
+      setError("");
+      toast.error(fi.local(problems));
       return;
     }
     setBusy(true);
@@ -130,7 +145,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
 
     setBusy(false);
     if (!res.ok) {
-      const message = await readApiError(res);
+      const message = await fi.fromResponse(res, "Enregistrement du paiement refusé");
       setError(message);
       toast.error(message);
       return;
@@ -149,7 +164,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
         <h1 className="mt-1 text-xl font-bold text-navy-800">Enregistrer un paiement</h1>
       </div>
 
-      <form onSubmit={onSubmit} className="card flex max-w-md flex-col gap-4 rounded-2xl p-6">
+      <form onSubmit={onSubmit} noValidate className="card flex max-w-md flex-col gap-4 rounded-2xl p-6">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="reservationId" className={labelClass}>
             Réservation
@@ -157,7 +172,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
           <select
             id="reservationId"
             required
-            className={inputClass}
+            className={fi.inputClass("reservationId")}
             value={reservationId}
             onChange={(e) => setReservationId(e.target.value)}
           >
@@ -168,6 +183,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
               </option>
             ))}
           </select>
+          {fi.errs("reservationId")}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -180,10 +196,11 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
             step="0.001"
             min={0}
             required
-            className={inputClass}
+            className={fi.inputClass("amount")}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
+          {fi.errs("amount")}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -219,7 +236,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
           {busy ? "Enregistrement…" : "Enregistrer le paiement"}
         </button>
 
-        {error && (
+        {fi.issues.length > 0 ? fi.panel() : error && (
           <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-3 py-2.5 text-[13px] text-rose">
             {error}
           </div>

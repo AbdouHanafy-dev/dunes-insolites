@@ -1,11 +1,28 @@
 "use client";
 
-import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
-import { inputClass, labelClass } from "@/components/payload/fields";
+import { labelClass } from "@/components/payload/fields";
 import type { AdminSiteSettings } from "@/lib/api";
+
+const SITE_FIELDS = [
+  { key: "email", label: "Email", type: "text", required: true },
+  { key: "phone", label: "Téléphone", type: "text", required: true },
+  { key: "whatsapp", label: "WhatsApp", type: "text", required: true },
+  { key: "address", label: "Adresse", type: "text", required: true },
+  { key: "latitude", label: "Latitude", type: "number" },
+  { key: "longitude", label: "Longitude", type: "number" },
+  { key: "instagramUrl", label: "Instagram", type: "text" },
+  { key: "facebookUrl", label: "Facebook", type: "text" },
+  { key: "tiktokUrl", label: "TikTok", type: "text" },
+  { key: "guestsGuided", label: "Clients accompagnés", type: "text", required: true },
+  { key: "yearsRunning", label: "Années d'activité", type: "text", required: true },
+  { key: "googlePlaceId", label: "Place ID", type: "text" },
+  { key: "manualGoogleRating", label: "Note Google", type: "text" },
+  { key: "manualGoogleRatingCount", label: "Nombre d'avis Google", type: "number" },
+];
 
 /**
  * On request, 15 Sep 2026 — the business facts the vitrine used to
@@ -19,6 +36,7 @@ import type { AdminSiteSettings } from "@/lib/api";
 export default function SiteSettingsForm({ initialData }: { initialData: AdminSiteSettings | null }) {
   const router = useRouter();
   const toast = useToast();
+  const fi = useFormIssues(SITE_FIELDS);
   const [form, setForm] = useState({
     email: initialData?.email ?? "",
     phone: initialData?.phone ?? "",
@@ -45,9 +63,42 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
     setError("");
     setSaved(false);
+    fi.clear();
+    const problems = [];
+    for (const key of ["email", "phone", "whatsapp", "address", "guestsGuided", "yearsRunning"] as const) {
+      if (!form[key].trim()) problems.push(fi.issue(key, "champ obligatoire — il est vide."));
+    }
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      problems.push(fi.issue("email", `adresse invalide (saisi : ${form.email.trim()}).`));
+    }
+    const lat = Number(form.latitude);
+    if (form.latitude && (!Number.isFinite(lat) || lat < -90 || lat > 90)) {
+      problems.push(fi.issue("latitude", `doit être entre -90 et 90 (saisi : ${form.latitude}).`));
+    }
+    const lng = Number(form.longitude);
+    if (form.longitude && (!Number.isFinite(lng) || lng < -180 || lng > 180)) {
+      problems.push(fi.issue("longitude", `doit être entre -180 et 180 (saisi : ${form.longitude}).`));
+    }
+    for (const key of ["instagramUrl", "facebookUrl", "tiktokUrl"] as const) {
+      if (form[key].trim() && !/^https?:\/\//i.test(form[key].trim())) {
+        problems.push(fi.issue(key, `doit commencer par http:// ou https:// (saisi : ${form[key].trim()}).`));
+      }
+    }
+    const rating = Number(form.manualGoogleRating.replace(",", "."));
+    if (form.manualGoogleRating && (!Number.isFinite(rating) || rating < 0 || rating > 5)) {
+      problems.push(fi.issue("manualGoogleRating", `doit être un nombre entre 0 et 5 (saisi : ${form.manualGoogleRating}).`));
+    }
+    const count = Number(form.manualGoogleRatingCount);
+    if (form.manualGoogleRatingCount && (!Number.isInteger(count) || count < 0)) {
+      problems.push(fi.issue("manualGoogleRatingCount", `doit être un entier ≥ 0 (saisi : ${form.manualGoogleRatingCount}).`));
+    }
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
+    setBusy(true);
 
     const res = await fetch("/api/proxy/site-settings", {
       method: "PUT",
@@ -63,7 +114,7 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
 
     setBusy(false);
     if (!res.ok) {
-      const message = await readApiError(res);
+      const message = await fi.fromResponse(res, "Enregistrement des coordonnées refusé");
       setError(message);
       toast.error(message);
       return;
@@ -74,7 +125,7 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
   }
 
   return (
-    <form onSubmit={onSave} className="card flex max-w-2xl flex-col gap-5 rounded-2xl p-6">
+    <form onSubmit={onSave} noValidate className="card flex max-w-2xl flex-col gap-5 rounded-2xl p-6">
       <div>
         <h2 className="text-[15px] font-bold text-navy-800">Coordonnées & réseaux sociaux</h2>
         <p className="mt-1 text-[13px] text-navy-700/55">
@@ -85,33 +136,39 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="email" className={labelClass}>Email</label>
-          <input id="email" type="email" required className={inputClass}
+          <input id="email" type="email" required className={fi.inputClass("email")}
             value={form.email} onChange={(e) => set("email", e.target.value)} />
+          {fi.errs("email")}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="phone" className={labelClass}>Téléphone</label>
-          <input id="phone" type="text" required className={inputClass}
+          <input id="phone" type="text" required className={fi.inputClass("phone")}
             value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+          {fi.errs("phone")}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="whatsapp" className={labelClass}>WhatsApp</label>
-          <input id="whatsapp" type="text" required className={inputClass}
+          <input id="whatsapp" type="text" required className={fi.inputClass("whatsapp")}
             value={form.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} />
+          {fi.errs("whatsapp")}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="address" className={labelClass}>Adresse</label>
-          <input id="address" type="text" required className={inputClass}
+          <input id="address" type="text" required className={fi.inputClass("address")}
             value={form.address} onChange={(e) => set("address", e.target.value)} />
+          {fi.errs("address")}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="latitude" className={labelClass}>Latitude</label>
-          <input id="latitude" type="number" step="any" className={inputClass}
+          <input id="latitude" type="number" step="any" className={fi.inputClass("latitude")}
             value={form.latitude} onChange={(e) => set("latitude", e.target.value)} />
+          {fi.errs("latitude")}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="longitude" className={labelClass}>Longitude</label>
-          <input id="longitude" type="number" step="any" className={inputClass}
+          <input id="longitude" type="number" step="any" className={fi.inputClass("longitude")}
             value={form.longitude} onChange={(e) => set("longitude", e.target.value)} />
+          {fi.errs("longitude")}
         </div>
       </div>
 
@@ -120,18 +177,21 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
         <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="instagramUrl" className="text-[12px] text-navy-700/50">Instagram</label>
-            <input id="instagramUrl" type="url" className={inputClass}
+            <input id="instagramUrl" type="url" className={fi.inputClass("instagramUrl")}
               value={form.instagramUrl} onChange={(e) => set("instagramUrl", e.target.value)} />
+          {fi.errs("instagramUrl")}
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="facebookUrl" className="text-[12px] text-navy-700/50">Facebook</label>
-            <input id="facebookUrl" type="url" className={inputClass}
+            <input id="facebookUrl" type="url" className={fi.inputClass("facebookUrl")}
               value={form.facebookUrl} onChange={(e) => set("facebookUrl", e.target.value)} />
+          {fi.errs("facebookUrl")}
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="tiktokUrl" className="text-[12px] text-navy-700/50">TikTok</label>
-            <input id="tiktokUrl" type="url" className={inputClass}
+            <input id="tiktokUrl" type="url" className={fi.inputClass("tiktokUrl")}
               value={form.tiktokUrl} onChange={(e) => set("tiktokUrl", e.target.value)} />
+          {fi.errs("tiktokUrl")}
           </div>
         </div>
       </div>
@@ -147,15 +207,17 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
             <label htmlFor="guestsGuided" className="text-[12px] text-navy-700/50">
               Clients accompagnés (ex: &quot;12k+&quot;)
             </label>
-            <input id="guestsGuided" type="text" required className={inputClass}
+            <input id="guestsGuided" type="text" required className={fi.inputClass("guestsGuided")}
               value={form.guestsGuided} onChange={(e) => set("guestsGuided", e.target.value)} />
+          {fi.errs("guestsGuided")}
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="yearsRunning" className="text-[12px] text-navy-700/50">
               Années d&apos;activité (ex: &quot;8 yrs&quot;)
             </label>
-            <input id="yearsRunning" type="text" required className={inputClass}
+            <input id="yearsRunning" type="text" required className={fi.inputClass("yearsRunning")}
               value={form.yearsRunning} onChange={(e) => set("yearsRunning", e.target.value)} />
+          {fi.errs("yearsRunning")}
           </div>
         </div>
       </div>
@@ -176,19 +238,22 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
         </p>
         <div className="mt-2 flex flex-col gap-1.5">
           <label htmlFor="googlePlaceId" className="text-[12px] text-navy-700/50">Place ID</label>
-          <input id="googlePlaceId" type="text" placeholder="ChIJ..." className={inputClass}
+          <input id="googlePlaceId" type="text" placeholder="ChIJ..." className={fi.inputClass("googlePlaceId")}
             value={form.googlePlaceId} onChange={(e) => set("googlePlaceId", e.target.value)} />
+          {fi.errs("googlePlaceId")}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="manualGoogleRating" className="text-[12px] text-navy-700/50">Note Google (saisie manuelle, ex. 4,8)</label>
-            <input id="manualGoogleRating" type="text" inputMode="decimal" placeholder="4,8" className={inputClass}
+            <input id="manualGoogleRating" type="text" inputMode="decimal" placeholder="4,8" className={fi.inputClass("manualGoogleRating")}
               value={form.manualGoogleRating} onChange={(e) => set("manualGoogleRating", e.target.value)} />
+          {fi.errs("manualGoogleRating")}
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="manualGoogleRatingCount" className="text-[12px] text-navy-700/50">Nombre d&apos;avis Google</label>
-            <input id="manualGoogleRatingCount" type="number" min={0} placeholder="496" className={inputClass}
+            <input id="manualGoogleRatingCount" type="number" min={0} placeholder="496" className={fi.inputClass("manualGoogleRatingCount")}
               value={form.manualGoogleRatingCount} onChange={(e) => set("manualGoogleRatingCount", e.target.value)} />
+          {fi.errs("manualGoogleRatingCount")}
           </div>
         </div>
         <p className="mt-2 text-[12px] text-navy-700/50">
@@ -223,7 +288,7 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
           Coordonnées enregistrées.
         </div>
       )}
-      {error && (
+      {fi.issues.length > 0 ? fi.panel() : error && (
         <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-3 py-2.5 text-[13px] text-rose">
           {error}
         </div>
