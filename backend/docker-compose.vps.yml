@@ -141,6 +141,10 @@ services:
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_CAMPING_EMAIL: ${SEED_CAMPING_EMAIL}
       SEED_CAMPING_PASSWORD: ${SEED_CAMPING_PASSWORD}
+      # Who is e-mailed when a guest books on the site (comma-separated). Only this address by
+      # default; override in .env.vps. Blank in the app itself would mean every ADMIN account.
+      APP_STAFF_BOOKING_EMAILS: ${APP_STAFF_BOOKING_EMAILS:-insoliteroute@gmail.com}
+      APP_ADMIN_URL: ${APP_ADMIN_URL:-https://admin.dunesinsolites.com}
       # SEO dashboard (admin /seo/analytics) - see docs/seo-analytics-
       # setup.md. All empty by default (GoogleSeoProperties reports "not
       # configured" rather than erroring). GOOGLE_SERVICE_ACCOUNT_KEY_PATH

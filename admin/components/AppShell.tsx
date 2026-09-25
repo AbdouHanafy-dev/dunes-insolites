@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import NotificationBell from "./NotificationBell";
 import { ToastProvider } from "./Toast";
 import type { Session } from "@/lib/session";
 
@@ -53,6 +54,7 @@ export default function AppShell({
             <i className="bi bi-list text-2xl" aria-hidden />
           </button>
           <span className="flex-1" />
+          <NotificationBell />
           <span className="text-sm text-navy-700/70">
             {session.name} <span className="text-navy-700/35">· {session.role}</span>
           </span>

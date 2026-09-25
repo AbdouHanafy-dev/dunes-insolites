@@ -807,10 +807,19 @@ public class ReservationServiceImpl implements ReservationService {
                         .type(NotificationType.RESERVATION_CREATED)
                         .reservationId(savedReservation.getReservationId())
                         .title("Nouvelle réservation")
-                        .message("Le groupe \"" + savedReservation.getGroupName()
-                                + "\" a soumis une demande de réservation.")
+                        .message(creationMessage(savedReservation))
                         .build()
         );
+    }
+
+    /** "Marie Dupont a soumis une demande de réservation pour le 5 octobre 2026." */
+    private static String creationMessage(Reservation r) {
+        String who = r.getUser() != null && r.getUser().getName() != null && !r.getUser().getName().isBlank()
+                ? r.getUser().getName() : "Le groupe \"" + r.getGroupName() + "\"";
+        java.time.LocalDate date = r.getCheckInDate() != null ? r.getCheckInDate() : r.getServiceDate();
+        String when = date == null ? "" : " pour le " + date.format(java.time.format.DateTimeFormatter
+                .ofLocalizedDate(java.time.format.FormatStyle.LONG).withLocale(java.util.Locale.FRENCH));
+        return who + " a soumis une demande de réservation" + when + ".";
     }
 
     // ── Initial payment ───────────────────────────────────────────────────────────

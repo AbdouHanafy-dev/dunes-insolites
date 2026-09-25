@@ -7,5 +7,7 @@ package com.camping.duneinsolite.model.enums;
  * and best-effort by design.
  */
 public enum EmailType {
-    RESERVATION_RECEIVED
+    RESERVATION_RECEIVED,
+    /** The "you have received a booking" email to the team, sent once per site booking. */
+    STAFF_NEW_BOOKING
 }

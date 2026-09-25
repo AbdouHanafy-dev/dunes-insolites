@@ -199,6 +199,9 @@ app:
     # must match SPRING_MAIL_USERNAME's real mailbox once that's a cPanel
     # account rather than Gmail (which never checked this).
     from: ${APP_MAIL_FROM:noreply@duneinsolite.com}
+    # Who gets the "you have received a booking" email when a guest books on the site.
+    # Comma-separated. Blank = every ADMIN account.
+    staff-booking-recipients: ${APP_STAFF_BOOKING_EMAILS:}
   email:
     retry:
       # Transactional-email listener (ReservationEmailConsumer). After
@@ -215,6 +218,8 @@ app:
     # How often the expiry sweep runs. Not correctness-critical (availability
     # already ignores expired holds) — just housekeeping.
     hold-expiry-sweep-ms: ${APP_RESERVATION_HOLD_SWEEP_MS:300000}
+  admin:
+    url: ${APP_ADMIN_URL:https://admin.dunesinsolites.com}   # backoffice, for the button in the team's new-booking email
   frontend:
     url: ${APP_FRONTEND_URL:http://79.143.185.33:4200}   # browser-facing (email links) - stays 79.143.185.33 even in Docker
   cors:

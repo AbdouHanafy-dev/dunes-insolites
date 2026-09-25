@@ -84,6 +84,18 @@ source de vérité ; les décisions en attente sont listées plus bas.
   fiable seulement derrière nginx. **Durée de conservation non décidée** (e-mail et IP du
   personnel = données personnelles). Tests d’intégration non exécutés (Docker arrêté).
 
+### Notifications de réservation (25 sept.)
+- **Cloche du backoffice** (`NotificationBell`, en-tête) : compteur de non lues, 20 dernières, lien vers la
+  réservation, « tout marquer comme lu », relevé toutes les 30 s et au retour sur l’onglet (un toast
+  signale une hausse). Alimentation existante : `RESERVATION_CREATED` vers les comptes ADMIN.
+- **E-mail « Vous avez reçu une réservation »** (`StaffBookingNotifier` + `StaffBookingMailer`, en français) :
+  produit, référence, date, participants, client (e-mail, téléphone, langue), prix, bouton vers
+  `/reservations/{id}`. Une seule fois par réservation (`email_dispatch`), uniquement pour la source
+  « Site web », jamais bloquant. Destinataire en production : `insoliteroute@gmail.com` seulement (`APP_STAFF_BOOKING_EMAILS`,
+  défaut de `docker-compose.vps.yml`, modifiable dans `.env.vps`) ; si la variable est vide, tous les ADMIN.
+- Limites : pas de temps réel (relevé toutes les 30 s), pas de son ; un échec d’envoi n’est pas rejoué si
+  l’e-mail du client réussit (visible dans `email_dispatch`). Non testé avec un vrai SMTP.
+
 ### Suppression d’un compte, d’un guide, d’un chauffeur (25 sept.)
 - Une réservation ne peut pas exister sans utilisateur (`user_id` obligatoire, aucun nom client propre) :
   supprimer un compte **rattache ses réservations au compte « Client supprimé »** (`DeletedAccount`, V56,

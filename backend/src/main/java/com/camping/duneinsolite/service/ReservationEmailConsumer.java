@@ -41,10 +41,16 @@ public class ReservationEmailConsumer {
     private final com.camping.duneinsolite.mail.ReservationMailer reservationMailer;
     private final EmailMetrics emailMetrics;
     private final com.camping.duneinsolite.service.impl.ReservationOverviewFactory overviewFactory;
+    private final com.camping.duneinsolite.service.impl.StaffBookingNotifier staffBookingNotifier;
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE, containerFactory = "emailListenerContainerFactory")
     public void consume(NotificationMessage message) {
         try (CorrelationId.Scope ignored = CorrelationId.scope(message.getCorrelationId())) {
+            // The team hears about a site booking first and independently: a guest whose own
+            // confirmation keeps failing must not leave the team in the dark. Deduplicated and
+            // never throws (see StaffBookingNotifier).
+            staffBookingNotifier.notifyNewBooking(message.getReservationId(), message.getCorrelationId());
+
             RecipientView view = loadRecipient(message);
 
             var claim = emailDispatchService.claim(

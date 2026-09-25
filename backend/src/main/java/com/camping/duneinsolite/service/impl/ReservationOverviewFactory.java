@@ -40,6 +40,22 @@ public class ReservationOverviewFactory {
         return build(r, paymentService.computePaymentSummary(r));
     }
 
+    /** What the team email needs beyond the overview: where it came from and who booked. */
+    public record StaffFacts(String sourceName, String customerName, String customerEmail, String customerPhone,
+                             String locale, ReservationOverview overview) {}
+
+    @Transactional(readOnly = true)
+    public StaffFacts staffFacts(UUID reservationId) {
+        Reservation r = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
+        var user = r.getUser();
+        return new StaffFacts(
+                r.getSourceRef() == null ? null : r.getSourceRef().getName(),
+                user == null ? null : user.getName(), user == null ? null : user.getEmail(),
+                user == null ? null : user.getPhone(), r.getLocale(),
+                build(r, paymentService.computePaymentSummary(r)));
+    }
+
     static ReservationOverview build(Reservation r, PaymentSummary summary) {
         List<ReservationOverview.Item> items = new ArrayList<>();
         for (ReservationTourType tt : r.getTourTypes()) {
