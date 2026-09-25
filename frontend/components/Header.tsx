@@ -17,6 +17,8 @@ type NavEntry = { label: string; href: string; menu?: "experiences" | "stays" };
 type NavListEntry = {
   label: string;
   detail: string;
+  /** One line under the detail, cut with an ellipsis when it does not fit. */
+  blurb?: string;
   href: string;
   image: string;
   /** Nested entries shown under this one - a stay's accommodation types. */
@@ -153,6 +155,7 @@ export default function Header({
       items: tours.map((tour) => ({
         label: tour.title,
         detail: formatTourDuration(tDuration, tour),
+        blurb: (tour.description?.trim() || tour.aboutText?.trim() || "") || undefined,
         href: `/circuits/${tour.slug}`,
         image: tour.coverImage || tour.gallery[0] || "/images/gate.jpg",
       })),
@@ -263,6 +266,7 @@ export default function Header({
                           <span className="nav-dropdown-copy">
                             <strong>{entry.label}</strong>
                             <small>{entry.detail}</small>
+                            {entry.blurb && <small className="nav-dropdown-blurb">{entry.blurb}</small>}
                           </span>
                           <span className="nav-dropdown-arrow" aria-hidden="true">{entry.children?.length ? "›" : "↗"}</span>
                         </Link>
@@ -297,7 +301,7 @@ export default function Header({
                       );
                     })()}
                     <Link href={item.href} className="nav-dropdown-all">
-                      {item.allLabel} <span aria-hidden="true">→</span>
+                      {item.allLabel?.replace(/\s*[→←↗]\s*$/, "")} <span aria-hidden="true">→</span>
                     </Link>
                   </div>
                 ) : null}
@@ -380,6 +384,7 @@ export default function Header({
                                 <span className="nav-dropdown-copy">
                                   <strong>{entry.label}</strong>
                                   <small>{entry.detail}</small>
+                                  {entry.blurb && <small className="nav-dropdown-blurb">{entry.blurb}</small>}
                                 </span>
                               </Link>
                               {entry.children?.length ? (

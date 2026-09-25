@@ -201,6 +201,12 @@ html { scroll-padding-top: 96px; }
   white-space: nowrap;
 }
 
+.nav-dropdown-list a small.nav-dropdown-blurb,
+.drawer .nav-dropdown-copy small.nav-dropdown-blurb {
+  color: rgba(32, 29, 25, 0.78);
+  font-size: 11px;
+}
+
 .nav-dropdown-arrow {
   position: absolute;
   top: 50%;
