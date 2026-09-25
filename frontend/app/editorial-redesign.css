@@ -3612,6 +3612,8 @@ footer.site-footer.pro-footer .bar a:hover {
   scroll-snap-align: start;
 }
 .reviews-carousel-slide > .review-card { width: 100%; align-content: start; }
+/* Two or three reviews share the row instead of leaving empty columns. */
+.reviews-carousel-track:not(:has(.reviews-carousel-slide:nth-child(4))):has(.reviews-carousel-slide:nth-child(2)) .reviews-carousel-slide { flex: 1 1 0; min-width: 0; }
 
 .reviews-carousel { position: relative; }
 
@@ -3656,8 +3658,8 @@ footer.site-footer.pro-footer .bar a:hover {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: calc(16px * var(--ui));
-  padding: calc(26px * var(--ui)) calc(26px * var(--ui)) calc(22px * var(--ui));
+  gap: calc(11px * var(--ui));
+  padding: calc(18px * var(--ui)) calc(20px * var(--ui)) calc(16px * var(--ui));
   border: 1px solid rgba(36, 27, 23, 0.1);
   border-top: 3px solid var(--platform);
   background: #fffcf6;
@@ -3722,7 +3724,7 @@ footer.site-footer.pro-footer .bar a:hover {
   font-size: calc(12px * var(--ui));
 }
 
-.review-card-quote { position: relative; margin: 0; padding-top: calc(14px * var(--ui)); }
+.review-card-quote { position: relative; margin: 0; padding-top: calc(6px * var(--ui)); }
 .review-card-quote::before {
   content: "“";
   position: absolute;
@@ -3730,7 +3732,7 @@ footer.site-footer.pro-footer .bar a:hover {
   inset-inline-start: -2px;
   color: var(--platform);
   font-family: var(--font-display), serif;
-  font-size: calc(64px * var(--ui));
+  font-size: calc(44px * var(--ui));
   line-height: 1;
   opacity: 0.28;
   pointer-events: none;
@@ -3740,16 +3742,40 @@ footer.site-footer.pro-footer .bar a:hover {
   position: relative;
   margin: 0;
   color: rgba(36, 27, 23, 0.84);
-  font-size: calc(14.5px * var(--ui));
-  line-height: 1.7;
+  font-size: calc(14px * var(--ui));
+  line-height: 1.55;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
 
+/* Folded: the body keeps a few lines and the reply two; the full text stays in the page. */
+.review-fold { display: grid; gap: calc(11px * var(--ui)); }
+.review-fold[data-folded] .review-card-body,
+.review-fold[data-folded] .review-card-reply p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.review-fold[data-folded] .review-card-body { -webkit-line-clamp: 5; }
+.review-fold[data-folded] .review-card-reply p { -webkit-line-clamp: 2; }
+.review-more {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--platform);
+  font-size: calc(12.5px * var(--ui));
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .review-card-reply {
   display: grid;
-  gap: calc(6px * var(--ui));
-  padding: calc(14px * var(--ui)) calc(16px * var(--ui));
+  gap: calc(4px * var(--ui));
+  padding: calc(10px * var(--ui)) calc(12px * var(--ui));
+  margin-top: auto;
   border-inline-start: 3px solid var(--platform);
   background: color-mix(in srgb, var(--platform) 7%, #f4ecdf);
 }
@@ -3763,8 +3789,8 @@ footer.site-footer.pro-footer .bar a:hover {
 .review-card-reply p {
   margin: 0;
   color: rgba(36, 27, 23, 0.8);
-  font-size: calc(13px * var(--ui));
-  line-height: 1.6;
+  font-size: calc(12.5px * var(--ui));
+  line-height: 1.5;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }

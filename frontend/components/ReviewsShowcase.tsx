@@ -103,6 +103,8 @@ export default async function ReviewsShowcase() {
                 review={review}
                 locale={locale}
                 ownerReplyLabel={t("ownerReply")}
+                moreLabel={t("readMore")}
+                lessLabel={t("readLess")}
               />
             ))}
           </ReviewsCarousel>

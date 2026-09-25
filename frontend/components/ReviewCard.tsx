@@ -1,4 +1,5 @@
 import Stars from "@/components/Stars";
+import ReviewFold from "@/components/ReviewFold";
 import { REVIEW_SOURCE_LABELS } from "@/lib/types";
 import type { Review } from "@/lib/types";
 
@@ -11,6 +12,10 @@ function avatarColor(name: string): string {
   for (const ch of name) hash = (hash * 31 + ch.codePointAt(0)!) >>> 0;
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
+
+/** Longer than this and the review is clamped behind "Read more". */
+const FOLD_BODY_CHARS = 280;
+const FOLD_REPLY_CHARS = 170;
 
 function initial(name: string): string {
   return name.trim().charAt(0).toUpperCase() || "?";
@@ -33,13 +38,18 @@ export default function ReviewCard({
   review,
   locale,
   ownerReplyLabel,
+  moreLabel,
+  lessLabel,
 }: {
   review: Review;
   locale: string;
   ownerReplyLabel: string;
+  moreLabel: string;
+  lessLabel: string;
 }) {
   const platformName = review.platformName ?? REVIEW_SOURCE_LABELS[review.source];
   const replyDate = review.ownerReplyDate ? formatMonth(review.ownerReplyDate, locale) : "";
+  const foldable = review.body.length > FOLD_BODY_CHARS || (review.ownerReply?.length ?? 0) > FOLD_REPLY_CHARS;
   const meta = [review.country, formatMonth(review.date, locale)].filter(Boolean).join(" · ");
 
   return (
@@ -63,20 +73,22 @@ export default function ReviewCard({
         {review.tripType && <span className="review-card-trip">{review.tripType}</span>}
       </div>
 
-      <blockquote className="review-card-quote">
-        {review.title && <h3 className="review-card-title">{review.title}</h3>}
-        <p className="review-card-body">{review.body}</p>
-      </blockquote>
+      <ReviewFold foldable={foldable} moreLabel={moreLabel} lessLabel={lessLabel}>
+        <blockquote className="review-card-quote">
+          {review.title && <h3 className="review-card-title">{review.title}</h3>}
+          <p className="review-card-body">{review.body}</p>
+        </blockquote>
 
-      {review.ownerReply && (
-        <div className="review-card-reply">
-          <span className="review-card-reply-label">
-            {ownerReplyLabel}
-            {replyDate && <span> · {replyDate}</span>}
-          </span>
-          <p>{review.ownerReply}</p>
-        </div>
-      )}
+        {review.ownerReply && (
+          <div className="review-card-reply">
+            <span className="review-card-reply-label">
+              {ownerReplyLabel}
+              {replyDate && <span> · {replyDate}</span>}
+            </span>
+            <p>{review.ownerReply}</p>
+          </div>
+        )}
+      </ReviewFold>
     </article>
   );
 }

@@ -154,6 +154,8 @@
     "yearsLabel": "of local experience",
     "verifiedOnly": "No invented testimonials: only genuinely published reviews appear here.",
     "ownerReply": "Response from the owner",
+    "readMore": "Read more",
+    "readLess": "Show less",
     "googleSummary": "{rating} out of 5 · {count} Google reviews",
     "seeAllOnGoogle": "See all reviews on Google",
     "previous": "Previous review",

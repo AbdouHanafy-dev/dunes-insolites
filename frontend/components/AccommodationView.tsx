@@ -373,7 +373,7 @@ export default async function AccommodationView({
             </Reveal>
             <div className="acc-grid acc-grid--3">
               {topReviews.map((r) => (
-                <ReviewCard key={r.id} review={r} locale={locale} ownerReplyLabel={tShow("ownerReply")} />
+                <ReviewCard key={r.id} review={r} locale={locale} ownerReplyLabel={tShow("ownerReply")} moreLabel={tShow("readMore")} lessLabel={tShow("readLess")} />
               ))}
             </div>
             <p className="acc-more"><Link href="/#reviews" className="acc-link">{t("ui.seeMoreReviews")} →</Link></p>

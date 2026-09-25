@@ -149,6 +149,8 @@
     "yearsLabel": "من الخبرة المحلية",
     "verifiedOnly": "لا شهادات مختلقة: تظهر هنا فقط التقييمات المنشورة فعليًا.",
     "ownerReply": "رد المالك",
+    "readMore": "اقرأ المزيد",
+    "readLess": "عرض أقل",
     "googleSummary": "{rating} من 5 · {count} تقييم على Google",
     "seeAllOnGoogle": "عرض جميع التقييمات على Google",
     "previous": "التقييم السابق",

@@ -154,6 +154,8 @@
     "yearsLabel": "d'expérience locale",
     "verifiedOnly": "Aucun témoignage inventé : seuls les avis réellement publiés apparaissent ici.",
     "ownerReply": "Réponse du propriétaire",
+    "readMore": "Lire la suite",
+    "readLess": "Réduire",
     "googleSummary": "{rating} sur 5 · {count} avis Google",
     "seeAllOnGoogle": "Voir tous les avis sur Google",
     "previous": "Avis précédent",
