@@ -2639,7 +2639,7 @@ footer.site-footer.pro-footer .bar a:hover {
 @media (max-width: 1000px) {
   /* minmax(0, ...) so a wide child cannot stretch the column past the screen and push the card off-centre. */
   .tour-product-grid { grid-template-columns: minmax(0, 1fr); }
-  .tour-booking-card { position: static; max-width: 680px; width: 100%; min-width: 0; margin-inline: auto; max-height: none; overflow: visible; }
+  .tour-booking-card { position: static; max-width: 680px; width: 100%; min-width: 0; margin-inline: auto; max-height: none; overflow-x: clip; overflow-y: visible; }
   .tour-essentials { grid-template-columns: repeat(2, 1fr); }
   .tour-essentials > div:nth-child(2) { border-inline-end: 0; }
   .tour-essentials > div:nth-child(-n + 2) { border-bottom: 1px solid rgba(39, 34, 30, 0.12); }
