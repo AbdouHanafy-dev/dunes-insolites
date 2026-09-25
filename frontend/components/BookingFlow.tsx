@@ -1239,7 +1239,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
             <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-            <span>{ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
+            <span>{ta("termsPre")}<Link href="/legal/terms" target="_blank" rel="noopener noreferrer">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
           </label>
           {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
           {formError && <div className="alert">{formError}</div>}
@@ -1338,7 +1338,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
             <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-            <span>{ta("termsPre")}<Link href="/legal/terms">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
+            <span>{ta("termsPre")}<Link href="/legal/terms" target="_blank" rel="noopener noreferrer">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
           </label>
           {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
           {formError && <div className="alert">{formError}</div>}

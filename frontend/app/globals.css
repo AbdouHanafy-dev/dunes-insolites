@@ -3391,6 +3391,8 @@ footer.site-footer .bar-social a:hover {
   flex-direction: column;
   gap: calc(8px * var(--ui));
 }
+/* The terms and privacy links open in a new tab; underline them so they read as links. */
+.ride-option a { text-decoration: underline; text-underline-offset: 3px; }
 .ride-option {
   display: flex;
   align-items: center;

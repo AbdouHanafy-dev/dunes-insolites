@@ -230,9 +230,9 @@ export default function AuthForm({ mode }: { mode: Mode }) {
             />
             <span>
               {t("termsPre")}
-              <Link href="/legal/terms">{t("termsLinkTerms")}</Link>
+              <Link href="/legal/terms" target="_blank" rel="noopener noreferrer">{t("termsLinkTerms")}</Link>
               {t("termsMid")}
-              <Link href="/legal/privacy">{t("termsLinkPrivacy")}</Link>
+              <Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">{t("termsLinkPrivacy")}</Link>
               {t("termsPost")}
             </span>
           </label>

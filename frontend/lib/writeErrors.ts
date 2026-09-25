@@ -4,7 +4,8 @@ type Failure = Extract<WriteResult<unknown>, { ok: false }>;
 
 /**
  * One message that says exactly what failed: the server's own reason, then
- * every rejected field ("partySize: must be at most 12"), then the HTTP status.
+ * every rejected field ("partySize: must be at most 12"). The HTTP status is left out:
+ * a visitor cannot act on "409", and it reads like a crash.
  * Field errors are shown even when the field lives on an earlier wizard step,
  * where an inline error would never be visible to the guest.
  */
@@ -14,6 +15,5 @@ export function describeWriteFailure(result: Failure, fallback: string): string 
   if (fields.length > 0) {
     parts.push(fields.map(([field, message]) => `${field}: ${message}`).join(" · "));
   }
-  if (result.status) parts.push(`(HTTP ${result.status})`);
   return parts.join(" — ");
 }
