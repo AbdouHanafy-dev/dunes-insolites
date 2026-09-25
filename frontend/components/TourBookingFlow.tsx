@@ -342,7 +342,7 @@ export default function TourBookingFlow({
 
       {/* ---------- accommodation at the Sabria camp ---------- */}
       {step === 5 && (
-        <div className="field" data-invalid={!!errors.accommodation}>
+        <div className="acc-step" data-invalid={!!errors.accommodation}>
           <label>{t("chooseAccommodation")}</label>
           <p className="hint">{t("chooseAccommodationHint")}</p>
 {availableAccommodations.length > 0 ? (

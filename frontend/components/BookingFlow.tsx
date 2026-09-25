@@ -814,7 +814,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
       {/* ---------- circuit: camp accommodation ---------- */}
       {category === "circuit" && step === circuitAccommodationStep && (
-        <div className="field" data-invalid={!!errors.accommodation}>
+        <div className="acc-step" data-invalid={!!errors.accommodation}>
           <label>{t("chooseAccommodation")}</label>
           <p className="hint">{t("chooseAccommodationHint")}</p>
 {circuitAccommodations.length > 0 ? (

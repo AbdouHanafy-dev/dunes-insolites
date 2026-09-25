@@ -592,7 +592,7 @@ export default function StayReservationForm({
       </div>
 
       {step === 1 && accommodations && accommodations.length > 0 && (
-        <div className="field" data-invalid={!!errors.accommodationSlug}>
+        <div className="acc-step" data-invalid={!!errors.accommodationSlug}>
           <label>{t("chooseCamp")}</label>
 <AccommodationPicker
             name="stayAccommodation"
