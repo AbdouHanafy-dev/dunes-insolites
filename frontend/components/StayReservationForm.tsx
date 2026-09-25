@@ -11,7 +11,7 @@ import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type Departur
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import ListSelect from "@/components/ListSelect";
-import { NO_GUESTS, guestsPerTier, isPlaced, tierPerNight, unplaced, type Guests } from "@/lib/guestPricing";
+import { guestsPerTier, isPlaced, tierPerNight, unplaced, type Guests } from "@/lib/guestPricing";
 import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
 import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import DateRangePicker from "@/components/DateRangePicker";
@@ -123,17 +123,16 @@ export default function StayReservationForm({
   const [children, setChildren] = useState(initialDraft?.children ?? 0);
   const [infants, setInfants] = useState(initialDraft?.infants ?? 0);
   // Only used when several tiers are picked: who sleeps in each.
-  const [tierAssignments, setTierAssignments] = useState<Record<string, Guests>>({});
+  const [tierAssignments] = useState<Record<string, Guests>>({});
   // slug -> quantity. A guest may pick several tiers at once (e.g. 2 Suites +
   // 3 Tentes in one booking). `initialAccommodationSlug` (from the "Réserver"
   // link on a tier's own detail page) is merged in rather than replacing
   // whatever the draft already held.
   const [accommodationSelections, setAccommodationSelections] = useState<Record<string, number>>(() => {
-    const base = { ...(initialDraft?.accommodationSelections ?? {}) };
-    if (initialAccommodationSlug && !(initialAccommodationSlug in base)) {
-      base[initialAccommodationSlug] = 1;
-    }
-    return base;
+    // One tier per booking, like the /book flow: the whole party (set in step 1) sleeps in it.
+    const saved = Object.entries(initialDraft?.accommodationSelections ?? {});
+    if (initialAccommodationSlug) return { [initialAccommodationSlug]: 1 };
+    return saved[0] ? { [saved[0][0]]: saved[0][1] } : {};
   });
   const [rideSlugs, setRideSlugs] = useState<string[]>(initialDraft?.rideSlugs ?? []);
   // Minutes picked per timed activity (absent = its base duration).
@@ -596,21 +595,10 @@ export default function StayReservationForm({
           <label>{t("chooseCamp")}</label>
 <AccommodationPicker
             name="stayAccommodation"
-            mode="multi"
+            mode="single"
             items={accommodations}
             selections={accommodationSelections}
-            onChange={(next) => {
-              // Going from one tier to several: the first keeps everyone until the guest moves them.
-              const slugs = Object.keys(next);
-              if (slugs.length > 1 && Object.keys(accommodationSelections).length <= 1) {
-                const first = Object.keys(accommodationSelections)[0] ?? slugs[0];
-                setTierAssignments(Object.fromEntries(slugs.map((slug) => [slug, slug === first ? party : NO_GUESTS])));
-              }
-              setAccommodationSelections(next);
-            }}
-            party={party}
-            assignments={tierAssignments}
-            onAssign={(slug, guests) => setTierAssignments((cur) => ({ ...cur, [slug]: guests }))}
+            onChange={setAccommodationSelections}
             availability={tierAvailability}
             detailsHref={(slug) => `/camp/${stay.slug}/${slug}`}
           />

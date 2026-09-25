@@ -309,7 +309,7 @@ export default function TourBookingFlow({
         <h3>{activeStep.label}</h3>
         <strong className="tour-book-step-amount">
           {step === 0 && `€${total}`}
-          {step === 5 && (selectedAccommodation ? `€${accommodationTotal}` : t("chooseAccommodation"))}
+          {step === 5 && (selectedAccommodation ? `€${accommodationTotal}` : "")}
           {step === 1 && "€0"}
           {step === 2 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
           {step === 3 && `€${extrasTotal}`}

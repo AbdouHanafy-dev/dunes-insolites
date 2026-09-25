@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { getSessionRefreshing } from "@/lib/session";
 import { BACKEND_BASE } from "@/lib/authProxy";
 
 /**
@@ -38,7 +38,7 @@ async function handler(request: Request, { params }: { params: Promise<{ path: s
     return Response.json({ error: "Cross-site request rejected" }, { status: 403 });
   }
 
-  const session = await getSession();
+  const session = await getSessionRefreshing();
   if (!session) return Response.json({ error: "Not authenticated" }, { status: 401 });
 
   const { path } = await params;

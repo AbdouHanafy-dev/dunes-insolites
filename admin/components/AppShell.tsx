@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import { ToastProvider } from "./Toast";
 import type { Session } from "@/lib/session";
@@ -14,6 +14,23 @@ export default function AppShell({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Keep the session alive while the tab is open: every few minutes, renew the
+  // access token and touch the Keycloak SSO session so idle time never runs out.
+  useEffect(() => {
+    const ping = () => {
+      fetch("/api/auth/me", { cache: "no-store" }).catch(() => {});
+    };
+    const id = setInterval(ping, 2 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") ping();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   return (
     <ToastProvider>

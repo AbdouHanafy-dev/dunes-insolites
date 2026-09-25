@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/session";
+import { getSessionRefreshing } from "@/lib/session";
 import { BACKEND_BASE } from "@/lib/authProxy";
 
 /**
@@ -11,7 +11,7 @@ import { BACKEND_BASE } from "@/lib/authProxy";
  * boundary is what actually forwards a file upload correctly.
  */
 export async function POST(request: Request) {
-  const session = await getSession();
+  const session = await getSessionRefreshing();
   if (!session) return Response.json({ error: "Not authenticated" }, { status: 401 });
 
   const incoming = await request.formData();

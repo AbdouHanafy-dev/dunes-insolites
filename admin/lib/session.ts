@@ -8,6 +8,7 @@
  */
 import { cookies } from "next/headers";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+import { refreshTokens, secondsUntilExpiry } from "@/lib/oidc";
 
 export const SESSION_COOKIE = "admin_session";
 export const REFRESH_COOKIE = "admin_refresh";
@@ -87,4 +88,46 @@ export async function sessionFromToken(token: string): Promise<Session | null> {
 export async function getSession(): Promise<Session | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   return token ? await sessionFromToken(token) : null;
+}
+
+/**
+ * Like getSession(), but for route handlers: when the access token is missing,
+ * expired or about to expire, silently renews it from the refresh cookie and
+ * re-sets both cookies. The middleware only covers page navigations, so without
+ * this a tab left open past the 5-minute access-token life would start
+ * getting 401s from /api/proxy even though the refresh token is still good.
+ */
+export async function getSessionRefreshing(): Promise<Session | null> {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (token) {
+    const s = await sessionFromToken(token);
+    if (s && secondsUntilExpiry(token) > 30) return s;
+  }
+
+  const refresh = store.get(REFRESH_COOKIE)?.value;
+  if (!refresh) return null;
+  const t = await refreshTokens(refresh);
+  if (!t?.access_token) return null;
+  const s = await sessionFromToken(t.access_token);
+  if (!s) return null;
+
+  const secure = process.env.NODE_ENV === "production";
+  store.set(SESSION_COOKIE, t.access_token, {
+    httpOnly: true,
+    secure,
+    sameSite: "lax",
+    path: "/",
+    maxAge: t.expires_in ?? 300,
+  });
+  if (t.refresh_token) {
+    store.set(REFRESH_COOKIE, t.refresh_token, {
+      httpOnly: true,
+      secure,
+      sameSite: "strict",
+      path: REFRESH_COOKIE_PATH,
+      maxAge: t.refresh_expires_in ?? 1800,
+    });
+  }
+  return s;
 }
