@@ -794,6 +794,9 @@
     "transportDuringLabel": "Transport during the activity",
     "optionalSegmentBadge": "optional",
     "transferBadge": "Transfer",
+    "pickupPointLabel": "Pickup point",
+    "dropoffPointLabel": "Drop-off point",
+    "attractionLabel": "Attraction",
     "veryGoodRating": "Very good rating",
     "ratingReviewCount": "{count, plural, one {# review} other {# reviews}}",
     "organizerLabel": "Activity organiser: {name}",
@@ -2825,5 +2828,8 @@
     "hoursMinutes": "{h}:{mm}H",
     "decrease": "Shorten {title}",
     "increase": "Lengthen {title}"
+  },
+  "tourDuration": {
+    "format": "{days, plural, =0 {{hours} h} other {{rest, plural, =0 {{days, plural, one {# day} other {# days}} ({hours} h)} other {{days, plural, one {# day} other {# days}} and {rest} h ({hours} h)}}}}"
   }
 }

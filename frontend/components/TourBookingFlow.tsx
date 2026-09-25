@@ -5,8 +5,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { Language } from "@/lib/api";
+import { departureOptions, returnOptions } from "@/lib/cities";
 import { describeWriteFailure } from "@/lib/writeErrors";
-import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
+import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import ListSelect from "@/components/ListSelect";
@@ -55,6 +56,8 @@ export default function TourBookingFlow({
   infantPrice = 0,
   accommodations = [],
   campStaySlug = "",
+  departureCities,
+  returnCities,
 }: {
   tourSlug: string;
   tourTitle: string;
@@ -66,6 +69,9 @@ export default function TourBookingFlow({
   accommodations?: Accommodation[];
   /** The circuit camp stay (set in the back office) - target of each tier's "voir détails" link. */
   campStaySlug?: string;
+  /** Cities ticked for this circuit in the back office. */
+  departureCities?: readonly DepartureCity[];
+  returnCities?: readonly DepartureCity[];
 }) {
   const t = useTranslations("tourBookingForm");
   const ts = useTranslations("stayReservationForm");
@@ -433,12 +439,13 @@ export default function TourBookingFlow({
               id="tf-departure-city"
               value={departureCity}
               onChange={setDepartureCity}
-              options={DEPARTURE_CITIES}
+              options={departureOptions(departureCities)}
               labels={DEPARTURE_CITY_LABELS}
               placeholder={t("departureCityPlaceholder")}
             />
           </div>
 
+          {returnOptions(returnCities).length > 0 && (
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="tf-return-city">{t("returnCityLabel")}</label>
             <p className="hint">{t("returnCityHint")}</p>
@@ -446,11 +453,12 @@ export default function TourBookingFlow({
               id="tf-return-city"
               value={returnCity}
               onChange={setReturnCity}
-              options={DEPARTURE_CITIES}
+              options={returnOptions(returnCities)}
               labels={DEPARTURE_CITY_LABELS}
               placeholder={t("returnCityPlaceholder")}
             />
           </div>
+          )}
         </div>
       )}
 

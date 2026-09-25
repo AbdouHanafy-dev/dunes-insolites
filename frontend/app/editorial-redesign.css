@@ -1946,6 +1946,45 @@ footer.site-footer.pro-footer .bar a:hover {
   vertical-align: middle;
 }
 
+.tour-itinerary li p.tour-itinerary-pickup {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(232, 218, 200, 0.55);
+  color: #5c3322;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.tour-itinerary-pickup strong {
+  margin-inline-end: 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8f412d;
+}
+
+/* Step images: one wide picture, or a tidy grid when there are several. */
+.tour-itinerary-media {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 680px;
+  margin-top: 14px;
+}
+.tour-itinerary-media[data-count="1"] { grid-template-columns: minmax(0, 1fr); }
+.tour-itinerary-media[data-count="3"] .tour-itinerary-photo:first-child { grid-column: 1 / -1; aspect-ratio: 16 / 8; }
+.tour-itinerary-photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #e8dac8;
+}
+.tour-itinerary-media[data-count="1"] .tour-itinerary-photo { aspect-ratio: 16 / 9; }
+.tour-itinerary-photo img { object-fit: cover; }
+
 .tour-itinerary-duration {
   margin: 6px 0 0 !important;
   color: rgba(39, 34, 30, 0.45) !important;

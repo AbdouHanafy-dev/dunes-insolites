@@ -396,6 +396,9 @@ export function getCustomRolePermissions(
 
 export type AdminTourType = {
   tourTypeId: string;
+  /** Cities offered in the booking steps (enum names). */
+  departureCities: string[];
+  returnCities: string[];
   name: string;
   slug: string | null;
   description: string | null;
@@ -567,6 +570,10 @@ export type AdminTourProgramStep = {
   segmentType: AdminTourSegmentType | null;
   optionalSegment: boolean | null;
   durationMinutes: number | null;
+  pickupPoint: string | null;
+  dropoffPoint: string | null;
+  attraction: string | null;
+  imageUrls: string[] | null;
 };
 export type AdminTourPhoto = { url: string; caption: string | null };
 export type AdminTourCancellationPolicy = { freeCancellation: boolean | null; hoursBeforeDeadline: number | null };
@@ -593,7 +600,11 @@ export type AdminTour = {
   name: string;
   slug: string | null;
   description: string | null;
-  duration: string | null;
+  /** Whole hours; days and nights are derived for display. */
+  durationHours: number | null;
+  /** Cities offered in the booking steps (enum names). */
+  departureCities: string[];
+  returnCities: string[];
   passengerAdultPrice: number;
   salePriceAdult: number | null;
   passengerChildPrice: number;

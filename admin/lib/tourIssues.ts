@@ -1,3 +1,5 @@
+import { tourHoursError } from "./tourDuration";
+
 /**
  * Exact, per-field problems for the circuit wizard. Two sources feed the same
  * list so the operator sees one consistent thing:
@@ -22,6 +24,9 @@ export type Issue = {
 export type TourIssueInput = {
   name: string;
   description: string;
+  /** Raw hours input. */
+  durationHours: string;
+  departureCities: string[];
   photos: unknown[];
   coverPhotoUrl: string | null;
   copyrightConfirmed: boolean;
@@ -66,6 +71,13 @@ export function localIssues(f: TourIssueInput): Issue[] {
 
   if (f.name.trim().length === 0) {
     add(STEP_BASICS, "name", "Nom du circuit", "requis — saisissez le nom du circuit.", true);
+  }
+  const hoursError = tourHoursError(f.durationHours);
+  if (hoursError !== null) {
+    add(STEP_BASICS, "durationHours", "Durée (heures)", hoursError, true);
+  }
+  if (f.departureCities.length === 0) {
+    add(STEP_BASICS, "departureCities", "Villes de départ", "cochez au moins une ville de départ.", true);
   }
   // The server refuses to send a circuit for review without a description.
   if (f.description.trim().length === 0) {
@@ -123,7 +135,7 @@ export function localIssues(f: TourIssueInput): Issue[] {
 /* ---------------------------------------------------------------- server */
 
 const FIELD_STEP: Record<string, number> = {
-  name: 0, slug: 0, description: 0, duration: 0, location: 0, groupSizeType: 0, aboutText: 0, overnightsAtCamp: 0,
+  name: 0, slug: 0, description: 0, durationHours: 0, departureCities: 0, returnCities: 0, location: 0, groupSizeType: 0, aboutText: 0, overnightsAtCamp: 0,
   photos: 1, coverPhotoUrl: 1, copyrightConfirmed: 1,
   programSteps: 2,
   keywords: 3,
@@ -139,8 +151,9 @@ const FIELD_STEP: Record<string, number> = {
 };
 
 const FIELD_LABEL: Record<string, string> = {
-  name: "Nom du circuit", slug: "Slug (URL)", description: "Description courte", duration: "Durée",
-  location: "Lieu de départ", groupSizeType: "Taille de groupe", aboutText: "Présentation détaillée",
+  name: "Nom du circuit", slug: "Slug (URL)", description: "Description courte", durationHours: "Durée (heures)",
+  departureCities: "Villes de départ", returnCities: "Villes de retour",
+  location: "Lieu / région", groupSizeType: "Taille de groupe", aboutText: "Présentation détaillée",
   overnightsAtCamp: "Nuit au camp",
   photos: "Photos", coverPhotoUrl: "Photo de couverture", copyrightConfirmed: "Droits des photos",
   programSteps: "Itinéraire", keywords: "Mots-clés",
@@ -160,7 +173,8 @@ const FIELD_LABEL: Record<string, string> = {
 
 const SUB_LABEL: Record<string, string> = {
   label: "horaire / libellé", title: "titre", description: "description", segmentType: "type de segment",
-  durationMinutes: "durée (minutes)", name: "nom", aboutText: "présentation", locale: "langue",
+  durationMinutes: "durée (minutes)", pickupPoint: "lieu de prise en charge", dropoffPoint: "lieu de dépose",
+  attraction: "attraction", imageUrls: "images", name: "nom", aboutText: "présentation", locale: "langue",
   url: "adresse de la photo", caption: "légende", freeCancellation: "annulation gratuite",
   hoursBeforeDeadline: "délai (heures)",
   tourTypeId: "nuitée", accommodationTypeId: "type d'hébergement", accommodationUnits: "unités",

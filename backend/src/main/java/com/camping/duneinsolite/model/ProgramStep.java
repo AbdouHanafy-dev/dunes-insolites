@@ -32,4 +32,21 @@ public class ProgramStep {
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
+
+    // By position in the itinerary, all optional and shown on the site only when filled:
+    // the first step names a pickup point, the last a drop-off point, any step in
+    // between an attraction.
+    @Column(name = "pickup_point")
+    private String pickupPoint;
+
+    @Column(name = "dropoff_point")
+    private String dropoffPoint;
+
+    @Column(name = "attraction")
+    private String attraction;
+
+    // Any number of images for this step, shown in the step on the circuit page.
+    @Convert(converter = ImageUrlListConverter.class)
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    private java.util.List<String> imageUrls = new java.util.ArrayList<>();
 }

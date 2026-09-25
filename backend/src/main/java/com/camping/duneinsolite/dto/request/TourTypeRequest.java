@@ -30,6 +30,10 @@ public class TourTypeRequest {
     @Min(value = 1, message = "Maximum nights must be at least 1")
     private Integer maxNights;
 
+    /** Cities the guest may depart from / be dropped back to; ticked in the backoffice. */
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> departureCities;
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> returnCities;
+
     private String aboutText;
     private List<String> highlights;
     private List<String> includedItems;

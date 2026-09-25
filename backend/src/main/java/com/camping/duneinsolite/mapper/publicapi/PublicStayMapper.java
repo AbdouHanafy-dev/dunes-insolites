@@ -66,6 +66,8 @@ public class PublicStayMapper {
         response.setArrivalTime("");
         response.setDepartureTime("");
         response.setItinerary(List.of());
+        response.setDepartureCities(com.camping.duneinsolite.service.PickupCities.names(tourType.getDepartureCities()));
+        response.setReturnCities(com.camping.duneinsolite.service.PickupCities.names(tourType.getReturnCities()));
         response.setAccommodations(bookableAccommodations(tourType));
         response.setGuideRequired(Boolean.TRUE.equals(tourType.getGuideRequired()));
         response.setMaxNights(tourType.getMaxNights() == null ? 1 : tourType.getMaxNights());

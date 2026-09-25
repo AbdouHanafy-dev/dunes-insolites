@@ -18,8 +18,14 @@ public class PublicTourResponse {
     private String title;
     private String description;
     private String aboutText;
+    /** Whole hours - the frontend formats it per locale. */
+    private Integer durationHours;
+    /** Same duration as a French label, for consumers that only show text. */
     private String duration;
     private String location;
+    /** Enum names of the cities the guest can depart from / be dropped back to. */
+    private List<String> departureCities;
+    private List<String> returnCities;
     private String meetingPoint;
     private String groupSize;
     /** True when this circuit sleeps a night at the Sabria camp — the guest
@@ -76,6 +82,11 @@ public class PublicTourResponse {
         private String segmentType;
         private Boolean optionalSegment;
         private Integer durationMinutes;
+        /** Set only when the editor filled a pickup point for this step. */
+        private String pickupPoint;
+        private String dropoffPoint;
+        private String attraction;
+        private List<String> images;
     }
 
     @Data

@@ -582,6 +582,9 @@
     "transportDuringLabel": "Transport während der Aktivität",
     "optionalSegmentBadge": "optional",
     "transferBadge": "Transfer",
+    "pickupPointLabel": "Abholort",
+    "dropoffPointLabel": "Absetzort",
+    "attractionLabel": "Sehenswürdigkeit",
     "veryGoodRating": "Sehr gute Bewertung",
     "ratingReviewCount": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
     "organizerLabel": "Veranstalter: {name}",
@@ -1340,5 +1343,8 @@
     "hoursMinutes": "{h}:{mm}H",
     "decrease": "{title} verkürzen",
     "increase": "{title} verlängern"
+  },
+  "tourDuration": {
+    "format": "{days, plural, =0 {{hours} Std.} other {{rest, plural, =0 {{days, plural, one {# Tag} other {# Tage}} ({hours} Std.)} other {{days, plural, one {# Tag} other {# Tage}} und {rest} Std. ({hours} Std.)}}}}"
   }
 }

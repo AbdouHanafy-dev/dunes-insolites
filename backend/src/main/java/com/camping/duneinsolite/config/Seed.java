@@ -312,7 +312,7 @@ public class Seed implements CommandLineRunner {
                         "exceptionnelle de Djerba vers Tataouine et Chenini. Entre paysages desertiques " +
                         "fascinants, villages berberes perches, et sites iconiques de tournage de Star Wars, " +
                         "cette journee vous transporte dans un univers ou histoire et cinema se croisent.")
-                .duration("1 Jour")
+                .durationHours(24)
                 .passengerAdultPrice(new BigDecimal("85.0"))
                 .passengerChildPrice(new BigDecimal("45.0"))
                 // Same note as above - partner rate defaulted to passenger price, adjust via Catalogue.
@@ -395,7 +395,7 @@ public class Seed implements CommandLineRunner {
                         "le Chott el-Jerid puis l'oasis de montagne de Chebika, avant de rejoindre " +
                         "Kairouan, ville sainte classee au patrimoine mondial de l'UNESCO, puis le retour " +
                         "vers Tunis, Hammamet ou Sousse en debut de soiree.")
-                .duration("2 Jours")
+                .durationHours(48)
                 .location("Tunis")
                 .meetingPoint("3 points de prise en charge : Tunis Clock Tower, Tunis, ou Bab al-Bhar - " +
                         "retour identique")
@@ -467,7 +467,7 @@ public class Seed implements CommandLineRunner {
                 .description("Decouvrez le desert du Sahara lors d'une aventure de 2 jours au depart de " +
                         "Sabria. Passez la nuit dans une tente traditionnelle, profitez d'une balade a " +
                         "dos de chameau et d'une aventure en quad, et savourez des repas locaux.")
-                .duration("2 Jours")
+                .durationHours(48)
                 .location("Tunis")
                 .meetingPoint("Prise en charge et retour directement a votre hotel (Tunis, Hammamet, " +
                         "Sousse)")

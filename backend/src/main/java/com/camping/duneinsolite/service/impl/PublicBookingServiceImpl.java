@@ -221,6 +221,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
         Tour tour = tourRepository.findBySlugAndIsActiveTrue(request.getTourSlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Tour not found: " + request.getTourSlug()));
+        com.camping.duneinsolite.service.PickupCities.requireOffered("departure", request.getDepartureCity(), tour.getDepartureCities());
+        com.camping.duneinsolite.service.PickupCities.requireOffered("return", request.getReturnCity(), tour.getReturnCities());
 
         if (request.getArrivalMode() != null
                 && !"OWN_VEHICLE".equals(request.getArrivalMode())
@@ -422,6 +424,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
         TourType tourType = tourTypeRepository.findBySlugAndIsActiveTrue(request.getStaySlug())
                 .orElseThrow(() -> new ResourceNotFoundException("Stay not found: " + request.getStaySlug()));
+        com.camping.duneinsolite.service.PickupCities.requireOffered("departure", request.getDepartureCity(), tourType.getDepartureCities());
+        com.camping.duneinsolite.service.PickupCities.requireOffered("return", request.getReturnCity(), tourType.getReturnCities());
 
         int nights = request.getNights() != null ? request.getNights() : 1;
         int maxNights = tourType.getMaxNights() != null ? tourType.getMaxNights() : 1;
@@ -732,12 +736,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
     }
 
     private static boolean requiresCampAccommodation(com.camping.duneinsolite.model.Tour tour) {
-        if (Boolean.TRUE.equals(tour.getOvernightsAtCamp())) return true;
-        if (tour.getDuration() == null) return false;
-        java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("(\\d+)\\s*(?:jours?|days?)\\b", java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(tour.getDuration());
-        return matcher.find() && Integer.parseInt(matcher.group(1)) > 1;
+        return Boolean.TRUE.equals(tour.getOvernightsAtCamp())
+                || com.camping.duneinsolite.service.TourDuration.isMultiDay(tour.getDurationHours());
     }
 
     private static String demandeSpecial(String notes, String extra) {

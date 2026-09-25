@@ -6,7 +6,8 @@ import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import { describeWriteFailure } from "@/lib/writeErrors";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
-import { DEPARTURE_CITIES, DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
+import { departureOptions, returnOptions } from "@/lib/cities";
+import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import ListSelect from "@/components/ListSelect";
@@ -732,12 +733,13 @@ export default function StayReservationForm({
             id="sf-departure-city"
             value={departureCity}
             onChange={setDepartureCity}
-            options={DEPARTURE_CITIES}
+            options={departureOptions(stay.departureCities)}
             labels={DEPARTURE_CITY_LABELS}
             placeholder={t("departureCityPlaceholder")}
           />
         </div>
 
+        {returnOptions(stay.returnCities).length > 0 && (
         <div className="field" style={{ marginTop: 12 }}>
           <label htmlFor="sf-return-city">{t("returnCityLabel")}</label>
           <p className="hint">{t("returnCityHint")}</p>
@@ -745,11 +747,12 @@ export default function StayReservationForm({
             id="sf-return-city"
             value={returnCity}
             onChange={setReturnCity}
-            options={DEPARTURE_CITIES}
+            options={returnOptions(stay.returnCities)}
             labels={DEPARTURE_CITY_LABELS}
             placeholder={t("returnCityPlaceholder")}
           />
         </div>
+        )}
 
         {hasOwnVehicle === false && (
           <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 12 }}>

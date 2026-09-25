@@ -582,6 +582,9 @@
     "transportDuringLabel": "النقل أثناء النشاط",
     "optionalSegmentBadge": "اختياري",
     "transferBadge": "نقل",
+    "pickupPointLabel": "نقطة الانطلاق",
+    "dropoffPointLabel": "نقطة النزول",
+    "attractionLabel": "معلم سياحي",
     "veryGoodRating": "تقييم ممتاز",
     "ratingReviewCount": "{count, plural, one {تقييم واحد} other {# تقييم}}",
     "organizerLabel": "منظم النشاط: {name}",
@@ -1340,5 +1343,8 @@
     "hoursMinutes": "{h}:{mm}H",
     "decrease": "تقصير {title}",
     "increase": "تمديد {title}"
+  },
+  "tourDuration": {
+    "format": "{days, plural, =0 {{hours} ساعة} other {{rest, plural, =0 {{days, plural, one {يوم واحد} two {يومان} few {# أيام} many {# يومًا} other {# يوم}} ({hours} ساعة)} other {{days, plural, one {يوم واحد} two {يومان} few {# أيام} many {# يومًا} other {# يوم}} و{rest} ساعة ({hours} ساعة)}}}}"
   }
 }

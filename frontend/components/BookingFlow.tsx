@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { departureOptions, returnOptions } from "@/lib/cities";
+import { formatTourDuration, isMultiDayTour } from "@/lib/tourDuration";
 import { useCallback, Fragment, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api";
 import { describeWriteFailure } from "@/lib/writeErrors";
@@ -24,7 +26,6 @@ import { getCountryCallingCode, type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import {
-  DEPARTURE_CITIES,
   DEPARTURE_CITY_LABELS,
   type Activity,
   type DepartureCity,
@@ -66,9 +67,7 @@ function nightsBetween(arrival: string, departure: string): number {
 
 function tourRequiresCampAccommodation(tour: Tour | null | undefined): boolean {
   if (!tour) return false;
-  if (tour.overnightsAtCamp) return true;
-  const dayCount = tour.duration.match(/(\d+)\s*(?:jours?|days?)\b/i)?.[1];
-  return dayCount != null && Number(dayCount) > 1;
+  return Boolean(tour.overnightsAtCamp) || isMultiDayTour(tour);
 }
 
 /**
@@ -84,6 +83,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const t = useTranslations("tourBookingForm");
   const ts = useTranslations("stayReservationForm");
   const tb = useTranslations("bookingFlow");
+  const tDuration = useTranslations("tourDuration");
   const ta = useTranslations("authForm");
   const toast = useToast();
   const locale = useLocale();
@@ -346,6 +346,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     setStayDetailLoading(true);
     const full = await api.getStay(stay.slug, locale);
     setSelectedStay(full ?? stay);
+    // Each product offers its own cities: never carry one over.
+    setDepartureCity("");
+    setReturnCity("");
     setAccommodationSlug("");
     setAccommodationQty(1);
     setStayDetailLoading(false);
@@ -716,6 +719,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                     aria-pressed={selectedTour?.slug === tour.slug}
                     onClick={() => {
                       setSelectedTour(tour);
+                      setDepartureCity("");
+                      setReturnCity("");
                       setAccommodationSlug("");
                       setAccommodationQty(1);
                     }}
@@ -725,7 +730,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                     </div>
                     <div className="meta">
                       <h3>{tour.title}</h3>
-                      <p>{tour.duration}</p>
+                      <p>{formatTourDuration(tDuration, tour)}</p>
                       <span className="price">{t("estimatedTotal")} €{tour.priceFrom}</span>
                     </div>
                   </button>
@@ -891,11 +896,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               id="bf-departure-city"
               value={departureCity}
               onChange={setDepartureCity}
-              options={DEPARTURE_CITIES}
+              options={departureOptions(selectedTour?.departureCities)}
               labels={DEPARTURE_CITY_LABELS}
               placeholder={t("departureCityPlaceholder")}
             />
           </div>
+          {returnOptions(selectedTour?.returnCities).length > 0 && (
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-return-city">{t("returnCityLabel")}</label>
             <p className="hint">{t("returnCityHint")}</p>
@@ -903,11 +909,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               id="bf-return-city"
               value={returnCity}
               onChange={setReturnCity}
-              options={DEPARTURE_CITIES}
+              options={returnOptions(selectedTour?.returnCities)}
               labels={DEPARTURE_CITY_LABELS}
               placeholder={t("returnCityPlaceholder")}
             />
           </div>
+          )}
         </div>
       )}
 
@@ -1057,11 +1064,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               id="bf-s-departure-city"
               value={departureCity}
               onChange={setDepartureCity}
-              options={DEPARTURE_CITIES}
+              options={departureOptions(selectedStay?.departureCities)}
               labels={DEPARTURE_CITY_LABELS}
               placeholder={ts("departureCityPlaceholder")}
             />
           </div>
+          {returnOptions(selectedStay?.returnCities).length > 0 && (
           <div className="field" style={{ marginTop: 16 }}>
             <label htmlFor="bf-s-return-city">{ts("returnCityLabel")}</label>
             <p className="hint">{ts("returnCityHint")}</p>
@@ -1069,11 +1077,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               id="bf-s-return-city"
               value={returnCity}
               onChange={setReturnCity}
-              options={DEPARTURE_CITIES}
+              options={returnOptions(selectedStay?.returnCities)}
               labels={DEPARTURE_CITY_LABELS}
               placeholder={ts("returnCityPlaceholder")}
             />
           </div>
+          )}
 
           {hasOwnVehicle === false && (
             <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 16 }}>

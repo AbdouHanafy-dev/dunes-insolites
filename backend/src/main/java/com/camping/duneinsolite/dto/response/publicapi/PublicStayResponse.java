@@ -35,6 +35,9 @@ public class PublicStayResponse {
     private String arrivalTime;
     private String departureTime;
     private List<ItineraryStep> itinerary;
+    /** Enum names of the cities the guest can depart from / be dropped back to. */
+    private List<String> departureCities;
+    private List<String> returnCities;
     // Phase 1: real AccommodationType rows, but ONLY those that are active AND
     // priced — the vitrine never shows an option it can't quote. Empty for the
     // bivouac nuitée and for any nuitée whose tiers are still unpriced.

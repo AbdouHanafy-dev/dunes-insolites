@@ -12,6 +12,8 @@ import {
 const valid: TourIssueInput = {
   name: "Djerba – Tataouine",
   description: "Deux jours dans le sud.",
+  durationHours: "48",
+  departureCities: ["TUNIS"],
   photos: [1, 2, 3],
   coverPhotoUrl: "/c.jpg",
   copyrightConfirmed: true,
@@ -46,6 +48,14 @@ describe("localIssues", () => {
   it("treats an emptied number input (NaN) as an error, not as silently invalid", () => {
     const issues = localIssues({ ...valid, passengerAdultPrice: Number.NaN });
     expect(issues.find((i) => i.field === "passengerAdultPrice")?.message).toContain("saisissez un nombre");
+  });
+
+  it("refuses a duration of 0, a negative one, or no departure city", () => {
+    for (const bad of ["", "0", "-3", "1.5"]) {
+      const issues = localIssues({ ...valid, durationHours: bad });
+      expect(issues.find((i) => i.field === "durationHours")?.blocking).toBe(true);
+    }
+    expect(localIssues({ ...valid, departureCities: [] }).some((i) => i.field === "departureCities")).toBe(true);
   });
 
   it("counts the cover photo and says how many are missing", () => {
@@ -166,7 +176,7 @@ describe("describePath / summarizeIssues", () => {
 
   it("caps the toast text and says how many were left out", () => {
     const issues = serverIssues(
-      { name: "a", slug: "b", duration: "c", location: "d", description: "e", aboutText: "f" },
+      { name: "a", slug: "b", durationHours: "c", location: "d", description: "e", aboutText: "f" },
       "x",
     );
     const text = summarizeIssues(issues, ["Base"], 2);

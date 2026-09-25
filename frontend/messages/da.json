@@ -582,6 +582,9 @@
     "transportDuringLabel": "Transport under aktiviteten",
     "optionalSegmentBadge": "valgfri",
     "transferBadge": "Transfer",
+    "pickupPointLabel": "Afhentningssted",
+    "dropoffPointLabel": "Afsætningssted",
+    "attractionLabel": "Seværdighed",
     "veryGoodRating": "Meget god bedømmelse",
     "ratingReviewCount": "{count, plural, one {# anmeldelse} other {# anmeldelser}}",
     "organizerLabel": "Aktivitetsarrangør: {name}",
@@ -1340,5 +1343,8 @@
     "hoursMinutes": "{h}:{mm}H",
     "decrease": "Forkort {title}",
     "increase": "Forlæng {title}"
+  },
+  "tourDuration": {
+    "format": "{days, plural, =0 {{hours} t} other {{rest, plural, =0 {{days, plural, one {# dag} other {# dage}} ({hours} t)} other {{days, plural, one {# dag} other {# dage}} og {rest} t ({hours} t)}}}}"
   }
 }

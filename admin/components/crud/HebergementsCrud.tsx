@@ -10,7 +10,9 @@ import TranslationsField, {
 } from "@/components/payload/TranslationsField";
 import AccommodationTiersManager from "@/components/crud/AccommodationTiersManager";
 import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
+import CityChecklist from "@/components/payload/CityChecklist";
 import type { AdminTourType } from "@/lib/api";
+import { ALL_CITIES } from "@/lib/cities";
 
 const BASE_PATH = "/catalogue/hebergements";
 const API_PATH = "tour-types";
@@ -37,7 +39,7 @@ const columns: ColumnDef<AdminTourType>[] = [
 const fields: FieldDef[] = [
   { type: "text", key: "name", label: "Nom", required: true },
   { type: "text", key: "slug", label: "Slug (URL)" },
-  { type: "text", key: "duration", label: "Durée", hint: 'ex. "1 Nuitée"' },
+  { type: "text", key: "duration", label: "Durée", hint: "Texte libre affiché dans les listes (la durée maximale se règle ci-dessous)" },
   {
     type: "number",
     key: "maxNights",
@@ -88,12 +90,19 @@ const emptyForm = {
   hasAccommodationTypes: true,
   circuitCamp: false,
   isActive: true,
+  departureCities: ALL_CITIES,
+  returnCities: ALL_CITIES,
   translations: {} as Record<string, CatalogTranslationForm>,
 };
 
 function tourTypeForm(item?: AdminTourType): Record<string, unknown> {
   if (!item) return emptyForm;
-  return { ...item, translations: translationsToRecord(item.translations) };
+  return {
+    ...item,
+    departureCities: item.departureCities ?? ALL_CITIES,
+    returnCities: item.returnCities ?? ALL_CITIES,
+    translations: translationsToRecord(item.translations),
+  };
 }
 
 function tourTypeRequest(form: Record<string, unknown>) {
@@ -138,6 +147,25 @@ export function HebergementEditor({ id, initialData }: { id?: string; initialDat
             onCoverChange={(url) => patch({ coverPhotoUrl: url })}
             photos={((form.photos as TourPhoto[] | undefined) ?? []).map((p) => ({ url: p.url, caption: p.caption ?? null }))}
             onPhotosChange={(photos) => patch({ photos })}
+          />
+        </div>
+        <div>
+          <h2 className="text-[15px] font-bold text-navy-800">Villes de départ et de retour</h2>
+          <p className="mb-4 mt-1 text-[13px] text-navy-700/60">
+            Seules les villes cochées sont proposées aux étapes « lieu de départ » et « lieu de retour » de la réservation de ce séjour.
+          </p>
+          <p className="mb-2 text-[13px] font-medium text-navy-700/70">Villes de départ (au moins une)</p>
+          <CityChecklist
+            required
+            value={(form.departureCities as string[] | undefined) ?? ALL_CITIES}
+            onChange={(departureCities) => patch({ departureCities })}
+          />
+          <p className="mb-2 mt-5 text-[13px] font-medium text-navy-700/70">
+            Villes de retour (aucune cochée : la question de retour n&apos;est pas posée)
+          </p>
+          <CityChecklist
+            value={(form.returnCities as string[] | undefined) ?? ALL_CITIES}
+            onChange={(returnCities) => patch({ returnCities })}
           />
         </div>
         {translationsSection(form, patch)}
