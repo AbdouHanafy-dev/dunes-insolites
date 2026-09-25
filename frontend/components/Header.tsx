@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { formatTourDuration } from "@/lib/tourDuration";
+import { sortByPrice } from "@/lib/guestPricing";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
@@ -166,7 +167,7 @@ export default function Header({
         href: `/camp/${stay.slug}`,
         image: stay.image || stay.gallery[0] || "/images/under-hero.jpg",
         // Only stays that actually offer accommodation types get a submenu.
-        children: (stay.accommodations ?? []).map((tier) => ({
+        children: sortByPrice(stay.accommodations ?? []).map((tier) => ({
           label: tier.title,
           detail: tier.sleeps,
           href: `/camp/${stay.slug}/${tier.slug}`,

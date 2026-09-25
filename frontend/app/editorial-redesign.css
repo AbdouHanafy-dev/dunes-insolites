@@ -2072,15 +2072,16 @@ footer.site-footer.pro-footer .bar a:hover {
    The card sits in a `.field`, whose label/input rules (uppercase micro-labels,
    full-width padded inputs) were leaking onto the card and breaking its layout in
    the narrow booking panel. Reset them here, and lay the card out by its own width. */
-.field.acc-cards { container-type: inline-size; }
-.field.acc-cards .acc-card label.acc-card-main {
+.acc-cards { container-type: inline-size; }
+.acc-cards .err { font-size: 0.85rem; color: #a8371a; }
+.acc-cards .acc-card label.acc-card-main {
   color: inherit;
   font-size: 1rem;
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
 }
-.field.acc-cards .acc-card .acc-card-main input {
+.acc-cards .acc-card .acc-card-main input {
   width: 18px;
   height: 18px;
   min-height: 0;
@@ -2092,9 +2093,9 @@ footer.site-footer.pro-footer .bar a:hover {
 .acc-card-copy strong { overflow-wrap: anywhere; }
 
 @container (max-width: 470px) {
-  .field.acc-cards .acc-card .acc-card-main { grid-template-columns: 20px 80px minmax(0, 1fr); gap: 10px; }
-  .field.acc-cards .acc-card .acc-card-thumb { width: 80px; height: 66px; }
-  .field.acc-cards .acc-card .acc-card-price {
+  .acc-cards .acc-card .acc-card-main { grid-template-columns: 20px 80px minmax(0, 1fr); gap: 10px; }
+  .acc-cards .acc-card .acc-card-thumb { width: 80px; height: 66px; }
+  .acc-cards .acc-card .acc-card-price {
     grid-column: 2 / -1;
     flex-direction: row;
     flex-wrap: wrap;
@@ -2103,7 +2104,7 @@ footer.site-footer.pro-footer .bar a:hover {
     gap: 2px 8px;
     text-align: start;
   }
-  .field.acc-cards .acc-card .acc-card-foot { padding-inline-start: 14px; }
+  .acc-cards .acc-card .acc-card-foot { padding-inline-start: 14px; }
 }
 
 .tour-inclusions {
@@ -4135,9 +4136,9 @@ footer.site-footer.pro-footer .bar a:hover {
 .acc-grid { display: grid; gap: 20px; }
 .acc-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .acc-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
-.acc-card { display: grid; gap: 8px; height: 100%; padding: 24px; border: 1px solid rgba(36, 27, 23, 0.1); border-radius: 12px; background: #fffcf6; }
-.acc-card strong { font-family: var(--font-display), sans-serif; font-size: 19px; font-weight: 600; }
-.acc-card span { color: rgba(36, 27, 23, 0.72); font-size: 14.5px; line-height: 1.6; }
+.acc-info-card { display: grid; gap: 8px; height: 100%; padding: 24px; border: 1px solid rgba(36, 27, 23, 0.1); border-radius: 12px; background: #fffcf6; }
+.acc-info-card strong { font-family: var(--font-display), sans-serif; font-size: 19px; font-weight: 600; }
+.acc-info-card span { color: rgba(36, 27, 23, 0.72); font-size: 14.5px; line-height: 1.6; }
 
 /* 7 — Activities */
 .acc-activities { background: var(--acc-sand); }

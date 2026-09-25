@@ -19,6 +19,7 @@ import WishlistButton from "@/components/WishlistButton";
 import ShareButton from "@/components/ShareButton";
 import TourPhotoGallery from "@/components/TourPhotoGallery";
 import AccGallery from "@/components/AccGallery";
+import { sortByPrice } from "@/lib/guestPricing";
 import { site } from "@/lib/site";
 
 type Props = {
@@ -177,7 +178,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
                   <h2>{t("findYourStay")}</h2>
                   <p className="accommodation-lead">{t("accommodationLead")}</p>
                   <div className="accommodation-grid">
-                    {stay.accommodations.map((accommodation, i) => (
+                    {sortByPrice(stay.accommodations).map((accommodation, i) => (
                       <AccommodationCard
                         key={accommodation.slug}
                         staySlug={stay.slug}

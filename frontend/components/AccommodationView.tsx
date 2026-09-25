@@ -272,7 +272,7 @@ export default async function AccommodationView({
           <div className="acc-grid acc-grid--4">
             {copy.forWhom.map((f, i) => (
               <Reveal key={f.title} delay={i * 80}>
-                <div className="acc-card">
+                <div className="acc-info-card">
                   <strong>{f.title}</strong>
                   <span>{f.text}</span>
                 </div>

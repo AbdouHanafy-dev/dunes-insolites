@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import type { TierAvailability } from "@/lib/api";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import type { Accommodation } from "@/lib/types";
-import { NO_GUESTS, isPlaced, tierRates, unplaced, type Guests } from "@/lib/guestPricing";
+import { NO_GUESTS, isPlaced, sortByPrice, tierRates, unplaced, type Guests } from "@/lib/guestPricing";
 
 /**
  * The accommodation-type cards (tent / room / suite) shared by every booking
@@ -72,8 +72,10 @@ export default function AccommodationPicker({
   }
 
   return (
-    <div className="field acc-cards" data-invalid={!!error}>
-      {items.map((a) => {
+    // Deliberately not a `.field`: that class restyles every label, input and span
+    // inside it (uppercase micro-labels, full-width padded inputs) and wrecked the card.
+    <div className="acc-cards" data-invalid={!!error}>
+      {sortByPrice(items).map((a) => {
         const av = availability?.(a.slug);
         const soldOut = av?.status === "UNAVAILABLE";
         const checked = a.slug in selections;

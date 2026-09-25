@@ -13,6 +13,11 @@ export function tierRates(tier: Pick<Accommodation, "priceFrom" | "adultPrice" |
   return { adult, child: tier.childPrice ?? adult, infant: tier.infantPrice ?? 0 };
 }
 
+/** Cheapest first (adult price per person per night); tiers with the same price keep their back-office order. */
+export function sortByPrice<T extends Pick<Accommodation, "priceFrom" | "adultPrice" | "childPrice" | "infantPrice">>(tiers: readonly T[]): T[] {
+  return [...tiers].sort((a, b) => tierRates(a).adult - tierRates(b).adult);
+}
+
 /** One night for these guests in this tier: each guest type at its own price. Display estimate only. */
 export function tierPerNight(
   tier: Pick<Accommodation, "priceFrom" | "adultPrice" | "childPrice" | "infantPrice">,

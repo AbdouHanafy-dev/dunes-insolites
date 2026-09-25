@@ -1,7 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { guestsPerTier, isPlaced, tierPerNight, tierRates, unplaced } from "@/lib/guestPricing";
+import { guestsPerTier, isPlaced, sortByPrice, tierPerNight, tierRates, unplaced } from "@/lib/guestPricing";
 
 const suite = { priceFrom: 80, adultPrice: 80, childPrice: 50, infantPrice: 10 };
+
+describe("sortByPrice", () => {
+  const tier = (name: string, priceFrom: number, adultPrice?: number) => ({ name, priceFrom, adultPrice });
+
+  it("puts the cheapest tier first, using the adult price when it is set", () => {
+    const sorted = sortByPrice([tier("suite", 220), tier("tent", 999, 130), tier("room", 150)]);
+    expect(sorted.map((t) => t.name)).toEqual(["tent", "room", "suite"]);
+  });
+
+  it("keeps the back-office order for equal prices and never mutates its input", () => {
+    const input = [tier("b", 100), tier("a", 100), tier("c", 50)];
+    expect(sortByPrice(input).map((t) => t.name)).toEqual(["c", "b", "a"]);
+    expect(input.map((t) => t.name)).toEqual(["b", "a", "c"]);
+  });
+});
 
 describe("guestPricing", () => {
   it("prices each guest type at its own rate per night", () => {
