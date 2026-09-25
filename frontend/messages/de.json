@@ -583,6 +583,8 @@
     "optionalSegmentBadge": "optional",
     "transferBadge": "Transfer",
     "pickupPointLabel": "Abholort",
+    "seeMore": "Mehr anzeigen",
+    "seeLess": "Weniger anzeigen",
     "dropoffPointLabel": "Absetzort",
     "attractionLabel": "Sehenswürdigkeit",
     "veryGoodRating": "Sehr gute Bewertung",

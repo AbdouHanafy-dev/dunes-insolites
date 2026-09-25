@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { formatTourDuration, isMultiDayTour } from "@/lib/tourDuration";
@@ -9,6 +8,8 @@ import { averageRating } from "@/lib/data/reviews";
 import { localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import TourCard from "@/components/TourCard";
+import TourItinerary from "@/components/TourItinerary";
+import ClampedText from "@/components/ClampedText";
 import TourCardCarousel from "@/components/TourCardCarousel";
 import TourBookingFlow from "@/components/TourBookingFlow";
 import Reviews from "@/components/Reviews";
@@ -97,6 +98,8 @@ export default async function TourDetail({ params }: Props) {
   const hasRestrictions = tour.notSuitableFor.length > 0 || tour.notAllowed.length > 0 || !!tour.petPolicyNote;
   const hasPracticalInfo =
     !!tour.goodToKnow || tour.mustBring.length > 0 || !!tour.emergencyPhone || !!tour.ticketInfo;
+  // Header blurb: the short description, or the start of the long one when no short one is saved.
+  const lead = (tour.description?.trim() || tour.aboutText?.trim() || "");
   const media = suppliedMedia.length ? suppliedMedia : ["/images/camp-hero-poster.jpg"];
 
   // Product (not the more specific TouristTrip) per the GetYourGuide-style
@@ -172,7 +175,14 @@ export default async function TourDetail({ params }: Props) {
               slug={tour.slug}
             />
 
-            <p className="tour-product-lead">{tour.description}</p>
+            {lead && (
+              <div className="tour-product-lead-wrap">
+                <p className="tour-product-lead">{lead}</p>
+                {(lead.length > 170 || (tour.aboutText && tour.aboutText !== lead)) && (
+                  <a className="tour-lead-more" href="#overview">{t("seeMore")}</a>
+                )}
+              </div>
+            )}
 
             <nav className="tour-subnav" aria-label={tour.title}>
               <a href="#overview">{t("theTrip")}</a>
@@ -221,7 +231,11 @@ export default async function TourDetail({ params }: Props) {
 
             <section className="tour-section tour-overview" id="overview">
               <h2>{t("theTrip")}</h2>
-              <p>{tour.aboutText || tour.description}</p>
+              <ClampedText
+                text={tour.aboutText || tour.description}
+                moreLabel={t("seeMore")}
+                lessLabel={t("seeLess")}
+              />
             </section>
 
             {tour.highlights.length > 0 && (
@@ -234,63 +248,10 @@ export default async function TourDetail({ params }: Props) {
             )}
 
             {tour.itinerary.length > 0 && (
-              <section className="tour-section tour-itinerary" id="itinerary">
+              <section className="tour-section ti-section" id="itinerary">
                 <p className="tour-section-kicker">{t("itineraryEyebrow")}</p>
                 <h2>{t("itineraryHeading")}</h2>
-                <ol>
-                  {tour.itinerary.map((step, index) => (
-                    <li key={`${step.label ?? index}-${step.title ?? index}`}>
-                      <span className="tour-itinerary-number">{String(index + 1).padStart(2, "0")}</span>
-                      <div>
-                        {step.label && <small>{step.label}</small>}
-                        {step.title && (
-                          <h3>
-                            {step.title}
-                            {step.segmentType === "TRANSFER" && (
-                              <span className="tour-itinerary-badge">{t("transferBadge")}</span>
-                            )}
-                            {step.optionalSegment && (
-                              <span className="tour-itinerary-badge">{t("optionalSegmentBadge")}</span>
-                            )}
-                          </h3>
-                        )}
-                        {step.description && <p>{step.description}</p>}
-                        {index === 0 && step.pickupPoint && (
-                          <p className="tour-itinerary-pickup">
-                            <strong>{t("pickupPointLabel")}</strong> {step.pickupPoint}
-                          </p>
-                        )}
-                        {index > 0 && index < tour.itinerary.length - 1 && step.attraction && (
-                          <p className="tour-itinerary-pickup tour-itinerary-attraction">
-                            <strong>{t("attractionLabel")}</strong> {step.attraction}
-                          </p>
-                        )}
-                        {index === tour.itinerary.length - 1 && step.dropoffPoint && (
-                          <p className="tour-itinerary-pickup">
-                            <strong>{t("dropoffPointLabel")}</strong> {step.dropoffPoint}
-                          </p>
-                        )}
-                        {step.images && step.images.length > 0 && (
-                          <div className="tour-itinerary-media" data-count={Math.min(step.images.length, 4)}>
-                            {step.images.map((src, i) => (
-                              <span className="tour-itinerary-photo" key={src}>
-                                <Image
-                                  src={src}
-                                  alt={`${step.title ?? ""} — ${i + 1}`.trim()}
-                                  fill
-                                  sizes="(max-width: 900px) 90vw, 340px"
-                                />
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {step.durationMinutes != null && (
-                          <p className="tour-itinerary-duration">{step.durationMinutes} min</p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
+                <TourItinerary steps={tour.itinerary} />
               </section>
             )}
 

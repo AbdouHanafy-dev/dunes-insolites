@@ -583,6 +583,8 @@
     "optionalSegmentBadge": "valgfri",
     "transferBadge": "Transfer",
     "pickupPointLabel": "Afhentningssted",
+    "seeMore": "Vis mere",
+    "seeLess": "Vis mindre",
     "dropoffPointLabel": "Afsætningssted",
     "attractionLabel": "Seværdighed",
     "veryGoodRating": "Meget god bedømmelse",
