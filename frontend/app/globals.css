@@ -3545,6 +3545,10 @@ footer.site-footer .bar-social a:hover {
   gap: 18px;
   margin-top: 32px;
 }
+/* The card fills its grid cell: a <button> otherwise shrinks to its content, and the
+   "View details" pill, which is placed against the cell, floated off to the side. */
+.picker > div { position: relative; min-width: 0; }
+.picker > div > .pick { width: 100%; }
 .pick {
   position: relative;
   display: flex;
