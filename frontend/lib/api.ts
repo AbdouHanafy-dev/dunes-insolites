@@ -693,7 +693,12 @@ export async function getBooking(id: string): Promise<Booking | null> {
 
 export type WriteResult<T> =
   | { ok: true; data: T }
-  | { ok: false; errors?: Record<string, string>; message?: string };
+  | { ok: false; errors?: Record<string, string>; message?: string; status?: number };
+
+function networkErrorMessage(cause: unknown): string {
+  const detail = cause instanceof Error && cause.message ? ` (${cause.message})` : "";
+  return `Network error — the request never reached the booking service${detail}.`;
+}
 
 async function post<T>(path: string, body: unknown): Promise<WriteResult<T>> {
   try {
@@ -707,11 +712,12 @@ async function post<T>(path: string, body: unknown): Promise<WriteResult<T>> {
     return {
       ok: false,
       errors: (data as { errors?: Record<string, string> }).errors,
-      message: (data as { error?: string; message?: string }).error
-        ?? (data as { message?: string }).message,
+      status: res.status,
+      message: (data as { message?: string }).message
+        ?? (data as { error?: string }).error,
     };
-  } catch {
-    return { ok: false, message: "Network error. Try again." };
+  } catch (cause) {
+    return { ok: false, message: networkErrorMessage(cause) };
   }
 }
 
@@ -744,11 +750,12 @@ async function postSameOrigin<T>(path: string, body: unknown): Promise<WriteResu
     return {
       ok: false,
       errors: (data as { errors?: Record<string, string> }).errors,
-      message: (data as { error?: string; message?: string }).error
-        ?? (data as { message?: string }).message,
+      status: res.status,
+      message: (data as { message?: string }).message
+        ?? (data as { error?: string }).error,
     };
-  } catch {
-    return { ok: false, message: "Network error. Try again." };
+  } catch (cause) {
+    return { ok: false, message: networkErrorMessage(cause) };
   }
 }
 

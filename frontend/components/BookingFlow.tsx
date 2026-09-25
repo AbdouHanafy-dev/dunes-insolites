@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, Fragment, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api";
+import { describeWriteFailure } from "@/lib/writeErrors";
 import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, StayAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
@@ -493,7 +494,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
     if (!result.ok) {
       setErrors(result.errors ?? {});
-      setFormError(result.errors ? "" : (result.message ?? t("errorGeneric")));
+      setFormError(describeWriteFailure(result, t("errorGeneric")));
       setSubmitting(false);
       return;
     }
@@ -548,7 +549,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
     if (!result.ok) {
       setErrors(result.errors ?? {});
-      setFormError(result.errors ? "" : (result.message ?? ts("errorGeneric")));
+      setFormError(describeWriteFailure(result, ts("errorGeneric")));
       setSubmitting(false);
       return;
     }
