@@ -84,6 +84,17 @@ source de vérité ; les décisions en attente sont listées plus bas.
   fiable seulement derrière nginx. **Durée de conservation non décidée** (e-mail et IP du
   personnel = données personnelles). Tests d’intégration non exécutés (Docker arrêté).
 
+### Suppression d’un compte, d’un guide, d’un chauffeur (25 sept.)
+- Une réservation ne peut pas exister sans utilisateur (`user_id` obligatoire, aucun nom client propre) :
+  supprimer un compte **rattache ses réservations au compte « Client supprimé »** (`DeletedAccount`, V56,
+  sans identité Keycloak, masqué des listes, courriels ignorés) au lieu de refuser. Avis, remises,
+  notifications, favoris et jetons sont supprimés (`AccountDeletion`).
+- **Factures et paiements bloquent toujours** la suppression (409 explicite) : ce sont les pièces
+  comptables. Décision **à confirmer par le comptable** (F-5) : voir si l’on anonymise aussi les factures.
+- Boutons « Supprimer » ajoutés aux pages Guides et Chauffeurs (le chauffeur supprime aussi son compte) ;
+  les affectations sur réservation gardent le nom, elles perdent seulement le lien vers le profil.
+- Non testé contre une vraie base (tests unitaires seulement ; Docker arrêché en local).
+
 ### Tarification par type de voyageur et activités chronométrées (24 sept.)
 
 - **Trois types de voyageurs** partout : adultes (18 ans et +), enfants (3 à 18 ans),

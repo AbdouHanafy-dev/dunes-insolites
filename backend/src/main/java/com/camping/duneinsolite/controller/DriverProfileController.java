@@ -38,6 +38,13 @@ public class DriverProfileController {
         return service.update(id, request);
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.can('USERS', 'FULL')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/invitation")
     @PreAuthorize("@perm.can('USERS', 'FULL')")
     public ResponseEntity<Void> resendInvitation(@PathVariable UUID id) {

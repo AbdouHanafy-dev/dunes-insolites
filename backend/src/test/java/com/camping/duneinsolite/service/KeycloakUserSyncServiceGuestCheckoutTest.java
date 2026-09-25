@@ -81,7 +81,8 @@ class KeycloakUserSyncServiceGuestCheckoutTest {
                 mock(EntityManager.class),
                 mock(AccountActionTokenRepository.class),
                 mock(NotificationRepository.class),
-                mock(CustomRoleRepository.class));
+                mock(CustomRoleRepository.class),
+                mock(com.camping.duneinsolite.service.impl.AccountDeletion.class));
         ReflectionTestUtils.setField(service, "realm", "duneinsolite");
 
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));

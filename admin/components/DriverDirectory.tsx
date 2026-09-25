@@ -4,6 +4,7 @@ import { readApiError } from "@/lib/apiError";
 import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
+import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminDriverProfile } from "@/lib/api";
 
@@ -21,6 +22,7 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
   const fi = useFormIssues(DRIVER_FIELDS);
   const [drivers, setDrivers] = useState(initialDrivers);
   const [busy, setBusy] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminDriverProfile | null>(null);
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phoneNumber: "", vehicleModel: "", numberOfSeats: "",
   });
@@ -84,6 +86,20 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
     toast.success(active ? "Chauffeur réactivé" : "Chauffeur désactivé");
   }
 
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setBusy(true);
+    const response = await fetch(`/api/proxy/driver-profiles/${deleteTarget.driverProfileId}`, { method: "DELETE" });
+    setBusy(false);
+    if (!response.ok) {
+      toast.error(await readApiError(response, "Suppression du chauffeur refusée"));
+      return;
+    }
+    setDrivers((current) => current.filter((item) => item.driverProfileId !== deleteTarget.driverProfileId));
+    setDeleteTarget(null);
+    toast.success("Chauffeur supprimé");
+  }
+
   async function resendInvitation(driver: AdminDriverProfile) {
     setBusy(true);
     const response = await fetch(`/api/proxy/driver-profiles/${driver.driverProfileId}/invitation`, { method: "POST" });
@@ -137,6 +153,7 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
                       <div className="flex justify-end gap-3">
                         {driver.active && <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => resendInvitation(driver)}>Renvoyer l’invitation</button>}
                         <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(driver, !driver.active)}>{driver.active ? "Désactiver" : "Réactiver"}</button>
+                        <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(driver)}>Supprimer</button>
                       </div>
                     </td>
                   </tr>
@@ -146,6 +163,19 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
           </div>
         )}
       </div>
+
+      {deleteTarget && (
+        <Modal title="Confirmer la suppression" onClose={() => setDeleteTarget(null)}>
+          <p className="text-sm text-navy-700/80">
+            Supprimer <strong>{deleteTarget.firstName} {deleteTarget.lastName}</strong> ? Cette action est irréversible.
+            Son compte de connexion est supprimé aussi ; les trajets où il était affecté gardent son nom.
+          </p>
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" onClick={() => setDeleteTarget(null)} className="btn btn-secondary">Annuler</button>
+            <button type="button" onClick={confirmDelete} disabled={busy} className="btn btn-danger">{busy ? "Suppression…" : "Supprimer"}</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

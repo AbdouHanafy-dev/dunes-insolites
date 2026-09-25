@@ -29,7 +29,8 @@ class GuideProfileServiceTest {
         service = new GuideProfileService(
                 repository,
                 mock(SpokenLanguageRepository.class),
-                mock(SpokenLanguageMapper.class));
+                mock(SpokenLanguageMapper.class),
+                mock(com.camping.duneinsolite.service.impl.AccountDeletion.class));
         when(repository.save(any(GuideProfile.class))).thenAnswer(invocation -> {
             GuideProfile profile = invocation.getArgument(0);
             if (profile.getGuideProfileId() == null) profile.setGuideProfileId(UUID.randomUUID());

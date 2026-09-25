@@ -56,7 +56,8 @@ class KeycloakUserSyncServiceConsentTest {
                 mock(UserProductRemiseRepository.class), mock(TourTypeRepository.class),
                 mock(TourRepository.class), mock(ExtraRepository.class),
                 mock(EntityManager.class), mock(AccountActionTokenRepository.class),
-                mock(NotificationRepository.class), mock(CustomRoleRepository.class));
+                mock(NotificationRepository.class), mock(CustomRoleRepository.class),
+                mock(com.camping.duneinsolite.service.impl.AccountDeletion.class));
         ReflectionTestUtils.setField(service, "realm", "duneinsolite");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
     }

@@ -32,6 +32,13 @@ public class GuideProfileController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.can('USERS', 'FULL')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}")
     @PreAuthorize("@perm.can('USERS', 'FULL')")
     public GuideProfileResponse update(@PathVariable UUID id, @Valid @RequestBody GuideProfileUpdateRequest request) {

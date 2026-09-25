@@ -26,6 +26,7 @@ public class GuideProfileService {
     private final GuideProfileRepository repository;
     private final SpokenLanguageRepository languageRepository;
     private final SpokenLanguageMapper languageMapper;
+    private final com.camping.duneinsolite.service.impl.AccountDeletion accountDeletion;
 
     @Transactional(readOnly = true)
     public List<GuideProfileResponse> getAll() {
@@ -73,6 +74,18 @@ public class GuideProfileService {
         if (request.getLanguageIds() != null) profile.setLanguages(resolveLanguages(request.getLanguageIds()));
         if (request.getActive() != null) profile.setActive(request.getActive());
         return toResponse(repository.save(profile));
+    }
+
+    /**
+     * Removes a guide from the directory. Trips they were assigned to keep the guide's name;
+     * they only lose the link to the profile.
+     */
+    @Transactional
+    public void delete(UUID id) {
+        GuideProfile profile = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Guide profile not found: " + id));
+        accountDeletion.detachGuideProfile(id);
+        repository.delete(profile);
     }
 
     private Set<SpokenLanguage> resolveLanguages(Set<UUID> ids) {

@@ -79,6 +79,17 @@ public class DriverProfileService {
         return toResponse(repository.save(profile));
     }
 
+    /**
+     * Removes a driver: the profile and the driver's account (Keycloak included). Trips they
+     * were assigned to keep the driver's name; they only lose the link.
+     */
+    @Transactional
+    public void delete(UUID id) {
+        DriverProfile profile = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver profile not found: " + id));
+        userSyncService.deleteUser(profile.getUser().getUserId());
+    }
+
     @Transactional
     public void resendInvitation(UUID id) {
         DriverProfile profile = repository.findById(id)

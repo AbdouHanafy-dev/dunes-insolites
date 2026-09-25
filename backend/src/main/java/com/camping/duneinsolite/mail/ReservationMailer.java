@@ -344,6 +344,11 @@ public class ReservationMailer {
     // ── plumbing ──────────────────────────────────────────────────
 
     private void deliver(String to, String subject, String plain, String html) throws MessagingException {
+        // Reservations of a deleted customer belong to a placeholder with no real mailbox.
+        if (com.camping.duneinsolite.model.DeletedAccount.isEmail(to)) {
+            log.info("mail not sent: the customer account was deleted");
+            return;
+        }
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setFrom(fromAddress);

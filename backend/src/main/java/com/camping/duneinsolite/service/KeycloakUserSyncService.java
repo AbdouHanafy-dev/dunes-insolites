@@ -59,6 +59,7 @@ public class KeycloakUserSyncService {
     private final AccountActionTokenRepository accountActionTokenRepository;
     private final NotificationRepository notificationRepository;
     private final CustomRoleRepository customRoleRepository;
+    private final com.camping.duneinsolite.service.impl.AccountDeletion accountDeletion;
 
     @Value("${keycloak.realm}")
     private String realm;
@@ -370,10 +371,23 @@ public class KeycloakUserSyncService {
     // hard block would mean literally no self-registered account could
     // ever be deleted. Neither table carries audit/financial weight the
     // way a reservation or invoice does, so cascading them here (rather
-    // than blocking on them) is the correct call - real business records
-    // still block the delete exactly as before.
+    // than blocking on them) is the correct call.
+    //
+    // Reservations no longer block: they are re-pointed to the DeletedAccount
+    // placeholder (a reservation cannot exist without a user). Invoices and
+    // payments are the accounting record and DO still block - see AccountDeletion.
     @Transactional
     public void deleteUser(UUID userId) {
+        User found = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        String email = found.getEmail();
+
+        // Refuses (409) if the account has invoices or payments; otherwise detaches its
+        // reservations and drops the personal rows. The SQL bypasses the persistence
+        // context, so reload the user afterwards to delete from a clean state.
+        accountDeletion.detachAndClean(userId);
+        entityManager.flush();
+        entityManager.clear();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -384,17 +398,17 @@ public class KeycloakUserSyncService {
 
         List<UserRepresentation> keycloakUsers = keycloak.realm(realm)
                 .users()
-                .searchByEmail(user.getEmail(), true);
+                .searchByEmail(email, true);
 
         if (!keycloakUsers.isEmpty()) {
             keycloak.realm(realm)
                     .users()
                     .get(keycloakUsers.get(0).getId())
                     .remove();
-            log.info("User {} deleted from Keycloak", maskEmail(user.getEmail()));
+            log.info("User {} deleted from Keycloak", maskEmail(email));
         }
 
-        log.info("User {} deleted from local DB", maskEmail(user.getEmail()));
+        log.info("User {} deleted from local DB", maskEmail(email));
     }
 
     // ─────────────────────────────────────────────────────────────────────

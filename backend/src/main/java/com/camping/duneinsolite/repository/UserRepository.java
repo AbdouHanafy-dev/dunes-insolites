@@ -45,6 +45,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("""
             SELECT u FROM User u
             WHERE u.role IN :roles
+              AND u.email <> 'client-supprime@dunes-insolites.invalid'
               AND (:term = ''
                    OR LOWER(u.name) LIKE LOWER(CONCAT('%', :term, '%'))
                    OR LOWER(u.email) LIKE LOWER(CONCAT('%', :term, '%'))

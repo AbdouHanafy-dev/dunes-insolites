@@ -4,6 +4,7 @@ import { readApiError } from "@/lib/apiError";
 import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
+import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminGuideProfile, AdminSpokenLanguage } from "@/lib/api";
 
@@ -20,6 +21,7 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
   const fi = useFormIssues(GUIDE_FIELDS);
   const [guides, setGuides] = useState(initialGuides);
   const [busy, setBusy] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminGuideProfile | null>(null);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", languageIds: [] as string[] });
   const availableLanguages = languages.filter((language) => language.active);
 
@@ -79,6 +81,20 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
     toast.success(active ? "Guide réactivé" : "Guide désactivé");
   }
 
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setBusy(true);
+    const response = await fetch(`/api/proxy/guide-profiles/${deleteTarget.guideProfileId}`, { method: "DELETE" });
+    setBusy(false);
+    if (!response.ok) {
+      toast.error(await readApiError(response, "Suppression du guide refusée"));
+      return;
+    }
+    setGuides((current) => current.filter((item) => item.guideProfileId !== deleteTarget.guideProfileId));
+    setDeleteTarget(null);
+    toast.success("Guide supprimé");
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={createGuide} noValidate className="card rounded-2xl p-5">
@@ -119,12 +135,25 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
                 <td className="px-6 py-3 text-gray-600"><div>{guide.email ?? "—"}</div><div>{guide.phoneNumber ?? "—"}</div></td>
                 <td className="px-6 py-3 text-gray-600">{guide.languages.length ? guide.languages.map((language) => language.name).join(", ") : "—"}</td>
                 <td className="px-6 py-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${guide.active ? "bg-emerald/10 text-emerald" : "bg-gray-100 text-gray-500"}`}>{guide.active ? "Actif" : "Inactif"}</span></td>
-                <td className="px-6 py-3 text-right"><button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(guide, !guide.active)}>{guide.active ? "Désactiver" : "Réactiver"}</button></td>
+                <td className="px-6 py-3 text-right"><div className="flex justify-end gap-3"><button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(guide, !guide.active)}>{guide.active ? "Désactiver" : "Réactiver"}</button><button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(guide)}>Supprimer</button></div></td>
               </tr>
             ))}</tbody>
           </table></div>
         )}
       </div>
+
+      {deleteTarget && (
+        <Modal title="Confirmer la suppression" onClose={() => setDeleteTarget(null)}>
+          <p className="text-sm text-navy-700/80">
+            Supprimer <strong>{deleteTarget.firstName} {deleteTarget.lastName}</strong> ? Cette action est irréversible.
+            Les réservations où ce guide était affecté gardent son nom.
+          </p>
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" onClick={() => setDeleteTarget(null)} className="btn btn-secondary">Annuler</button>
+            <button type="button" onClick={confirmDelete} disabled={busy} className="btn btn-danger">{busy ? "Suppression…" : "Supprimer"}</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
