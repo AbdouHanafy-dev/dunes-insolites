@@ -106,11 +106,43 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         log.warn("Blocked by a foreign-key/uniqueness constraint: {}", ex.getMostSpecificCause().getMessage());
+        return constraintResponse(sqlCause(ex), ex.getMostSpecificCause().getMessage());
+    }
+
+    // One message for every kind of constraint made an editor guess (a duplicate
+    // slug read "other records still depend on it"). The SQLSTATE says which it is:
+    // 23505 unique, 23502 not-null, anything else (23503 foreign key) keeps the
+    // dependency wording. Only the COLUMN name is repeated back, never the value
+    // or the constraint name.
+    private ResponseEntity<Map<String, Object>> constraintResponse(java.sql.SQLException sql, String detail) {
+        String state = sql != null ? sql.getSQLState() : null;
+        if ("23505".equals(state)) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("Key \\(([^)]+)\\)=").matcher(detail == null ? "" : detail);
+            String column = m.find() ? m.group(1) : null;
+            return buildResponse(HttpStatus.CONFLICT,
+                    column != null
+                            ? "Another record already uses the same value for: " + column + "."
+                            : "Another record already uses the same value.",
+                    null);
+        }
+        if ("23502".equals(state)) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("null value in column \"([^\"]+)\"").matcher(detail == null ? "" : detail);
+            return buildResponse(HttpStatus.BAD_REQUEST,
+                    m.find() ? "A required value is missing: " + m.group(1) + "." : "A required value is missing.",
+                    null);
+        }
         return buildResponse(
                 HttpStatus.CONFLICT,
                 "This action can't be completed because other records still depend on it.",
                 null
         );
+    }
+
+    private static java.sql.SQLException sqlCause(Throwable t) {
+        for (Throwable cur = t; cur != null; cur = cur.getCause() == cur ? null : cur.getCause()) {
+            if (cur instanceof java.sql.SQLException sql) return sql;
+        }
+        return null;
     }
 
     // A direct EntityManager.flush() call (KeycloakUserSyncService.
@@ -127,11 +159,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleHibernateConstraintViolation(
             org.hibernate.exception.ConstraintViolationException ex) {
         log.warn("Blocked by a foreign-key/uniqueness constraint: {}", ex.getMessage());
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                "This action can't be completed because other records still depend on it.",
-                null
-        );
+        return constraintResponse(ex.getSQLException(), ex.getSQLException() != null ? ex.getSQLException().getMessage() : ex.getMessage());
     }
 
     // ── Handle 404 not found ──────────────────────────────────────────
