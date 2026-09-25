@@ -89,7 +89,7 @@ html { scroll-padding-top: 96px; }
 }
 
 .primary-item:hover .nav-chevron,
-.primary-item:focus-within .nav-chevron { transform: translateY(2px) rotate(225deg); }
+.primary-item:has(:focus-visible) .nav-chevron { transform: translateY(2px) rotate(225deg); }
 
 .nav-dropdown {
   position: absolute;
@@ -116,12 +116,21 @@ html { scroll-padding-top: 96px; }
   height: 18px;
 }
 
+/* Keyboard focus (not a mouse click, which leaves focus on the link and kept the
+   menu stuck open) opens a menu, and hovering one menu closes any other. */
 .primary-item:hover .nav-dropdown,
-.primary-item:focus-within .nav-dropdown {
+.primary-item:has(:focus-visible) .nav-dropdown {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
 }
+.primary-nav:has(.primary-item:hover) .primary-item:not(:hover) .nav-dropdown {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -6px);
+  pointer-events: none;
+}
+.primary-nav:has(.primary-item:hover) .primary-item:not(:hover) .nav-chevron { transform: translateY(-2px) rotate(45deg); }
 
 .nav-dropdown-list {
   max-height: calc(100vh - 190px);

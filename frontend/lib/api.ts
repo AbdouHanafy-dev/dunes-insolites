@@ -291,7 +291,7 @@ export async function getActivities(locale?: string): Promise<Activity[]> {
   const data = await get<{ activities: Activity[] }>(
     `/public/activities${localeQuery(locale)}`,
     { seed: { activities: seedActivities(locale) }, empty: { activities: [] } },
-    { revalidate: 300 },
+    { revalidate: 60 },
   );
   return data.activities ?? [];
 }
@@ -401,7 +401,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
   const raw = await get<RawSiteSettings>(
     "/public/site-settings",
     { seed: null as unknown as RawSiteSettings, empty: null as unknown as RawSiteSettings },
-    { revalidate: 300 },
+    { revalidate: 60 },
   );
   if (!raw) return fallback;
 
@@ -429,7 +429,7 @@ export async function getStays(locale?: string): Promise<Stay[]> {
   const data = await get<{ stays: Stay[] }>(
     `/public/stays${localeQuery(locale)}`,
     { seed: { stays: seedStays(locale) }, empty: { stays: [] } },
-    { revalidate: 300 },
+    { revalidate: 60 },
   );
   return data.stays ?? [];
 }
@@ -460,7 +460,7 @@ export async function getTours(locale?: string): Promise<Tour[]> {
   const data = await get<{ tours: Tour[] }>(
     `/public/tours${localeQuery(locale)}`,
     { seed: { tours: [] }, empty: { tours: [] } },
-    { revalidate: 300 },
+    { revalidate: 60 },
   );
   return data.tours ?? [];
 }
@@ -616,7 +616,7 @@ export async function getGallery(): Promise<GalleryItem[]> {
   return get<GalleryItem[]>(
     "/public/gallery",
     { seed: seedGallery, empty: [] },
-    { revalidate: 600 },
+    { revalidate: 60 },
   );
 }
 
