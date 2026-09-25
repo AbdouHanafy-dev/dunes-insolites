@@ -1,5 +1,5 @@
 import { getSessionRefreshing } from "@/lib/session";
-import { BACKEND_BASE } from "@/lib/authProxy";
+import { BACKEND_BASE, forwardedClientHeaders } from "@/lib/authProxy";
 
 /**
  * A dedicated route rather than folding this into the generic
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   try {
     res = await fetch(`${BACKEND_BASE}/media?companyType=${encodeURIComponent(companyType)}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${session.accessToken}` },
+      headers: { Authorization: `Bearer ${session.accessToken}`, ...forwardedClientHeaders(request) },
       body: outgoing,
     });
   } catch (cause) {

@@ -71,6 +71,19 @@ source de vérité ; les décisions en attente sont listées plus bas.
 - **Paiement reçu** : `TransactionRequest.notifyClient` (absent = on prévient).
   Déclenché aussi depuis la page Paiements.
 
+### Journal d’activité (25 sept.)
+- **Qui a fait quoi** : `audit_log` (V55), alimentée par `AuditLogFilter` pour toute
+  écriture authentifiée (POST/PUT/PATCH/DELETE) sur l’API. On y lit la personne (jeton),
+  l’action, le type et l’identifiant de l’objet, son **nom avant modification** (un circuit
+  supprimé reste identifiable), le statut HTTP, l’IP et l’appareil. Aucun corps de requête.
+- **Consultation** : `/administration/journal` (ADMIN seulement, volontairement hors matrice de
+  permissions). Le proxy du backoffice transmet `X-Real-IP` et `User-Agent` ; sans cela le
+  backend ne verrait que l’adresse du conteneur.
+- **Limites** : les 401 et les refus par règle d’URL (avant les contrôleurs) ne sont pas
+  journalisés ; l’identifiant d’un objet créé n’est pas relevé (POST) ; l’IP vient du proxy,
+  fiable seulement derrière nginx. **Durée de conservation non décidée** (e-mail et IP du
+  personnel = données personnelles). Tests d’intégration non exécutés (Docker arrêté).
+
 ### Tarification par type de voyageur et activités chronométrées (24 sept.)
 
 - **Trois types de voyageurs** partout : adultes (18 ans et +), enfants (3 à 18 ans),

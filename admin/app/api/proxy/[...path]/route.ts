@@ -1,5 +1,5 @@
 import { getSessionRefreshing } from "@/lib/session";
-import { BACKEND_BASE } from "@/lib/authProxy";
+import { BACKEND_BASE, forwardedClientHeaders } from "@/lib/authProxy";
 
 /**
  * Generic authenticated BFF passthrough: client components can't attach the
@@ -50,6 +50,7 @@ async function handler(request: Request, { params }: { params: Promise<{ path: s
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
       "Content-Type": "application/json",
+      ...forwardedClientHeaders(request),
     },
   };
   if (request.method !== "GET" && request.method !== "HEAD" && request.method !== "DELETE") {

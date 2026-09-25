@@ -74,6 +74,7 @@ const GROUPS: NavGroup[] = [
       { label: "Utilisateurs", href: "/administration/utilisateurs", icon: "bi-person-badge" },
       { label: "Rôles & permissions", href: "/administration/roles", icon: "bi-shield-lock" },
       { label: "Rôles personnalisés", href: "/administration/roles-personnalises", icon: "bi-boxes" },
+      { label: "Journal d’activité", href: "/administration/journal", icon: "bi-clock-history" },
       { label: "Maintenance", href: "/administration/maintenance", icon: "bi-cone-striped" },
       { label: "Newsletter", href: "/administration/newsletter", icon: "bi-envelope" },
       { label: "Paramètres", href: "/administration/parametres", icon: "bi-gear" },
