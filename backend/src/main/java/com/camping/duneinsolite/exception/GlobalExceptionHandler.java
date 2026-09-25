@@ -192,8 +192,46 @@ public class GlobalExceptionHandler {
     // A bad/absent Content-Type or an unparseable body is the caller's fault.
     // Returning 500 here was noise (and a weak info signal); security
     // assessment 2026-09-10 (L-14).
+    // A body that parses as JSON but has the wrong type or an unknown enum value
+    // used to come back as one anonymous sentence, so an editor with a 30-field
+    // form could not tell which field to fix. Jackson knows the path of the field
+    // it choked on; repeat that path (never the submitted value) so the client can
+    // point at the exact input. A body that is not JSON at all has no path and
+    // keeps the generic answer.
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnreadableBody(
+            org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        String path = jsonFieldPath(ex);
+        if (path == null) {
+            return buildResponse(HttpStatus.BAD_REQUEST, "Malformed or unsupported request.", null);
+        }
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "The request body has an invalid value at: " + path,
+                Map.of(path, "invalid value or wrong type")
+        );
+    }
+
+    /** "programSteps[2].segmentType" from the Jackson exception in the cause chain, or null. */
+    static String jsonFieldPath(Throwable t) {
+        for (Throwable cur = t; cur != null; cur = cur.getCause() == cur ? null : cur.getCause()) {
+            if (cur instanceof tools.jackson.core.JacksonException je && !je.getPath().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (tools.jackson.core.JacksonException.Reference ref : je.getPath()) {
+                    if (ref.getPropertyName() != null) {
+                        if (sb.length() > 0) sb.append('.');
+                        sb.append(ref.getPropertyName());
+                    } else if (ref.getIndex() >= 0) {
+                        sb.append('[').append(ref.getIndex()).append(']');
+                    }
+                }
+                return sb.length() == 0 ? null : sb.toString();
+            }
+        }
+        return null;
+    }
+
     @ExceptionHandler({
-            org.springframework.http.converter.HttpMessageNotReadableException.class,
             org.springframework.web.HttpMediaTypeNotSupportedException.class,
             org.springframework.web.bind.MissingServletRequestParameterException.class,
             org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class
