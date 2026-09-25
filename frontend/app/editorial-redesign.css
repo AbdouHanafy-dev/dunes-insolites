@@ -2326,6 +2326,7 @@ footer.site-footer.pro-footer .bar a:hover {
 
 .tour-booking-price {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: calc(8px * var(--ui));
   margin-bottom: calc(22px * var(--ui));
@@ -2334,6 +2335,7 @@ footer.site-footer.pro-footer .bar a:hover {
 }
 
 .tour-booking-price span {
+  white-space: nowrap;
   font-family: var(--font-display), sans-serif;
   font-size: calc(27px * var(--ui));
   font-weight: 650;
@@ -2629,8 +2631,9 @@ footer.site-footer.pro-footer .bar a:hover {
 .tour-related h2 { margin-bottom: calc(32px * var(--ui)); }
 
 @media (max-width: 1000px) {
-  .tour-product-grid { grid-template-columns: 1fr; }
-  .tour-booking-card { position: static; max-width: 680px; width: 100%; max-height: none; overflow: visible; }
+  /* minmax(0, ...) so a wide child cannot stretch the column past the screen and push the card off-centre. */
+  .tour-product-grid { grid-template-columns: minmax(0, 1fr); }
+  .tour-booking-card { position: static; max-width: 680px; width: 100%; min-width: 0; margin-inline: auto; max-height: none; overflow: visible; }
   .tour-essentials { grid-template-columns: repeat(2, 1fr); }
   .tour-essentials > div:nth-child(2) { border-inline-end: 0; }
   .tour-essentials > div:nth-child(-n + 2) { border-bottom: 1px solid rgba(39, 34, 30, 0.12); }
@@ -2655,7 +2658,7 @@ footer.site-footer.pro-footer .bar a:hover {
     overflow-x: clip;
     padding-bottom: calc(calc(92px * var(--ui)) + env(safe-area-inset-bottom, 0px));
   }
-  .tour-product-page .wrap { width: 100%; max-width: 100%; }
+  .tour-product-page .wrap { width: 100%; max-width: 100%; padding-inline: 16px; }
   .tour-hero-head,
   .tour-hero-head > *,
   .tour-product-grid,
