@@ -10,6 +10,9 @@ import { breadcrumbJsonLd } from "@/lib/schema";
 import TourCard from "@/components/TourCard";
 import TourItinerary from "@/components/TourItinerary";
 import ClampedText from "@/components/ClampedText";
+import ClampedList from "@/components/ClampedList";
+import Collapsible from "@/components/Collapsible";
+import { tourMap } from "@/lib/tourRoute";
 import TourCardCarousel from "@/components/TourCardCarousel";
 import TourBookingFlow from "@/components/TourBookingFlow";
 import Reviews from "@/components/Reviews";
@@ -95,9 +98,9 @@ export default async function TourDetail({ params }: Props) {
     )
     .map((m) => `${MEAL_TYPE_LABELS[m.mealType]} (${MEAL_FORMAT_LABELS[m.format]})`);
   const hasDiscount = tour.originalPriceFrom != null && tour.originalPriceFrom > tour.priceFrom;
-  const hasRestrictions = tour.notSuitableFor.length > 0 || tour.notAllowed.length > 0 || !!tour.petPolicyNote;
-  const hasPracticalInfo =
-    !!tour.goodToKnow || tour.mustBring.length > 0 || !!tour.emergencyPhone || !!tour.ticketInfo;
+  // The map beside the itinerary: a route through the pickup, attraction and drop-off names
+  // the editor filled in on the steps (or the departure location when there are none).
+  const itineraryMap = tourMap(tour.itinerary, tour.location);
   // Header blurb: the short description, or the start of the long one when no short one is saved.
   const lead = (tour.description?.trim() || tour.aboutText?.trim() || "");
   const media = suppliedMedia.length ? suppliedMedia : ["/images/camp-hero-poster.jpg"];
@@ -229,159 +232,177 @@ export default async function TourDetail({ params }: Props) {
               </div>
             </section>
 
-            <section className="tour-section tour-overview" id="overview">
-              <h2>{t("theTrip")}</h2>
-              <ClampedText
-                text={tour.aboutText || tour.description}
-                moreLabel={t("seeMore")}
-                lessLabel={t("seeLess")}
-              />
-            </section>
-
             {tour.highlights.length > 0 && (
-              <section className="tour-section tour-highlights">
+              <section className="tour-row" id="highlights">
                 <h2>{t("highlights")}</h2>
-                <ul>
-                  {tour.highlights.map((item) => <li key={item}>{item}</li>)}
-                </ul>
+                <div className="tour-row-body">
+                  <ul className="tour-bullets">
+                    {tour.highlights.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
               </section>
             )}
 
-            {tour.itinerary.length > 0 && (
-              <section className="tour-section ti-section" id="itinerary">
-                <p className="tour-section-kicker">{t("itineraryEyebrow")}</p>
-                <h2>{t("itineraryHeading")}</h2>
-                <TourItinerary steps={tour.itinerary} />
-              </section>
-            )}
+            <section className="tour-row" id="overview">
+              <h2>{t("theTrip")}</h2>
+              <div className="tour-row-body">
+                <ClampedText
+                  text={tour.aboutText || tour.description}
+                  moreLabel={t("seeMore")}
+                  lessLabel={t("seeLess")}
+                />
+              </div>
+            </section>
 
             {(tour.included.length > 0 || tour.notIncluded.length > 0 || guideLabel || mealLines.length > 0 || tour.transportModes.length > 0) && (
-              <section className="tour-section" id="included">
+              <section className="tour-row" id="included">
                 <h2>{t("whatsIncluded")}</h2>
-                <div className="tour-inclusions">
-                  {(tour.included.length > 0 || guideLabel || mealLines.length > 0 || tour.transportModes.length > 0) && (
-                    <div>
-                      <h3>{t("whatsIncluded")}</h3>
-                      <ul>
-                        {guideLabel && <li data-kind="yes">{t("guideLabel")}: {guideLabel}</li>}
-                        {mealLines.map((line) => <li key={line} data-kind="yes">{line}</li>)}
-                        {tour.drinksIncluded && <li data-kind="yes">{t("drinksIncludedLabel")}</li>}
-                        {tour.transportModes.map((mode) => (
-                          <li key={mode} data-kind="yes">{t("transportDuringLabel")}: {mode}</li>
-                        ))}
-                        {tour.included.map((item) => <li key={item} data-kind="yes">{item}</li>)}
-                      </ul>
-                    </div>
-                  )}
-                  {tour.notIncluded.length > 0 && (
-                    <div>
-                      <h3>{t("notIncluded")}</h3>
-                      <ul>{tour.notIncluded.map((item) => <li key={item} data-kind="no">{item}</li>)}</ul>
-                    </div>
-                  )}
+                <div className="tour-row-body">
+                  <ul className="tour-checks">
+                    {guideLabel && <li data-kind="yes">{t("guideLabel")}: {guideLabel}</li>}
+                    {mealLines.map((line) => <li key={line} data-kind="yes">{line}</li>)}
+                    {tour.drinksIncluded && <li data-kind="yes">{t("drinksIncludedLabel")}</li>}
+                    {tour.transportModes.map((mode) => (
+                      <li key={mode} data-kind="yes">{t("transportDuringLabel")}: {mode}</li>
+                    ))}
+                    {tour.included.map((item) => <li key={item} data-kind="yes">{item}</li>)}
+                    {tour.notIncluded.map((item) => <li key={item} data-kind="no">{item}</li>)}
+                  </ul>
                 </div>
               </section>
             )}
 
-            {hasRestrictions && (
-              <section className="tour-section" id="restrictions">
-                <h2>{t("restrictionsHeading")}</h2>
-                <div className="tour-inclusions">
-                  {tour.notSuitableFor.length > 0 && (
-                    <div>
-                      <h3>{t("notSuitableForHeading")}</h3>
-                      <ul>{tour.notSuitableFor.map((item) => <li key={item} data-kind="no">{item}</li>)}</ul>
-                    </div>
-                  )}
-                  {tour.notAllowed.length > 0 && (
-                    <div>
-                      <h3>{t("notAllowedHeading")}</h3>
-                      <ul>{tour.notAllowed.map((item) => <li key={item} data-kind="no">{item}</li>)}</ul>
-                    </div>
-                  )}
+            {tour.notSuitableFor.length > 0 && (
+              <section className="tour-row" id="restrictions">
+                <h2>{t("notSuitableForHeading")}</h2>
+                <div className="tour-row-body">
+                  <ul className="tour-bullets">
+                    {tour.notSuitableFor.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
                 </div>
-                {(tour.animalsAccepted || tour.petPolicyNote) && (
-                  <p>
-                    {tour.animalsAccepted && t("petPolicyAccepted")}
-                    {tour.animalsAccepted && tour.petPolicyNote ? " — " : ""}
-                    {tour.petPolicyNote}
-                  </p>
-                )}
               </section>
             )}
 
-            {(tour.meetingPoint || tour.location) && (
-              <section className="tour-section tour-meeting" id="meeting">
-                <div>
-                  <h2>{t("meetingPointHeading")}</h2>
-                  {tour.meetingPoint && <p>{tour.meetingPoint}</p>}
-                  {tour.location && <strong>{tour.location}</strong>}
-                </div>
-                {tour.location && (
-                  <div className="tour-map">
-                    <iframe
-                      title={tour.title}
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}&output=embed`}
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
-                    <a href={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}`} target="_blank" rel="noreferrer">
-                      {t("openInMaps")} ↗
-                    </a>
-                  </div>
-                )}
-              </section>
-            )}
-
-            <section className="tour-section tour-how-it-works" id="how-it-works">
-              <p className="tour-section-kicker">{t("directBooking")}</p>
-              <h2>{t("howItWorks")}</h2>
-              <ol>
-                <li>
-                  <span>1</span>
-                  <div><h3>{t("stepChooseTitle")}</h3><p>{t("stepChooseBody")}</p></div>
-                </li>
-                <li>
-                  <span>2</span>
-                  <div><h3>{t("stepConfirmTitle")}</h3><p>{t("stepConfirmBody")}</p></div>
-                </li>
-                <li>
-                  <span>3</span>
-                  <div><h3>{t("stepPrepareTitle")}</h3><p>{t("stepPrepareBody")}</p></div>
-                </li>
-              </ol>
-            </section>
-
-            <section className="tour-section tour-planning">
-              <h2>{t("goodToKnow")}</h2>
-              {tour.goodToKnow && <p>{tour.goodToKnow}</p>}
-              <ul>
-                {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.map((l) => localizedLanguageName(locale, l)).join(", ") })}</li>}
-                {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
-                {tour.emergencyPhone && <li>{t("emergencyPhoneLabel")}: {tour.emergencyPhone}</li>}
-              </ul>
-              <p>
-                <Link href="/faq">{tLinks("faq")}</Link>
-                <Link href="/contact">{tLinks("planTrip")}</Link>
-              </p>
-            </section>
-
-            {hasPracticalInfo && (tour.mustBring.length > 0 || tour.ticketInfo) && (
-              <section className="tour-section">
+            <section className="tour-row" id="important">
+              <h2>{t("importantInfo")}</h2>
+              <div className="tour-row-body">
                 {tour.mustBring.length > 0 && (
                   <>
-                    <h2>{t("mustBringHeading")}</h2>
-                    <ul>{tour.mustBring.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <h3>{t("mustBringHeading")}</h3>
+                    <ClampedList items={tour.mustBring} limit={4} moreLabel={t("seeMore")} lessLabel={t("seeLess")} />
                   </>
                 )}
+                {tour.notAllowed.length > 0 && (
+                  <>
+                    <h3>{t("notAllowedHeading")}</h3>
+                    <ul className="tour-bullets">
+                      {tour.notAllowed.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </>
+                )}
+                <h3>{t("goodToKnow")}</h3>
+                {tour.goodToKnow && <p>{tour.goodToKnow}</p>}
+                <ul className="tour-bullets">
+                  {tour.languages.length > 0 && <li>{t("languagesSpoken", { languages: tour.languages.map((l) => localizedLanguageName(locale, l)).join(", ") })}</li>}
+                  {tour.cancellationPolicy?.freeCancellation && <li>{t("freeCancellationNote")}</li>}
+                  {(tour.animalsAccepted || tour.petPolicyNote) && (
+                    <li>
+                      {tour.animalsAccepted && t("petPolicyAccepted")}
+                      {tour.animalsAccepted && tour.petPolicyNote ? " — " : ""}
+                      {tour.petPolicyNote}
+                    </li>
+                  )}
+                  {tour.emergencyPhone && <li>{t("emergencyPhoneLabel")}: {tour.emergencyPhone}</li>}
+                </ul>
                 {tour.ticketInfo && (
                   <>
                     <h3>{t("ticketInfoHeading")}</h3>
                     <p>{tour.ticketInfo}</p>
                   </>
                 )}
+                <p className="tour-row-links">
+                  <Link href="/faq">{tLinks("faq")}</Link>
+                  <Link href="/contact">{tLinks("planTrip")}</Link>
+                </p>
+              </div>
+            </section>
+
+            {tour.itinerary.length > 0 && (
+              <section className="tour-row" id="itinerary">
+                <h2>{t("itineraryHeading")}</h2>
+                <div className="tour-row-body tour-itin-layout" data-map={itineraryMap ? "true" : undefined}>
+                  <div className="tour-itin-timeline">
+                    <Collapsible
+                      foldable={tour.itinerary.length > 4}
+                      moreLabel={t("seeMore")}
+                      lessLabel={t("hideItinerary")}
+                    >
+                      <TourItinerary steps={tour.itinerary} />
+                    </Collapsible>
+                    <p className="tour-itin-note">
+                      <i className="bi bi-info-circle" aria-hidden="true" />
+                      <span>{t("itineraryDisclaimer")}</span>
+                    </p>
+                  </div>
+                  {itineraryMap && (
+                    <div className="tour-itin-map">
+                      <iframe
+                        title={tour.title}
+                        src={itineraryMap.embed}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                      <a href={itineraryMap.open} target="_blank" rel="noreferrer">
+                        {t("openInMaps")} ↗
+                      </a>
+                    </div>
+                  )}
+                </div>
               </section>
             )}
+
+            {(tour.meetingPoint || tour.location) && (
+              <section className="tour-row" id="meeting">
+                <h2>{t("meetingPointHeading")}</h2>
+                <div className="tour-row-body">
+                  {tour.meetingPoint && <p>{tour.meetingPoint}</p>}
+                  {tour.location && <p><strong>{tour.location}</strong></p>}
+                  {tour.location && tour.itinerary.length === 0 && (
+                    <div className="tour-map">
+                      <iframe
+                        title={tour.title}
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}&output=embed`}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                      <a href={`https://www.google.com/maps?q=${encodeURIComponent(tour.location)}`} target="_blank" rel="noreferrer">
+                        {t("openInMaps")} ↗
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            <section className="tour-row tour-how-it-works" id="how-it-works">
+              <h2>{t("howItWorks")}</h2>
+              <div className="tour-row-body">
+                <ol>
+                  <li>
+                    <span>1</span>
+                    <div><h3>{t("stepChooseTitle")}</h3><p>{t("stepChooseBody")}</p></div>
+                  </li>
+                  <li>
+                    <span>2</span>
+                    <div><h3>{t("stepConfirmTitle")}</h3><p>{t("stepConfirmBody")}</p></div>
+                  </li>
+                  <li>
+                    <span>3</span>
+                    <div><h3>{t("stepPrepareTitle")}</h3><p>{t("stepPrepareBody")}</p></div>
+                  </li>
+                </ol>
+              </div>
+            </section>
           </div>
 
           <aside className="tour-booking-card" id="reserve">

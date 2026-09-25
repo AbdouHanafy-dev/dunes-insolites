@@ -525,6 +525,10 @@
     "errorTierCapacity": "Ogni alloggio deve avere almeno un ospite e non superare la capienza (i neonati non contano)."
   },
   "tourDetail": {
+    "optionalExtraNote": "Facoltativo · possibile supplemento",
+    "itineraryDisclaimer": "Informazioni indicative. Gli itinerari possono cambiare.",
+    "importantInfo": "Informazioni importanti",
+    "hideItinerary": "Nascondi l'itinerario",
     "photoPrevious": "Foto precedente",
     "photoNext": "Foto successiva",
     "photoOf": "Foto {n} di {total}",

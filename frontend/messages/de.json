@@ -525,6 +525,10 @@
     "errorTierCapacity": "Jede Unterkunft braucht mindestens einen Gast und darf nicht überbelegt sein (Babys zählen nicht)."
   },
   "tourDetail": {
+    "optionalExtraNote": "Optional · Aufpreis möglich",
+    "itineraryDisclaimer": "Angaben ohne Gewähr. Der Ablauf kann sich ändern.",
+    "importantInfo": "Wichtige Informationen",
+    "hideItinerary": "Reiseverlauf ausblenden",
     "photoPrevious": "Vorheriges Foto",
     "photoNext": "Nächstes Foto",
     "photoOf": "Foto {n} von {total}",

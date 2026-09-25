@@ -525,6 +525,10 @@
     "errorTierCapacity": "يجب أن يضم كل مكان إقامة ضيفًا واحدًا على الأقل ولا يتجاوز سعته (الرضّع غير محسوبين)."
   },
   "tourDetail": {
+    "optionalExtraNote": "اختياري · قد تُطبَّق رسوم إضافية",
+    "itineraryDisclaimer": "المعلومات إرشادية فقط. قد تتغير خطوط السير.",
+    "importantInfo": "معلومات مهمة",
+    "hideItinerary": "إخفاء البرنامج",
     "photoPrevious": "الصورة السابقة",
     "photoNext": "الصورة التالية",
     "photoOf": "صورة {n} من {total}",

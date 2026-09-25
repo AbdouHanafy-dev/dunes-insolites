@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import type { Tour } from "@/lib/types";
 
@@ -13,12 +13,14 @@ const NODE_ICON: Record<Kind, string> = {
   stop: "bi-pin-map-fill",
 };
 
-/** 45 -> "45 min", 120 -> "2 h", 90 -> "1 h 30". Unit abbreviations read the same in every locale. */
-function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
+/** 120 -> "2 heures", 90 -> "1 heure 30 minutes", 45 -> "45 minutes", in the page language. */
+function formatDuration(minutes: number, locale: string): string {
+  const unit = (value: number, name: "hour" | "minute") =>
+    new Intl.NumberFormat(locale, { style: "unit", unit: name, unitDisplay: "long" }).format(value);
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return m === 0 ? `${h} h` : `${h} h ${m}`;
+  if (h === 0) return unit(m, "minute");
+  return m === 0 ? unit(h, "hour") : `${unit(h, "hour")} ${unit(m, "minute")}`;
 }
 
 /**
@@ -27,7 +29,7 @@ function formatMinutes(minutes: number): string {
  * attraction and drop-off names come from the back office and only show when filled.
  */
 export default async function TourItinerary({ steps }: { steps: Step[] }) {
-  const t = await getTranslations("tourDetail");
+  const [t, locale] = await Promise.all([getTranslations("tourDetail"), getLocale()]);
   const total = steps.length;
 
   return (
@@ -36,52 +38,41 @@ export default async function TourItinerary({ steps }: { steps: Step[] }) {
         const first = index === 0;
         const last = index === total - 1 && total > 1;
         const kind: Kind = first ? "start" : last ? "end" : step.segmentType === "TRANSFER" ? "transfer" : "stop";
-        const places: { icon: string; label: string; value: string }[] = [];
+        const places: { label: string; value: string }[] = [];
         if (first && step.pickupPoint) {
-          places.push({ icon: "bi-geo-alt", label: t("pickupPointLabel"), value: step.pickupPoint });
+          places.push({ label: t("pickupPointLabel"), value: step.pickupPoint });
         }
         if (!first && !last && step.attraction) {
-          places.push({ icon: "bi-stars", label: t("attractionLabel"), value: step.attraction });
+          places.push({ label: t("attractionLabel"), value: step.attraction });
         }
         if ((last || total === 1) && step.dropoffPoint) {
-          places.push({ icon: "bi-flag", label: t("dropoffPointLabel"), value: step.dropoffPoint });
+          places.push({ label: t("dropoffPointLabel"), value: step.dropoffPoint });
         }
         const images = step.images ?? [];
 
         return (
           <li className="ti-step" data-kind={kind} key={`${step.label ?? index}-${step.title ?? index}`}>
             <span className="ti-node" aria-hidden="true">
-              <i className={`bi ${NODE_ICON[kind]}`} />
+              {kind !== "end" && <i className={`bi ${NODE_ICON[kind]}`} />}
             </span>
             <div className="ti-body">
-              {(step.label || step.durationMinutes != null) && (
-                <div className="ti-meta">
-                  {step.label && <span className="ti-label">{step.label}</span>}
-                  {step.durationMinutes != null && (
-                    <span className="ti-time">
-                      <i className="bi bi-clock" aria-hidden="true" /> {formatMinutes(step.durationMinutes)}
-                    </span>
-                  )}
-                </div>
-              )}
+              {step.label && <p className="ti-meta">{step.label}</p>}
               {step.title && (
                 <h3>
                   {step.title}
-                  {step.segmentType === "TRANSFER" && <span className="ti-badge">{t("transferBadge")}</span>}
-                  {step.optionalSegment && (
-                    <span className="ti-badge ti-badge--extra">{t("optionalSegmentBadge")}</span>
-                  )}
                 </h3>
               )}
               {places.map((p) => (
                 <p className="ti-place" key={p.label}>
-                  <i className={`bi ${p.icon}`} aria-hidden="true" />
-                  <span>
-                    <strong>{p.label}</strong> {p.value}
-                  </span>
+                  <span className="ti-place-label">{p.label}</span>
+                  <span className="ti-place-value">{p.value}</span>
                 </p>
               ))}
               {step.description && <p className="ti-text">{step.description}</p>}
+              {step.durationMinutes != null && (
+                <p className="ti-duration">({formatDuration(step.durationMinutes, locale)})</p>
+              )}
+              {step.optionalSegment && <p className="ti-extra">{t("optionalExtraNote")}</p>}
               {images.length > 0 && (
                 <div className="ti-media" data-count={Math.min(images.length, 4)}>
                   {images.map((src, i) => (

@@ -737,6 +737,10 @@
     "errorTierCapacity": "Chaque hébergement doit accueillir au moins un voyageur, sans dépasser sa capacité (les bébés ne comptent pas)."
   },
   "tourDetail": {
+    "optionalExtraNote": "Optionnel · supplément possible",
+    "itineraryDisclaimer": "Informations données à titre indicatif. Les itinéraires peuvent changer.",
+    "importantInfo": "Informations importantes",
+    "hideItinerary": "Masquer l'itinéraire",
     "photoPrevious": "Photo précédente",
     "photoNext": "Photo suivante",
     "photoOf": "Photo {n} sur {total}",

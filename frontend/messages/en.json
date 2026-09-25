@@ -737,6 +737,10 @@
     "errorTierCapacity": "Each accommodation needs at least one guest and can’t hold more than it sleeps (infants aren’t counted)."
   },
   "tourDetail": {
+    "optionalExtraNote": "Optional · extra cost possible",
+    "itineraryDisclaimer": "Information is indicative. Itineraries may change.",
+    "importantInfo": "Important information",
+    "hideItinerary": "Hide the itinerary",
     "photoPrevious": "Previous photo",
     "photoNext": "Next photo",
     "photoOf": "Photo {n} of {total}",

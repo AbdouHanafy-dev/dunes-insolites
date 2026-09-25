@@ -525,6 +525,10 @@
     "errorTierCapacity": "Hver overnatning skal have mindst én gæst og må ikke overfyldes (babyer tæller ikke)."
   },
   "tourDetail": {
+    "optionalExtraNote": "Valgfrit · tillæg mulig",
+    "itineraryDisclaimer": "Oplysningerne er vejledende. Programmet kan ændres.",
+    "importantInfo": "Vigtige oplysninger",
+    "hideItinerary": "Skjul programmet",
     "photoPrevious": "Forrige foto",
     "photoNext": "Næste foto",
     "photoOf": "Foto {n} af {total}",
