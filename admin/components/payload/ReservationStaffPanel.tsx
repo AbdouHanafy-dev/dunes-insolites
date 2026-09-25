@@ -233,8 +233,8 @@ function GuideList({
       )}
 
       {!disabled && (
-        <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex flex-1 flex-col gap-1">
+        <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="flex min-w-[220px] flex-1 flex-col gap-1">
             <label className={labelClass}>Guide de l’annuaire</label>
             <select
               className={formError && !guideProfileId ? inputClass.replace("border-navy-700/15", "border-rose") : inputClass}
@@ -344,8 +344,8 @@ function ChauffeurList({
       )}
 
       {!disabled && (
-        <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex flex-1 flex-col gap-1">
+        <form onSubmit={submit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="flex min-w-[220px] flex-1 flex-col gap-1">
             <label className={labelClass}>Chauffeur de l’annuaire</label>
             <select className={formError && !driverProfileId ? inputClass.replace("border-navy-700/15", "border-rose") : inputClass} value={driverProfileId} onChange={(event) => setDriverProfileId(event.target.value)}>
               <option value="">Sélectionner un chauffeur</option>
