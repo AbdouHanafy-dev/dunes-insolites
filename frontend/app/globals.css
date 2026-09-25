@@ -114,6 +114,15 @@
   box-sizing: border-box;
 }
 
+/* The site is designed to be read at 80%: scaled here so every visitor gets it by
+   default. Desktop only (wide screen + mouse) - phones and tablets stay at 100%. --uz undoes the zoom
+   for viewport-height rules, which would otherwise shrink with it. */
+:root { --uz: 1; }
+@media (min-width: 1025px) and (pointer: fine) {
+  :root { --uz: 1.25; }
+  html { zoom: 0.8; }
+}
+
 html {
   /* One notch below the browser default (16px) - every rem-based size on the
      site scales with it. */
@@ -755,7 +764,7 @@ body:has(.auth-page) .site-header {
 /* Scrollable, so a long menu on a short phone can still reach the CTA.
    Padding-top clears the integrated header (~76px) plus a little air. */
 .drawer-scroll {
-  max-height: 100dvh;
+  max-height: calc(100dvh * var(--uz));
   overflow-y: auto;
   padding: calc(96px + env(safe-area-inset-top, 0px)) 28px
     calc(28px + env(safe-area-inset-bottom, 0px));
@@ -921,12 +930,12 @@ body:has(.auth-page) .site-header {
 /* ---------- cinematic scroll hero ---------- */
 .scroll {
   position: relative;
-  height: calc(100vh + 2000px);
+  height: calc(calc(100vh * var(--uz)) + 2000px);
 }
 .stage {
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: calc(100vh * var(--uz));
   /* `svh` excludes the area a mobile browser's address/tab bar can cover,
      so the hero doesn't render taller than what's actually visible and
      then jump/crop as that chrome shows or hides on scroll. Redeclared
@@ -2184,7 +2193,7 @@ section.block {
 .exp-proof {
   display: grid;
   grid-template-columns: 46% 1fr;
-  min-height: 62vh;
+  min-height: calc(62vh * var(--uz));
   background: var(--night);
 }
 .exp-proof-media {
@@ -3078,7 +3087,7 @@ footer.site-footer .bar-social a:hover {
 /* ---------- activity detail ---------- */
 .detail-hero {
   position: relative;
-  min-height: 78vh;
+  min-height: calc(78vh * var(--uz));
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -3253,7 +3262,7 @@ footer.site-footer .bar-social a:hover {
 .accommodation-meta { display: flex; align-items: baseline; gap: 8px; margin-top: 16px; font-family: var(--font-display), sans-serif; font-weight: 600; font-size: 0.92rem; color: var(--ink); }
 .accommodation-meta span:last-child { font-family: var(--font-body), sans-serif; font-weight: 400; font-size: 0.85rem; color: var(--muted); }
 .text-link { display: inline-block; margin-top: 20px; color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.accommodation-hero { position: relative; min-height: 66vh; display: flex; align-items: end; padding: 170px 0 72px; color: var(--paper); overflow: hidden; }
+.accommodation-hero { position: relative; min-height: calc(66vh * var(--uz)); display: flex; align-items: end; padding: 170px 0 72px; color: var(--paper); overflow: hidden; }
 .accommodation-hero > img { z-index: 0; }
 .accommodation-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,4,.38), rgba(20,8,4,.84)); z-index: 1; }
 .accommodation-hero .wrap { position: relative; z-index: 2; }
@@ -3465,7 +3474,7 @@ footer.site-footer .bar-social a:hover {
      "My account" heading) finally made visible. Bumped with real margin,
      not the minimum that happened to work in one locale at one width. */
   padding: 190px 0 120px;
-  min-height: 100vh;
+  min-height: calc(100vh * var(--uz));
 }
 /* /book reuses the circuit page's narrow-sidebar card at a much wider,
    standalone width - the extra width alone left it visually tall since
@@ -3739,7 +3748,7 @@ footer.site-footer .bar-social a:hover {
    instead of bare numbers. */
 .maint-page {
   position: relative;
-  min-height: 100dvh;
+  min-height: calc(100dvh * var(--uz));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5183,7 +5192,7 @@ footer.site-footer .bar-social a:hover {
 .lightbox .frame {
   position: relative;
   width: min(1100px, 100%);
-  height: min(78vh, 100%);
+  height: min(calc(78vh * var(--uz)), 100%);
 }
 .lightbox .frame img {
   object-fit: contain;
@@ -5749,7 +5758,7 @@ footer.site-footer .bar-social a:hover {
 .cta-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 62vh;
+  min-height: calc(62vh * var(--uz));
   background: var(--night);
   color: var(--paper);
 }
@@ -5782,7 +5791,7 @@ footer.site-footer .bar-social a:hover {
      height of its own) a real height to fill — found live, the row was
      collapsing to a sliver. Match the container's own min-height directly
      rather than relying on stretch. */
-  min-height: 62vh;
+  min-height: calc(62vh * var(--uz));
 }
 .cta-split-media img {
   object-fit: cover;
@@ -5819,7 +5828,7 @@ footer.site-footer .bar-social a:hover {
 .auth-page {
   display: grid;
   grid-template-columns: 45fr 55fr;
-  min-height: 100vh;
+  min-height: calc(100vh * var(--uz));
   background: var(--sand);
 }
 .auth-art {
@@ -6044,7 +6053,7 @@ footer.site-footer .bar-social a:hover {
 /* ---------- 404 ---------- */
 .notfound {
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh * var(--uz));
   display: flex;
   align-items: center;
   justify-content: center;

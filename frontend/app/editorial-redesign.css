@@ -133,7 +133,7 @@ html { scroll-padding-top: 96px; }
 .primary-nav:has(.primary-item:hover) .primary-item:not(:hover) .nav-chevron { transform: translateY(-2px) rotate(45deg); }
 
 .nav-dropdown-list {
-  max-height: calc(100vh - 190px);
+  max-height: calc(calc(100vh * var(--uz)) - 190px);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -526,7 +526,7 @@ html { scroll-padding-top: 96px; }
   align-items: center;
   flex-direction: column;
   justify-content: center;
-  padding: 0 24px 18vh;
+  padding: 0 24px calc(18vh * var(--uz));
   text-align: center;
   pointer-events: none;
 }
@@ -1095,7 +1095,7 @@ footer.site-footer .brand img { border-radius: 50%; }
 
 .pro-drawer .drawer-scroll {
   display: block;
-  max-height: 100dvh;
+  max-height: calc(100dvh * var(--uz));
   padding: calc(68px + env(safe-area-inset-top, 0px)) 0
     calc(24px + env(safe-area-inset-bottom, 0px));
   background: var(--journal-paper);
@@ -1265,7 +1265,7 @@ body:has(.drawer[data-open="true"]) .tour-mobile-booking-bar {
   .static-gate-frame,
   .static-gate-word { top: 68px; }
 
-  .static-gate-word { padding-bottom: 23vh; }
+  .static-gate-word { padding-bottom: calc(23vh * var(--uz)); }
   .static-gate-copy { top: 58%; }
 }
 
@@ -2293,7 +2293,7 @@ footer.site-footer.pro-footer .bar a:hover {
 .tour-booking-card {
   position: sticky;
   top: 118px;
-  max-height: calc(100vh - 142px);
+  max-height: calc(calc(100vh * var(--uz)) - 142px);
   padding: 30px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -2967,7 +2967,7 @@ footer.site-footer.pro-footer .bar a:hover {
    Articles index
    -------------------------------------------------------------------------- */
 .articles-index-page {
-  min-height: 100vh;
+  min-height: calc(100vh * var(--uz));
   background: #f7f3ed;
   color: #27221e;
 }
@@ -3850,8 +3850,8 @@ footer.site-footer.pro-footer .bar a:hover {
 .reviews-wall-head { margin-bottom: 32px; }
 
 /* Closing call to action: shorter, tighter. */
-.cta-split { min-height: 44vh; }
-.cta-split-media { min-height: 44vh; }
+.cta-split { min-height: calc(44vh * var(--uz)); }
+.cta-split-media { min-height: calc(44vh * var(--uz)); }
 .cta-split-message { padding: 56px 56px; }
 .cta-split-message p { margin-top: 16px; }
 
@@ -4205,7 +4205,7 @@ footer.site-footer.pro-footer .bar a:hover {
 .acc-gallery-all { position: absolute; right: 14px; bottom: 14px; padding: 10px 18px; border: 0; border-radius: 999px; background: rgba(251, 246, 236, 0.95); color: var(--acc-ink); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer; box-shadow: 0 6px 18px rgba(20, 16, 12, 0.3); }
 .acc-gallery-all:hover { background: #fff; }
 .acc-lightbox { position: fixed; inset: 0; z-index: 200; display: grid; grid-template-columns: 64px 1fr 64px; align-items: center; background: rgba(12, 10, 8, 0.95); }
-.acc-lightbox-stage { position: relative; height: min(82vh, 100%); }
+.acc-lightbox-stage { position: relative; height: min(calc(82vh * var(--uz)), 100%); }
 .acc-lightbox-close, .acc-lightbox-nav { border: 0; background: transparent; color: #f4e9d8; font-size: 42px; line-height: 1; cursor: pointer; }
 .acc-lightbox-close { position: absolute; top: 12px; right: 18px; z-index: 2; font-size: 40px; }
 .acc-lightbox-nav { height: 100%; }
