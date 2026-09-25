@@ -666,4 +666,43 @@ class PublicBookingServiceImplTest {
         verify(accountActionService, org.mockito.Mockito.never())
                 .sendGuestPasswordSetupInvitation(any(), any());
     }
+
+    @Test
+    void aVisitorWhoAlreadyHasAClientAccountBooksIntoThatAccountWithoutSigningIn() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        UUID existingId = UUID.randomUUID();
+        when(userRepository.findByEmail("guest@example.com")).thenReturn(Optional.of(User.builder()
+                .userId(existingId).name("Returning Client").email("guest@example.com")
+                .role(UserRole.CLIENT).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+
+        service.createStayBooking(baseRequest());
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        // Lands in the existing account, so it shows in their space.
+        assertThat(captor.getValue().getUserId()).isEqualTo(existingId);
+        // No second identity, and no setup invitation to an account that already has a password.
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+        verify(accountActionService, org.mockito.Mockito.never())
+                .sendGuestPasswordSetupInvitation(any(), any());
+    }
+
+    @Test
+    void aTeamAccountEmailIsNeverUsedForAPublicBooking() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        when(userRepository.findByEmail("guest@example.com")).thenReturn(Optional.of(User.builder()
+                .userId(UUID.randomUUID()).email("guest@example.com").role(UserRole.ADMIN).build()));
+
+        assertThatThrownBy(() -> service.createStayBooking(baseRequest()))
+                .isInstanceOf(com.camping.duneinsolite.exception.ConflictException.class)
+                .hasMessageContaining("team account");
+
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+        verify(keycloakUserSyncService, org.mockito.Mockito.never())
+                .createInvitedGuestUser(any(), any(), any());
+    }
 }

@@ -700,6 +700,22 @@ public class PublicBookingServiceImpl implements PublicBookingService {
             return new ResolvedBookingUser(user, false);
         }
 
+        // A visitor who already has a client account books like anyone else: the reservation
+        // lands in that account and shows in their space after they sign in. It used to be
+        // refused ("please sign in"), which turned away returning customers. Nothing about
+        // the existing account is read back to the caller or changed, and no invitation
+        // e-mail is sent - the owner simply gets the normal booking confirmation. A team
+        // account (admin, camping, partner) is never reused: a public form must not be
+        // able to attach a booking to staff.
+        java.util.Optional<User> existing = userRepository.findByEmail(normalizedEmail);
+        if (existing.isPresent()) {
+            if (existing.get().getRole() != com.camping.duneinsolite.model.enums.UserRole.CLIENT) {
+                throw new com.camping.duneinsolite.exception.ConflictException(
+                        "This email address belongs to a team account. Please use another email address to book.");
+            }
+            return new ResolvedBookingUser(existing.get(), false);
+        }
+
         return new ResolvedBookingUser(
                 keycloakUserSyncService.createInvitedGuestUser(
                         name.trim(), normalizedEmail, phone.trim()), true);
