@@ -20,25 +20,29 @@ export default function TourPhotoGallery({
 }) {
   const t = useTranslations("tourDetail");
   const tGallery = useTranslations("galleryGrid");
-  const [open, setOpen] = useState(false);
+  // Index of the photo shown in the viewer, or null when it is closed.
+  const [open, setOpen] = useState<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const count = suppliedMediaCount || media.length;
   const preview = media.slice(0, 5);
 
+  const isOpen = open !== null;
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(null);
+      if (event.key === "ArrowRight") setOpen((i) => (i === null ? i : (i + 1) % media.length));
+      if (event.key === "ArrowLeft") setOpen((i) => (i === null ? i : (i - 1 + media.length) % media.length));
     };
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [isOpen, media.length]);
 
   function updateActiveImage() {
     const track = trackRef.current;
@@ -67,6 +71,7 @@ export default function TourPhotoGallery({
       <section className={`tour-gallery media-count-${preview.length}`} aria-label={title}>
         <div className="tour-media-primary">
           <Image src={preview[0]} alt={suppliedMediaCount ? title : ""} fill sizes="(max-width: 900px) 100vw, 58vw" preload />
+          <button type="button" aria-label={`${title} — 1`} onClick={() => setOpen(0)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, padding: 0, background: "transparent", cursor: "zoom-in" }} />
         </div>
         {preview.length > 1 && (
           <div className="tour-media-secondary">
@@ -76,8 +81,9 @@ export default function TourPhotoGallery({
               return (
                 <div className="tour-media-cell" key={`${source}-${index}`}>
                   <Image src={source} alt={`${title} — ${index + 2}`} fill sizes="(max-width: 900px) 50vw, 20vw" />
+                  <button type="button" aria-label={`${title} — ${index + 2}`} onClick={() => setOpen(index + 1)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, padding: 0, background: "transparent", cursor: "zoom-in" }} />
                   {isLast && remaining > 0 && (
-                    <button type="button" className="tour-gallery-viewall" onClick={() => setOpen(true)}>
+                    <button type="button" className="tour-gallery-viewall" onClick={() => setOpen(0)} style={{ zIndex: 1 }}>
                       {t("viewAllPhotos", { count })}
                     </button>
                   )}
@@ -89,7 +95,7 @@ export default function TourPhotoGallery({
 
         <div className="tour-mobile-track" ref={trackRef} onScroll={updateActiveImage}>
           {media.map((source, index) => (
-            <figure className="tour-mobile-slide" key={`${source}-mobile-${index}`}>
+            <figure className="tour-mobile-slide" key={`${source}-mobile-${index}`} onClick={() => setOpen(index)}>
               <Image
                 src={source}
                 alt={suppliedMediaCount ? `${title} — ${index + 1}` : ""}
@@ -131,7 +137,7 @@ export default function TourPhotoGallery({
           type="button"
           className="tour-mobile-photo-count"
           aria-label={t("viewAllPhotos", { count })}
-          onClick={() => setOpen(true)}
+          onClick={() => setOpen(0)}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
             <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -142,31 +148,35 @@ export default function TourPhotoGallery({
         </button>
       </section>
 
-      {open && (
-        <div
-          className="tour-photo-dialog"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("viewAllPhotos", { count })}
-          onMouseDown={(event) => {
-            if (event.currentTarget === event.target) setOpen(false);
-          }}
-        >
-          <div className="tour-photo-dialog-panel">
-            <button type="button" className="tour-photo-dialog-close" onClick={() => setOpen(false)} autoFocus>
-              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
-              </svg>
-              <span className="sr-only">{tGallery("close")}</span>
+      {open !== null && (
+        <div className="acc-lightbox" role="dialog" aria-modal="true" aria-label={title}>
+          <button type="button" className="acc-lightbox-close" onClick={() => setOpen(null)} aria-label={tGallery("close")} autoFocus>
+            ×
+          </button>
+          {media.length > 1 && (
+            <button
+              type="button"
+              className="acc-lightbox-nav acc-lightbox-prev"
+              onClick={() => setOpen((open - 1 + media.length) % media.length)}
+              aria-label={t("photoPrevious")}
+            >
+              ‹
             </button>
-            <div className="tour-photo-dialog-grid">
-              {media.map((source, index) => (
-                <figure key={`${source}-dialog-${index}`}>
-                  <Image src={source} alt={`${title} — ${index + 1}`} fill sizes="(max-width: 700px) 46vw, 30vw" />
-                </figure>
-              ))}
-            </div>
+          )}
+          <div className="acc-lightbox-stage">
+            <Image src={media[open]} alt={`${title} — ${open + 1}`} fill sizes="100vw" style={{ objectFit: "contain" }} />
           </div>
+          {media.length > 1 && (
+            <button
+              type="button"
+              className="acc-lightbox-nav acc-lightbox-next"
+              onClick={() => setOpen((open + 1) % media.length)}
+              aria-label={t("photoNext")}
+            >
+              ›
+            </button>
+          )}
+          <p className="acc-lightbox-count">{t("photoOf", { n: open + 1, total: media.length })}</p>
         </div>
       )}
     </>

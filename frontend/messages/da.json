@@ -525,6 +525,10 @@
     "errorTierCapacity": "Hver overnatning skal have mindst én gæst og må ikke overfyldes (babyer tæller ikke)."
   },
   "tourDetail": {
+    "photoPrevious": "Forrige foto",
+    "photoNext": "Næste foto",
+    "photoOf": "Foto {n} af {total}",
+    "allPhotos": "Alle fotos",
     "breadcrumbCircuits": "Ture",
     "fromPrice": "Fra {price} €",
     "ratingFact": "{rating} ★ ({count} anmeldelser)",

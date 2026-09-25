@@ -737,6 +737,10 @@
     "errorTierCapacity": "Each accommodation needs at least one guest and can’t hold more than it sleeps (infants aren’t counted)."
   },
   "tourDetail": {
+    "photoPrevious": "Previous photo",
+    "photoNext": "Next photo",
+    "photoOf": "Photo {n} of {total}",
+    "allPhotos": "All photos",
     "breadcrumbCircuits": "Circuits",
     "fromPrice": "From €{price}",
     "ratingFact": "{rating} ★ ({count} reviews)",

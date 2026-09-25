@@ -737,6 +737,10 @@
     "errorTierCapacity": "Chaque hébergement doit accueillir au moins un voyageur, sans dépasser sa capacité (les bébés ne comptent pas)."
   },
   "tourDetail": {
+    "photoPrevious": "Photo précédente",
+    "photoNext": "Photo suivante",
+    "photoOf": "Photo {n} sur {total}",
+    "allPhotos": "Toutes les photos",
     "breadcrumbCircuits": "Circuits",
     "fromPrice": "À partir de {price} €",
     "ratingFact": "{rating} ★ ({count} avis)",

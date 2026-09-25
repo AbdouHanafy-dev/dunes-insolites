@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -19,6 +18,7 @@ import CTA from "@/components/CTA";
 import WishlistButton from "@/components/WishlistButton";
 import ShareButton from "@/components/ShareButton";
 import TourPhotoGallery from "@/components/TourPhotoGallery";
+import AccGallery from "@/components/AccGallery";
 import { site } from "@/lib/site";
 
 type Props = {
@@ -53,13 +53,15 @@ export default async function StayDetail({ params, searchParams }: Props) {
   const stay = await getStay(slug, locale);
   if (!stay) notFound();
 
-  const [related, activities, stayReviews, t, tLinks, tNav] = await Promise.all([
+  const [related, activities, stayReviews, t, tLinks, tNav, tTour, tGallery] = await Promise.all([
     getRelatedStays(slug, locale).then((r) => r.slice(0, 2)),
     getActivities(locale),
     getReviews({ staySlug: slug }),
     getTranslations("stayDetail"),
     getTranslations("contentLinks"),
     getTranslations("nav"),
+    getTranslations("tourDetail"),
+    getTranslations("galleryGrid"),
   ]);
 
   // Price shown follows how the stay is sold: with accommodation types the guest
@@ -262,17 +264,18 @@ export default async function StayDetail({ params, searchParams }: Props) {
 
               {stay.gallery.filter(isDisplayableImageSrc).length > 0 && (
                 <Reveal>
-                  <div className="detail-gallery">
-                    {stay.gallery.filter(isDisplayableImageSrc).map((src, i) => (
-                      <div key={`${src}-${i}`} className="g">
-                        <Image
-                          src={src}
-                          alt={`${stay.title} — photo ${i + 1}`}
-                          fill
-                          sizes="(max-width: 900px) 50vw, 33vw"
-                        />
-                      </div>
-                    ))}
+                  <div style={{ "--acc-ink": "#241b17" } as React.CSSProperties}>
+                  <AccGallery
+                    photos={stay.gallery.filter(isDisplayableImageSrc)}
+                    title={stay.title}
+                    labels={{
+                      viewAll: tTour("allPhotos"),
+                      close: tGallery("close"),
+                      previous: tTour("photoPrevious"),
+                      next: tTour("photoNext"),
+                      photoOf: tTour("photoOf", { n: "{n}", total: "{total}" }),
+                    }}
+                  />
                   </div>
                 </Reveal>
               )}

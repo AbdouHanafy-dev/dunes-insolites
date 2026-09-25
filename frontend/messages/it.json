@@ -525,6 +525,10 @@
     "errorTierCapacity": "Ogni alloggio deve avere almeno un ospite e non superare la capienza (i neonati non contano)."
   },
   "tourDetail": {
+    "photoPrevious": "Foto precedente",
+    "photoNext": "Foto successiva",
+    "photoOf": "Foto {n} di {total}",
+    "allPhotos": "Tutte le foto",
     "breadcrumbCircuits": "Circuiti",
     "fromPrice": "A partire da {price} €",
     "ratingFact": "{rating} ★ ({count} recensioni)",

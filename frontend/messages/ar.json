@@ -525,6 +525,10 @@
     "errorTierCapacity": "يجب أن يضم كل مكان إقامة ضيفًا واحدًا على الأقل ولا يتجاوز سعته (الرضّع غير محسوبين)."
   },
   "tourDetail": {
+    "photoPrevious": "الصورة السابقة",
+    "photoNext": "الصورة التالية",
+    "photoOf": "صورة {n} من {total}",
+    "allPhotos": "كل الصور",
     "breadcrumbCircuits": "الرحلات",
     "fromPrice": "ابتداءً من {price} €",
     "ratingFact": "{rating} ★ ({count} تقييمًا)",

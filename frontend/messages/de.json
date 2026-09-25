@@ -525,6 +525,10 @@
     "errorTierCapacity": "Jede Unterkunft braucht mindestens einen Gast und darf nicht überbelegt sein (Babys zählen nicht)."
   },
   "tourDetail": {
+    "photoPrevious": "Vorheriges Foto",
+    "photoNext": "Nächstes Foto",
+    "photoOf": "Foto {n} von {total}",
+    "allPhotos": "Alle Fotos",
     "breadcrumbCircuits": "Rundreisen",
     "fromPrice": "Ab {price} €",
     "ratingFact": "{rating} ★ ({count} Bewertungen)",
