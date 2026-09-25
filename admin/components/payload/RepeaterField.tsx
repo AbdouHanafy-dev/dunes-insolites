@@ -17,7 +17,13 @@ export default function RepeaterField({
   onChange: (items: Record<string, unknown>[]) => void;
 }) {
   function addItem() {
-    onChange([...items, {}]);
+    // A <select> shows its first option, so a new row must actually hold it - otherwise
+    // the row is sent without the value and the server rejects it as missing.
+    const blank: Record<string, unknown> = {};
+    for (const f of fields) {
+      if (f.type === "select" && f.options[0]) blank[f.key] = f.options[0].value;
+    }
+    onChange([...items, blank]);
   }
 
   function removeItem(index: number) {
