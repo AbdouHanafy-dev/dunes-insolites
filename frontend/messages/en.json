@@ -2828,10 +2828,9 @@
   },
   "activityDuration": {
     "label": "Duration",
-    "minutes": "{n} min",
-    "oneHour": "1 Hour",
-    "hours": "{h}H",
-    "hoursMinutes": "{h}:{mm}H",
+    "minutes": "{n, plural, one {# minute} other {# minutes}}",
+    "hours": "{h, plural, one {# hour} other {# hours}}",
+    "hoursMinutes": "{h, plural, one {# hour} other {# hours}} and {mm, plural, one {# minute} other {# minutes}}",
     "decrease": "Shorten {title}",
     "increase": "Lengthen {title}"
   },

@@ -41,12 +41,18 @@ describe("activity timing", () => {
     expect(canExtend({ priceFrom: 1 } as typeof quad)).toBe(false);
   });
 
-  it("labels 30 min, 1 Hour, 1:30H, 2H", async () => {
+  it("writes a duration out in hours and minutes once it reaches an hour", async () => {
     const { formatSessionMinutes } = await import("@/lib/activityPricing");
-    const labels = { minutes: (n: number) => `${n} min`, oneHour: "1 Hour", hours: (h: number, mm: string) => `${h}${mm ? `:${mm}` : ""}H` };
-    expect(formatSessionMinutes(30, labels)).toBe("30 min");
-    expect(formatSessionMinutes(60, labels)).toBe("1 Hour");
-    expect(formatSessionMinutes(90, labels)).toBe("1:30H");
-    expect(formatSessionMinutes(120, labels)).toBe("2H");
+    const labels = {
+      minutes: (n: number) => `${n} minutes`,
+      hours: (h: number) => (h === 1 ? "1 hour" : `${h} hours`),
+      hoursMinutes: (h: number, mm: number) => `${h === 1 ? "1 hour" : `${h} hours`} and ${mm} minutes`,
+    };
+    expect(formatSessionMinutes(30, labels)).toBe("30 minutes");
+    expect(formatSessionMinutes(59, labels)).toBe("59 minutes");
+    expect(formatSessionMinutes(60, labels)).toBe("1 hour");
+    expect(formatSessionMinutes(90, labels)).toBe("1 hour and 30 minutes");
+    expect(formatSessionMinutes(120, labels)).toBe("2 hours");
+    expect(formatSessionMinutes(150, labels)).toBe("2 hours and 30 minutes");
   });
 });

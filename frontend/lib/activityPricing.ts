@@ -65,18 +65,17 @@ export function stepDuration(activity: ActivityTiming, current: number, directio
 }
 
 /**
- * Label shown between the − and +: "30 min" under an hour, "1 Hour" at 60,
- * then "1:30H", "2H", "2:30H"…
+ * Label shown between the − and +, written out in hours and minutes:
+ * "30 minutes", "1 hour", "1 hour and 30 minutes", "2 hours"…
  */
 export function formatSessionMinutes(
   minutes: number,
-  labels: { minutes: (n: number) => string; oneHour: string; hours: (h: number, mm: string) => string },
+  labels: { minutes: (n: number) => string; hours: (h: number) => string; hoursMinutes: (h: number, mm: number) => string },
 ): string {
   if (minutes < 60) return labels.minutes(minutes);
-  if (minutes === 60) return labels.oneHour;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return labels.hours(h, m === 0 ? "" : String(m).padStart(2, "0"));
+  return m === 0 ? labels.hours(h) : labels.hoursMinutes(h, m);
 }
 
 /** Display estimate for a session of `minutes`: the unit price scales by minutes ÷ base. */

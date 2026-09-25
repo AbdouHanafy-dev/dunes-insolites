@@ -1343,10 +1343,9 @@
   },
   "activityDuration": {
     "label": "Varighed",
-    "minutes": "{n} min",
-    "oneHour": "1 time",
-    "hours": "{h}H",
-    "hoursMinutes": "{h}:{mm}H",
+    "minutes": "{n, plural, one {# minut} other {# minutter}}",
+    "hours": "{h, plural, one {# time} other {# timer}}",
+    "hoursMinutes": "{h, plural, one {# time} other {# timer}} og {mm, plural, one {# minut} other {# minutter}}",
     "decrease": "Forkort {title}",
     "increase": "Forlæng {title}"
   },

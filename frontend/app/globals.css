@@ -6791,7 +6791,7 @@ body:has(.auth-page) footer.site-footer {
 
 /* Timed activities: duration stepper under a ticked activity. */
 .ride-duration { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -4px 0 8px; padding: 8px 14px; border: 1px solid rgba(42, 21, 16, 0.1); border-top: 0; font-size: 14px; }
-.ride-duration .ride-duration-value { min-width: 72px; padding: 0 8px; }
+.ride-duration .ride-duration-value { min-width: 96px; padding: 0 8px; text-align: center; line-height: 1.25; }
 
 /* Accommodation tiers: who sleeps where (shown when several tiers are picked). */
 .acc-card-guests { display: grid; gap: 8px; padding: 10px 14px; border-top: 1px dashed rgba(42, 21, 16, 0.14); }

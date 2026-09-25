@@ -21,8 +21,8 @@ export default function ActivityDurationStepper({
   const t = useTranslations("activityDuration");
   const label = formatSessionMinutes(minutes, {
     minutes: (n) => t("minutes", { n }),
-    oneHour: t("oneHour"),
-    hours: (h, mm) => (mm ? t("hoursMinutes", { h, mm }) : t("hours", { h })),
+    hours: (h) => t("hours", { h }),
+    hoursMinutes: (h, mm) => t("hoursMinutes", { h, mm }),
   });
 
   return (
@@ -47,13 +47,13 @@ export default function ActivityDurationStepper({
   );
 }
 
-/** The "30 min / 1 Hour / 1:30H" formatter, translated, for summaries outside the stepper. */
+/** The "30 minutes / 1 hour and 30 minutes" formatter, translated, for summaries outside the stepper. */
 export function useSessionLabel(): (minutes: number) => string {
   const t = useTranslations("activityDuration");
   return (minutes) =>
     formatSessionMinutes(minutes, {
       minutes: (n) => t("minutes", { n }),
-      oneHour: t("oneHour"),
-      hours: (h, mm) => (mm ? t("hoursMinutes", { h, mm }) : t("hours", { h })),
+      hours: (h) => t("hours", { h }),
+      hoursMinutes: (h, mm) => t("hoursMinutes", { h, mm }),
     });
 }

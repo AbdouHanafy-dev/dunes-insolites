@@ -1343,10 +1343,9 @@
   },
   "activityDuration": {
     "label": "Durata",
-    "minutes": "{n} min",
-    "oneHour": "1 ora",
-    "hours": "{h}H",
-    "hoursMinutes": "{h}:{mm}H",
+    "minutes": "{n, plural, one {# minuto} other {# minuti}}",
+    "hours": "{h, plural, one {# ora} other {# ore}}",
+    "hoursMinutes": "{h, plural, one {# ora} other {# ore}} e {mm, plural, one {# minuto} other {# minuti}}",
     "decrease": "Riduci {title}",
     "increase": "Aumenta {title}"
   },

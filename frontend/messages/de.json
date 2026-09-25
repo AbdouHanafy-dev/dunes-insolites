@@ -1343,10 +1343,9 @@
   },
   "activityDuration": {
     "label": "Dauer",
-    "minutes": "{n} Min.",
-    "oneHour": "1 Stunde",
-    "hours": "{h}H",
-    "hoursMinutes": "{h}:{mm}H",
+    "minutes": "{n, plural, one {# Minute} other {# Minuten}}",
+    "hours": "{h, plural, one {# Stunde} other {# Stunden}}",
+    "hoursMinutes": "{h, plural, one {# Stunde} other {# Stunden}} und {mm, plural, one {# Minute} other {# Minuten}}",
     "decrease": "{title} verkürzen",
     "increase": "{title} verlängern"
   },
