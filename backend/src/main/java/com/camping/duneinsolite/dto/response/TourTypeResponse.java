@@ -26,6 +26,10 @@ public class TourTypeResponse {
     private java.math.BigDecimal partnerChildPrice;
     private java.math.BigDecimal tva;
 
+    /** Cities the guest may depart from / be dropped back to; ticked in the backoffice. */
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> departureCities;
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> returnCities;
+
     private String aboutText;
     private List<String> highlights;
     private List<String> includedItems;

@@ -58,8 +58,11 @@ public class PublicTourMapper {
         response.setTitle(name);
         response.setDescription(description);
         response.setAboutText(aboutText);
-        response.setDuration(tour.getDuration());
+        response.setDurationHours(tour.getDurationHours());
+        response.setDuration(com.camping.duneinsolite.service.TourDuration.label(tour.getDurationHours()));
         response.setLocation(tour.getLocation());
+        response.setDepartureCities(com.camping.duneinsolite.service.PickupCities.names(tour.getDepartureCities()));
+        response.setReturnCities(com.camping.duneinsolite.service.PickupCities.names(tour.getReturnCities()));
         response.setMeetingPoint(tour.getMeetingPoint());
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
         response.setOvernightsAtCamp(requiresCampAccommodation(tour));
@@ -142,12 +145,8 @@ public class PublicTourMapper {
     }
 
     private static boolean requiresCampAccommodation(Tour tour) {
-        if (Boolean.TRUE.equals(tour.getOvernightsAtCamp())) return true;
-        if (tour.getDuration() == null) return false;
-        java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("(\\d+)\\s*(?:jours?|days?)\\b", java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(tour.getDuration());
-        return matcher.find() && Integer.parseInt(matcher.group(1)) > 1;
+        return Boolean.TRUE.equals(tour.getOvernightsAtCamp())
+                || com.camping.duneinsolite.service.TourDuration.isMultiDay(tour.getDurationHours());
     }
 
     private static List<String> orEmpty(List<String> list) {
@@ -164,6 +163,10 @@ public class PublicTourMapper {
         }).toList();
     }
 
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
+    }
+
     private static List<String> gallery(List<Photo> photos) {
         return photos == null ? List.of() : photos.stream().map(Photo::getUrl).toList();
     }
@@ -178,6 +181,10 @@ public class PublicTourMapper {
             step.setSegmentType(s.getSegmentType() == null ? null : s.getSegmentType().name());
             step.setOptionalSegment(s.getOptionalSegment());
             step.setDurationMinutes(s.getDurationMinutes());
+            step.setPickupPoint(blankToNull(s.getPickupPoint()));
+            step.setDropoffPoint(blankToNull(s.getDropoffPoint()));
+            step.setAttraction(blankToNull(s.getAttraction()));
+            step.setImages(s.getImageUrls() == null ? List.of() : List.copyOf(s.getImageUrls()));
             return step;
         }).toList();
     }

@@ -39,10 +39,37 @@ final class PublicCatalogTranslation {
     }
 
     static List<String> list(List<String> base, List<String> translated) {
-        return (translated == null || translated.isEmpty()) ? base : translated;
+        if (translated == null || translated.isEmpty()) return base;
+        return translated;
+    }
+
+    private static String own(String translated, String fallback) {
+        return translated != null && !translated.isBlank() ? translated : fallback;
     }
 
     static List<ProgramStep> steps(List<ProgramStep> base, List<ProgramStep> translated) {
-        return (translated == null || translated.isEmpty()) ? base : translated;
+        if (translated == null || translated.isEmpty()) return base;
+        // Images do not depend on the language: a translated step without its own
+        // keeps the images of the same step in the source language.
+        // Copies, never the managed embeddables themselves: this is a read path.
+        List<ProgramStep> merged = new java.util.ArrayList<>();
+        for (int i = 0; i < translated.size(); i++) {
+            ProgramStep t = translated.get(i);
+            ProgramStep copy = new ProgramStep(t.getLabel(), t.getTitle(), t.getDescription());
+            copy.setSegmentType(t.getSegmentType());
+            copy.setOptionalSegment(t.getOptionalSegment());
+            copy.setDurationMinutes(t.getDurationMinutes());
+            // Same step in the source language when this one has no text of its own.
+            ProgramStep source = base != null && i < base.size() ? base.get(i) : null;
+            copy.setPickupPoint(own(t.getPickupPoint(), source == null ? null : source.getPickupPoint()));
+            copy.setDropoffPoint(own(t.getDropoffPoint(), source == null ? null : source.getDropoffPoint()));
+            copy.setAttraction(own(t.getAttraction(), source == null ? null : source.getAttraction()));
+            boolean own = t.getImageUrls() != null && !t.getImageUrls().isEmpty();
+            List<String> images = own ? t.getImageUrls()
+                    : (base != null && i < base.size() && base.get(i).getImageUrls() != null ? base.get(i).getImageUrls() : List.of());
+            copy.setImageUrls(new java.util.ArrayList<>(images));
+            merged.add(copy);
+        }
+        return merged;
     }
 }

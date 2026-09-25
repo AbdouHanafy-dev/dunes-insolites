@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { formatTourDuration } from "@/lib/tourDuration";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
@@ -68,6 +69,7 @@ export default function Header({
   const tAccount = useTranslations("account");
   const tCircuits = useTranslations("circuitsSection");
   const tMenu = useTranslations("mobileMenu");
+  const tDuration = useTranslations("tourDuration");
   const pathname = usePathname();
   const router = useRouter();
 
@@ -149,7 +151,7 @@ export default function Header({
       href: "/circuits",
       items: tours.map((tour) => ({
         label: tour.title,
-        detail: tour.duration,
+        detail: formatTourDuration(tDuration, tour),
         href: `/circuits/${tour.slug}`,
         image: tour.coverImage || tour.gallery[0] || "/images/gate.jpg",
         // A circuit that sleeps at the camp offers the camp's accommodation

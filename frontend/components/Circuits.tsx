@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { getTours } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
+import { formatTourDuration } from "@/lib/tourDuration";
 import Reveal from "@/components/Reveal";
 import { getSiteImages } from "@/lib/api";
 
@@ -23,9 +24,10 @@ import { getSiteImages } from "@/lib/api";
 const MAX_HOME_CIRCUITS = 4;
 
 export default async function Circuits() {
-  const [tours, t, images] = await Promise.all([
+  const [tours, t, tDuration, images] = await Promise.all([
     getTours(await getLocale()),
     getTranslations("circuitsSection"),
+    getTranslations("tourDuration"),
     getSiteImages(),
   ]);
   if (!tours.length) return null;
@@ -56,7 +58,7 @@ export default async function Circuits() {
                 <span className="route-dossier-cap">
                   <span className="route-dossier-topline">
                     <span className="idx-label">{String(i + 1).padStart(2, "0")}</span>
-                    <span>{tour.duration}</span>
+                    <span>{formatTourDuration(tDuration, tour)}</span>
                   </span>
                   <strong>{tour.title}</strong>
                   <span className="route-dossier-description">{tour.description}</span>

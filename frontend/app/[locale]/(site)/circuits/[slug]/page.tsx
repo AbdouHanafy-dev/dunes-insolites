@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { formatTourDuration, isMultiDayTour } from "@/lib/tourDuration";
 import { getTour, getTours, getRelatedTours, getReviews } from "@/lib/api";
 import { averageRating } from "@/lib/data/reviews";
 import { localeHref, localeAlternates } from "@/i18n/routing";
@@ -68,12 +70,13 @@ export default async function TourDetail({ params }: Props) {
     mustBring: rawTour.mustBring ?? [],
   };
 
-  const [related, tourReviews, t, tLinks, tNav] = await Promise.all([
+  const [related, tourReviews, t, tLinks, tNav, tDuration] = await Promise.all([
     getRelatedTours(slug, locale).then((items) => items.slice(0, 3)),
     getReviews({ tourSlug: slug }),
     getTranslations("tourDetail"),
     getTranslations("contentLinks"),
     getTranslations("nav"),
+    getTranslations("tourDuration"),
   ]);
 
   const rating = tourReviews.length
@@ -182,7 +185,7 @@ export default async function TourDetail({ params }: Props) {
             </nav>
 
             <div className="tour-essentials" aria-label={t("goodToKnow")}>
-              <div><small>{t("duration")}</small><strong>{tour.duration}</strong></div>
+              <div><small>{t("duration")}</small><strong>{formatTourDuration(tDuration, tour)}</strong></div>
               {tour.groupSize && <div><small>{t("groupSize")}</small><strong>{tour.groupSize}</strong></div>}
               {guideLabel && (
                 <div><small>{t("guideLabel")}</small><strong>{guideLabel}</strong></div>
@@ -252,6 +255,35 @@ export default async function TourDetail({ params }: Props) {
                           </h3>
                         )}
                         {step.description && <p>{step.description}</p>}
+                        {index === 0 && step.pickupPoint && (
+                          <p className="tour-itinerary-pickup">
+                            <strong>{t("pickupPointLabel")}</strong> {step.pickupPoint}
+                          </p>
+                        )}
+                        {index > 0 && index < tour.itinerary.length - 1 && step.attraction && (
+                          <p className="tour-itinerary-pickup tour-itinerary-attraction">
+                            <strong>{t("attractionLabel")}</strong> {step.attraction}
+                          </p>
+                        )}
+                        {index === tour.itinerary.length - 1 && step.dropoffPoint && (
+                          <p className="tour-itinerary-pickup">
+                            <strong>{t("dropoffPointLabel")}</strong> {step.dropoffPoint}
+                          </p>
+                        )}
+                        {step.images && step.images.length > 0 && (
+                          <div className="tour-itinerary-media" data-count={Math.min(step.images.length, 4)}>
+                            {step.images.map((src, i) => (
+                              <span className="tour-itinerary-photo" key={src}>
+                                <Image
+                                  src={src}
+                                  alt={`${step.title ?? ""} — ${i + 1}`.trim()}
+                                  fill
+                                  sizes="(max-width: 900px) 90vw, 340px"
+                                />
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         {step.durationMinutes != null && (
                           <p className="tour-itinerary-duration">{step.durationMinutes} min</p>
                         )}
@@ -416,10 +448,11 @@ export default async function TourDetail({ params }: Props) {
               adultPrice={tour.passengerAdultPrice}
               childPrice={tour.passengerChildPrice}
               infantPrice={tour.passengerInfantPrice}
-              overnightsAtCamp={Boolean(tour.overnightsAtCamp)
-                || Number(tour.duration.match(/(\d+)\s*(?:jours?|days?)\b/i)?.[1] ?? 0) > 1}
+              overnightsAtCamp={Boolean(tour.overnightsAtCamp) || isMultiDayTour(tour)}
               accommodations={tour.accommodations ?? []}
               campStaySlug={tour.campStaySlug ?? ""}
+              departureCities={tour.departureCities}
+              returnCities={tour.returnCities}
             />
           </aside>
         </div>

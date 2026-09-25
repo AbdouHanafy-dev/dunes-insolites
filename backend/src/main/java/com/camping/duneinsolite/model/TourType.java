@@ -156,6 +156,21 @@ public class TourType {
     @Embedded
     private CancellationPolicy cancellationPolicy;
 
+    // Departure / return cities this product offers (see PickupCities).
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tour_type_departure_cities", joinColumns = @JoinColumn(name = "tour_type_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "city")
+    @Builder.Default
+    private Set<com.camping.duneinsolite.model.enums.DepartureCity> departureCities = new HashSet<>(com.camping.duneinsolite.service.PickupCities.all());
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tour_type_return_cities", joinColumns = @JoinColumn(name = "tour_type_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "city")
+    @Builder.Default
+    private Set<com.camping.duneinsolite.model.enums.DepartureCity> returnCities = new HashSet<>(com.camping.duneinsolite.service.PickupCities.all());
+
     @Column(name = "cover_photo_url")
     private String coverPhotoUrl;
 

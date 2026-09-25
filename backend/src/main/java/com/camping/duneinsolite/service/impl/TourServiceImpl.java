@@ -3,6 +3,7 @@ package com.camping.duneinsolite.service.impl;
 import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.dto.request.TourRequest;
 import com.camping.duneinsolite.dto.request.TourUpdateRequest;
+import com.camping.duneinsolite.service.PickupCities;
 import com.camping.duneinsolite.dto.response.TourResponse;
 import com.camping.duneinsolite.dto.response.publicapi.PublicTourResponse;
 import com.camping.duneinsolite.exception.ConflictException;
@@ -47,6 +48,8 @@ public class TourServiceImpl implements TourService {
             throw new ConflictException("A tour with the name '" + request.getName() + "' already exists");
         }
         Tour tour = tourMapper.toEntity(request);
+        tour.setDepartureCities(PickupCities.departureForSave(request.getDepartureCities(), null));
+        tour.setReturnCities(PickupCities.returnForSave(request.getReturnCities(), null));
         if (tour.getIsActive() == null) {
             tour.setIsActive(true);
         }
@@ -72,7 +75,11 @@ public class TourServiceImpl implements TourService {
     public TourResponse updateTour(UUID tourId, TourUpdateRequest request) {
         Tour tour = findById(tourId);
         Boolean previousIsActive = tour.getIsActive();
+        var previousDeparture = new java.util.HashSet<>(tour.getDepartureCities());
+        var previousReturn = new java.util.HashSet<>(tour.getReturnCities());
         tourMapper.updateEntity(request, tour);
+        tour.setDepartureCities(PickupCities.departureForSave(request.getDepartureCities(), previousDeparture));
+        tour.setReturnCities(PickupCities.returnForSave(request.getReturnCities(), previousReturn));
         if (tour.getIsActive() == null) {
             tour.setIsActive(previousIsActive);
         }

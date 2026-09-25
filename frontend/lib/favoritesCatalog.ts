@@ -1,4 +1,6 @@
 import { getActivities, getSiteImages, getStays, getTours } from "@/lib/api";
+import { getTranslations } from "next-intl/server";
+import { formatTourDuration } from "@/lib/tourDuration";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import { activityCardFallback, stayCardFallback } from "@/lib/siteImages";
 import type { FavoriteKind } from "@/lib/favorites";
@@ -21,6 +23,7 @@ export type FavoriteCatalogItem = {
  * doing it here keeps the client free of data fetching.
  */
 export async function getFavoritesCatalog(locale: string): Promise<FavoriteCatalogItem[]> {
+  const tDuration = await getTranslations({ locale, namespace: "tourDuration" });
   const [tours, stays, activities, images] = await Promise.all([
     getTours(locale),
     getStays(locale),
@@ -33,7 +36,7 @@ export async function getFavoritesCatalog(locale: string): Promise<FavoriteCatal
       kind: "tour",
       slug: t.slug,
       title: t.title,
-      kicker: t.duration,
+      kicker: formatTourDuration(tDuration, t),
       image: t.coverImage || images["circuit.default"],
       href: `/circuits/${t.slug}`,
       priceFrom: t.priceFrom,

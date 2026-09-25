@@ -37,8 +37,9 @@ public class Tour {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "duration")
-    private String duration;
+    // Whole hours; days/nights are derived for display (see TourDuration).
+    @Column(name = "duration_hours")
+    private Integer durationHours;
 
     @Column(name = "passenger_adult_price", nullable = false)
     private java.math.BigDecimal passengerAdultPrice;
@@ -217,6 +218,21 @@ public class Tour {
     @OrderColumn(name = "step_order")
     @Builder.Default
     private List<ProgramStep> programSteps = new ArrayList<>();
+
+    // Departure / return cities this product offers (see PickupCities).
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tour_departure_cities", joinColumns = @JoinColumn(name = "tour_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "city")
+    @Builder.Default
+    private Set<com.camping.duneinsolite.model.enums.DepartureCity> departureCities = new HashSet<>(com.camping.duneinsolite.service.PickupCities.all());
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tour_return_cities", joinColumns = @JoinColumn(name = "tour_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "city")
+    @Builder.Default
+    private Set<com.camping.duneinsolite.model.enums.DepartureCity> returnCities = new HashSet<>(com.camping.duneinsolite.service.PickupCities.all());
 
     @Column(name = "meeting_point")
     private String meetingPoint;

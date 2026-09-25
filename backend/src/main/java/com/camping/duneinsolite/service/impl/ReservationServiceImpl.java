@@ -631,7 +631,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .catalogTourId(tour.getTourId())
                 .name(tour.getName())
                 .description(tour.getDescription())
-                .duration(tour.getDuration())
+                .duration(com.camping.duneinsolite.service.TourDuration.label(tour.getDurationHours()))
                 .adultPrice(adultPrice)
                 .childPrice(childPrice)
                 .infantPrice(infantPrice)

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
+import { formatTourDuration } from "@/lib/tourDuration";
 import { Link } from "@/i18n/navigation";
 import type { Tour } from "@/lib/types";
 import Stars from "./Stars";
@@ -19,7 +20,11 @@ export default async function TourCard({
   tour: Tour;
   preload?: boolean;
 }) {
-  const [t, images] = await Promise.all([getTranslations("tourCard"), getSiteImages()]);
+  const [t, tDuration, images] = await Promise.all([
+    getTranslations("tourCard"),
+    getTranslations("tourDuration"),
+    getSiteImages(),
+  ]);
   const cover = tour.coverImage || images["circuit.default"];
   const hasReviews = (tour.reviewCount ?? 0) > 0;
   const hasDiscount = tour.originalPriceFrom != null && tour.originalPriceFrom > tour.priceFrom;
@@ -42,7 +47,7 @@ export default async function TourCard({
         />
       </span>
       <span className="edit-card-cap">
-        <span className="idx-label">{tour.duration}</span>
+        <span className="idx-label">{formatTourDuration(tDuration, tour)}</span>
         <span className="edit-card-title">{tour.title}</span>
         <span className="edit-card-desc">{tour.description}</span>
         <span className="edit-card-meta">

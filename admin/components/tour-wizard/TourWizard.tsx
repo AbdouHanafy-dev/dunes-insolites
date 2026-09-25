@@ -7,6 +7,9 @@ import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import RepeaterField from "@/components/payload/RepeaterField";
+import CityChecklist from "@/components/payload/CityChecklist";
+import ItineraryStepsField, { stepForSave, type ItineraryStep } from "@/components/tour-wizard/ItineraryStepsField";
+import { ALL_CITIES } from "@/lib/cities";
 import StringListField from "@/components/payload/StringListField";
 import PhotoGalleryField, { type TourPhoto } from "./PhotoGalleryField";
 import TranslationsField, {
@@ -15,16 +18,8 @@ import TranslationsField, {
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
 import type { AdminSpokenLanguage, AdminTour } from "@/lib/api";
+import { MAX_TOUR_HOURS, MIN_TOUR_HOURS, tourDurationLabel, tourHoursError } from "@/lib/tourDuration";
 
-type SegmentType = "ACTIVITY" | "TRANSFER";
-type ProgramStep = {
-  label: string;
-  title: string;
-  description: string;
-  segmentType: SegmentType;
-  optionalSegment: boolean;
-  durationMinutes: number | null;
-};
 
 type TourStatus = "DRAFT" | "IN_REVIEW" | "PUBLISHED" | "REJECTED";
 type GuideType = "NONE" | "TOUR_GUIDE" | "RECEPTION_STAFF" | "INSTRUCTOR" | "DRIVER";
@@ -36,7 +31,8 @@ type TourForm = {
   name: string;
   slug: string;
   description: string;
-  duration: string;
+  /** Raw input, so a half-typed value is not rewritten under the cursor. */
+  durationHours: string;
   location: string;
   groupSizeType: string;
   aboutText: string;
@@ -44,7 +40,9 @@ type TourForm = {
   includedItems: string[];
   notIncludedItems: string[];
   keywords: string[];
-  programSteps: ProgramStep[];
+  programSteps: ItineraryStep[];
+  departureCities: string[];
+  returnCities: string[];
   guideType: GuideType;
   overnightsAtCamp: boolean;
   foodIncluded: boolean;
@@ -87,7 +85,7 @@ const EMPTY_FORM: TourForm = {
   name: "",
   slug: "",
   description: "",
-  duration: "",
+  durationHours: "",
   location: "",
   groupSizeType: "TOUTES_TAILLES",
   aboutText: "",
@@ -96,6 +94,8 @@ const EMPTY_FORM: TourForm = {
   notIncludedItems: [],
   keywords: [],
   programSteps: [],
+  departureCities: ALL_CITIES,
+  returnCities: ALL_CITIES,
   guideType: "NONE",
   overnightsAtCamp: false,
   foodIncluded: false,
@@ -141,7 +141,7 @@ function fromInitialData(data?: AdminTour): TourForm {
     name: data.name,
     slug: data.slug ?? "",
     description: data.description ?? "",
-    duration: data.duration ?? "",
+    durationHours: data.durationHours != null ? String(data.durationHours) : "",
     location: data.location ?? "",
     groupSizeType: data.groupSizeType ?? EMPTY_FORM.groupSizeType,
     aboutText: data.aboutText ?? "",
@@ -156,7 +156,13 @@ function fromInitialData(data?: AdminTour): TourForm {
       segmentType: s.segmentType ?? "ACTIVITY",
       optionalSegment: s.optionalSegment ?? false,
       durationMinutes: s.durationMinutes ?? null,
+      pickupPoint: s.pickupPoint ?? "",
+      dropoffPoint: s.dropoffPoint ?? "",
+      attraction: s.attraction ?? "",
+      imageUrls: s.imageUrls ?? [],
     })),
+    departureCities: data.departureCities ?? ALL_CITIES,
+    returnCities: data.returnCities ?? ALL_CITIES,
     guideType: data.guideType ?? "NONE",
     overnightsAtCamp: data.overnightsAtCamp ?? false,
     foodIncluded: data.foodIncluded ?? false,
@@ -201,7 +207,7 @@ function toRequestBody(form: TourForm) {
     name: form.name,
     slug: form.slug || undefined,
     description: form.description || null,
-    duration: form.duration || null,
+    durationHours: form.durationHours.trim() === "" ? null : Number(form.durationHours),
     location: form.location || null,
     groupSizeType: form.groupSizeType || null,
     aboutText: form.aboutText || null,
@@ -209,7 +215,9 @@ function toRequestBody(form: TourForm) {
     includedItems: form.includedItems,
     notIncludedItems: form.notIncludedItems,
     keywords: form.keywords,
-    programSteps: form.programSteps,
+    programSteps: form.programSteps.map((s, i) => stepForSave(s, i, form.programSteps.length)),
+    departureCities: form.departureCities,
+    returnCities: form.returnCities,
     guideType: form.guideType,
     overnightsAtCamp: form.overnightsAtCamp,
     foodIncluded: form.foodIncluded,
@@ -254,11 +262,6 @@ const GROUP_SIZE_OPTIONS = [
   { value: "GROUPE_MOYEN", label: "Groupe moyen" },
   { value: "TOUTES_TAILLES", label: "Toutes tailles" },
   { value: "PRIVATIF", label: "Privatif" },
-];
-
-const SEGMENT_TYPE_OPTIONS = [
-  { value: "ACTIVITY", label: "Activité" },
-  { value: "TRANSFER", label: "Transfert" },
 ];
 
 const GUIDE_TYPE_OPTIONS: { value: GuideType; label: string }[] = [
@@ -331,7 +334,8 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     setVisited((v) => new Set(v).add(next));
   }
 
-  const basicsValid = form.name.trim().length > 0;
+  const durationError = tourHoursError(form.durationHours);
+  const basicsValid = form.name.trim().length > 0 && durationError === null && form.departureCities.length > 0;
   const salePriceValid = form.salePriceAdult == null || form.salePriceAdult < form.passengerAdultPrice;
   const pricingValid =
     form.passengerAdultPrice >= 0 &&
@@ -498,10 +502,31 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
               <input className={inputClass} value={form.slug} onChange={(e) => patch({ slug: e.target.value })} />
             </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Durée" hint='ex. "3 Jours / 2 Nuits"'>
-                <input className={inputClass} value={form.duration} onChange={(e) => patch({ duration: e.target.value })} />
+              <Field
+                label="Durée (heures)"
+                required
+                hint={
+                  durationError === null
+                    ? `Affichée « ${tourDurationLabel(Number(form.durationHours))} » sur le site`
+                    : "Nombre entier d'heures, 24 h = 1 jour"
+                }
+              >
+                <input
+                  className={inputClass}
+                  type="number"
+                  inputMode="numeric"
+                  min={MIN_TOUR_HOURS}
+                  max={MAX_TOUR_HOURS}
+                  step={1}
+                  value={form.durationHours}
+                  onChange={(e) => patch({ durationHours: e.target.value })}
+                  aria-invalid={form.durationHours !== "" && durationError !== null}
+                />
+                {form.durationHours !== "" && durationError !== null && (
+                  <p className="mt-1 text-[12px] font-semibold text-red-600">{durationError}</p>
+                )}
               </Field>
-              <Field label="Lieu de départ">
+              <Field label="Lieu / région" hint="Affiché sur la page du circuit, utilisé pour la carte et la recherche">
                 <input className={inputClass} value={form.location} onChange={(e) => patch({ location: e.target.value })} />
               </Field>
             </div>
@@ -517,6 +542,12 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                   </option>
                 ))}
               </select>
+            </Field>
+            <Field label="Villes de départ proposées" required hint="Seules les villes cochées apparaissent à l'étape « lieu de départ » de la réservation">
+              <CityChecklist required value={form.departureCities} onChange={(departureCities) => patch({ departureCities })} />
+            </Field>
+            <Field label="Villes de retour proposées" hint="Seules les villes cochées apparaissent à l'étape « lieu de retour ». Aucune cochée : la question n'est pas posée.">
+              <CityChecklist value={form.returnCities} onChange={(returnCities) => patch({ returnCities })} />
             </Field>
             <Field label="Nuit au camp de Sabria">
               <label className="flex items-start gap-2 text-sm text-navy-700/80">
@@ -577,18 +608,9 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             <p className="mb-3 text-[13px] text-navy-700/55">
               Le programme jour par jour (ou étape par étape) que verra le client.
             </p>
-            <RepeaterField
-              itemLabel="Étape"
-              items={form.programSteps as unknown as Record<string, unknown>[]}
-              onChange={(items) => patch({ programSteps: items as unknown as ProgramStep[] })}
-              fields={[
-                { type: "text", key: "label", label: "Repère", hint: 'ex. "Jour 1" ou "09h00"' },
-                { type: "text", key: "title", label: "Titre" },
-                { type: "textarea", key: "description", label: "Description" },
-                { type: "select", key: "segmentType", label: "Type", options: SEGMENT_TYPE_OPTIONS },
-                { type: "checkbox", key: "optionalSegment", label: "Optionnel (supplément possible)" },
-                { type: "number", key: "durationMinutes", label: "Durée (minutes)" },
-              ]}
+            <ItineraryStepsField
+              steps={form.programSteps}
+              onChange={(programSteps) => patch({ programSteps })}
             />
           </div>
         )}
@@ -932,6 +954,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
 
         {step === 9 && (
           <TranslationsField
+            positionalSteps
             translations={form.translations}
             onChange={(translations) => patch({ translations })}
           />
@@ -1153,7 +1176,7 @@ function PreviewCard({ form }: { form: TourForm }) {
       <div className="p-5">
         <h3 className="text-lg font-bold text-navy-800">{form.name || "(sans nom)"}</h3>
         <p className="mt-1 text-sm text-navy-700/60">
-          {form.duration} {form.location && `· ${form.location}`}
+          {tourHoursError(form.durationHours) === null && tourDurationLabel(Number(form.durationHours))} {form.location && `· ${form.location}`}
         </p>
         {form.description && <p className="mt-3 text-sm text-navy-700/80">{form.description}</p>}
 

@@ -24,7 +24,13 @@ public class TourRequest {
 
     private String description;
 
-    private String duration;
+    @jakarta.validation.constraints.Min(value = 1, message = "Duration must be at least 1 hour")
+    @jakarta.validation.constraints.Max(value = 744, message = "Duration cannot exceed 744 hours (one month)")
+    private Integer durationHours;
+
+    /** Cities the guest may depart from / be dropped back to; ticked in the backoffice. */
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> departureCities;
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> returnCities;
 
     private String aboutText;
     private List<String> highlights;

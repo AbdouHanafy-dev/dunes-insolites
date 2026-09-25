@@ -106,6 +106,9 @@ export type Activity = {
  */
 export type Stay = {
   slug: string;
+  /** Cities the guest can depart from / be dropped back to, as ticked in the back office. */
+  departureCities?: DepartureCity[];
+  returnCities?: DepartureCity[];
   title: string;
   kicker: string;
   tagline: string;
@@ -157,9 +160,15 @@ export type Tour = {
   title: string;
   description: string;
   aboutText: string | null;
+  /** Whole hours (>= 1). Null only for a circuit an editor has not filled in yet. */
+  durationHours: number | null;
+  /** The same duration as a French label - fallback for surfaces that cannot localise `durationHours`. */
   duration: string;
   location: string | null;
   meetingPoint: string | null;
+  /** Cities the guest can depart from / be dropped back to, as ticked in the back office. */
+  departureCities?: DepartureCity[];
+  returnCities?: DepartureCity[];
   groupSize: string;
   /** This circuit includes a night at the Sabria camp. */
   overnightsAtCamp?: boolean;
@@ -180,6 +189,12 @@ export type Tour = {
     segmentType: "ACTIVITY" | "TRANSFER" | null;
     optionalSegment: boolean | null;
     durationMinutes: number | null;
+    /** By position, only when the editor filled them: first step = pickup, last = drop-off,
+     *  any step in between = attraction. */
+    pickupPoint?: string | null;
+    dropoffPoint?: string | null;
+    attraction?: string | null;
+    images?: string[];
   }>;
   cancellationPolicy: {
     freeCancellation: boolean | null;

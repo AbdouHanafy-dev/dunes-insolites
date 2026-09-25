@@ -451,7 +451,7 @@ class PublicBookingServiceImplTest {
         UUID tourId = UUID.randomUUID();
         when(tourRepository.findBySlugAndIsActiveTrue("two-day-sabria-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Two-day Sabria circuit")
-                        .duration("2 Jours").overnightsAtCamp(false).isActive(true).build()));
+                        .durationHours(48).overnightsAtCamp(false).isActive(true).build()));
         when(tourTypeRepository.findFirstByCircuitCampTrue())
                 .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
 
@@ -606,7 +606,7 @@ class PublicBookingServiceImplTest {
         UUID accommodationId = UUID.randomUUID();
         when(tourRepository.findBySlugAndIsActiveTrue("one-day-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("One-day circuit")
-                        .duration("1 Jour").overnightsAtCamp(false).isActive(true).build()));
+                        .durationHours(24).overnightsAtCamp(false).isActive(true).build()));
         when(tourTypeRepository.findFirstByCircuitCampTrue())
                 .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
         when(accommodationTypeRepository.findByTourTypeAndSlug(tourTypeId, "desert-tent"))

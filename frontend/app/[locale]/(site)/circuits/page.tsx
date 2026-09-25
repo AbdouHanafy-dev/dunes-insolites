@@ -9,13 +9,6 @@ import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 
-/** Leading integer in a duration string ("7 Jours / 6 Nuits" -> 7). Tours
- *  without a parseable duration always sort after ones that have one,
- *  regardless of direction, rather than landing at an arbitrary spot. */
-function durationDays(duration: string): number | null {
-  const match = duration.match(/\d+/);
-  return match ? Number(match[0]) : null;
-}
 
 function applyFilters(tours: Tour[], q: string | undefined, sort: string | undefined): Tour[] {
   let result = tours;
@@ -33,8 +26,8 @@ function applyFilters(tours: Tour[], q: string | undefined, sort: string | undef
     const sorted = [...result];
     const byPrice = (a: Tour, b: Tour) => a.priceFrom - b.priceFrom;
     const byDuration = (a: Tour, b: Tour) => {
-      const da = durationDays(a.duration);
-      const db = durationDays(b.duration);
+      const da = a.durationHours;
+      const db = b.durationHours;
       if (da === null && db === null) return 0;
       if (da === null) return 1;
       if (db === null) return -1;

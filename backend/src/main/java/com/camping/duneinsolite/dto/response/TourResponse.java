@@ -20,7 +20,7 @@ public class TourResponse {
     private String name;
     private String slug;
     private String description;
-    private String duration;
+    private Integer durationHours;
     private java.math.BigDecimal passengerAdultPrice;
     private java.math.BigDecimal salePriceAdult;
     private java.math.BigDecimal passengerChildPrice;
@@ -34,6 +34,10 @@ public class TourResponse {
     private Boolean complianceConfirmed;
     private Boolean copyrightConfirmed;
     private String rejectionReason;
+
+    /** Cities the guest may depart from / be dropped back to; ticked in the backoffice. */
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> departureCities;
+    private java.util.Set<com.camping.duneinsolite.model.enums.DepartureCity> returnCities;
 
     private String aboutText;
     private List<String> highlights;
