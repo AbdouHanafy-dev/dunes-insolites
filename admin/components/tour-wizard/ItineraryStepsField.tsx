@@ -29,19 +29,19 @@ export function positionalFields(
     key: "pickupPoint" as const,
     tick: "Lieu de prise en charge",
     label: "Lieu de prise en charge",
-    placeholder: "ex. Hôtel, gare, adresse précise",
+    placeholder: "ex. Tunis Clock Tower, Tunis",
   };
   const dropoff = {
     key: "dropoffPoint" as const,
     tick: "Lieu de dépose",
     label: "Lieu de dépose",
-    placeholder: "ex. Hôtel, gare, adresse précise",
+    placeholder: "ex. Bab al-Bhar, Tunis",
   };
   const attraction = {
     key: "attraction" as const,
     tick: "Attraction à cette étape",
     label: "Attraction",
-    placeholder: "ex. Amphithéâtre d'El Jem",
+    placeholder: "ex. Amphithéâtre d'El Jem, Tunisie",
   };
   if (total === 1) return [pickup, dropoff];
   if (index === 0) return [pickup];
@@ -219,7 +219,7 @@ export default function ItineraryStepsField({
                 onChange={(e) => patch(index, { optionalSegment: e.target.checked })}
                 className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
               />
-              Optionnel (supplément possible)
+              Optionnel (« Optionnel · supplément possible » est affiché sous l&apos;étape)
             </label>
 
             {positionalFields(index, steps.length).map((pf) => {
@@ -254,7 +254,10 @@ export default function ItineraryStepsField({
                         value={step[pf.key]}
                         onChange={(e) => patch(index, { [pf.key]: e.target.value })}
                       />
-                      <p className="text-[12px] text-navy-700/45">Affiché sur la page du circuit dans cette étape.</p>
+                      <p className="text-[12px] text-navy-700/45">
+                        Affiché dans cette étape, et utilisé pour tracer l&apos;itinéraire sur la carte de la page
+                        du circuit : écrivez un nom que Google Maps reconnaît (lieu + ville ou pays).
+                      </p>
                     </div>
                   )}
                 </div>
