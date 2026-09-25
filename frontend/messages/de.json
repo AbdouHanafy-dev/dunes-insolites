@@ -207,6 +207,10 @@
     "deskHoursLabel": "Bürozeiten",
     "deskHoursValue": "Täglich, 07:00 – 20:00 Uhr (GMT+1)"
   },
+  "filterBar": {
+    "resultCount": "{count, plural, one {# Ergebnis} other {# Ergebnisse}}",
+    "clearSearch": "Suche löschen"
+  },
   "galleryPage": {
     "eyebrow": "Aus dem Sand",
     "title": "Goldene Stunde, jedes Mal.",

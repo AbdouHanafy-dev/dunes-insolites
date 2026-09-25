@@ -419,6 +419,10 @@
       "faqCta": "Lire la FAQ"
     }
   },
+  "filterBar": {
+    "resultCount": "{count, plural, one {# résultat} other {# résultats}}",
+    "clearSearch": "Effacer la recherche"
+  },
   "galleryPage": {
     "eyebrow": "Depuis le sable",
     "title": "L'heure dorée, à chaque fois.",

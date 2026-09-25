@@ -207,6 +207,10 @@
     "deskHoursLabel": "ساعات العمل",
     "deskHoursValue": "كل يوم، من 07:00 إلى 20:00 (توقيت غرينيتش+1)"
   },
+  "filterBar": {
+    "resultCount": "{count, plural, one {نتيجة واحدة} two {نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
+    "clearSearch": "مسح البحث"
+  },
   "galleryPage": {
     "eyebrow": "من الرمال",
     "title": "ساعة الذهب، في كل مرة.",

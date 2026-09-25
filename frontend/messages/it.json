@@ -207,6 +207,10 @@
     "deskHoursLabel": "Orari dell'ufficio",
     "deskHoursValue": "Tutti i giorni, 07:00 – 20:00 (GMT+1)"
   },
+  "filterBar": {
+    "resultCount": "{count, plural, one {# risultato} other {# risultati}}",
+    "clearSearch": "Cancella la ricerca"
+  },
   "galleryPage": {
     "eyebrow": "Dalla sabbia",
     "title": "Ora dorata, ogni volta.",

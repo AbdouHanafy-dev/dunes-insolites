@@ -419,6 +419,10 @@
       "faqCta": "Read the FAQ"
     }
   },
+  "filterBar": {
+    "resultCount": "{count, plural, one {# result} other {# results}}",
+    "clearSearch": "Clear search"
+  },
   "galleryPage": {
     "eyebrow": "From the sand",
     "title": "Golden hour, every time.",

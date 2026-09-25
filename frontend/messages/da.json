@@ -207,6 +207,10 @@
     "deskHoursLabel": "Åbningstider",
     "deskHoursValue": "Hver dag, 07:00 – 20:00 (GMT+1)"
   },
+  "filterBar": {
+    "resultCount": "{count, plural, one {# resultat} other {# resultater}}",
+    "clearSearch": "Ryd søgning"
+  },
   "galleryPage": {
     "eyebrow": "Fra sandet",
     "title": "Golden hour, hver gang.",
