@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import ContactForm from "@/components/ContactForm";
-import PageHead from "@/components/PageHead";
+import ContactView from "@/components/ContactView";
 import LivePreview from "@/components/LivePreview";
-import { getCmsPage, getSiteSettings } from "@/lib/api";
+import { getCmsPage } from "@/lib/api";
 import { localeAlternates, localeHref } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 
@@ -26,12 +25,6 @@ export async function generateMetadata({
   };
 }
 
-function buildMapSrc(lat: number, lng: number): string {
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.08}%2C${
-    lat - 0.06
-  }%2C${lng + 0.08}%2C${lat + 0.06}&layer=mapnik&marker=${lat}%2C${lng}`;
-}
-
 export default async function ContactPage({
   searchParams,
 }: {
@@ -45,13 +38,11 @@ export default async function ContactPage({
   }
 
   const locale = await getLocale();
-  const [t, cms, tNav, settings] = await Promise.all([
+  const [t, cms, tNav] = await Promise.all([
     getTranslations("contact"),
     getCmsPage(CMS_SLUG, locale),
     getTranslations("nav"),
-    getSiteSettings(),
   ]);
-  const mapSrc = buildMapSrc(settings.coords.lat, settings.coords.lng);
 
   // Only the header reads from the CMS here — the form, info cards and map
   // are real functionality, not editorial content, and were never going to
@@ -62,8 +53,8 @@ export default async function ContactPage({
   // before this section existed.
   const heroBlock = cms?.blocks.find((b) => b.type === "hero");
   const heroData = heroBlock?.data ?? {};
-  const title = (typeof heroData.title === "string" && heroData.title) || t("title");
-  const lead = (typeof heroData.subtitle === "string" && heroData.subtitle) || t("lead");
+  const title = typeof heroData.title === "string" && heroData.title ? heroData.title : undefined;
+  const lead = typeof heroData.subtitle === "string" && heroData.subtitle ? heroData.subtitle : undefined;
 
   const breadcrumbItems = [
     { name: tNav("home"), path: localeHref(locale, "/") },
@@ -77,51 +68,7 @@ export default async function ContactPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
-      <PageHead eyebrow={t("eyebrow")} title={title} lead={lead} image="/images/sandboard.jpg" />
-
-      <section className="section-sand">
-        <div className="wrap">
-          <div className="contact-grid">
-            <div>
-              <ContactForm />
-            </div>
-
-            <aside>
-              <div className="info-list">
-                <div>
-                  <div className="k">{t("emailLabel")}</div>
-                  <div className="v">
-                    <a href={`mailto:${settings.email}`}>{settings.email}</a>
-                  </div>
-                </div>
-                <div>
-                  <div className="k">{t("phoneLabel")}</div>
-                  <div className="v">
-                    <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a>
-                  </div>
-                </div>
-                <div>
-                  <div className="k">{t("gateLabel")}</div>
-                  <div className="v">{settings.address}</div>
-                </div>
-                <div>
-                  <div className="k">{t("deskHoursLabel")}</div>
-                  <div className="v">{t("deskHoursValue")}</div>
-                </div>
-              </div>
-
-              <div className="map-frame">
-                <iframe
-                  src={mapSrc}
-                  title="Map showing Sabria, southern Tunisia"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-            </aside>
-          </div>
-        </div>
-      </section>
+      <ContactView title={title} lead={lead} />
     </>
   );
 }

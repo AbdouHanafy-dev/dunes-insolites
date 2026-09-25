@@ -351,6 +351,74 @@
     "deskHoursLabel": "Desk hours",
     "deskHoursValue": "Every day, 07:00 – 20:00 (GMT+1)"
   },
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Contact",
+      "title": "Let's plan your night in the dunes.",
+      "lead": "Questions about a stay, an activity or a private group? Write to us or message us on WhatsApp: a real person from the camp answers.",
+      "ctaWhatsapp": "Chat on WhatsApp",
+      "ctaForm": "Send a message",
+      "badge": "We reply within 24 hours",
+      "whatsappText": "Hello, I'd like some information about a stay at Dunes Insolites."
+    },
+    "channels": {
+      "whatsapp": {
+        "title": "WhatsApp",
+        "hint": "Fastest answer",
+        "cta": "Open the chat"
+      },
+      "phone": {
+        "title": "Phone",
+        "hint": "Every day",
+        "cta": "Call us"
+      },
+      "email": {
+        "title": "Email",
+        "hint": "Details and groups",
+        "cta": "Write to us"
+      },
+      "visit": {
+        "title": "The camp",
+        "hint": "Sabria, Kébili",
+        "cta": "Get directions"
+      }
+    },
+    "form": {
+      "eyebrow": "Write to us",
+      "title": "Send us a message",
+      "lead": "Tell us your dates, the size of your group and what you have in mind. We come back to you within 24 hours.",
+      "note": "Your details are only used to answer you."
+    },
+    "help": {
+      "eyebrow": "How we can help",
+      "title": "Whatever the plan, we have probably done it.",
+      "items": [
+        "Nights at the camp or in the bivouac",
+        "Camel ride, quad safari and sandboarding",
+        "Private groups and families",
+        "Weddings, events and film crews",
+        "Custom routes across the south"
+      ]
+    },
+    "find": {
+      "eyebrow": "Find us",
+      "title": "The camp near Sabria",
+      "text": "The camp is about 3 km from Sabria and can be reached in a regular car. We confirm the meeting point with you when you book.",
+      "hoursLabel": "Desk hours",
+      "addressLabel": "Address",
+      "openMaps": "Open in Google Maps",
+      "directions": "Get directions",
+      "mapTitle": "Map showing the Dunes Insolites camp near Sabria"
+    },
+    "next": {
+      "bookTitle": "Prefer to book straight away?",
+      "bookText": "Choose your stay and reserve online in a few minutes.",
+      "bookCta": "See the stays",
+      "faqTitle": "Looking for a quick answer?",
+      "faqText": "The most common questions are answered in our FAQ.",
+      "faqCta": "Read the FAQ"
+    }
+  },
   "galleryPage": {
     "eyebrow": "From the sand",
     "title": "Golden hour, every time.",

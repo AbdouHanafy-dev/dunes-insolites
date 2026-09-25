@@ -570,6 +570,7 @@ export const SITE_IMAGE_SLOTS = [
   { key: "about.share", group: "Page « Qui sommes-nous ? »", label: "Carte « Partager un moment »" },
   { key: "about.team", group: "Page « Qui sommes-nous ? »", label: "Grande photo de l’équipe" },
   { key: "about.final", group: "Page « Qui sommes-nous ? »", label: "Photo du bandeau final" },
+  { key: "contact.hero", group: "Page Contact", label: "Photo du haut de page" },
   { key: "activity.quad", group: "Activités (photo par défaut)", label: "Quad" },
   { key: "activity.camel", group: "Activités (photo par défaut)", label: "Balade à dos de chameau" },
   { key: "activity.sandboarding", group: "Activités (photo par défaut)", label: "Sandboard" },

@@ -351,6 +351,74 @@
     "deskHoursLabel": "Horaires du bureau",
     "deskHoursValue": "Tous les jours, 07h00 – 20h00 (GMT+1)"
   },
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Contact",
+      "title": "Préparons ensemble votre nuit dans les dunes.",
+      "lead": "Une question sur un séjour, une activité ou un groupe privé ? Écrivez-nous ou envoyez un message sur WhatsApp : une vraie personne du camp vous répond.",
+      "ctaWhatsapp": "Discuter sur WhatsApp",
+      "ctaForm": "Envoyer un message",
+      "badge": "Réponse sous 24 heures",
+      "whatsappText": "Bonjour, j'aimerais avoir des informations sur un séjour à Dunes Insolites."
+    },
+    "channels": {
+      "whatsapp": {
+        "title": "WhatsApp",
+        "hint": "Réponse la plus rapide",
+        "cta": "Ouvrir la discussion"
+      },
+      "phone": {
+        "title": "Téléphone",
+        "hint": "Tous les jours",
+        "cta": "Nous appeler"
+      },
+      "email": {
+        "title": "Email",
+        "hint": "Détails et groupes",
+        "cta": "Nous écrire"
+      },
+      "visit": {
+        "title": "Le camp",
+        "hint": "Sabria, Kébili",
+        "cta": "Itinéraire"
+      }
+    },
+    "form": {
+      "eyebrow": "Écrivez-nous",
+      "title": "Envoyez-nous un message",
+      "lead": "Indiquez vos dates, la taille de votre groupe et ce que vous avez en tête. Nous revenons vers vous sous 24 heures.",
+      "note": "Vos informations servent uniquement à vous répondre."
+    },
+    "help": {
+      "eyebrow": "Comment nous aidons",
+      "title": "Quel que soit le projet, nous l'avons probablement déjà fait.",
+      "items": [
+        "Nuits au camp ou en bivouac",
+        "Balade à dos de chameau, safari quad et sandboard",
+        "Groupes privés et familles",
+        "Mariages, événements et équipes de tournage",
+        "Itinéraires sur mesure dans le sud"
+      ]
+    },
+    "find": {
+      "eyebrow": "Nous trouver",
+      "title": "Le camp près de Sabria",
+      "text": "Le camp se trouve à environ 3 km de Sabria et s'atteint avec une voiture classique. Nous confirmons le point de rendez-vous avec vous lors de la réservation.",
+      "hoursLabel": "Horaires du bureau",
+      "addressLabel": "Adresse",
+      "openMaps": "Ouvrir dans Google Maps",
+      "directions": "Itinéraire",
+      "mapTitle": "Carte du camp Dunes Insolites près de Sabria"
+    },
+    "next": {
+      "bookTitle": "Vous préférez réserver tout de suite ?",
+      "bookText": "Choisissez votre séjour et réservez en ligne en quelques minutes.",
+      "bookCta": "Voir les séjours",
+      "faqTitle": "Besoin d'une réponse rapide ?",
+      "faqText": "Les questions les plus fréquentes ont leur réponse dans notre FAQ.",
+      "faqCta": "Lire la FAQ"
+    }
+  },
   "galleryPage": {
     "eyebrow": "Depuis le sable",
     "title": "L'heure dorée, à chaque fois.",

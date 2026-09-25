@@ -20,6 +20,7 @@ export const DEFAULT_SITE_IMAGES: Record<SiteImageKey, string> = {
   "about.share": "/images/camel.jpg",
   "about.team": "/images/hero-combined.jpg",
   "about.final": "/images/gate.jpg",
+  "contact.hero": "/images/sandboard.jpg",
   "activity.quad": "/images/quad.jpg",
   "activity.camel": "/images/camel.jpg",
   "activity.sandboarding": "/images/sandboard.jpg",
