@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -38,7 +39,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     const res = await fetch("/api/proxy/newsletter-subscribers/send-launch-email", { method: "POST" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Envoi impossible — réessayez.";
+      const message = await readApiError(res, "Envoi impossible");
       setError(message);
       toast.error(message);
       return;
@@ -66,7 +67,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     const res = await fetch(`/api/proxy/newsletter-subscribers/${deleteTarget.id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Suppression impossible — réessayez.";
+      const message = await readApiError(res, "Suppression impossible");
       setError(message);
       toast.error(message);
       return;
@@ -83,7 +84,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     });
     setResendingId(null);
     if (!res.ok) {
-      toast.error(`Renvoi impossible pour ${item.email} — vérifiez la configuration SMTP.`);
+      toast.error(await readApiError(res, `Renvoi impossible pour ${item.email}`));
       return;
     }
     toast.success(`Email de lancement renvoyé à ${item.email}.`);
@@ -96,7 +97,7 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     const res = await fetch("/api/proxy/newsletter-subscribers", { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Suppression de la liste impossible — réessayez.";
+      const message = await readApiError(res, "Suppression de la liste impossible");
       setError(message);
       toast.error(message);
       return;

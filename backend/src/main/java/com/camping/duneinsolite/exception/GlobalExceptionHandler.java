@@ -106,11 +106,43 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         log.warn("Blocked by a foreign-key/uniqueness constraint: {}", ex.getMostSpecificCause().getMessage());
+        return constraintResponse(sqlCause(ex), ex.getMostSpecificCause().getMessage());
+    }
+
+    // One message for every kind of constraint made an editor guess (a duplicate
+    // slug read "other records still depend on it"). The SQLSTATE says which it is:
+    // 23505 unique, 23502 not-null, anything else (23503 foreign key) keeps the
+    // dependency wording. Only the COLUMN name is repeated back, never the value
+    // or the constraint name.
+    private ResponseEntity<Map<String, Object>> constraintResponse(java.sql.SQLException sql, String detail) {
+        String state = sql != null ? sql.getSQLState() : null;
+        if ("23505".equals(state)) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("Key \\(([^)]+)\\)=").matcher(detail == null ? "" : detail);
+            String column = m.find() ? m.group(1) : null;
+            return buildResponse(HttpStatus.CONFLICT,
+                    column != null
+                            ? "Another record already uses the same value for: " + column + "."
+                            : "Another record already uses the same value.",
+                    null);
+        }
+        if ("23502".equals(state)) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("null value in column \"([^\"]+)\"").matcher(detail == null ? "" : detail);
+            return buildResponse(HttpStatus.BAD_REQUEST,
+                    m.find() ? "A required value is missing: " + m.group(1) + "." : "A required value is missing.",
+                    null);
+        }
         return buildResponse(
                 HttpStatus.CONFLICT,
                 "This action can't be completed because other records still depend on it.",
                 null
         );
+    }
+
+    private static java.sql.SQLException sqlCause(Throwable t) {
+        for (Throwable cur = t; cur != null; cur = cur.getCause() == cur ? null : cur.getCause()) {
+            if (cur instanceof java.sql.SQLException sql) return sql;
+        }
+        return null;
     }
 
     // A direct EntityManager.flush() call (KeycloakUserSyncService.
@@ -127,11 +159,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleHibernateConstraintViolation(
             org.hibernate.exception.ConstraintViolationException ex) {
         log.warn("Blocked by a foreign-key/uniqueness constraint: {}", ex.getMessage());
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                "This action can't be completed because other records still depend on it.",
-                null
-        );
+        return constraintResponse(ex.getSQLException(), ex.getSQLException() != null ? ex.getSQLException().getMessage() : ex.getMessage());
     }
 
     // ── Handle 404 not found ──────────────────────────────────────────
@@ -164,8 +192,46 @@ public class GlobalExceptionHandler {
     // A bad/absent Content-Type or an unparseable body is the caller's fault.
     // Returning 500 here was noise (and a weak info signal); security
     // assessment 2026-09-10 (L-14).
+    // A body that parses as JSON but has the wrong type or an unknown enum value
+    // used to come back as one anonymous sentence, so an editor with a 30-field
+    // form could not tell which field to fix. Jackson knows the path of the field
+    // it choked on; repeat that path (never the submitted value) so the client can
+    // point at the exact input. A body that is not JSON at all has no path and
+    // keeps the generic answer.
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleUnreadableBody(
+            org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        String path = jsonFieldPath(ex);
+        if (path == null) {
+            return buildResponse(HttpStatus.BAD_REQUEST, "Malformed or unsupported request.", null);
+        }
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "The request body has an invalid value at: " + path,
+                Map.of(path, "invalid value or wrong type")
+        );
+    }
+
+    /** "programSteps[2].segmentType" from the Jackson exception in the cause chain, or null. */
+    static String jsonFieldPath(Throwable t) {
+        for (Throwable cur = t; cur != null; cur = cur.getCause() == cur ? null : cur.getCause()) {
+            if (cur instanceof tools.jackson.core.JacksonException je && !je.getPath().isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (tools.jackson.core.JacksonException.Reference ref : je.getPath()) {
+                    if (ref.getPropertyName() != null) {
+                        if (sb.length() > 0) sb.append('.');
+                        sb.append(ref.getPropertyName());
+                    } else if (ref.getIndex() >= 0) {
+                        sb.append('[').append(ref.getIndex()).append(']');
+                    }
+                }
+                return sb.length() == 0 ? null : sb.toString();
+            }
+        }
+        return null;
+    }
+
     @ExceptionHandler({
-            org.springframework.http.converter.HttpMessageNotReadableException.class,
             org.springframework.web.HttpMediaTypeNotSupportedException.class,
             org.springframework.web.bind.MissingServletRequestParameterException.class,
             org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class

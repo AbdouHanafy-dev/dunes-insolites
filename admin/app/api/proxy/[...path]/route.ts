@@ -56,7 +56,16 @@ async function handler(request: Request, { params }: { params: Promise<{ path: s
     init.body = await request.text();
   }
 
-  const res = await fetch(target, init);
+  let res: Response;
+  try {
+    res = await fetch(target, init);
+  } catch (cause) {
+    const detail = cause instanceof Error && cause.message ? ` (${cause.message})` : "";
+    return Response.json(
+      { message: `Le backend est injoignable — ${request.method} /${path.join("/")}${detail}` },
+      { status: 502 },
+    );
+  }
   const text = await res.text();
   return new Response(text || null, {
     status: res.status,

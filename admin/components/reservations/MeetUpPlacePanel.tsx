@@ -1,8 +1,11 @@
 "use client";
 
+import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
-import { inputClass, labelClass } from "@/components/payload/fields";
+import { labelClass } from "@/components/payload/fields";
+
+const MEETUP_FIELDS = [{ key: "meetUpPlace", label: "Point de rencontre", type: "text" }];
 
 /**
  * Free-text "Meet up place" the support team fills in once a reservation has
@@ -19,12 +22,14 @@ export default function MeetUpPlacePanel({
   initialValue: string | null;
 }) {
   const toast = useToast();
+  const fi = useFormIssues(MEETUP_FIELDS);
   const [saved, setSaved] = useState(initialValue ?? "");
   const [value, setValue] = useState(initialValue ?? "");
   const [busy, setBusy] = useState(false);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    fi.clear();
     setBusy(true);
     const res = await fetch(`/api/proxy/reservations/${reservationId}/meet-up-place`, {
       method: "PATCH",
@@ -37,8 +42,7 @@ export default function MeetUpPlacePanel({
       return;
     }
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible d'enregistrer le lieu de rendez-vous.");
+      toast.error(await fi.fromResponse(res, "Enregistrement du lieu de rendez-vous refusé"));
       return;
     }
     const updated = await res.json();
@@ -57,22 +61,24 @@ export default function MeetUpPlacePanel({
       </p>
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-1 flex-col gap-1">
-          <label className={labelClass} htmlFor="meet-up-place">
+          <label className={labelClass} htmlFor="meetUpPlace">
             Point de rencontre
           </label>
           <input
-            id="meet-up-place"
-            className={inputClass}
+            id="meetUpPlace"
+            className={fi.inputClass("meetUpPlace")}
             maxLength={255}
             placeholder="Ex. Devant l’hôtel, gare routière, aéroport…"
             value={value}
             onChange={(e) => setValue(e.target.value)}
           />
+          {fi.errs("meetUpPlace")}
         </div>
         <button type="submit" className="btn btn-primary" disabled={busy || value.trim() === saved}>
           {busy ? "Enregistrement…" : "Enregistrer"}
         </button>
       </div>
+      <div className="mt-3">{fi.panel()}</div>
     </form>
   );
 }

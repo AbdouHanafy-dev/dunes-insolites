@@ -1,5 +1,7 @@
 "use client";
 
+import { formatApiFailure, parseApiFailure, readApiError } from "@/lib/apiError";
+import { issuesFromServer, summarizeFormIssues, validateRequired, type FormIssue } from "@/lib/formIssues";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -50,12 +52,33 @@ export default function CollectionEditor({
   const [form, setForm] = useState<Record<string, unknown>>(initialData);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [attempted, setAttempted] = useState(false);
+  const [serverIssues, setServerIssues] = useState<FormIssue[]>([]);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  // Required-field problems stay live once the operator has tried to save, so
+  // each message disappears the moment its field is fixed.
+  const issues = [...(attempted ? validateRequired(fields, form) : []), ...serverIssues];
+  const issuesFor = (key: string) => issues.filter((i) => i.key === key);
+
+  function focusField(key: string) {
+    const el = key ? document.getElementById(key) : null;
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.focus();
+  }
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
     setError("");
+    setServerIssues([]);
+    setAttempted(true);
+    const local = validateRequired(fields, form);
+    if (local.length > 0) {
+      focusField(local[0].key);
+      toast.error(`Enregistrement impossible — ${summarizeFormIssues(local)}`);
+      return;
+    }
+    setBusy(true);
 
     const body = toRequestBody ? toRequestBody(form) : form;
     const url = isEdit ? `/api/proxy/${apiPath}/${id}` : `/api/proxy/${createPath ?? apiPath}`;
@@ -67,10 +90,13 @@ export default function CollectionEditor({
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Une erreur est survenue.";
-      setError(message);
-      toast.error(message);
+      const failure = await parseApiFailure(res);
+      const summary = formatApiFailure(failure, "Enregistrement refusé par le serveur");
+      const list = issuesFromServer(fields, failure.fields, summary);
+      setServerIssues(list);
+      setError(summary);
+      toast.error(`Enregistrement refusé — ${summarizeFormIssues(list)} (HTTP ${failure.status})`);
+      focusField(list.find((i) => i.key)?.key ?? "");
       setBusy(false);
       return;
     }
@@ -87,7 +113,7 @@ export default function CollectionEditor({
     const res = await fetch(`/api/proxy/${apiPath}/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Suppression impossible — cet élément est peut-être référencé ailleurs.";
+      const message = await readApiError(res, "Suppression impossible");
       setError(message);
       toast.error(message);
       setDeleteOpen(false);
@@ -116,9 +142,29 @@ export default function CollectionEditor({
         </h1>
       </div>
 
-      <form onSubmit={onSave} className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
+      <form onSubmit={onSave} noValidate className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
         {/* Main fields */}
         <div className="card flex flex-col gap-4 rounded-2xl p-6 lg:col-start-1 lg:row-start-1">
+          {issues.length > 0 && (
+            <div role="alert" className="rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+              <p className="font-semibold">{issues.length} problème(s) à corriger :</p>
+              <ul className="mt-2 flex flex-col gap-1">
+                {issues.map((i, n) => (
+                  <li key={`${i.path}-${n}`}>
+                    {i.key ? (
+                      <button type="button" onClick={() => focusField(i.key)} className="text-left underline-offset-2 hover:underline">
+                        <strong>{i.label}</strong> : {i.message}
+                      </button>
+                    ) : (
+                      <span>
+                        <strong>{i.label}</strong> : {i.message}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {fields.map((f) => (
             <div key={f.key} className="flex flex-col gap-1.5">
               <label htmlFor={f.key} className={labelClass}>
@@ -128,8 +174,14 @@ export default function CollectionEditor({
               <FieldInput
                 field={f}
                 value={form[f.key]}
+                invalid={issuesFor(f.key).length > 0}
                 onChange={(v) => setForm((s) => ({ ...s, [f.key]: v }))}
               />
+              {issuesFor(f.key).map((i, n) => (
+                <p key={n} className="text-[12px] font-medium text-rose">
+                  {i.message}
+                </p>
+              ))}
             </div>
           ))}
         </div>

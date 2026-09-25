@@ -1,5 +1,7 @@
 "use client";
 
+import { formatApiFailure, parseApiFailure } from "@/lib/apiError";
+import { issuesFromServer, summarizeFormIssues, type FieldLike, type FormIssue } from "@/lib/formIssues";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -24,6 +26,22 @@ import { MAIL_LOCALES } from "./mailLocales";
  * counts are editable only when there is exactly one stay line (the server
  * then applies the group counts to it and keeps the accommodation snapshot).
  */
+const EDIT_FIELDS: FieldLike[] = Object.entries({
+  checkInDate: "Arrivée",
+  checkOutDate: "Départ",
+  serviceDate: "Date de départ du circuit",
+  numberOfAdults: "Adultes",
+  numberOfChildren: "Enfants",
+  numberOfInfants: "Bébés",
+  groupName: "Nom du groupe",
+  groupLeaderName: "Responsable du groupe",
+  demandeSpecial: "Demande spéciale",
+  otherLanguageRequested: "Autre langue demandée",
+  preferredLanguageIds: "Langues préférées",
+  locale: "Langue des emails",
+  tourTypes: "Nuitée",
+}).map(([key, label]) => ({ key, label, type: "text" }));
+
 export default function ReservationEditForm({
   reservation,
   languages,
@@ -52,6 +70,7 @@ export default function ReservationEditForm({
   const [locale, setLocale] = useState(reservation.locale ?? "fr");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [issues, setIssues] = useState<FormIssue[]>([]);
 
   const partyChanged =
     adults !== (reservation.numberOfAdults ?? 0) || children !== (reservation.numberOfChildren ?? 0)
@@ -64,14 +83,25 @@ export default function ReservationEditForm({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setIssues([]);
 
+    const local: FormIssue[] = [];
+    const add = (key: string, label: string, message: string) => local.push({ key, path: key, label, message });
     if (isStay) {
-      if (!checkIn || !checkOut || Date.parse(checkOut) <= Date.parse(checkIn)) {
-        setError("La date de départ doit être après la date d'arrivée.");
-        return;
+      if (!checkIn) add("checkInDate", "Arrivée", "date obligatoire — elle est vide.");
+      if (!checkOut) add("checkOutDate", "Départ", "date obligatoire — elle est vide.");
+      if (checkIn && checkOut && Date.parse(checkOut) <= Date.parse(checkIn)) {
+        add("checkOutDate", "Départ", `doit être après l'arrivée (arrivée ${checkIn}, départ ${checkOut}).`);
       }
     } else if (!serviceDate && reservation.serviceDate) {
-      setError("La date de départ du circuit est requise.");
+      add("serviceDate", "Date de départ du circuit", "date obligatoire — elle est vide.");
+    }
+    if (canEditParty && [adults, children, infants].some((n) => !Number.isFinite(n) || n < 0)) {
+      add("numberOfAdults", "Voyageurs", `nombres invalides (adultes ${adults}, enfants ${children}, bébés ${infants}) — chaque valeur doit être un entier ≥ 0.`);
+    }
+    if (local.length > 0) {
+      setIssues(local);
+      toast.error(`Modification non enregistrée — ${summarizeFormIssues(local)}`);
       return;
     }
 
@@ -110,13 +140,12 @@ export default function ReservationEditForm({
     setBusy(false);
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message =
-        res.status === 403
-          ? "Votre rôle ne permet pas de modifier une réservation."
-          : (data.message ?? "Modification impossible — vérifiez les disponibilités et réessayez.");
-      setError(message);
-      toast.error(message);
+      const failure = await parseApiFailure(res);
+      const summary = formatApiFailure(failure, "Modification de la réservation refusée par le serveur");
+      const list = issuesFromServer(EDIT_FIELDS, failure.fields, summary);
+      setIssues(list);
+      setError(summary);
+      toast.error(`Modification refusée — ${summarizeFormIssues(list)} (HTTP ${failure.status})`);
       return;
     }
 
@@ -271,8 +300,21 @@ export default function ReservationEditForm({
         </select>
       </label>
 
-      {error && (
-        <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">{error}</div>
+      {issues.length > 0 ? (
+        <div role="alert" className="rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+          <p className="font-semibold">{issues.length} problème(s) à corriger :</p>
+          <ul className="mt-2 flex flex-col gap-1">
+            {issues.map((i, n) => (
+              <li key={`${i.path}-${n}`}>
+                <strong>{i.label}</strong> : {i.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        error && (
+          <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">{error}</div>
+        )
       )}
 
       <div className="flex justify-end">

@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -101,8 +102,7 @@ export default function ReservationsTable({
     const res = await fetch(`/api/proxy/reservations/${deleting.reservationId}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible de supprimer la réservation.");
+      toast.error(await readApiError(res, "Impossible de supprimer la réservation"));
       return;
     }
     toast.success("Réservation supprimée");

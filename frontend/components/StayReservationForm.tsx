@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
+import { describeWriteFailure } from "@/lib/writeErrors";
 import type { ServiceOptionCatalogItem, StayAvailability, TierAvailability } from "@/lib/api";
 import { departureOptions, returnOptions } from "@/lib/cities";
 import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
@@ -522,9 +523,7 @@ export default function StayReservationForm({
 
     if (!result.ok) {
       setErrors(result.errors ?? {});
-      setFormError(
-        result.errors ? "" : (result.message ?? t("errorGeneric")),
-      );
+      setFormError(describeWriteFailure(result, t("errorGeneric")));
       setSubmitting(false);
       // A capacity conflict (another guest took the last unit between the page
       // loading and this submit) — refresh the truthful availability so the UI

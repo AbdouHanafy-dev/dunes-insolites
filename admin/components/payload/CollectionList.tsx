@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -50,7 +51,7 @@ export default function CollectionList<T extends Record<string, unknown>>({
     const res = await fetch(`/api/proxy/${apiPath}/${deleteTarget[idKey]}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Suppression impossible — cet élément est peut-être référencé ailleurs.";
+      const message = await readApiError(res, "Suppression impossible");
       setError(message);
       toast.error(message);
       return;

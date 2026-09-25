@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -47,7 +48,7 @@ export default function GalleryReorder({ initialItems }: { initialItems: AdminGa
     setSaving(false);
     if (!res.ok) {
       setItems(previous);
-      toast.error(res.status === 403 ? "Votre rôle ne permet pas de réordonner la galerie." : "Enregistrement de l’ordre impossible.");
+      toast.error(await readApiError(res, "Enregistrement de l’ordre impossible"));
       return;
     }
     toast.success("Ordre enregistré — visible sur le site d’ici une minute");

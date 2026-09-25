@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Modal from "@/components/Modal";
@@ -44,8 +45,9 @@ export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
     const res = await fetch(`/api/proxy/reviews/${deleteTarget.reviewId}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible.");
-      toast.error("Suppression impossible.");
+      const message = await readApiError(res, "Suppression impossible");
+      setError(message);
+      toast.error(message);
       return;
     }
     toast.success("Supprimé avec succès");

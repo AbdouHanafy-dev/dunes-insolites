@@ -1,9 +1,18 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
+import { useFormIssues } from "@/components/useFormIssues";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminPricingRule } from "@/lib/api";
+
+const RULE_FIELDS = [
+  { key: "ruleType", label: "Type", type: "text" },
+  { key: "startDate", label: "Date / Début", type: "date", required: true },
+  { key: "endDate", label: "Fin", type: "date" },
+  { key: "priceTtc", label: "Prix (TTC)", type: "number", required: true },
+];
 
 /**
  * Date/period price overrides for one resource (an accommodation tier or a
@@ -20,6 +29,7 @@ export default function PricingRulesPanel({
   resourceId: string;
 }) {
   const toast = useToast();
+  const fi = useFormIssues(RULE_FIELDS);
   const basePath = `${resourceApiPath}/${resourceId}/pricing-rules`;
 
   const [rules, setRules] = useState<AdminPricingRule[] | null>(null);
@@ -44,6 +54,28 @@ export default function PricingRulesPanel({
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
+    fi.clear();
+    const problems = [];
+    if (!startDate) problems.push(fi.issue("startDate", "date obligatoire — elle est vide."));
+    if (ruleType === "PERIOD") {
+      if (!endDate) problems.push(fi.issue("endDate", "date obligatoire — elle est vide."));
+      else if (startDate && endDate < startDate) {
+        problems.push(fi.issue("endDate", `doit être le même jour ou après le début (début ${startDate}, fin ${endDate}).`));
+      }
+    }
+    const price = Number(priceTtc);
+    if (priceTtc.trim() === "") problems.push(fi.issue("priceTtc", "prix obligatoire — il est vide."));
+    else if (!Number.isFinite(price) || price < 0) {
+      problems.push(fi.issue("priceTtc", `doit être un nombre positif ou nul (saisi : ${priceTtc}).`));
+    }
+    if (ruleType === "DATE" && startDate) {
+      const same = (rules ?? []).find((r) => r.ruleType === "DATE" && r.startDate === startDate);
+      if (same) problems.push(fi.issue("startDate", `une règle « Date » existe déjà pour le ${startDate} (${same.priceTtc} €) — supprimez-la d'abord.`));
+    }
+    if (problems.length > 0) {
+      toast.error(fi.local(problems));
+      return;
+    }
     setBusy(true);
     const res = await fetch(`/api/proxy/${basePath}`, {
       method: "POST",
@@ -58,8 +90,7 @@ export default function PricingRulesPanel({
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible de créer cette règle — vérifie qu'elle ne chevauche pas une autre.");
+      toast.error(await fi.fromResponse(res, "Création de la règle refusée"));
       return;
     }
     const created = (await res.json()) as AdminPricingRule;
@@ -67,13 +98,14 @@ export default function PricingRulesPanel({
     setStartDate("");
     setEndDate("");
     setPriceTtc("");
+    fi.clear();
     toast.success("Règle de prix créée");
   }
 
   async function remove(ruleId: string) {
     const res = await fetch(`/api/proxy/${basePath}/${ruleId}`, { method: "DELETE" });
     if (!res.ok) {
-      toast.error("Suppression impossible.");
+      toast.error(await readApiError(res, "Suppression impossible"));
       return;
     }
     setRules((prev) => (prev ?? []).filter((r) => r.id !== ruleId));
@@ -125,7 +157,7 @@ export default function PricingRulesPanel({
         </div>
       )}
 
-      <form onSubmit={create} className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <form onSubmit={create} noValidate className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="flex flex-col gap-1">
           <label className={labelClass}>Type</label>
           <select
@@ -140,41 +172,48 @@ export default function PricingRulesPanel({
         <div className="flex flex-col gap-1">
           <label className={labelClass}>{ruleType === "DATE" ? "Date" : "Début"}</label>
           <input
+            id="startDate"
             type="date"
             required
-            className={inputClass}
+            className={fi.inputClass("startDate")}
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
+          {fi.errs("startDate")}
         </div>
         {ruleType === "PERIOD" && (
           <div className="flex flex-col gap-1">
             <label className={labelClass}>Fin</label>
             <input
+              id="endDate"
               type="date"
               required
-              className={inputClass}
+              className={fi.inputClass("endDate")}
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
+            {fi.errs("endDate")}
           </div>
         )}
         <div className="flex flex-col gap-1">
           <label className={labelClass}>Prix (TTC)</label>
           <input
+            id="priceTtc"
             type="number"
             step="0.001"
             required
-            className={inputClass}
+            className={fi.inputClass("priceTtc")}
             value={priceTtc}
             onChange={(e) => setPriceTtc(e.target.value)}
           />
+          {fi.errs("priceTtc")}
         </div>
         <div className="flex items-end">
           <button type="submit" disabled={busy} className="btn btn-secondary">
             {busy ? "Ajout…" : "Ajouter"}
           </button>
         </div>
+        <div className="col-span-full">{fi.panel()}</div>
       </form>
     </div>
   );

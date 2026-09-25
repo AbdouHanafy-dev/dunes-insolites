@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
 import type { Language } from "@/lib/api";
 import { departureOptions, returnOptions } from "@/lib/cities";
+import { describeWriteFailure } from "@/lib/writeErrors";
 import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
@@ -238,7 +239,7 @@ export default function TourBookingFlow({
 
     if (!result.ok) {
       setErrors(result.errors ?? {});
-      setFormError(result.errors ? "" : (result.message ?? t("errorGeneric")));
+      setFormError(describeWriteFailure(result, t("errorGeneric")));
       setSubmitting(false);
       return;
     }

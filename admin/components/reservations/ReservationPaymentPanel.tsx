@@ -1,9 +1,10 @@
 "use client";
 
+import { useFormIssues } from "@/components/useFormIssues";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
-import { inputClass, labelClass } from "@/components/payload/fields";
+import { labelClass } from "@/components/payload/fields";
 import type { AdminPaymentPolicy, AdminPaymentSummary, AdminTransaction } from "@/lib/api";
 import { paymentStatusOf } from "./reservationStatus";
 import { suggestedDeposit } from "./paymentSuggest";
@@ -19,6 +20,17 @@ import { sym } from "@/lib/currency";
  *    unticked, emails the client "payment received, the rest is payable on
  *    site". The status is never set by hand: it follows the recorded amounts.
  */
+const ASK_FIELDS = [
+  { key: "amount", label: "À demander maintenant", type: "number" },
+  { key: "paymentLink", label: "Lien de paiement", type: "text" },
+];
+const PAY_FIELDS = [
+  { key: "amount", label: "Montant", type: "number", required: true },
+  { key: "paymentMethod", label: "Moyen", type: "text" },
+  { key: "currency", label: "Devise", type: "text" },
+  { key: "reservationId", label: "Réservation", type: "text" },
+];
+
 const METHODS: { value: string; label: string }[] = [
   { value: "CASH", label: "Espèces" },
   { value: "CREDIT_CARD", label: "Carte bancaire (TPE)" },
@@ -65,6 +77,8 @@ export default function ReservationPaymentPanel({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const ask = useFormIssues(ASK_FIELDS);
+  const pay = useFormIssues(PAY_FIELDS);
   const [link, setLink] = useState(initialLink ?? "");
   const [askAmount, setAskAmount] = useState(
     String(depositAmount ?? suggestedDeposit(policy, summary?.originalTotalAmount ?? 0)),
@@ -85,6 +99,19 @@ export default function ReservationPaymentPanel({
   const done = transactions.filter((t) => t.status === "COMPLETED");
 
   async function sendRequest() {
+    ask.clear();
+    const problems = [];
+    const asked = Number(askAmount);
+    if (askAmount.trim() !== "" && (!Number.isFinite(asked) || asked < 0)) {
+      problems.push(ask.issue("amount", `doit être un nombre positif ou nul, ou vide pour suivre les règles de paiement (saisi : ${askAmount}).`));
+    }
+    if (link.trim() && !/^https?:\/\//i.test(link.trim())) {
+      problems.push(ask.issue("paymentLink", `doit commencer par http:// ou https:// (saisi : ${link.trim()}).`));
+    }
+    if (problems.length > 0) {
+      toast.error(ask.local(problems));
+      return;
+    }
     setSending(true);
     const res = await fetch(`/api/proxy/reservations/${reservationId}/payment-request`, {
       method: "POST",
@@ -95,11 +122,11 @@ export default function ReservationPaymentPanel({
       }),
     });
     setSending(false);
-    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      toast.error(data.message ?? "Envoi impossible.");
+      toast.error(await ask.fromResponse(res, "Envoi de la demande de paiement refusé"));
       return;
     }
+    const data = await res.json().catch(() => ({}));
     toast.success(
       data.amountDue > 0
         ? `Demande envoyée à ${data.sentTo} — ${data.amountDue} ${sym(data.currency)} à régler`
@@ -110,9 +137,14 @@ export default function ReservationPaymentPanel({
 
   async function recordPayment(e: React.FormEvent) {
     e.preventDefault();
+    pay.clear();
     const value = Number(amount);
+    if (amount.trim() === "") {
+      toast.error(pay.local([pay.issue("amount", "champ obligatoire — saisissez le montant reçu.")]));
+      return;
+    }
     if (!Number.isFinite(value) || value <= 0) {
-      toast.error("Saisissez un montant supérieur à zéro.");
+      toast.error(pay.local([pay.issue("amount", `doit être supérieur à zéro (saisi : ${amount}).`)]));
       return;
     }
     setRecording(true);
@@ -123,13 +155,11 @@ export default function ReservationPaymentPanel({
     });
     setRecording(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(
-        res.status === 403 ? "Votre rôle ne permet pas d'enregistrer un paiement." : (data.message ?? "Enregistrement impossible."),
-      );
+      toast.error(await pay.fromResponse(res, "Enregistrement du paiement refusé"));
       return;
     }
     toast.success(notify ? "Paiement enregistré — client prévenu par email" : "Paiement enregistré");
+    pay.clear();
     setAmount(null);
     router.refresh();
   }
@@ -165,23 +195,28 @@ export default function ReservationPaymentPanel({
               type="number"
               min={0}
               step="0.001"
-              className={inputClass}
+              data-field="amount"
+              className={ask.inputClass("amount")}
               value={askAmount}
               onChange={(e) => setAskAmount(e.target.value)}
               disabled={sending || !canSend}
             />
+            {ask.errs("amount")}
           </div>
           <div className="flex flex-col gap-1">
             <label className={labelClass} htmlFor="paylink">Lien de paiement (optionnel)</label>
             <input
               id="paylink"
-              className={inputClass}
+              data-field="paymentLink"
+              className={ask.inputClass("paymentLink")}
               placeholder="https://..."
               value={link}
               onChange={(e) => setLink(e.target.value)}
               disabled={sending || !canSend}
             />
+            {ask.errs("paymentLink")}
           </div>
+          {ask.panel()}
           <div className="mt-auto flex items-center gap-3">
             <button type="button" className="btn btn-primary" disabled={sending || !canSend} onClick={sendRequest}>
               <i className="bi bi-send" aria-hidden />
@@ -194,6 +229,7 @@ export default function ReservationPaymentPanel({
         {/* ── Record what was received ── */}
         <form
           onSubmit={recordPayment}
+          noValidate
           className="flex flex-col gap-4 rounded-xl border border-navy-700/10 bg-navy-700/[0.02] p-4"
         >
           <div>
@@ -221,10 +257,12 @@ export default function ReservationPaymentPanel({
                 type="number"
                 min={0}
                 step="0.001"
-                className={inputClass}
+                data-field="amount"
+                className={pay.inputClass("amount")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
+              {pay.errs("amount")}
               {balanceAfter !== null && (
                 <p className={`text-[12px] ${balanceAfter < 0 ? "text-rose" : "text-navy-700/55"}`}>
                   {balanceAfter < 0
@@ -235,7 +273,7 @@ export default function ReservationPaymentPanel({
             </div>
             <div className="flex flex-col gap-1">
               <label className={labelClass} htmlFor="paymethod">Moyen</label>
-              <select id="paymethod" className={inputClass} value={method} onChange={(e) => setMethod(e.target.value)}>
+              <select id="paymethod" data-field="paymentMethod" className={pay.inputClass("paymentMethod")} value={method} onChange={(e) => setMethod(e.target.value)}>
                 {METHODS.map((m) => (
                   <option key={m.value} value={m.value}>
                     {m.label}
@@ -244,10 +282,12 @@ export default function ReservationPaymentPanel({
               </select>
             </div>
           </div>
+          {pay.errs("paymentMethod")}
           <label className="flex cursor-pointer items-center gap-2 text-[13px] text-navy-700/75">
             <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
             Prévenir le client par email (paiement reçu, reste à régler sur place)
           </label>
+          {pay.panel()}
           <div className="mt-auto">
             <button type="submit" className="btn btn-secondary" disabled={recording}>
               <i className="bi bi-cash-coin" aria-hidden />
