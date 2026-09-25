@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -86,8 +87,7 @@ export default function RolePermissionsMatrix({ initialMatrix }: { initialMatrix
 
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? data.error ?? "Une erreur est survenue.");
+      toast.error(await readApiError(res));
       return;
     }
     const saved: PermissionMatrix = await res.json();

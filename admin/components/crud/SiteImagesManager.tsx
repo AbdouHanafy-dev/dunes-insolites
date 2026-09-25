@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SITE_IMAGE_SLOTS } from "@dunes/api-types";
@@ -33,8 +34,7 @@ export default function SiteImagesManager({ images }: { images: AdminSiteImage[]
     });
     setBusyKey(null);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Enregistrement impossible.");
+      toast.error(await readApiError(res, "Enregistrement impossible"));
       return;
     }
     toast.success("Photo remplacée");
@@ -46,7 +46,7 @@ export default function SiteImagesManager({ images }: { images: AdminSiteImage[]
     const res = await fetch(`/api/proxy/site-images/${key}`, { method: "DELETE" });
     setBusyKey(null);
     if (!res.ok) {
-      toast.error("Impossible de rétablir la photo.");
+      toast.error(await readApiError(res, "Impossible de rétablir la photo"));
       return;
     }
     toast.success("Photo par défaut rétablie");

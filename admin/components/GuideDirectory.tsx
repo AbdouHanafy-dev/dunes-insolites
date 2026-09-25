@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -30,8 +31,7 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
     });
     setBusy(false);
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      toast.error(error.message ?? "Impossible de créer le guide.");
+      toast.error(await readApiError(response, "Impossible de créer le guide"));
       return;
     }
     const created = (await response.json()) as AdminGuideProfile;
@@ -49,7 +49,7 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
     });
     setBusy(false);
     if (!response.ok) {
-      toast.error("Impossible de modifier le guide.");
+      toast.error(await readApiError(response, "Impossible de modifier le guide"));
       return;
     }
     const updated = (await response.json()) as AdminGuideProfile;

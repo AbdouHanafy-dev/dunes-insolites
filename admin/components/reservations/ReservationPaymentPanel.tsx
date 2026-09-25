@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -95,11 +96,11 @@ export default function ReservationPaymentPanel({
       }),
     });
     setSending(false);
-    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      toast.error(data.message ?? "Envoi impossible.");
+      toast.error(await readApiError(res, "Envoi impossible"));
       return;
     }
+    const data = await res.json().catch(() => ({}));
     toast.success(
       data.amountDue > 0
         ? `Demande envoyée à ${data.sentTo} — ${data.amountDue} ${sym(data.currency)} à régler`
@@ -123,10 +124,7 @@ export default function ReservationPaymentPanel({
     });
     setRecording(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(
-        res.status === 403 ? "Votre rôle ne permet pas d'enregistrer un paiement." : (data.message ?? "Enregistrement impossible."),
-      );
+      toast.error(await readApiError(res, "Enregistrement du paiement impossible"));
       return;
     }
     toast.success(notify ? "Paiement enregistré — client prévenu par email" : "Paiement enregistré");

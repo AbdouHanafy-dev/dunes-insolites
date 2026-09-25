@@ -1,5 +1,13 @@
 "use client";
 
+import { formatApiFailure, parseApiFailure } from "@/lib/apiError";
+import {
+  SAVE_BLOCKING_STEPS,
+  localIssues,
+  serverIssues,
+  summarizeIssues,
+  type Issue,
+} from "@/lib/tourIssues";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -306,6 +314,10 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   const [form, setForm] = useState<TourForm>(() => fromInitialData(initialData));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // What the operator already tried: local problems then stay visible (and
+  // update live as they fix them) instead of disappearing after one toast.
+  const [attempt, setAttempt] = useState<null | "save" | "review">(null);
+  const [serverIssueList, setServerIssueList] = useState<Issue[]>([]);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -367,10 +379,34 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     }
   }
 
+  const liveLocalIssues =
+    attempt === null
+      ? []
+      : localIssues(form).filter((i) => attempt === "review" || SAVE_BLOCKING_STEPS.includes(i.step));
+  const issues = [...liveLocalIssues, ...serverIssueList];
+  const issueSteps = new Map<number, number>();
+  for (const i of issues) if (i.step >= 0) issueSteps.set(i.step, (issueSteps.get(i.step) ?? 0) + 1);
+  const errorFor = (field: string) => issues.find((i) => i.field === field)?.message;
+
+  /** Show a failed response as exact per-field problems and jump to the first one. */
+  async function showServerFailure(res: Response, fallback: string) {
+    const failure = await parseApiFailure(res);
+    const list = serverIssues(failure.fields, formatApiFailure(failure, fallback));
+    setServerIssueList(list);
+    const message = formatApiFailure(failure, fallback);
+    setError(message);
+    toast.error(`${fallback} — ${summarizeIssues(list, STEPS)} (HTTP ${failure.status})`);
+    const firstStep = list.find((i) => i.step >= 0)?.step;
+    if (firstStep !== undefined) goTo(firstStep);
+  }
+
   async function onSubmit() {
-    if (!canSubmit) {
-      setStep(0);
-      toast.error("Le nom du circuit est requis avant de pouvoir l'enregistrer.");
+    setServerIssueList([]);
+    setAttempt("save");
+    const blocking = localIssues(form).filter((i) => SAVE_BLOCKING_STEPS.includes(i.step));
+    if (blocking.length > 0) {
+      goTo(blocking[0].step);
+      toast.error(`Enregistrement impossible — ${summarizeIssues(blocking, STEPS)}`);
       return;
     }
     setBusy(true);
@@ -383,10 +419,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Une erreur est survenue.";
-      setError(message);
-      toast.error(message);
+      await showServerFailure(res, "Enregistrement refusé par le serveur");
       return;
     }
     toast.success(isEdit ? "Circuit modifié avec succès" : "Circuit créé avec succès");
@@ -400,7 +433,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     const res = await fetch(`/api/proxy/tours/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      toast.error("Suppression impossible — ce circuit est peut-être référencé ailleurs.");
+      toast.error(formatApiFailure(await parseApiFailure(res), "Suppression impossible"));
       setDeleteOpen(false);
       return;
     }
@@ -419,8 +452,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? data.error ?? "Une erreur est survenue.");
+      await showServerFailure(res, "Action refusée par le serveur");
       return;
     }
     const updated: AdminTour = await res.json();
@@ -429,8 +461,14 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
   }
 
   async function onSubmitForReview() {
-    if (!readyForReview) {
-      toast.error("Toutes les sections doivent être complètes avant l'envoi en vérification.");
+    setServerIssueList([]);
+    setAttempt("review");
+    const missing = localIssues(form);
+    if (missing.length > 0) {
+      goTo(missing[0].step);
+      toast.error(
+        `Envoi en vérification impossible : ${missing.length} point(s) à compléter — ${summarizeIssues(missing, STEPS)}`,
+      );
       return;
     }
     const updated = await callStatusAction("submit-for-review");
@@ -477,31 +515,66 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
               i === step
                 ? "bg-gold text-navy-900"
-                : visited.has(i)
-                  ? "bg-navy-700/8 text-navy-700/70 hover:bg-navy-700/12"
-                  : "bg-navy-700/4 text-navy-700/30"
+                : issueSteps.has(i)
+                  ? "bg-rose/10 text-rose hover:bg-rose/15"
+                  : visited.has(i)
+                    ? "bg-navy-700/8 text-navy-700/70 hover:bg-navy-700/12"
+                    : "bg-navy-700/4 text-navy-700/30"
             }`}
           >
             {i + 1}. {label}
-            {visited.has(i) && sectionValid(i) && <span className="ml-1 text-emerald-600">✓</span>}
+            {visited.has(i) && sectionValid(i) && !issueSteps.has(i) && <span className="ml-1 text-emerald-600">✓</span>}
+            {issueSteps.has(i) && (
+              <span className="ml-1.5 rounded-full bg-rose px-1.5 text-[11px] font-bold text-white">
+                {issueSteps.get(i)}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
+      {issues.length > 0 && (
+        <div role="alert" className="rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+          <p className="font-semibold">
+            {issues.length} problème(s) à corriger avant de continuer :
+          </p>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {issues.map((issue, n) => (
+              <li key={`${issue.field}-${n}`} className="flex flex-wrap items-baseline gap-x-2">
+                {issue.step >= 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => goTo(issue.step)}
+                    className="rounded bg-rose/15 px-1.5 py-0.5 text-[12px] font-semibold underline-offset-2 hover:underline"
+                  >
+                    Étape {issue.step + 1} · {STEPS[issue.step]}
+                  </button>
+                ) : (
+                  <span className="rounded bg-rose/15 px-1.5 py-0.5 text-[12px] font-semibold">Serveur</span>
+                )}
+                <span>
+                  <strong>{issue.label}</strong> : {issue.message}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="card rounded-2xl p-6">
         {step === 0 && (
           <div className="flex flex-col gap-4">
-            <Field label="Nom du circuit" required>
+            <Field label="Nom du circuit" required error={errorFor("name")}>
               <input className={inputClass} value={form.name} onChange={(e) => patch({ name: e.target.value })} />
             </Field>
-            <Field label="Slug (URL)">
+            <Field label="Slug (URL)" error={errorFor("slug")}>
               <input className={inputClass} value={form.slug} onChange={(e) => patch({ slug: e.target.value })} />
             </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Durée" hint='ex. "3 Jours / 2 Nuits"'>
+              <Field label="Durée" hint='ex. "3 Jours / 2 Nuits"' error={errorFor("duration")}>
                 <input className={inputClass} value={form.duration} onChange={(e) => patch({ duration: e.target.value })} />
               </Field>
-              <Field label="Lieu de départ">
+              <Field label="Lieu de départ" error={errorFor("location")}>
                 <input className={inputClass} value={form.location} onChange={(e) => patch({ location: e.target.value })} />
               </Field>
             </div>
@@ -532,14 +605,14 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 </span>
               </label>
             </Field>
-            <Field label="Description courte" hint="Affichée dans les listes et cartes">
+            <Field label="Description courte" hint="Affichée dans les listes et cartes" error={errorFor("description")}>
               <textarea
                 className={`${inputClass} min-h-24`}
                 value={form.description}
                 onChange={(e) => patch({ description: e.target.value })}
               />
             </Field>
-            <Field label="Présentation détaillée" hint="Affichée sur la page du circuit">
+            <Field label="Présentation détaillée" hint="Affichée sur la page du circuit" error={errorFor("aboutText")}>
               <textarea
                 className={`${inputClass} min-h-32`}
                 value={form.aboutText}
@@ -850,7 +923,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
 
         {step === 8 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Prix adulte (passager)" required>
+            <Field label="Prix adulte (passager)" required error={errorFor("passengerAdultPrice")}>
               <input
                 type="number"
                 className={inputClass}
@@ -861,6 +934,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             <Field
               label="Prix promotionnel adulte"
               hint="optionnel — doit être inférieur au prix normal pour afficher une réduction"
+              error={errorFor("salePriceAdult")}
             >
               <input
                 type="number"
@@ -868,13 +942,13 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 value={form.salePriceAdult ?? ""}
                 onChange={(e) => patch({ salePriceAdult: e.target.valueAsNumber || null })}
               />
-              {form.salePriceAdult != null && !salePriceValid && (
+              {form.salePriceAdult != null && !salePriceValid && !errorFor("salePriceAdult") && (
                 <p className="mt-1 text-[12px] text-rose">
-                  Le prix promotionnel doit être inférieur au prix adulte normal.
+                  Le prix promotionnel ({form.salePriceAdult}) doit être inférieur au prix adulte ({form.passengerAdultPrice}).
                 </p>
               )}
             </Field>
-            <Field label="Prix enfant, 3 à 18 ans (passager)" required>
+            <Field label="Prix enfant, 3 à 18 ans (passager)" required error={errorFor("passengerChildPrice")}>
               <input
                 type="number"
                 className={inputClass}
@@ -882,7 +956,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 onChange={(e) => patch({ passengerChildPrice: e.target.valueAsNumber })}
               />
             </Field>
-            <Field label="Prix bébé, 0 à 3 ans (passager)" required hint="0 = gratuit">
+            <Field label="Prix bébé, 0 à 3 ans (passager)" required hint="0 = gratuit" error={errorFor("passengerInfantPrice")}>
               <input
                 type="number"
                 min={0}
@@ -891,7 +965,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 onChange={(e) => patch({ passengerInfantPrice: e.target.valueAsNumber })}
               />
             </Field>
-            <Field label="Prix adulte (partenaire)" required>
+            <Field label="Prix adulte (partenaire)" required error={errorFor("partnerAdultPrice")}>
               <input
                 type="number"
                 className={inputClass}
@@ -899,7 +973,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 onChange={(e) => patch({ partnerAdultPrice: e.target.valueAsNumber })}
               />
             </Field>
-            <Field label="Prix enfant (partenaire)" required>
+            <Field label="Prix enfant (partenaire)" required error={errorFor("partnerChildPrice")}>
               <input
                 type="number"
                 className={inputClass}
@@ -907,7 +981,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 onChange={(e) => patch({ partnerChildPrice: e.target.valueAsNumber })}
               />
             </Field>
-            <Field label="TVA (%)" required>
+            <Field label="TVA (%)" required error={errorFor("tva")}>
               <input
                 type="number"
                 step={0.1}
@@ -941,7 +1015,12 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
           <div className="flex flex-col gap-5">
             {!canSubmit && (
               <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
-                Le nom du circuit est requis avant de pouvoir l&apos;enregistrer.
+                Enregistrement impossible pour l&apos;instant :{" "}
+                {summarizeIssues(
+                  localIssues(form).filter((i) => SAVE_BLOCKING_STEPS.includes(i.step)),
+                  STEPS,
+                  10,
+                )}
               </div>
             )}
 
@@ -1032,9 +1111,13 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
                 <button
                   type="button"
                   onClick={onSubmitForReview}
-                  disabled={busy || !readyForReview}
+                  disabled={busy}
                   className="btn btn-primary"
-                  title={readyForReview ? undefined : "Complétez toutes les sections requises d'abord."}
+                  title={
+                    readyForReview
+                      ? undefined
+                      : `Il reste ${localIssues(form).length} point(s) à compléter — cliquez pour voir le détail.`
+                  }
                 >
                   Envoyer pour vérification
                 </button>
@@ -1122,11 +1205,13 @@ function Field({
   label,
   hint,
   required,
+  error,
   children,
 }: {
   label: string;
   hint?: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -1137,6 +1222,7 @@ function Field({
         {hint && <span className="ml-1 text-navy-700/35">({hint})</span>}
       </label>
       {children}
+      {error && <p className="text-[12px] font-medium text-rose">{error}</p>}
     </div>
   );
 }

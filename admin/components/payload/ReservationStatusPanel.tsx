@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
@@ -113,8 +114,7 @@ export default function ReservationStatusPanel({
   }
 
   async function fail(res: Response, fallback: string) {
-    const data = await res.json().catch(() => ({}));
-    toast.error(data.message ?? fallback);
+    toast.error(await readApiError(res, fallback.replace(/\.$/, "")));
   }
 
   async function transition(next: Target) {

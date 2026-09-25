@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import Modal from "@/components/Modal";
@@ -129,8 +130,9 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
     const res = await fetch(`/api/proxy/invoices/${invoice.invoiceId}/${sendPath}`, { method: "POST" });
     setBusy(false);
     if (!res.ok) {
-      setError("Envoi impossible.");
-      toast.error("Envoi impossible.");
+      const message = await readApiError(res, "Envoi impossible");
+      setError(message);
+      toast.error(message);
       return;
     }
     setSent(true);
@@ -142,7 +144,7 @@ export function InvoiceDetail({ basePath, invoice }: { basePath: string; invoice
     const res = await fetch(`/api/proxy/invoices/${invoice.invoiceId}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Suppression impossible — ce document n'est peut-être plus un brouillon.";
+      const message = await readApiError(res, "Suppression impossible");
       setError(message);
       toast.error(message);
       setDeleteOpen(false);

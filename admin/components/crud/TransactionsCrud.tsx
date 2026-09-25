@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -129,8 +130,7 @@ export function NewPaymentForm({ reservations }: { reservations: AdminReservatio
 
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      const message = await readApiError(res);
       setError(message);
       toast.error(message);
       return;

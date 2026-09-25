@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -30,8 +31,7 @@ export default function SettingsForm({ initialData }: { initialData: AdminCampin
 
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      const message = await readApiError(res);
       setError(message);
       toast.error(message);
       return;

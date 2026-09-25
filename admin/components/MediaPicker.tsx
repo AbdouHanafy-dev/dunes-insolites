@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/Modal";
@@ -112,7 +113,7 @@ export default function MediaPicker({
     });
     if (!res.ok) {
       setAssets(previous);
-      toast.error(res.status === 403 ? "Votre rôle ne permet pas de réordonner la médiathèque." : "Enregistrement de l’ordre impossible.");
+      toast.error(await readApiError(res, "Enregistrement de l’ordre impossible"));
     }
   }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,8 +40,7 @@ export default function CustomRoleMatrix({
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Une erreur est survenue.");
+      toast.error(await readApiError(res));
       return;
     }
     const saved = await res.json();

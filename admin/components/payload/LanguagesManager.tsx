@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -30,8 +31,7 @@ export default function LanguagesManager({ initialLanguages }: { initialLanguage
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible d'ajouter cette langue.");
+      toast.error(await readApiError(res, "Impossible d'ajouter cette langue"));
       return;
     }
     const created = await res.json();
@@ -49,7 +49,7 @@ export default function LanguagesManager({ initialLanguages }: { initialLanguage
     });
     setBusy(false);
     if (!res.ok) {
-      toast.error("Modification impossible.");
+      toast.error(await readApiError(res, "Modification impossible"));
       return;
     }
     const updated = await res.json();

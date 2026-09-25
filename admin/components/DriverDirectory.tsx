@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -32,8 +33,7 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
     });
     setBusy(false);
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      toast.error(error.message ?? "Impossible de créer le chauffeur.");
+      toast.error(await readApiError(response, "Impossible de créer le chauffeur"));
       return;
     }
     const created = (await response.json()) as AdminDriverProfile;
@@ -51,7 +51,7 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
     });
     setBusy(false);
     if (!response.ok) {
-      toast.error("Impossible de modifier le chauffeur.");
+      toast.error(await readApiError(response, "Impossible de modifier le chauffeur"));
       return;
     }
     const updated = (await response.json()) as AdminDriverProfile;
@@ -64,7 +64,7 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
     const response = await fetch(`/api/proxy/driver-profiles/${driver.driverProfileId}/invitation`, { method: "POST" });
     setBusy(false);
     if (!response.ok) {
-      toast.error("Impossible d’envoyer une nouvelle invitation.");
+      toast.error(await readApiError(response, "Impossible d’envoyer une nouvelle invitation"));
       return;
     }
     toast.success("Nouvelle invitation envoyée");

@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -60,8 +61,7 @@ export default function ReservationStaffPanel({
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible d'affecter ce membre du personnel.");
+      toast.error(await readApiError(res, "Impossible d'affecter ce membre du personnel"));
       return;
     }
     const updated = await res.json();
@@ -75,7 +75,7 @@ export default function ReservationStaffPanel({
     const res = await fetch(`/api/proxy/reservations/${reservationId}/staff/${kind}/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      toast.error("Suppression impossible.");
+      toast.error(await readApiError(res, "Suppression impossible"));
       return;
     }
     if (kind === "guides") setGuides((prev) => prev.filter((g) => g.guideId !== id));

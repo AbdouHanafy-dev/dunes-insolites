@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/Modal";
 import type { AdminTourType, AvailabilityDay } from "@/lib/api";
@@ -112,8 +113,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
     });
     setBusy(false);
     if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      setError(data.message ?? "Impossible de bloquer cette date.");
+      setError(await readApiError(response, "Impossible de bloquer cette date"));
       return;
     }
     setBlockTarget(null);
@@ -127,7 +127,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
     const response = await fetch(`/api/proxy/availability/blocks/${blockId}`, { method: "DELETE" });
     setBusy(false);
     if (!response.ok) {
-      setError("Impossible de débloquer cette date.");
+      setError(await readApiError(response, "Impossible de débloquer cette date"));
       return;
     }
     await reload();

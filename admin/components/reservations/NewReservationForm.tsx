@@ -1,5 +1,7 @@
 "use client";
 
+import { formatApiFailure, parseApiFailure, readApiError } from "@/lib/apiError";
+import { issuesFromServer, summarizeFormIssues, type FieldLike, type FormIssue } from "@/lib/formIssues";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -31,6 +33,23 @@ import { sym } from "@/lib/currency";
  * other booking path — this form shows the total only after the server
  * returns it, never a client-side estimate presented as real.
  */
+
+const RESERVATION_FIELDS: FieldLike[] = Object.entries({
+  userId: "Client",
+  sourceId: "Source",
+  locale: "Langue des emails",
+  checkInDate: "Arrivée",
+  checkOutDate: "Départ",
+  serviceDate: "Date de départ du circuit",
+  numberOfAdults: "Adultes",
+  numberOfChildren: "Enfants",
+  numberOfInfants: "Bébés",
+  groupName: "Nom du groupe",
+  demandeSpecial: "Demande spéciale",
+  tourTypes: "Nuitée",
+  tours: "Circuit",
+  extras: "Activités",
+}).map(([key, label]) => ({ key, label, type: "text" }));
 
 type TierAvailability = { slug: string; name: string; status: "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN"; unitsAvailable: number | null };
 
@@ -145,6 +164,7 @@ export default function NewReservationForm({
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [issues, setIssues] = useState<FormIssue[]>([]);
   const [result, setResult] = useState<{ reservationId: string; totalAmount: number; currency: string } | null>(null);
 
   function addExtraLine() {
@@ -178,7 +198,7 @@ export default function NewReservationForm({
       return { error: "Vous n'avez pas la permission de créer un nouveau client — utilisez un client existant, ou demandez à un admin." };
     }
     if (!res.ok) {
-      return { error: "Création du client impossible — vérifiez que cet email n'est pas déjà utilisé." };
+      return { error: await readApiError(res, "Création du client impossible") };
     }
     const created = (await res.json()) as AdminUser;
     return { userId: created.userId };
@@ -187,17 +207,33 @@ export default function NewReservationForm({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setIssues([]);
 
-    if (!sourceId) {
-      setError("Sélectionnez une source.");
-      return;
+    const local: FormIssue[] = [];
+    const add = (key: string, label: string, message: string) => local.push({ key, path: key, label, message });
+    if (clientMode === "search" && !selectedClient) {
+      add("userId", "Client", "aucun client sélectionné — recherchez un client existant (2 lettres minimum) ou passez à « nouveau client ».");
     }
-    if (reservationKind === "HEBERGEMENT" && (!tourTypeId || nights <= 0)) {
-      setError("Vérifiez la nuitée et les dates.");
-      return;
+    if (clientMode === "new") {
+      if (!newClient.name.trim()) add("userId", "Nouveau client — nom", "champ obligatoire — il est vide.");
+      if (!newClient.email.trim()) add("userId", "Nouveau client — email", "champ obligatoire — il est vide.");
     }
-    if (reservationKind === "TOURS" && (!tourId || !departureDate)) {
-      setError("Sélectionnez un circuit et une date de départ.");
+    if (!sourceId) add("sourceId", "Source", "aucune source sélectionnée — indiquez d'où vient la réservation.");
+    if (reservationKind === "HEBERGEMENT") {
+      if (!tourTypeId) add("tourTypes", "Nuitée", "aucune nuitée sélectionnée.");
+      if (!checkInDate) add("checkInDate", "Arrivée", "date obligatoire — elle est vide.");
+      if (!checkOutDate) add("checkOutDate", "Départ", "date obligatoire — elle est vide.");
+      else if (checkInDate && nights <= 0) {
+        add("checkOutDate", "Départ", `doit être après l'arrivée (arrivée ${checkInDate}, départ ${checkOutDate}).`);
+      }
+    } else {
+      if (!tourId) add("tours", "Circuit", "aucun circuit sélectionné.");
+      if (!departureDate) add("serviceDate", "Date de départ du circuit", "date obligatoire — elle est vide.");
+    }
+    if (local.length > 0) {
+      setIssues(local);
+      setError(`Réservation non créée — ${summarizeFormIssues(local, 10)}`);
+      toast.error(`Réservation non créée — ${summarizeFormIssues(local)}`);
       return;
     }
 
@@ -261,8 +297,12 @@ export default function NewReservationForm({
     setBusy(false);
 
     if (!res.ok) {
-      const message = await res.json().catch(() => null);
-      setError(message?.message ?? "Création impossible — vérifiez les disponibilités et réessayez.");
+      const failure = await parseApiFailure(res);
+      const summary = formatApiFailure(failure, "Création de la réservation refusée par le serveur");
+      const list = issuesFromServer(RESERVATION_FIELDS, failure.fields, summary);
+      setIssues(list);
+      setError(summary);
+      toast.error(`Création refusée — ${summarizeFormIssues(list)} (HTTP ${failure.status})`);
       return;
     }
     const created = await res.json();
@@ -700,7 +740,18 @@ export default function NewReservationForm({
         </div>
       </section>
 
-      {error && (
+      {issues.length > 0 ? (
+        <div role="alert" className="rounded-xl border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">
+          <p className="font-semibold">{issues.length} problème(s) à corriger :</p>
+          <ul className="mt-2 flex flex-col gap-1">
+            {issues.map((i, n) => (
+              <li key={`${i.path}-${n}`}>
+                <strong>{i.label}</strong> : {i.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : error && (
         <div className="rounded-[10px] border border-rose/25 bg-rose/8 px-4 py-3 text-[13px] text-rose">{error}</div>
       )}
 

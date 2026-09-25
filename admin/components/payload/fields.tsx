@@ -26,11 +26,14 @@ export function FieldInput({
   field,
   value,
   onChange,
+  invalid,
 }: {
   field: FieldDef;
   value: unknown;
   onChange: (v: unknown) => void;
+  invalid?: boolean;
 }) {
+  const ic = invalid ? inputClass.replace("border-navy-700/15", "border-rose") : inputClass;
   if (field.type === "repeater") {
     // Callers must render RepeaterField for this case instead — see
     // PageBuilder.tsx. Rendering nothing is safer than a broken text input
@@ -41,9 +44,10 @@ export function FieldInput({
     return (
       <textarea
         id={field.key}
+        aria-invalid={invalid || undefined}
         value={(value as string) ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className={`${inputClass} min-h-32`}
+        className={`${ic} min-h-32`}
       />
     );
   }
@@ -51,9 +55,10 @@ export function FieldInput({
     return (
       <select
         id={field.key}
+        aria-invalid={invalid || undefined}
         value={(value as string) ?? field.options[0]?.value}
         onChange={(e) => onChange(e.target.value)}
-        className={inputClass}
+        className={ic}
       >
         {field.options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -70,10 +75,11 @@ export function FieldInput({
     return (
       <input
         id={field.key}
+        aria-invalid={invalid || undefined}
         type="date"
         value={raw.slice(0, 10)}
         onChange={(e) => onChange(e.target.value || null)}
-        className={inputClass}
+        className={ic}
       />
     );
   }
@@ -87,10 +93,11 @@ export function FieldInput({
     return (
       <input
         id={field.key}
+        aria-invalid={invalid || undefined}
         type="datetime-local"
         value={raw.slice(0, 16)}
         onChange={(e) => onChange(e.target.value || null)}
-        className={inputClass}
+        className={ic}
       />
     );
   }
@@ -98,6 +105,7 @@ export function FieldInput({
     return (
       <input
         id={field.key}
+        aria-invalid={invalid || undefined}
         type="checkbox"
         checked={!!value}
         onChange={(e) => onChange(e.target.checked)}
@@ -108,12 +116,13 @@ export function FieldInput({
   return (
     <input
       id={field.key}
+        aria-invalid={invalid || undefined}
       type={field.type === "number" ? "number" : "text"}
       step={field.type === "number" ? (field.step ?? "any") : undefined}
       required={"required" in field ? field.required : false}
       value={(value as string | number) ?? ""}
       onChange={(e) => onChange(field.type === "number" ? e.target.valueAsNumber : e.target.value)}
-      className={inputClass}
+      className={ic}
     />
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -59,8 +60,7 @@ export default function PaymentPolicyForm({ initialData }: { initialData: AdminP
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Enregistrement impossible.");
+      toast.error(await readApiError(res, "Enregistrement impossible"));
       return;
     }
     toast.success("Règles de paiement enregistrées");

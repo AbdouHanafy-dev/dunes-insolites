@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -37,8 +38,7 @@ export default function MeetUpPlacePanel({
       return;
     }
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible d'enregistrer le lieu de rendez-vous.");
+      toast.error(await readApiError(res, "Impossible d'enregistrer le lieu de rendez-vous"));
       return;
     }
     const updated = await res.json();

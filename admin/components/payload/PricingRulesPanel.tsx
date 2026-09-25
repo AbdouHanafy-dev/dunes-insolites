@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -58,8 +59,7 @@ export default function PricingRulesPanel({
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? "Impossible de créer cette règle — vérifie qu'elle ne chevauche pas une autre.");
+      toast.error(await readApiError(res, "Impossible de créer cette règle"));
       return;
     }
     const created = (await res.json()) as AdminPricingRule;
@@ -73,7 +73,7 @@ export default function PricingRulesPanel({
   async function remove(ruleId: string) {
     const res = await fetch(`/api/proxy/${basePath}/${ruleId}`, { method: "DELETE" });
     if (!res.ok) {
-      toast.error("Suppression impossible.");
+      toast.error(await readApiError(res, "Suppression impossible"));
       return;
     }
     setRules((prev) => (prev ?? []).filter((r) => r.id !== ruleId));

@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -73,8 +74,7 @@ export default function PagesEditor({
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      const message = await readApiError(res);
       setError(message);
       toast.error(message);
       setBusy(false);
@@ -108,8 +108,9 @@ export default function PagesEditor({
     const res = await fetch(`/api/proxy/${API_PATH}/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible.");
-      toast.error("Suppression impossible.");
+      const message = await readApiError(res, "Suppression impossible");
+      setError(message);
+      toast.error(message);
       setDeleteOpen(false);
       return;
     }

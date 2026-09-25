@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -38,7 +39,7 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
     const res = await fetch(`/api/proxy/${API_PATH}/${deleteTarget.blockId}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const message = "Suppression impossible — ce bloc est peut-être référencé par une page.";
+      const message = await readApiError(res, "Suppression impossible");
       setError(message);
       toast.error(message);
       return;
@@ -183,8 +184,7 @@ export function ContentBlockEditor({
     });
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? data.error ?? "Une erreur est survenue.";
+      const message = await readApiError(res);
       setError(message);
       toast.error(message);
       setBusy(false);
@@ -203,8 +203,9 @@ export function ContentBlockEditor({
     const res = await fetch(`/api/proxy/${API_PATH}/${id}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      setError("Suppression impossible.");
-      toast.error("Suppression impossible.");
+      const message = await readApiError(res, "Suppression impossible");
+      setError(message);
+      toast.error(message);
       setDeleteOpen(false);
       return;
     }

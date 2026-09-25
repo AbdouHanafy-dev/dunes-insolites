@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
@@ -36,8 +37,7 @@ export default function ReviewPlatformsManager({ platforms }: { platforms: Admin
     });
     setBusyId(null);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.message ?? data.error ?? "Une erreur est survenue.");
+      toast.error(await readApiError(res));
       return false;
     }
     toast.success(ok);

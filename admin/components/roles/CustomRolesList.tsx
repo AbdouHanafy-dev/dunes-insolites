@@ -1,5 +1,6 @@
 "use client";
 
+import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,8 +36,7 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
     });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.message ?? "Création impossible.");
+      setError(await readApiError(res, "Création impossible"));
       return;
     }
     toast.success("Rôle créé.");
@@ -53,8 +53,7 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
     const res = await fetch(`/api/proxy/admin/custom-roles/${deleteTarget.name}`, { method: "DELETE" });
     setBusy(false);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const message = data.message ?? "Suppression impossible.";
+      const message = await readApiError(res, "Suppression impossible");
       setError(message);
       toast.error(message);
       return;
