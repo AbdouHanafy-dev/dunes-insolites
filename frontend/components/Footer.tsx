@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import type { SiteSettingsData } from "@/lib/api";
 import type { Activity, Stay, Tour } from "@/lib/types";
 import { site } from "@/lib/site";
+import { sortByPrice } from "@/lib/guestPricing";
 import Newsletter from "@/components/Newsletter";
 
 const MAX_PER_COLUMN = 6;
@@ -39,7 +40,7 @@ export default async function Footer({
   const accommodation: FooterLink[] = stays
     .flatMap((stay) =>
       (stay.accommodations?.length ?? 0) > 0
-        ? stay.accommodations!.map((a) => ({ label: a.title, href: `/camp/${stay.slug}/${a.slug}` }))
+        ? sortByPrice(stay.accommodations!).map((a) => ({ label: a.title, href: `/camp/${stay.slug}/${a.slug}` }))
         : [{ label: stay.title, href: `/camp/${stay.slug}` }],
     )
     .slice(0, MAX_PER_COLUMN);

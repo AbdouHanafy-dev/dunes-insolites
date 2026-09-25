@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
 import AccIcon from "@/components/AccIcon";
+import { sortByPrice } from "@/lib/guestPricing";
 import AccGallery from "@/components/AccGallery";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import { getSiteImages } from "@/lib/api";
@@ -305,7 +306,7 @@ export default async function ActivityView({
               <p>{t("combine.text")}</p>
             </Reveal>
             <div className="acc-grid acc-grid--3">
-              {accommodations.map((a, i) => (
+              {sortByPrice(accommodations).map((a, i) => (
                 <Reveal key={a.slug} delay={i * 80}>
                   <Link href={`/camp/${stay.slug}/${a.slug}`} className="acc-act">
                     <span className="acc-act-media">

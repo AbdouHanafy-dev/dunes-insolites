@@ -4,6 +4,7 @@ import { getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
 import Reveal from "@/components/Reveal";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import { sortByPrice } from "@/lib/guestPricing";
 import { getSiteImages } from "@/lib/api";
 import { stayCardFallback } from "@/lib/siteImages";
 
@@ -75,7 +76,7 @@ export default async function Stays() {
               <h3 className="stay-choices-title">{t("chooseAccommodation")}</h3>
             </Reveal>
             <div className="stay-choices-grid">
-              {withChoice.accommodations.map((acc, i) => (
+              {sortByPrice(withChoice.accommodations).map((acc, i) => (
                 <Reveal key={acc.slug} delay={i * 80}>
                   <Link href={`/camp/${withChoice.slug}/${acc.slug}`} className="stay-choice">
                     <span className="stay-choice-media">
