@@ -829,6 +829,8 @@ export function register(input: {
   password: string;
   phone?: string;
   acceptedTerms: boolean;
+  /** The site language, so the account emails arrive in it. */
+  locale?: string;
 }): Promise<WriteResult<AuthUser>> {
   return postLocal<AuthUser>("/auth/register", input);
 }
@@ -850,8 +852,8 @@ export function logout(): Promise<void> {
  * path sendContact()/subscribe() already use, rather than through a
  * same-origin BFF route handler.
  */
-export function requestPasswordReset(email: string): Promise<WriteResult<{ ok: true }>> {
-  return post<{ ok: true }>("/auth/forgot-password", { email });
+export function requestPasswordReset(email: string, locale?: string): Promise<WriteResult<{ ok: true }>> {
+  return post<{ ok: true }>("/auth/forgot-password", { email, locale });
 }
 
 export function resetPassword(token: string, newPassword: string): Promise<WriteResult<{ ok: true }>> {

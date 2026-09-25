@@ -4,6 +4,7 @@ import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.exception.InvalidTokenException;
 import com.camping.duneinsolite.model.AccountActionToken;
 import com.camping.duneinsolite.model.User;
+import com.camping.duneinsolite.model.enums.MailLocale;
 import com.camping.duneinsolite.model.enums.AccountActionType;
 import com.camping.duneinsolite.repository.AccountActionTokenRepository;
 import com.camping.duneinsolite.repository.UserRepository;
@@ -49,16 +50,16 @@ public class AccountActionServiceImpl implements AccountActionService {
 
     @Override
     @Transactional
-    public void sendVerificationEmail(User user) {
+    public void sendVerificationEmail(User user, String locale) {
         invalidateExisting(user, AccountActionType.EMAIL_VERIFY);
         String token = issueToken(user, AccountActionType.EMAIL_VERIFY, Duration.ofHours(24));
         String link = frontendUrl + "/verify-email?token=" + token;
-        emailService.sendVerificationEmail(user.getEmail(), user.getName(), link);
+        emailService.sendVerificationEmail(user.getEmail(), user.getName(), link, MailLocale.from(locale));
     }
 
     @Override
     @Transactional
-    public void requestPasswordReset(String email) {
+    public void requestPasswordReset(String email, String locale) {
         userRepository.findByEmail(email).ifPresent(user -> {
             invalidateExisting(user, AccountActionType.PASSWORD_RESET);
             // 1 hour, not 24 - a live password-reset link is a stronger
@@ -66,7 +67,7 @@ public class AccountActionServiceImpl implements AccountActionService {
             // the account outright), so it gets a shorter window.
             String token = issueToken(user, AccountActionType.PASSWORD_RESET, Duration.ofHours(1));
             String link = frontendUrl + "/reset-password?token=" + token;
-            emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), link);
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), link, MailLocale.from(locale));
         });
         // No else branch, no exception, nothing that would tell a caller
         // whether `email` belongs to a real account - see the interface doc.
@@ -83,11 +84,11 @@ public class AccountActionServiceImpl implements AccountActionService {
 
     @Override
     @Transactional
-    public void sendGuestPasswordSetupInvitation(User user) {
+    public void sendGuestPasswordSetupInvitation(User user, String locale) {
         invalidateExisting(user, AccountActionType.PASSWORD_RESET);
         String token = issueToken(user, AccountActionType.PASSWORD_RESET, Duration.ofHours(24));
         String link = frontendUrl + "/reset-password?token=" + token;
-        emailService.sendGuestAccountInvitationEmail(user.getEmail(), user.getName(), link);
+        emailService.sendGuestAccountInvitationEmail(user.getEmail(), user.getName(), link, MailLocale.from(locale));
     }
 
     @Override

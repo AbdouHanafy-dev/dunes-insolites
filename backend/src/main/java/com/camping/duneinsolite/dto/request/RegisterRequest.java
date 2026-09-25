@@ -19,6 +19,9 @@ public class RegisterRequest {
     private String email;
     private String password;
     private String phone;
+    // The site language the visitor signed up in (fr, en, de, it, da, ar); picks the language of the
+    // account emails. Optional - anything missing or unknown is French.
+    private String locale;
 
     // Required (server-enforced, not just a frontend checkbox) when this
     // request results in a CLIENT account — see

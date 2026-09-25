@@ -4,8 +4,8 @@ import com.camping.duneinsolite.model.User;
 
 public interface AccountActionService {
 
-    /** Issues a fresh verify-email token and emails the link. Called right after registration. */
-    void sendVerificationEmail(User user);
+    /** Issues a fresh verify-email token and emails the link. Called right after registration. {@code locale} is the site language the user signed up in (fr, en, de, it, da, ar; anything else is French). */
+    void sendVerificationEmail(User user, String locale);
 
     /**
      * Public entry point for "forgot password". Deliberately silent about
@@ -13,13 +13,13 @@ public interface AccountActionService {
      * either way (see AuthController), this method just no-ops when it
      * doesn't find a match.
      */
-    void requestPasswordReset(String email);
+    void requestPasswordReset(String email, String locale);
 
     /** Sends a 24-hour, one-use link so an admin-created driver chooses their own password. */
     void sendPasswordSetupInvitation(User user);
 
     /** Sends a one-use setup link for an account created during guest checkout. */
-    void sendGuestPasswordSetupInvitation(User user);
+    void sendGuestPasswordSetupInvitation(User user, String locale);
 
     /** Redeems an EMAIL_VERIFY token and marks the account verified in Keycloak. */
     void verifyEmail(String token);

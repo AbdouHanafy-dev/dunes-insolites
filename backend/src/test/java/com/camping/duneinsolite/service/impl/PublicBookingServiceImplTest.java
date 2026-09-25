@@ -158,7 +158,7 @@ class PublicBookingServiceImplTest {
         assertThat(built.getExtras()).isNull();
         assertThat(publicResponse.getTotal()).isEqualByComparingTo("225.000");
         assertThat(publicResponse.getStatus()).isEqualTo("pending");
-        verify(accountActionService).sendGuestPasswordSetupInvitation(any(User.class));
+        verify(accountActionService).sendGuestPasswordSetupInvitation(any(User.class), any());
     }
 
     @Test
@@ -664,6 +664,6 @@ class PublicBookingServiceImplTest {
         verify(keycloakUserSyncService, org.mockito.Mockito.never())
                 .createInvitedGuestUser(any(), any(), any());
         verify(accountActionService, org.mockito.Mockito.never())
-                .sendGuestPasswordSetupInvitation(any());
+                .sendGuestPasswordSetupInvitation(any(), any());
     }
 }

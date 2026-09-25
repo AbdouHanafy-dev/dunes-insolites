@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { requestPasswordReset } from "@/lib/api";
 
 export default function ForgotPasswordForm() {
   const t = useTranslations("forgotPasswordPage");
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
 
@@ -18,7 +19,7 @@ export default function ForgotPasswordForm() {
     // tell the difference either (see AccountActionServiceImpl.
     // requestPasswordReset's comment on why), so there is nothing more
     // specific to show here even on a genuine network failure.
-    await requestPasswordReset(email);
+    await requestPasswordReset(email, locale);
     setState("sent");
   }
 

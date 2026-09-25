@@ -2,6 +2,7 @@ package com.camping.duneinsolite.service.impl;
 
 import static com.camping.duneinsolite.observability.LogSanitizer.maskEmail;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
+import com.camping.duneinsolite.mail.MailLayout;
 import com.camping.duneinsolite.model.*;
 import com.camping.duneinsolite.model.enums.CompanyType;
 import com.camping.duneinsolite.model.enums.Currency;
@@ -38,6 +39,9 @@ public class InvoiceEmailService {
 
     @Value("${app.mail.from:noreply@duneinsolite.com}")
     private String fromAddress;
+
+    @Value("${app.frontend.url:https://www.dunes-insolites.com}")
+    private String frontendUrl = "https://www.dunes-insolites.com";
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -343,39 +347,27 @@ public class InvoiceEmailService {
         java.math.BigDecimal remaining = com.camping.duneinsolite.money.Money.subtract(total, paid);
         String typeLabel = isFacture ? "facture" : "proforma";
         String cur = currencyLabel(currency != null ? currency.name() : "EUR");
-        return "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"UTF-8\"/></head>"
-                + "<body style=\"margin:0;padding:0;background:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;\">"
-                + "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f4f5;padding:36px 0;\">"
-                + "<tr><td align=\"center\">"
-                + "<table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" "
-                + "style=\"background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);\">"
-                + "<tr><td style=\"background:linear-gradient(135deg,#c8963e,#a07030);padding:32px 40px;text-align:center;\">"
-                + "<h1 style=\"margin:0;color:#ffffff;font-size:24px;font-weight:700;\">&#127956;&#65039; Dunes Insolites</h1>"
-                + "<p style=\"margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;\">Rappel de paiement</p>"
-                + "</td></tr>"
-                + "<tr><td style=\"padding:36px 40px 24px;\">"
-                + "<p style=\"margin:0 0 14px;font-size:15px;color:#374151;\">Bonjour <strong>" + esc(safeStr(clientName)) + "</strong>,</p>"
-                + "<p style=\"margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.6;\">Veuillez trouver ci-joint votre " + typeLabel
-                + " <strong>" + esc(invoiceNumber) + "</strong>.<br/>Nous vous rappelons qu&#8217;un solde reste &#224; r&#233;gler.</p>"
-                + "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#fef9f0;border:1px solid #f0d9a8;border-radius:8px;margin-bottom:24px;\">"
-                + "<tr><td style=\"padding:20px 24px;\">"
-                + "<table width=\"100%\" cellpadding=\"6\" cellspacing=\"0\">"
-                + "<tr><td style=\"font-size:13px;color:#9ca3af;font-weight:600;\">Total</td>"
-                + "<td style=\"font-size:14px;color:#111827;font-weight:500;text-align:right;\">" + fmt(total) + " " + cur + "</td></tr>"
-                + "<tr><td style=\"font-size:13px;color:#9ca3af;font-weight:600;\">D&#233;j&#224; r&#233;gl&#233;</td>"
-                + "<td style=\"font-size:14px;color:#10b981;font-weight:600;text-align:right;\">" + fmt(paid) + " " + cur + "</td></tr>"
-                + "<tr><td style=\"font-size:13px;color:#9ca3af;font-weight:600;\">Reste &#224; payer</td>"
-                + "<td style=\"font-size:16px;color:#dc2626;font-weight:700;text-align:right;\">" + fmt(remaining) + " " + cur + "</td></tr>"
-                + "</table></td></tr></table>"
-                + "<p style=\"margin:0;font-size:13px;color:#6b7280;line-height:1.6;\">Pour toute question, n&#8217;h&#233;sitez pas &#224; nous contacter.<br/>Merci de votre confiance.</p>"
-                + "</td></tr>"
-                + "<tr><td style=\"padding:20px 40px 32px;border-top:1px solid #f3f4f6;text-align:center;\">"
-                + "<p style=\"margin:0;font-size:12px;color:#9ca3af;line-height:1.6;\">Cet email a &#233;t&#233; envoy&#233; automatiquement &#8212; merci de ne pas y r&#233;pondre.<br/>&#169; 2026 Dunes Insolites. Tous droits r&#233;serv&#233;s.</p>"
-                + "</td></tr>"
-                + "</table></td></tr></table></body></html>";
-    }
+        boolean settled = remaining.signum() <= 0;
 
-    // ── Mail sender ───────────────────────────────────────────────
+        String content = MailLayout.p("Bonjour " + MailLayout.strong(safeStr(clientName)) + ",")
+                + MailLayout.p("Veuillez trouver ci-joint votre " + typeLabel + " " + MailLayout.strong(invoiceNumber)
+                + (settled ? "." : ". Nous vous rappelons qu'un solde reste à régler."))
+                + MailLayout.panel(MailLayout.rows(
+                        MailLayout.row("Document", MailLayout.code(invoiceNumber))
+                        + MailLayout.row("Total", MailLayout.esc(fmt(total) + " " + cur))
+                        + MailLayout.row("Déjà réglé", MailLayout.esc(fmt(paid) + " " + cur))
+                        + MailLayout.row(settled ? "Solde" : "Reste à payer",
+                                "<strong style=\"font-size:16px;color:" + (settled ? MailLayout.TEAL : MailLayout.EMBER) + ";\">"
+                                + MailLayout.esc(settled ? "soldé" : fmt(remaining) + " " + cur) + "</strong>")))
+                + MailLayout.muted("Le document détaillé est en pièce jointe (PDF). Pour toute question, répondez à nos "
+                + "coordonnées ci-dessous — merci de votre confiance.")
+                + "<p style=\"margin:8px 0 24px;font-family:" + MailLayout.BODY + ";font-size:15px;line-height:1.7;color:"
+                + MailLayout.INK + ";\">Cordialement,<br><strong style=\"font-family:" + MailLayout.DISPLAY
+                + ";font-weight:600;\">L'équipe Dunes Insolites</strong></p>";
+        return MailLayout.page(new MailLayout.Frame("fr", false, frontendUrl, "Dunes Insolites",
+                isFacture ? "Facture" : "Proforma", isFacture ? "Votre facture" : "Votre proforma", content,
+                "Cet email a été envoyé automatiquement — merci de ne pas y répondre."));
+    }
 
     private void send(String to, String subject, String htmlBody, byte[] pdfBytes, String filename)
             throws MessagingException {

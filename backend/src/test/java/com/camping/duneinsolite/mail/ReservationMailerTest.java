@@ -98,4 +98,87 @@ class ReservationMailerTest {
                 "TND", new BigDecimal("160.000"), BigDecimal.ZERO, List.of(PayMethod.CASH)));
         assertThat(sentSource()).contains("fully paid");
     }
+
+    private static ReservationOverview overview() {
+        return new ReservationOverview("DI-1A2B3C4D", LocalDate.of(2026, 10, 12), LocalDate.of(2026, 10, 14), 2, 1, 1,
+                List.of(new ReservationOverview.Item("Nuitée au campement", "2 × Tente saharienne authentique")),
+                new BigDecimal("390.000"),
+                List.of(new ReservationOverview.Extra("Balade à dos de dromadaire", "× 2", new BigDecimal("60.000"))),
+                new BigDecimal("450.000"), new BigDecimal("100.000"), new BigDecimal("350.000"), "EUR");
+    }
+
+    @Test
+    void overviewListsTheBookingAndTheMoneyInTheClientsLanguage() {
+        String html = mailer.overviewHtml(MailLocale.EN, overview());
+
+        assertThat(html).contains("DI-1A2B3C4D").contains("2 adult(s)").contains("1 child(ren)").contains("1 infant(s)");
+        assertThat(html).contains("2 × Tente saharienne authentique").contains("Balade à dos de dromadaire");
+        assertThat(html).contains("390 €").contains("60 €").contains("450 €").contains("− 100 €").contains("350 €");
+        assertThat(html).contains("Balance due").doesNotContain("Reste à payer");
+    }
+
+    @Test
+    void overviewOfASettledBookingSaysSettled() {
+        ReservationOverview o = overview();
+        ReservationOverview paid = new ReservationOverview(o.reference(), o.arrival(), o.departure(), 2, 0, 0,
+                o.items(), o.mainAmount(), o.extras(), o.total(), o.total(), BigDecimal.ZERO, "EUR");
+        assertThat(mailer.overviewHtml(MailLocale.FR, paid)).contains("Soldé");
+    }
+
+    @Test
+    void textFromTheDatabaseCannotInjectHtml() {
+        ReservationOverview o = new ReservationOverview("X", null, null, 1, 0, 0,
+                List.of(new ReservationOverview.Item("<script>alert(1)</script>", "")),
+                BigDecimal.ZERO, List.of(), BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.TEN, "EUR");
+        assertThat(mailer.overviewHtml(MailLocale.EN, o)).doesNotContain("<script>").contains("&lt;script&gt;");
+    }
+
+    @Test
+    void everyEmailCarriesTheBrandFrame() throws Exception {
+        mailer.sendPayment(new PaymentMail("c@test.local", "Sophie", "Groupe Sophie", MailLocale.EN, true, PayKind.DEPOSIT,
+                "EUR", new BigDecimal("450"), new BigDecimal("100"), LocalDate.of(2026, 10, 12), "https://pay.example.com/x",
+                List.of(PayMethod.ONLINE), null, overview()));
+        String mail = sentSource();
+        assertThat(mail).contains("Alexandria").contains("Dunes Insolites").contains("logo-mark.png");
+        assertThat(mail).contains("DI-1A2B3C4D");
+    }
+
+    private static String htmlOf(MimeMessage m) throws Exception {
+        m.saveChanges();
+        return findHtml(m.getContent());
+    }
+
+    private static String findHtml(Object content) throws Exception {
+        if (content instanceof jakarta.mail.Multipart mp) {
+            for (int i = 0; i < mp.getCount(); i++) {
+                String h = findHtml(mp.getBodyPart(i).getContent());
+                if (h != null) return h;
+            }
+            return null;
+        }
+        return content instanceof String str && str.startsWith("<!DOCTYPE") ? str : null;
+    }
+
+    /** Full emails, one file per email and language, in backend/target/mail-preview - open them in a browser. */
+    @Test
+    void writesPreviewsToTheBuildFolderForEyeballing() throws Exception {
+        java.nio.file.Path dir = java.nio.file.Path.of("target", "mail-preview");
+        java.nio.file.Files.createDirectories(dir);
+        for (MailLocale l : new MailLocale[] {MailLocale.FR, MailLocale.EN, MailLocale.AR}) {
+            org.mockito.Mockito.clearInvocations(sender);
+            mailer.sendReceived("c@test.local", "Sophie", l, LocalDate.of(2026, 10, 12), new BigDecimal("450"), "EUR", overview());
+            mailer.sendPayment(new PaymentMail("c@test.local", "Sophie", "Groupe Sophie", l, true, PayKind.DEPOSIT, "EUR",
+                    new BigDecimal("450"), new BigDecimal("100"), LocalDate.of(2026, 10, 12), "https://pay.example.com/x",
+                    List.of(PayMethod.ONLINE, PayMethod.CARD, PayMethod.CASH), null, overview()));
+            mailer.sendPaymentReceived(new PaymentReceivedMail("c@test.local", "Sophie", "Groupe Sophie", l, "EUR",
+                    new BigDecimal("100"), new BigDecimal("350"), List.of(PayMethod.CARD, PayMethod.CASH), overview()));
+            ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+            verify(sender, org.mockito.Mockito.times(3)).send(captor.capture());
+            String[] names = {"received", "payment", "payment-received"};
+            for (int i = 0; i < 3; i++) {
+                java.nio.file.Files.writeString(dir.resolve(names[i] + "-" + l.tag() + ".html"), htmlOf(captor.getAllValues().get(i)));
+            }
+        }
+        assertThat(dir.resolve("payment-en.html")).exists();
+    }
 }

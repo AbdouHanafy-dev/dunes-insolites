@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, useRouter } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { login, register } from "@/lib/api";
 import { adminAppUrl } from "@/lib/site";
@@ -32,6 +32,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const isSignup = mode === "signup";
   const router = useRouter();
   const t = useTranslations("authForm");
+  const locale = useLocale();
   const toast = useToast();
 
   const [name, setName] = useState("");
@@ -102,6 +103,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           password,
           phone: phone.trim() || undefined,
           acceptedTerms: acceptTerms,
+          locale,
         })
       : await login({ email: email.trim(), password });
 

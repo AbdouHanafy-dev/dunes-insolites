@@ -178,7 +178,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
-        inviteNewGuest(resolvedUser);
+        inviteNewGuest(resolvedUser, request.getLocale());
         availabilityMetrics.holdCreated();
         return toActivityResponse(reservation, request, rideSlugs);
     }
@@ -367,7 +367,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         if (!selectedExtras.isEmpty()) reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
-        inviteNewGuest(resolvedUser);
+        inviteNewGuest(resolvedUser, request.getLocale());
         availabilityMetrics.holdCreated();
         return toTourResponse(reservation, request, rideSlugs);
     }
@@ -584,7 +584,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         if (!selectedExtras.isEmpty()) reservationRequest.setExtras(selectedExtras);
 
         ReservationResponse reservation = createIdempotent(reservationRequest, request.getIdempotencyKey());
-        inviteNewGuest(resolvedUser);
+        inviteNewGuest(resolvedUser, request.getLocale());
         availabilityMetrics.holdCreated();
         return toStayResponse(reservation, request, rideSlugs);
     }
@@ -705,10 +705,10 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                         name.trim(), normalizedEmail, phone.trim()), true);
     }
 
-    private void inviteNewGuest(ResolvedBookingUser resolvedUser) {
+    private void inviteNewGuest(ResolvedBookingUser resolvedUser, String locale) {
         if (!resolvedUser.newlyCreated()) return;
         try {
-            accountActionService.sendGuestPasswordSetupInvitation(resolvedUser.user());
+            accountActionService.sendGuestPasswordSetupInvitation(resolvedUser.user(), locale);
         } catch (RuntimeException invitationFailure) {
             // The reservation is authoritative and must not become a 500 after
             // it has been committed. The normal forgot-password path remains

@@ -52,6 +52,7 @@ public class PaymentRequestService {
     private final PaymentPolicyRepository policyRepository;
     private final PaymentService paymentService;
     private final ReservationMailer mailer;
+    private final ReservationOverviewFactory overviewFactory;
 
     /**
      * Staff "send / resend the payment request" from the reservation page.
@@ -102,7 +103,8 @@ public class PaymentRequestService {
                 currencyOf(reservation),
                 received,
                 Money.nz(summary.getRemainingTotal()),
-                onSite));
+                onSite,
+                overviewFactory.forReservation(reservationId)));
     }
 
     // ── internals ─────────────────────────────────────────────────
@@ -146,7 +148,8 @@ public class PaymentRequestService {
                 dueDate,
                 link,
                 methodsOf(policy, hasLink),
-                policy.getNote()));
+                policy.getNote(),
+                overviewFactory.forReservation(reservation.getReservationId())));
 
         return new PaymentRequestResult(reservation.getUser().getEmail(), due, currency, dueDate, hasLink);
     }

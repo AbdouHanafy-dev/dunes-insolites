@@ -40,6 +40,7 @@ public class ReservationEmailConsumer {
     private final EmailDispatchService emailDispatchService;
     private final com.camping.duneinsolite.mail.ReservationMailer reservationMailer;
     private final EmailMetrics emailMetrics;
+    private final com.camping.duneinsolite.service.impl.ReservationOverviewFactory overviewFactory;
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE, containerFactory = "emailListenerContainerFactory")
     public void consume(NotificationMessage message) {
@@ -59,7 +60,8 @@ public class ReservationEmailConsumer {
 
             try {
                 reservationMailer.sendReceived(
-                        view.email(), view.name(), view.locale(), view.date(), view.total(), view.currency());
+                        view.email(), view.name(), view.locale(), view.date(), view.total(), view.currency(),
+                        overviewOrNull(message));
                 emailDispatchService.markSent(claim.dispatchId());
                 emailMetrics.emailSent();
                 log.info("reservation-received email delivered for reservation {} (attempt {})",
@@ -71,6 +73,17 @@ public class ReservationEmailConsumer {
                         message.getReservationId(), claim.attempts(), sendFailure.getMessage());
                 throw sendFailure; // -> container retry -> DLQ
             }
+        }
+    }
+
+    /** The booking summary is a nicety: if it cannot be built the plain confirmation still goes out. */
+    private com.camping.duneinsolite.mail.ReservationOverview overviewOrNull(NotificationMessage message) {
+        try {
+            return overviewFactory.forReservation(message.getReservationId());
+        } catch (RuntimeException e) {
+            log.warn("could not build the booking overview for reservation {}: {}",
+                    message.getReservationId(), e.getMessage());
+            return null;
         }
     }
 

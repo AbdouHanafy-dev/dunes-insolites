@@ -61,7 +61,7 @@ public class AuthController {
         // and logs (never throws), so a dead SMTP server can't turn a
         // successful registration into a 500 - see EmailService's own
         // methods, all @Async with an internal try/catch.
-        accountActionService.sendVerificationEmail(createdUser);
+        accountActionService.sendVerificationEmail(createdUser, request.getLocale());
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toResponse(createdUser));
     }
 
@@ -107,7 +107,7 @@ public class AuthController {
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        accountActionService.requestPasswordReset(request.getEmail());
+        accountActionService.requestPasswordReset(request.getEmail(), request.getLocale());
         return ResponseEntity.noContent().build();
     }
 
