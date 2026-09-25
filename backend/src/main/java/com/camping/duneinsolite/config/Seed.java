@@ -31,6 +31,7 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
 
@@ -106,18 +107,29 @@ public class Seed implements CommandLineRunner {
         seedAccount(campingEmail, campingPassword, "Camping", UserRole.CAMPING);
         seedClientAccount();
 
-        seedSources();
-        seedTourTypes();
-        seedTours();
-        seedExtras();
-        seedCampActivities();
-        seedGallery();
-        seedCircuitsNavItem();
+        // Each block runs once (see V51__seed_markers.sql): running them at every
+        // start re-created whatever an editor had deleted in the backoffice.
+        once("catalog-sources", this::seedSources);
+        once("catalog-tour-types", this::seedTourTypes);
+        once("catalog-tours", this::seedTours);
+        once("catalog-extras", this::seedExtras);
+        once("catalog-camp-activities", this::seedCampActivities);
+        once("catalog-gallery", this::seedGallery);
+        once("catalog-circuits-nav", this::seedCircuitsNavItem);
 
-        seedGuideProfiles();
-        seedDriverProfiles();
-        seedContentBlocks();
-        seedNewsletterSubscribers();
+        once("sample-guides", this::seedGuideProfiles);
+        once("sample-drivers", this::seedDriverProfiles);
+        once("sample-content-blocks", this::seedContentBlocks);
+        once("sample-newsletter", this::seedNewsletterSubscribers);
+    }
+
+    /** Runs a seeding block only if it never ran on this database, then records it. */
+    private void once(String key, Runnable block) {
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        Integer done = jdbc.queryForObject("SELECT count(*) FROM seed_markers WHERE marker_key = ?", Integer.class, key);
+        if (done != null && done > 0) return;
+        block.run();
+        jdbc.update("INSERT INTO seed_markers (marker_key) VALUES (?) ON CONFLICT DO NOTHING", key);
     }
 
     // ─────────────────────────────────────────────────────────────
