@@ -152,16 +152,6 @@ export default function Header({
         detail: tour.duration,
         href: `/circuits/${tour.slug}`,
         image: tour.coverImage || tour.gallery[0] || "/images/gate.jpg",
-        // A circuit that sleeps at the camp offers the camp's accommodation
-        // types; each links to that type's own page on the camp stay.
-        children: tour.overnightsAtCamp && tour.campStaySlug
-          ? (tour.accommodations ?? []).map((tier) => ({
-              label: tier.title,
-              detail: tier.sleeps,
-              href: `/camp/${tour.campStaySlug}/${tier.slug}`,
-              image: tier.image || tour.coverImage || "/images/under-hero.jpg",
-            }))
-          : [],
       })),
       allLabel: tCircuits("seeAll"),
     },
