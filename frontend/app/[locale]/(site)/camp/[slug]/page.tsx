@@ -297,6 +297,12 @@ export default async function StayDetail({ params, searchParams }: Props) {
                 {hasTiers ? t("perNight") : sameRate ? t("perPersonPerNight") : t("perAdultPerNight")}
               </small>
             </div>
+            <StayReservationForm
+              stay={stay}
+              activities={activities}
+              accommodations={stay.accommodations}
+              initialAccommodationSlug={initialAccommodationSlug}
+            />
             <ul className="tour-booking-promises">
               {[
                 !hasTiers && !sameRate ? `${priceToken(childRate)} ${t("perChildPerNight")}` : "",
@@ -309,12 +315,6 @@ export default async function StayDetail({ params, searchParams }: Props) {
                   <li key={text}><PriceText text={text} /></li>
                 ))}
             </ul>
-            <StayReservationForm
-              stay={stay}
-              activities={activities}
-              accommodations={stay.accommodations}
-              initialAccommodationSlug={initialAccommodationSlug}
-            />
           </aside>
         </div>
 

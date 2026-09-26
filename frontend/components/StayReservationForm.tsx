@@ -368,7 +368,7 @@ export default function StayReservationForm({
     .filter((activity) => rideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activityTotal(activity, partySize, nights, minutesFor(activity)), 0);
   const otherReturnOption = returnCityOption(tourOptions);
-  const returnOtherTotal = otherReturn && returnCityOther.trim() && otherReturnOption ? optionTotal(otherReturnOption, partySize, nights) : 0;
+  const returnOtherTotal = hasOwnVehicle === false && otherReturn && returnCityOther.trim() && otherReturnOption ? optionTotal(otherReturnOption, partySize, nights) : 0;
 
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
@@ -403,7 +403,7 @@ export default function StayReservationForm({
       }
     }
     if (step === 2) {
-      if (otherReturn && !returnCityOther.trim()) e.returnCityOther = t("errorReturnCityOther");
+      if (hasOwnVehicle === false && otherReturn && !returnCityOther.trim()) e.returnCityOther = t("errorReturnCityOther");
       if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
       if (stay.guideRequired && !guideSlug) e.guide = t("errorGuideRequired");
       if (hasOwnVehicle === false && !transportSlug) e.transport = t("errorTransportRequired");
@@ -454,7 +454,7 @@ export default function StayReservationForm({
     }
 
     const newErrors: Record<string, string> = {};
-    if (otherReturn && !returnCityOther.trim()) {
+    if (hasOwnVehicle === false && otherReturn && !returnCityOther.trim()) {
       newErrors.returnCityOther = t("errorReturnCityOther");
     }
     if (hasOwnVehicle === null) {
@@ -529,10 +529,10 @@ export default function StayReservationForm({
       rideSlugs,
       activityDurations: durationsPayload(activities, rideSlugs, durations),
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
-      departureCity: departureCity || undefined,
+      departureCity: hasOwnVehicle === false ? departureCity || undefined : undefined,
       // Either a city from the list or one the guest typed, never both.
-      returnCity: !otherReturn && returnCity ? returnCity : undefined,
-      returnCityOther: otherReturn && returnCityOther.trim() ? returnCityOther.trim() : undefined,
+      returnCity: hasOwnVehicle === false && !otherReturn && returnCity ? returnCity : undefined,
+      returnCityOther: hasOwnVehicle === false && otherReturn && returnCityOther.trim() ? returnCityOther.trim() : undefined,
       displayCurrency,
       meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
@@ -739,64 +739,68 @@ export default function StayReservationForm({
           </div>
         )}
 
-        <div className="field" style={{ marginTop: 12 }}>
-          <label htmlFor="sf-departure-city">{t("departureCityLabel")}</label>
-          <ListSelect
-            id="sf-departure-city"
-            value={departureCity}
-            onChange={setDepartureCity}
-            options={departureOptions(stay.departureCities)}
-            labels={DEPARTURE_CITY_LABELS}
-            placeholder={t("departureCityPlaceholder")}
-          />
-        </div>
-
-        <div className="field" style={{ marginTop: 12 }} data-invalid={!!errors.returnCityOther}>
-          <label htmlFor="sf-return-city">{t("returnCityLabel")}</label>
-          <p className="hint">{t("returnCityHint")}</p>
-          {returnOptions(stay.returnCities).length > 0 && !otherReturn && (
+        {hasOwnVehicle === false && (
+          <>
+          <div className="field" style={{ marginTop: 12 }}>
+            <label htmlFor="sf-departure-city">{t("departureCityLabel")}</label>
             <ListSelect
-              id="sf-return-city"
-              value={returnCity}
-              onChange={setReturnCity}
-              options={returnOptions(stay.returnCities)}
+              id="sf-departure-city"
+              value={departureCity}
+              onChange={setDepartureCity}
+              options={departureOptions(stay.departureCities)}
               labels={DEPARTURE_CITY_LABELS}
-              placeholder={t("returnCityPlaceholder")}
+              placeholder={t("departureCityPlaceholder")}
             />
-          )}
-          {returnOptions(stay.returnCities).length > 0 && (
-            <label className="ride-option" style={{ marginTop: 10 }}>
+          </div>
+
+          <div className="field" style={{ marginTop: 12 }} data-invalid={!!errors.returnCityOther}>
+            <label htmlFor="sf-return-city">{t("returnCityLabel")}</label>
+            <p className="hint">{t("returnCityHint")}</p>
+            {returnOptions(stay.returnCities).length > 0 && !otherReturn && (
+              <ListSelect
+                id="sf-return-city"
+                value={returnCity}
+                onChange={setReturnCity}
+                options={returnOptions(stay.returnCities)}
+                labels={DEPARTURE_CITY_LABELS}
+                placeholder={t("returnCityPlaceholder")}
+              />
+            )}
+            {returnOptions(stay.returnCities).length > 0 && (
+              <label className="ride-option" style={{ marginTop: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={otherReturn}
+                  onChange={(e) => {
+                    setOtherReturn(e.target.checked);
+                    if (e.target.checked) setReturnCity("");
+                  }}
+                />
+                <span>{t("returnOtherToggle")}</span>
+                <span className="ride-price">
+                  {otherReturnOption && (otherReturnOption.priceTtc ?? 0) > 0
+                    ? <PriceText text={t("returnOtherPrice", { price: priceToken(optionTotal(otherReturnOption, partySize, nights))})} />
+                    : t("returnOtherOnRequest")}
+                </span>
+              </label>
+            )}
+            {(otherReturn || returnOptions(stay.returnCities).length === 0) && (
               <input
-                type="checkbox"
-                checked={otherReturn}
+                id="sf-return-city-other"
+                maxLength={120}
+                style={{ marginTop: 10 }}
+                placeholder={t("returnOtherPlaceholder")}
+                value={returnCityOther}
                 onChange={(e) => {
-                  setOtherReturn(e.target.checked);
-                  if (e.target.checked) setReturnCity("");
+                  setOtherReturn(true);
+                  setReturnCityOther(e.target.value);
                 }}
               />
-              <span>{t("returnOtherToggle")}</span>
-              <span className="ride-price">
-                {otherReturnOption && (otherReturnOption.priceTtc ?? 0) > 0
-                  ? <PriceText text={t("returnOtherPrice", { price: priceToken(optionTotal(otherReturnOption, partySize, nights))})} />
-                  : t("returnOtherOnRequest")}
-              </span>
-            </label>
-          )}
-          {(otherReturn || returnOptions(stay.returnCities).length === 0) && (
-            <input
-              id="sf-return-city-other"
-              maxLength={120}
-              style={{ marginTop: 10 }}
-              placeholder={t("returnOtherPlaceholder")}
-              value={returnCityOther}
-              onChange={(e) => {
-                setOtherReturn(true);
-                setReturnCityOther(e.target.value);
-              }}
-            />
-          )}
-          {errors.returnCityOther && <span className="err">{errors.returnCityOther}</span>}
-        </div>
+            )}
+            {errors.returnCityOther && <span className="err">{errors.returnCityOther}</span>}
+          </div>
+          </>
+        )}
 
         {hasOwnVehicle === false && (
           <div className="field" data-invalid={!!errors.transport} style={{ marginTop: 12 }}>
@@ -1046,9 +1050,9 @@ export default function StayReservationForm({
               <span>{adults} {t("adults").toLowerCase()}{children > 0 ? ` · ${children} ${t("children").toLowerCase()}` : ""}{infants > 0 ? ` · ${infants} ${t("infants").toLowerCase()}` : ""}</span>
             </div>
             <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? t("ownVehicle") : t("needTransport")}</span></div>
-            {departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
-            {!otherReturn && returnCity && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
-            {otherReturn && returnCityOther.trim() && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{returnCityOther.trim()}</span></div>}
+            {hasOwnVehicle === false && departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
+            {hasOwnVehicle === false && !otherReturn && returnCity && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
+            {hasOwnVehicle === false && otherReturn && returnCityOther.trim() && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{returnCityOther.trim()}</span></div>}
             {selectedGuide && <div className="row"><span className="k">{t("reviewGuideLabel")}</span><span>{selectedGuide.name}</span></div>}
             {needsPickupDetails && [pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].some((v) => v.trim()) && (
               <div className="row">

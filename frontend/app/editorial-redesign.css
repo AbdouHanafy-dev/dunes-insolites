@@ -2355,9 +2355,9 @@ footer.site-footer.pro-footer .bar a:hover {
   display: flex;
   flex-direction: column;
   gap: calc(9px * var(--ui));
-  margin: calc(-5px * var(--ui)) 0 calc(22px * var(--ui));
-  padding: 0 0 calc(20px * var(--ui));
-  border-bottom: 1px solid rgba(39, 34, 30, 0.12);
+  margin: calc(22px * var(--ui)) 0 0;
+  padding: calc(20px * var(--ui)) 0 0;
+  border-top: 1px solid rgba(39, 34, 30, 0.12);
   list-style: none;
 }
 

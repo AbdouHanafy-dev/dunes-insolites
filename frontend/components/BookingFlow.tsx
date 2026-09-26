@@ -419,8 +419,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       rideSlugs,
       activityDurations: durationsPayload(otherActivities, rideSlugs, durations),
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
-      departureCity: departureCity || undefined,
-      returnCity: returnCity || undefined,
+      departureCity: hasOwnVehicle === false ? departureCity || undefined : undefined,
+      returnCity: hasOwnVehicle === false ? returnCity || undefined : undefined,
       meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,
@@ -794,30 +794,34 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             </div>
           )}
 
-          <div className="field" style={{ marginTop: 16 }}>
-            <label htmlFor="bf-s-departure-city">{ts("departureCityLabel")}</label>
-            <ListSelect
-              id="bf-s-departure-city"
-              value={departureCity}
-              onChange={setDepartureCity}
-              options={departureOptions(selectedStay?.departureCities)}
-              labels={DEPARTURE_CITY_LABELS}
-              placeholder={ts("departureCityPlaceholder")}
-            />
-          </div>
-          {returnOptions(selectedStay?.returnCities).length > 0 && (
-          <div className="field" style={{ marginTop: 16 }}>
-            <label htmlFor="bf-s-return-city">{ts("returnCityLabel")}</label>
-            <p className="hint">{ts("returnCityHint")}</p>
-            <ListSelect
-              id="bf-s-return-city"
-              value={returnCity}
-              onChange={setReturnCity}
-              options={returnOptions(selectedStay?.returnCities)}
-              labels={DEPARTURE_CITY_LABELS}
-              placeholder={ts("returnCityPlaceholder")}
-            />
-          </div>
+          {hasOwnVehicle === false && (
+            <>
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor="bf-s-departure-city">{ts("departureCityLabel")}</label>
+              <ListSelect
+                id="bf-s-departure-city"
+                value={departureCity}
+                onChange={setDepartureCity}
+                options={departureOptions(selectedStay?.departureCities)}
+                labels={DEPARTURE_CITY_LABELS}
+                placeholder={ts("departureCityPlaceholder")}
+              />
+            </div>
+            {returnOptions(selectedStay?.returnCities).length > 0 && (
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor="bf-s-return-city">{ts("returnCityLabel")}</label>
+              <p className="hint">{ts("returnCityHint")}</p>
+              <ListSelect
+                id="bf-s-return-city"
+                value={returnCity}
+                onChange={setReturnCity}
+                options={returnOptions(selectedStay?.returnCities)}
+                labels={DEPARTURE_CITY_LABELS}
+                placeholder={ts("returnCityPlaceholder")}
+              />
+            </div>
+            )}
+            </>
           )}
 
           {hasOwnVehicle === false && (
@@ -930,8 +934,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
               <span>{adults} {ts("adults").toLowerCase()}{children > 0 ? ` · ${children} ${ts("children").toLowerCase()}` : ""}{infants > 0 ? ` · ${infants} ${ts("infants").toLowerCase()}` : ""}</span>
             </div>
             <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? ts("ownVehicle") : ts("needTransport")}</span></div>
-            {departureCity && <div className="row"><span className="k">{ts("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
-            {returnCity && <div className="row"><span className="k">{ts("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
+            {hasOwnVehicle === false && departureCity && <div className="row"><span className="k">{ts("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
+            {hasOwnVehicle === false && returnCity && <div className="row"><span className="k">{ts("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
             {needsPickupDetails && [pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].some((v) => v.trim()) && (
               <div className="row">
                 <span className="k">{t("pickupLabel")}</span>
