@@ -91,6 +91,11 @@ public class Reservation {
     @Builder.Default
     private Currency currency = Currency.EUR;
 
+    /** What the guest saw prices in when booking; only the customer e-mails follow it. Null = {@link #currency}. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "display_currency", length = 3)
+    private Currency displayCurrency;
+
     @Column(name = "promo_code")
     private String promoCode;
 

@@ -66,6 +66,19 @@ export type AdminReservationAccommodation = {
   infants?: number | null;
 };
 
+/** A priced line on a reservation (ReservationExtraResponse), as far as the back office reads it. */
+export type AdminReservationExtra = {
+  reservationExtraId: string;
+  name: string;
+  quantity: number | null;
+  unitPrice: number | null;
+  totalPrice: number | null;
+  category: AdminExtra["category"] | null;
+  serviceType: string | null;
+  selectedExtraId: string | null;
+  resourceAllocation: boolean;
+};
+
 export type AdminReservation = {
   reservationId: string;
   userName: string;
@@ -86,6 +99,7 @@ export type AdminReservation = {
   totalAmount: number;
   currency: string;
   createdAt: string;
+  extras?: AdminReservationExtra[];
   tourTypes: AdminReservationLine[];
   tours: AdminReservationLine[];
   // Derived server-side from recorded transactions (PaymentServiceImpl) -
@@ -116,6 +130,23 @@ export type AdminPaymentPolicy = {
 
 export function getCurrencyRates(accessToken: string): Promise<AdminCurrencyRates | null> {
   return authedGet<AdminCurrencyRates | null>("/admin/currency-rates", accessToken, null);
+}
+
+import type { SiteTextCatalogue, SiteTextOverrides } from "@/lib/siteTexts";
+
+export function getSiteTextOverrides(accessToken: string): Promise<SiteTextOverrides> {
+  return authedGet<SiteTextOverrides>("/admin/site-texts", accessToken, {});
+}
+
+/** The list of editable texts, read from the public site (which owns the shipped wording). */
+export async function getSiteTextCatalogue(): Promise<SiteTextCatalogue | null> {
+  const base = (process.env.NEXT_PUBLIC_FRONTEND_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  try {
+    const res = await fetch(`${base}/api/site-texts`, { cache: "no-store" });
+    return res.ok ? ((await res.json()) as SiteTextCatalogue) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function getPaymentPolicy(accessToken: string): Promise<AdminPaymentPolicy | null> {

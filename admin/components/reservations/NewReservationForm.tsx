@@ -8,6 +8,8 @@ import { useToast } from "@/components/Toast";
 import { MAIL_LOCALES } from "./mailLocales";
 import type { AdminTourType, AdminExtra, AdminSource, AdminAccommodationType, AdminUser, AdminTour } from "@/lib/api";
 import { sym } from "@/lib/currency";
+import { CITY_OPTIONS } from "@/lib/cities";
+import { circuitNights, circuitOptionLines, partySize as circuitPartySize, selectableUpgrades, upgradeBlockedReason } from "@/lib/circuitOptions";
 
 /**
  * Staff-facing "book on behalf of a client" form (phone/walk-in booking) —
@@ -57,7 +59,7 @@ type ExtraLine = { extraId: string; quantity: number; activityDate: string };
 
 export default function NewReservationForm({
   tourTypes,
-  extras,
+  extras: allExtras,
   sources,
   tours,
 }: {
@@ -68,6 +70,8 @@ export default function NewReservationForm({
 }) {
   const router = useRouter();
   const toast = useToast();
+  // Circuit options (upgrades, other return city) have their own block below; the list here is the rest.
+  const extras = useMemo(() => allExtras.filter((e) => e.category !== "TOUR_OPTION"), [allExtras]);
 
   // ── HEBERGEMENT (nuitée) vs TOURS (circuit Route Insolite) ────────
   const [reservationKind, setReservationKind] = useState<"HEBERGEMENT" | "TOURS">("HEBERGEMENT");
@@ -158,6 +162,20 @@ export default function NewReservationForm({
 
   // ── Extras / source / notes ─────────────────────────────────────
   const [extraLines, setExtraLines] = useState<ExtraLine[]>([]);
+  // Circuit only: cities and paid options, the same choices the site's circuit form offers.
+  const [departureCityChoice, setDepartureCityChoice] = useState("");
+  const [returnCityChoice, setReturnCityChoice] = useState("");
+  const [returnCityOther, setReturnCityOther] = useState("");
+  const [upgradeIds, setUpgradeIds] = useState<string[]>([]);
+  const selectedTour = tours.find((t) => t.tourId === tourId);
+  const tourNightsCount = circuitNights(selectedTour?.durationHours);
+  const upgradeCatalogue = useMemo(() => selectableUpgrades(allExtras), [allExtras]);
+  const partyForOptions = circuitPartySize({ numberOfAdults, numberOfChildren });
+  const departureCity = selectedTour?.departureCities.includes(departureCityChoice)
+    ? departureCityChoice : (selectedTour?.departureCities[0] ?? "");
+  const returnCity = returnCityChoice === "__other__" ? "" : selectedTour?.returnCities.includes(returnCityChoice)
+    ? returnCityChoice : (selectedTour?.returnCities[0] ?? "");
+  const typedReturnCity = returnCityChoice === "__other__" ? returnCityOther : "";
   const [sourceId, setSourceId] = useState(sources[0]?.sourceId ?? "");
   const [groupName, setGroupName] = useState("");
   const [demandeSpecial, setDemandeSpecial] = useState("");
@@ -286,7 +304,21 @@ export default function NewReservationForm({
             groupName: groupName.trim() || null,
             demandeSpecial: demandeSpecial.trim() || null,
             tours: [{ tourId }],
-            extras: extraLines.map((l) => ({ extraId: l.extraId, quantity: l.quantity, activityDate: l.activityDate })),
+            departureCity: departureCity || null,
+            returnCity: returnCity || null,
+            returnCityOther: typedReturnCity.trim() || null,
+            extras: [
+              ...extraLines.map((l) => ({ extraId: l.extraId, quantity: l.quantity, activityDate: l.activityDate })),
+              ...circuitOptionLines(
+                allExtras,
+                upgradeIds.filter((id) => {
+                  const u = upgradeCatalogue.find((x) => x.extraId === id);
+                  return u && !upgradeBlockedReason(u, partyForOptions);
+                }),
+                tourNightsCount,
+                typedReturnCity,
+              ).map((l) => ({ ...l, activityDate: departureDate })),
+            ],
           };
 
     const res = await fetch("/api/proxy/reservations", {
@@ -665,6 +697,66 @@ export default function NewReservationForm({
             />
           </label>
         </div>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="text-[13px] text-navy-700/70">
+            Ville de départ
+            <select
+              value={departureCity}
+              onChange={(e) => setDepartureCityChoice(e.target.value)}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            >
+              {CITY_OPTIONS.filter((c) => selectedTour?.departureCities.includes(c.value)).map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-[13px] text-navy-700/70">
+            Ville de retour
+            <select
+              value={returnCityChoice === "__other__" ? "__other__" : returnCity}
+              onChange={(e) => setReturnCityChoice(e.target.value)}
+              className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+            >
+              {CITY_OPTIONS.filter((c) => selectedTour?.returnCities.includes(c.value)).map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+              <option value="__other__">Autre ville (supplément)…</option>
+            </select>
+          </label>
+          {returnCityChoice === "__other__" && (
+            <label className="text-[13px] text-navy-700/70">
+              Ville de retour hors liste
+              <input
+                value={returnCityOther}
+                maxLength={120}
+                onChange={(e) => setReturnCityOther(e.target.value)}
+                className="mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60"
+              />
+            </label>
+          )}
+        </div>
+        {tourNightsCount > 0 && upgradeCatalogue.length > 0 && (
+          <div className="mt-4">
+            <div className="text-[13px] font-semibold text-navy-800">Améliorations ({tourNightsCount} nuit{tourNightsCount > 1 ? "s" : ""})</div>
+            <div className="mt-2 flex flex-col gap-2">
+              {upgradeCatalogue.map((u) => {
+                const blocked = upgradeBlockedReason(u, partyForOptions);
+                return (
+                  <label key={u.extraId} className={`flex items-center gap-2 text-[13px] text-navy-800 ${blocked ? "opacity-50" : ""}`}>
+                    <input
+                      type="checkbox"
+                      disabled={!!blocked}
+                      checked={!blocked && upgradeIds.includes(u.extraId)}
+                      onChange={(e) => setUpgradeIds((cur) => e.target.checked ? [...cur, u.extraId] : cur.filter((id) => id !== u.extraId))}
+                    />
+                    {u.name} <span className="text-navy-700/50">({u.unitPrice} €{u.pricingUnit === "PER_PERSON_NIGHT" ? " / pers. / nuit" : ""})</span>
+                    {blocked && <span className="text-[12px] text-navy-700/50">— {blocked}</span>}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <p className="mt-2 text-[12px] text-navy-700/50">
           Hors nuitées au camp Sabria — celles-ci se réservent séparément si besoin (`ReservationTourHebergement`).
         </p>

@@ -50,6 +50,10 @@ public class ReservationRequest {
     private Integer numberOfInfants;
 
    // private Currency currency;
+
+    /** The currency the guest browsed in; only the customer e-mails follow it. Optional. */
+    private Currency displayCurrency;
+
     private String promoCode;
     private String demandeSpecial;
 

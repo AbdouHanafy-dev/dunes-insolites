@@ -93,6 +93,11 @@ source de vérité ; les décisions en attente sont listées plus bas.
   (prix × voyageurs × nuits du circuit = jours − 1), avec un **minimum de voyageurs réglable par option**
   (`extras.min_party_size`, contrôlé aussi par le serveur). Créés **inactifs à 0 €** par le seeder : prix, minimum
   et activation dans Catalogue › Véhicules & options circuits.
+- La page générale `/book` n’a plus sa propre copie du parcours circuit : après Type et Choix elle affiche le même `TourBookingFlow`
+  que la page du circuit (`embedded`), pour que les deux ne divergent plus.
+- Backoffice : rubrique **Catalogue › Améliorations circuits** (`/catalogue/ameliorations`) pour ajouter, renommer, tarifer, masquer les
+  améliorations et l’option « Autre ville de retour » (avec tarifs par date). Sur le site l’étape est toujours affichée ; une option dont
+  le minimum de voyageurs n’est pas atteint est grisée avec la raison (le serveur refuse quand même).
 - **À confirmer** : la règle des nuits (jours − 1) ; l’hébergement inclus n’est plus réservé par le formulaire, donc
   le camp ne compte plus les tentes des circuits (affectation par l’équipe). Modification de la logique de prix
   (`ReservationServiceImpl`, un cas de plus) testée côté public seulement, pas de bout en bout.
@@ -236,6 +241,27 @@ source de vérité ; les décisions en attente sont listées plus bas.
    l'inscription et à la réservation invité, puis traduire les cinq emails ?
 7. **Passerelle de paiement** (Paymee / Konnect / Flouci / Stripe) : toujours en
    suspens ; conditionne remboursements, relances et rapprochement automatique.
+
+### Backoffice : réservations, textes et devise des e-mails (26 sept 2026)
+
+- **Nouvelle réservation (circuit)** : villes de départ/retour du circuit, ville de retour
+  hors liste (la ligne « autre ville de retour » du catalogue est ajoutée) et améliorations
+  (grisées sous le minimum de voyageurs, nuits du circuit). Les prix restent calculés par le serveur.
+- **Fiche réservation** : panneau « Ville de retour & améliorations » (`PUT
+  /api/reservations/{id}/circuit-options`, ADMIN/CAMPING, pas sur une réservation terminée) ;
+  il ne remplace que les lignes `TOUR_OPTION`, le total est recalculé par le serveur.
+- **Textes des formulaires** (Contenu → Textes des formulaires) : surcharges par langue
+  stockées dans `site_text_override` (V60). Le site les fusionne dans ses messages
+  (`i18n/request.ts`, cache 5 min) ; seules les sections `tourBookingForm`, `stayReservationForm`,
+  `bookingFlow`, `currencySwitcher` et des textes existants sont surchargeables, et un texte
+  avec accolades déséquilibrées ou un `{champ}` inconnu est ignoré. La liste vient du site
+  (`/api/site-texts`), qui garde les textes d'origine.
+- **E-mails client dans la devise choisie** : `reservation.display_currency` (V59) reçoit la devise
+  vue sur le site ; `CustomerCurrency` convertit montants et total des e-mails client
+  (confirmation, demande de paiement, paiement reçu). L'e-mail de l'équipe, la
+  réservation, les paiements et les factures restent en euros. **À trancher avec le comptable :**
+  un lien de paiement reste en euros alors que l'e-mail affiche des dollars ou des dinars.
+- Non essayé contre une vraie base ni un vrai SMTP ; tests unitaires seulement.
 
 ## 5. Vérifier
 

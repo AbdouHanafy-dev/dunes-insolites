@@ -42,6 +42,7 @@ public class ReservationEmailConsumer {
     private final EmailMetrics emailMetrics;
     private final com.camping.duneinsolite.service.impl.ReservationOverviewFactory overviewFactory;
     private final com.camping.duneinsolite.service.impl.StaffBookingNotifier staffBookingNotifier;
+    private final com.camping.duneinsolite.service.impl.CustomerCurrency customerCurrency;
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE, containerFactory = "emailListenerContainerFactory")
     public void consume(NotificationMessage message) {
@@ -105,8 +106,8 @@ public class ReservationEmailConsumer {
                 ? reservation.getCheckInDate() : reservation.getServiceDate();
         java.math.BigDecimal total = com.camping.duneinsolite.money.Money.add(
                 reservation.getTotalAmount(), reservation.getTotalExtrasAmount());
-        String currency = reservation.getCurrency() != null ? reservation.getCurrency().name() : "EUR";
         return new RecipientView(user.getEmail(), user.getName(),
-                com.camping.duneinsolite.model.enums.MailLocale.from(reservation.getLocale()), date, total, currency);
+                com.camping.duneinsolite.model.enums.MailLocale.from(reservation.getLocale()), date,
+                customerCurrency.convert(reservation, total), customerCurrency.of(reservation).name());
     }
 }

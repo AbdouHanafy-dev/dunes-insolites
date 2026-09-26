@@ -1,6 +1,8 @@
 import { getRequestConfig } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { routing } from "./routing";
+import { getSiteTextOverrides } from "@/lib/api";
+import { applyTextOverrides } from "@/lib/editableTexts";
 
 type Messages = { [key: string]: unknown };
 
@@ -22,8 +24,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const locale = hasLocale(routing.locales, requested) ? requested : routing.defaultLocale;
 
   const messages = (await import(`../messages/${locale}.json`)).default as Messages;
-  if (locale === routing.defaultLocale) return { locale, messages };
+  // The owner's wording for the booking forms (back office), laid over the shipped texts.
+  const overrides = (await getSiteTextOverrides())[locale];
+  if (locale === routing.defaultLocale) return { locale, messages: applyTextOverrides(messages, overrides) };
 
   const base = (await import(`../messages/${routing.defaultLocale}.json`)).default as Messages;
-  return { locale, messages: withFallback(base, messages) };
+  return { locale, messages: applyTextOverrides(withFallback(base, messages), overrides) };
 });

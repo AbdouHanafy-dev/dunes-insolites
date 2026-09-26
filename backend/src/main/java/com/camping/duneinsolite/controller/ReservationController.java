@@ -170,6 +170,16 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.updateMeetUpPlace(reservationId, request.getMeetUpPlace()));
     }
 
+    // Support-team edit of a booked circuit's return city and paid options. Prices come from the
+    // catalogue, never from the request.
+    @PutMapping("/{reservationId}/circuit-options")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAMPING')")
+    public ResponseEntity<ReservationResponse> updateCircuitOptions(
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody CircuitOptionsRequest request) {
+        return ResponseEntity.ok(reservationService.updateCircuitOptions(reservationId, request));
+    }
+
     // ── Staff management — ADMIN only
 
     @PatchMapping("/{reservationId}/staff/guides/{guideId}")

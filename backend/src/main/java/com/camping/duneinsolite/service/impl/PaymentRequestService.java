@@ -53,6 +53,7 @@ public class PaymentRequestService {
     private final PaymentService paymentService;
     private final ReservationMailer mailer;
     private final ReservationOverviewFactory overviewFactory;
+    private final CustomerCurrency customerCurrency;
 
     /**
      * Staff "send / resend the payment request" from the reservation page.
@@ -100,9 +101,9 @@ public class PaymentRequestService {
                 reservation.getUser().getName(),
                 groupOf(reservation),
                 MailLocale.from(reservation.getLocale()),
-                currencyOf(reservation),
-                received,
-                Money.nz(summary.getRemainingTotal()),
+                customerCurrency.of(reservation).name(),
+                customerCurrency.convert(reservation, received),
+                customerCurrency.convert(reservation, Money.nz(summary.getRemainingTotal())),
                 onSite,
                 overviewFactory.forReservation(reservationId)));
     }
@@ -142,9 +143,9 @@ public class PaymentRequestService {
                 MailLocale.from(reservation.getLocale()),
                 confirmation,
                 kind,
-                currency,
-                total,
-                due,
+                customerCurrency.of(reservation).name(),
+                customerCurrency.convert(reservation, total),
+                customerCurrency.convert(reservation, due),
                 dueDate,
                 link,
                 methodsOf(policy, hasLink),

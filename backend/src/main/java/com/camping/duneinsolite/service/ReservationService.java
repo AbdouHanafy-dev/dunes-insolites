@@ -39,6 +39,9 @@ public interface ReservationService {
 
     ReservationResponse updateMeetUpPlace(UUID reservationId, String meetUpPlace);
 
+    /** Sets a circuit's free return city and paid options (upgrades), re-priced server-side. */
+    ReservationResponse updateCircuitOptions(UUID reservationId, CircuitOptionsRequest request);
+
     ReservationResponse addStaffToReservation(UUID reservationId, ReservationStaffRequest request);
 
     ReservationResponse updateGuide(UUID reservationId, UUID guideId, GuideUpdateRequest request);

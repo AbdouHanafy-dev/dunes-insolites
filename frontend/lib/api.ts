@@ -378,6 +378,20 @@ export async function getCurrencyRates(): Promise<Rates> {
   return normalizeRates(raw);
 }
 
+/** The booking-form wording the owner edited in the back office: language -> (message key -> text). */
+export async function getSiteTextOverrides(): Promise<Record<string, Record<string, string>>> {
+  if (!BASE) return {};
+  try {
+    return await get<Record<string, Record<string, string>>>(
+      "/public/site-texts",
+      { seed: {}, empty: {} },
+      { revalidate: 300 },
+    );
+  } catch {
+    return {};
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettingsData> {
   const fallback: SiteSettingsData = {
     email: site.email,

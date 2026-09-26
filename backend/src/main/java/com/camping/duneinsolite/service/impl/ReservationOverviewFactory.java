@@ -32,12 +32,26 @@ public class ReservationOverviewFactory {
 
     private final ReservationRepository reservationRepository;
     private final PaymentService paymentService;
+    private final CustomerCurrency customerCurrency;
 
     @Transactional(readOnly = true)
     public ReservationOverview forReservation(UUID reservationId) {
         Reservation r = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
-        return build(r, paymentService.computePaymentSummary(r));
+        return inGuestCurrency(build(r, paymentService.computePaymentSummary(r)), r);
+    }
+
+    /** The overview with every amount shown in the currency the guest booked in. */
+    private ReservationOverview inGuestCurrency(ReservationOverview o, Reservation r) {
+        var to = customerCurrency.of(r);
+        var from = r.getCurrency();
+        if (from == to) return o;
+        java.util.function.UnaryOperator<java.math.BigDecimal> c = amount -> customerCurrency.convert(amount, from, to);
+        return new ReservationOverview(
+                o.reference(), o.arrival(), o.departure(), o.adults(), o.children(), o.infants(),
+                o.items(), c.apply(o.mainAmount()),
+                o.extras().stream().map(e -> new ReservationOverview.Extra(e.name(), e.detail(), c.apply(e.amount()))).toList(),
+                c.apply(o.total()), c.apply(o.paid()), c.apply(o.balance()), to.name());
     }
 
     /** What the team email needs beyond the overview: where it came from and who booked. */

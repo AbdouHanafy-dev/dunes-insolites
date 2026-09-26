@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getDriverProfiles, getGuideProfiles, getPaymentPolicy, getReservationById, getSpokenLanguages } from "@/lib/api";
+import { getAllExtras, getDriverProfiles, getGuideProfiles, getPaymentPolicy, getReservationById, getSpokenLanguages } from "@/lib/api";
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 import ReservationStatusPanel from "@/components/payload/ReservationStatusPanel";
 import ReservationPaymentPanel from "@/components/reservations/ReservationPaymentPanel";
 import MeetUpPlacePanel from "@/components/reservations/MeetUpPlacePanel";
+import CircuitOptionsPanel from "@/components/reservations/CircuitOptionsPanel";
 import ReservationEditForm from "@/components/reservations/ReservationEditForm";
 import { isEditable, statusOf } from "@/components/reservations/reservationStatus";
 import { sym } from "@/lib/currency";
@@ -18,12 +19,13 @@ export default async function ReservationDetailPage({ params }: { params: Promis
   const session = await getSession();
   if (!session) return null;
 
-  const [reservation, guideProfiles, driverProfiles, languages, paymentPolicy] = await Promise.all([
+  const [reservation, guideProfiles, driverProfiles, languages, paymentPolicy, catalogue] = await Promise.all([
     getReservationById(session.accessToken, id),
     getGuideProfiles(session.accessToken),
     getDriverProfiles(session.accessToken),
     getSpokenLanguages(session.accessToken),
     getPaymentPolicy(session.accessToken),
+    getAllExtras(session.accessToken),
   ]);
   if (!reservation) notFound();
 
@@ -106,6 +108,10 @@ export default async function ReservationDetailPage({ params }: { params: Promis
             plus modifiable. Seules les réservations en attente ou confirmées peuvent être éditées.
           </p>
         </div>
+      )}
+
+      {isEditable(reservation.status) && (
+        <CircuitOptionsPanel reservation={reservation} catalogue={catalogue} />
       )}
 
       <MeetUpPlacePanel

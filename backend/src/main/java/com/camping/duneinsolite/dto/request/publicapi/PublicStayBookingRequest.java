@@ -83,6 +83,9 @@ public class PublicStayBookingRequest {
     @jakarta.validation.constraints.Size(max = 120)
     private String returnCityOther;
 
+    /** The currency the guest browsed in (EUR, USD or TND); their e-mails show amounts in it. Optional. */
+    private com.camping.duneinsolite.model.enums.Currency displayCurrency;
+
     // Optional, TRANSPORT only: where the guest would like to be met. Support
     // sees and edits it in the backoffice; it is never echoed back to guests.
     @jakarta.validation.constraints.Size(max = 255)

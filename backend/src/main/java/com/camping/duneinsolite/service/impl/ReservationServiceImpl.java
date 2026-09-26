@@ -240,6 +240,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .numberOfChildren(globalChildren)
                 .numberOfInfants(globalInfants)
                 .currency(com.camping.duneinsolite.config.CurrencyConfig.BASE)
+                .displayCurrency(request.getDisplayCurrency())
                 .promoCode(request.getPromoCode())
                 .status(ReservationStatus.PENDING)
                 .holdExpiresAt(request.getHoldExpiresAt())
@@ -1674,6 +1675,59 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = findById(reservationId);
         String cleaned = meetUpPlace == null ? "" : meetUpPlace.trim();
         reservation.setMeetUpPlace(cleaned.isEmpty() ? null : cleaned);
+        return toEnrichedResponse(reservationRepository.save(reservation));
+    }
+
+    @Override
+    @Transactional
+    public ReservationResponse updateCircuitOptions(UUID reservationId, CircuitOptionsRequest request) {
+        Reservation reservation = findById(reservationId);
+        if (reservation.getStatus() == ReservationStatus.CHECKED_IN
+                || reservation.getStatus() == ReservationStatus.COMPLETED
+                || reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new ReservationStatusException("Cannot edit a reservation with status: " + reservation.getStatus());
+        }
+
+        int people = Math.max(1, reservation.getNumberOfAdults() + reservation.getNumberOfChildren());
+        List<ReservationExtraRequest> lines = new java.util.ArrayList<>();
+        java.util.Set<UUID> seen = new java.util.HashSet<>();
+        for (CircuitOptionsRequest.Item item : request.getOptions() == null ? List.<CircuitOptionsRequest.Item>of() : request.getOptions()) {
+            if (!seen.add(item.getExtraId())) continue;
+            Extra option = extraRepository.findById(item.getExtraId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Extra not found: " + item.getExtraId()));
+            if (option.getCategory() != ExtraCategory.TOUR_OPTION) {
+                throw new ReservationValidationException(option.getName() + " is not a circuit option.");
+            }
+            if (option.getMinPartySize() != null && people < option.getMinPartySize()) {
+                throw new ReservationValidationException(option.getName() + " needs at least "
+                        + option.getMinPartySize() + " travelers.");
+            }
+            ReservationExtraRequest line = new ReservationExtraRequest();
+            line.setExtraId(option.getExtraId());
+            line.setQuantity(option.getPricingUnit() == PricingUnit.PER_PERSON_NIGHT && item.getNights() != null
+                    ? item.getNights() : 1);
+            lines.add(line);
+        }
+
+        String other = request.getReturnCityOther() == null || request.getReturnCityOther().isBlank()
+                ? null : request.getReturnCityOther().trim();
+        if (other != null) {
+            extraRepository.findFirstByCategoryAndServiceTypeAndIsActiveTrue(ExtraCategory.TOUR_OPTION, "RETURN_CITY")
+                    .filter(option -> seen.add(option.getExtraId()))
+                    .ifPresent(option -> {
+                        ReservationExtraRequest line = new ReservationExtraRequest();
+                        line.setExtraId(option.getExtraId());
+                        line.setQuantity(1);
+                        lines.add(line);
+                    });
+            reservation.setReturnCity(null);
+        }
+        reservation.setReturnCityOther(other);
+
+        // Only the circuit options are replaced; activities, guides and transport stay as booked.
+        reservation.getExtras().removeIf(line -> line.getCategory() == ExtraCategory.TOUR_OPTION);
+        applyExtras(lines, reservation, reservation.getUser());
+        reservation.setTotalExtrasAmount(reservation.calculateTotalExtrasAmount());
         return toEnrichedResponse(reservationRepository.save(reservation));
     }
 

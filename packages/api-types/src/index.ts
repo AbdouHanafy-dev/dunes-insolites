@@ -284,6 +284,8 @@ export type TourBooking = {
   /** A return city the guest typed because theirs is not in the list. Exclusive with `returnCity`; charged
    *  through the back-office "another return city" option when one is set up. */
   returnCityOther?: string;
+  /** The currency the guest browsed prices in; their e-mails show amounts in it. Display only. */
+  displayCurrency?: "EUR" | "USD" | "TND";
   /** Optional return leg after the tour ends — same city catalog as
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */
@@ -533,6 +535,8 @@ export type StayBooking = {
   /** A return city the guest typed because theirs is not in the list. Exclusive with `returnCity`; charged
    *  through the back-office "another return city" option when one is set up. */
   returnCityOther?: string;
+  /** The currency the guest browsed prices in; their e-mails show amounts in it. Display only. */
+  displayCurrency?: "EUR" | "USD" | "TND";
   /** Optional, TRANSPORT only: where the guest would like to be met. The
    *  server ignores it for OWN_VEHICLE and never returns it to guests. */
   meetUpPlace?: string;
