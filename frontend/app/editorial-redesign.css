@@ -3964,10 +3964,13 @@ footer.site-footer.pro-footer .bar a:hover {
   font-size: calc(11px * var(--ui));
   letter-spacing: 0.24em;
 }
+/* "DUNES INSOLITES" is much longer than the old one-word title: smaller type, and it may wrap
+   onto two balanced lines on a narrow screen. */
 .static-gate-word h1 {
-  font-size: clamp(calc(72px * var(--ui)), 12vw, calc(176px * var(--ui)));
-  letter-spacing: -0.06em;
-  line-height: 0.82;
+  font-size: clamp(calc(44px * var(--ui)), 8.4vw, calc(150px * var(--ui)));
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  text-wrap: balance;
 }
 .static-gate-copy > p { font-size: clamp(calc(16px * var(--ui)), 1.4vw, calc(20px * var(--ui))); line-height: 1.4; }
 .static-gate-actions { margin-top: calc(22px * var(--ui)); }
@@ -3979,7 +3982,7 @@ footer.site-footer.pro-footer .bar a:hover {
 @media (max-width: 560px) {
   .static-gate-hero { min-height: clamp(520px, calc(100svh - 56px), 760px); }
   .static-gate-content { padding-bottom: calc(120px * var(--ui)); }
-  .static-gate-word h1 { font-size: clamp(calc(56px * var(--ui)), 18vw, calc(92px * var(--ui))); }
+  .static-gate-word h1 { font-size: clamp(calc(38px * var(--ui)), 12.5vw, calc(64px * var(--ui))); line-height: 0.95; }
   .static-gate-word p { font-size: calc(10px * var(--ui)); letter-spacing: 0.18em; }
   .static-gate-content .static-gate-copy { margin-top: calc(20px * var(--ui)); }
   .static-gate-stats dt { font-size: calc(9px * var(--ui)); }

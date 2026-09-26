@@ -26,7 +26,7 @@ export default async function Hero({ stats }: { stats: Stats }) {
 
       <div className="static-gate-content">
         <div className="static-gate-word">
-          <p>{site.name} · Sabria · Southern Tunisia</p>
+          <p>Sabria · Southern Tunisia</p>
           <h1 id="static-gate-title">{site.hero}</h1>
         </div>
 

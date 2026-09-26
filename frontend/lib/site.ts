@@ -73,7 +73,7 @@ const DUNES_INSOLITES: BrandConfig = {
   companyType: "DUNES_INSOLITES",
   name: "Dunes Insolites",
   brandLine: "Southern Tunisia",
-  hero: "SABRIA",
+  hero: "DUNES INSOLITES",
   legalName: "Sabria Desert Adventures",
   tagline: "Where the Sahara feels endless.",
   description:
