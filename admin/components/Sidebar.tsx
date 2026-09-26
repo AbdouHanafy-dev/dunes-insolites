@@ -34,8 +34,9 @@ const GROUPS: NavGroup[] = [
     items: [
       { label: "Hébergements", href: "/catalogue/hebergements", icon: "bi-house-heart" },
       { label: "Circuits", href: "/catalogue/tours", icon: "bi-map" },
+      { label: "Améliorations circuits", href: "/catalogue/ameliorations", icon: "bi-arrow-up-circle" },
       { label: "Activités", href: "/catalogue/extras", icon: "bi-lightning-charge" },
-      { label: "Véhicules & options circuits", href: "/catalogue/guides-transport", icon: "bi-truck" },
+      { label: "Véhicules & transport", href: "/catalogue/guides-transport", icon: "bi-truck" },
       { label: "Langues", href: "/catalogue/langues", icon: "bi-translate" },
       { label: "Disponibilités", href: "/catalogue/disponibilites", icon: "bi-calendar3" },
     ],
@@ -45,6 +46,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { label: "Pages", href: "/content/pages", icon: "bi-files" },
       { label: "Blocs de contenu", href: "/content/blocks", icon: "bi-boxes" },
+      { label: "Textes des formulaires", href: "/content/textes-formulaires", icon: "bi-input-cursor-text" },
       { label: "Navigation", href: "/content/navigation", icon: "bi-link-45deg" },
       { label: "Médiathèque", href: "/content/media", icon: "bi-images" },
       { label: "Photos du site", href: "/content/photos-du-site", icon: "bi-card-image" },
@@ -117,9 +119,8 @@ export default function Sidebar({
       >
         <div className="flex min-h-20 items-center justify-between gap-2 border-b border-white/8 px-4 py-6">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-gold/30 bg-navy-800 text-base">
-              <i className="bi bi-brightness-alt-high text-lg leading-none text-gold" aria-hidden />
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mark.png" alt="" width={36} height={36} className="h-9 w-9 flex-shrink-0 rounded-full" />
             {!collapsed && (
               <span className="whitespace-nowrap text-[14px] font-bold tracking-tight text-white">Dunes Insolites</span>
             )}
