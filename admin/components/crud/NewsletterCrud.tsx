@@ -1,11 +1,13 @@
 "use client";
 
 import { readApiError } from "@/lib/apiError";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { AdminNewsletterSubscriber } from "@/lib/api";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
 
 /**
  * Read/delete (no create/edit — subscribers sign up from the launch
@@ -17,7 +19,6 @@ import type { AdminNewsletterSubscriber } from "@/lib/api";
 export function NewsletterList({ initialItems }: { initialItems: AdminNewsletterSubscriber[] }) {
   const router = useRouter();
   const toast = useToast();
-  const [query, setQuery] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminNewsletterSubscriber | null>(null);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
@@ -25,11 +26,18 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
   const [error, setError] = useState("");
   const [resendingId, setResendingId] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return initialItems;
-    const q = query.toLowerCase();
-    return initialItems.filter((i) => i.email.toLowerCase().includes(q));
-  }, [initialItems, query]);
+  const { filtered, bar } = useTableFilters(
+    initialItems,
+    [
+      {
+        id: "launch", label: "Email de lancement", kind: "select",
+        options: [{ value: "sent", label: "Envoyé" }, { value: "pending", label: "En attente" }],
+        get: (i) => (i.launchEmailSentAt ? "sent" : "pending"),
+      },
+      { id: "subscribed", label: "Inscription", kind: "date", get: (i) => i.subscribedAt },
+    ],
+    (i) => [i.email],
+  );
 
   const pendingCount = initialItems.filter((i) => !i.launchEmailSentAt).length;
 
@@ -141,26 +149,19 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
         </div>
       </div>
 
-      <input
-        type="text"
-        placeholder="Rechercher un email…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full max-w-sm rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none transition placeholder:text-navy-700/30 focus:border-gold/60 focus:ring-3 focus:ring-gold/15"
-      />
-
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="Adresse e-mail…" />
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun abonné pour le moment.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                  <th className="px-6 py-3 font-medium">Email</th>
-                  <th className="px-6 py-3 font-medium">Inscrit le</th>
-                  <th className="px-6 py-3 font-medium">Email de lancement</th>
-                  <th className="px-6 py-3 text-right font-medium">Actions</th>
+                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
+                  <th className="px-6 py-3 font-semibold">Email</th>
+                  <th className="px-6 py-3 font-semibold">Inscrit le</th>
+                  <th className="px-6 py-3 font-semibold">Email de lancement</th>
+                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

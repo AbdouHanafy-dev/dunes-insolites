@@ -7,6 +7,8 @@ import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminGuideProfile, AdminSpokenLanguage } from "@/lib/api";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
 
 const GUIDE_FIELDS = [
   { key: "firstName", label: "Prénom", type: "text", required: true },
@@ -20,6 +22,9 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
   const toast = useToast();
   const fi = useFormIssues(GUIDE_FIELDS);
   const [guides, setGuides] = useState(initialGuides);
+  const { filtered, bar } = useTableFilters(guides, [
+      { id: "active", label: "Statut", kind: "select", options: [{ value: "active", label: "Actif" }, { value: "inactive", label: "Inactif" }], get: (g) => (g.active ? "active" : "inactive") },
+    ], (g) => [g.firstName, g.lastName, g.email, g.phoneNumber, ...g.languages.map((l) => l.name)]);
   const [busy, setBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminGuideProfile | null>(null);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", languageIds: [] as string[] });
@@ -124,12 +129,13 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
       </form>
 
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="Nom, e-mail, téléphone, langue…" />
         {guides.length === 0 ? <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun guide dans l’annuaire.</p> : (
           <div className="overflow-x-auto"><table className="w-full text-sm">
-            <thead><tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-              <th className="px-6 py-3 font-medium">Guide</th><th className="px-6 py-3 font-medium">Contact</th><th className="px-6 py-3 font-medium">Langues</th><th className="px-6 py-3 font-medium">Statut</th><th className="px-6 py-3" />
+            <thead><tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
+              <th className="px-6 py-3 font-semibold">Guide</th><th className="px-6 py-3 font-semibold">Contact</th><th className="px-6 py-3 font-semibold">Langues</th><th className="px-6 py-3 font-semibold">Statut</th><th className="px-6 py-3" />
             </tr></thead>
-            <tbody className="divide-y divide-gray-100">{guides.map((guide) => (
+            <tbody className="divide-y divide-gray-100">{filtered.map((guide) => (
               <tr key={guide.guideProfileId} className="hover:bg-gray-50">
                 <td className="px-6 py-3 font-medium text-gray-900">{guide.firstName} {guide.lastName}</td>
                 <td className="px-6 py-3 text-gray-600"><div>{guide.email ?? "—"}</div><div>{guide.phoneNumber ?? "—"}</div></td>

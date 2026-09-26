@@ -10,19 +10,27 @@ import type { AdminReservation } from "@/lib/api";
 import { isEditable, paymentStatusOf, statusOf } from "./reservationStatus";
 import { sym } from "@/lib/currency";
 import { accommodationSummary, guestBreakdown, guestCounts, nightsOf } from "@/lib/stayReservation";
+import { activityLines, activitySummary, lineLabel, optionLines, serviceLines } from "@/lib/reservationLines";
+import { CITY_OPTIONS } from "@/lib/cities";
+import TableFilters from "@/components/TableFilters";
+import {
+  applyFilters, matchesSearch, optionsFrom,
+  type FilterDef, type FilterState,
+} from "@/lib/tableFilters";
+import { PAYMENT_STATUS, RESERVATION_STATUS } from "./reservationStatus";
 
 const prestation = (r: AdminReservation) => [...r.tourTypes, ...r.tours][0]?.name ?? r.reservationType;
 const dateOf = (r: AdminReservation) => r.checkInDate ?? r.serviceDate ?? "";
 
-type SortKey = "client" | "prestation" | "guests" | "accommodation" | "nights" | "status" | "payment" | "date" | "created" | "amount";
+type SortKey = "client" | "prestation" | "guests" | "accommodation" | "nights" | "activities" | "status" | "payment" | "date" | "created" | "amount";
 
 const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "client", label: "Client" },
   { key: "prestation", label: "Prestation" },
+  { key: "activities", label: "Activités" },
   { key: "status", label: "Statut" },
   { key: "payment", label: "Paiement" },
   { key: "date", label: "Date" },
-  { key: "created", label: "Créée le" },
   { key: "amount", label: "Montant", right: true },
 ];
 
@@ -32,10 +40,10 @@ const STAY_COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "guests", label: "Voyageurs" },
   { key: "accommodation", label: "Hébergement" },
   { key: "nights", label: "Nuits" },
+  { key: "activities", label: "Activités" },
   { key: "status", label: "Statut" },
   { key: "payment", label: "Paiement" },
   { key: "date", label: "Arrivée" },
-  { key: "created", label: "Créée le" },
   { key: "amount", label: "Montant", right: true },
 ];
 
@@ -47,6 +55,8 @@ function sortValue(r: AdminReservation, key: SortKey): string | number {
       return accommodationSummary(r).toLowerCase();
     case "nights":
       return nightsOf(r) ?? 0;
+    case "activities":
+      return activitySummary(r).toLowerCase();
     case "client":
       return r.userName.toLowerCase();
     case "prestation":
@@ -86,22 +96,39 @@ export default function ReservationsTable({
   const router = useRouter();
   const toast = useToast();
   const [query, setQuery] = useState("");
+  const [filterState, setFilterState] = useState<FilterState>({});
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "created", dir: "desc" });
   const [viewing, setViewing] = useState<AdminReservation | null>(null);
   const [deleting, setDeleting] = useState<AdminReservation | null>(null);
   const [busy, setBusy] = useState(false);
   const [page, setPage] = useState(0);
 
+  const filterDefs = useMemo<FilterDef<AdminReservation>[]>(
+    () => [
+      {
+        id: "status", label: "Statut", kind: "select",
+        options: Object.entries(RESERVATION_STATUS).map(([value, s]) => ({ value, label: s.label })),
+        get: (r) => r.status,
+      },
+      {
+        id: "payment", label: "Paiement", kind: "select",
+        options: Object.entries(PAYMENT_STATUS).map(([value, s]) => ({ value, label: s.label })),
+        get: (r) => r.paymentSummary?.paymentStatus,
+      },
+      { id: "prestation", label: "Prestation", kind: "select", options: optionsFrom(reservations, prestation), get: prestation },
+      { id: "arrival", label: variant === "stays" ? "Arrivée" : "Date", kind: "date", get: dateOf },
+      { id: "created", label: "Créée", kind: "date", get: (r) => r.createdAt },
+    ],
+    [reservations, variant],
+  );
+
   const rows = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const filtered = q
-      ? reservations.filter((r) =>
-          [r.userName, prestation(r), accommodationSummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), String(r.totalAmount)]
-            .join(" ")
-            .toLowerCase()
-            .includes(q),
-        )
-      : reservations;
+    const filtered = applyFilters(reservations, filterDefs, filterState).filter((r) =>
+      matchesSearch(
+        [r.userName, prestation(r), accommodationSummary(r), activitySummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), r.totalAmount],
+        query,
+      ),
+    );
     const sign = sort.dir === "asc" ? 1 : -1;
     const sorted = [...filtered].sort((a, b) => {
       const x = sortValue(a, sort.key);
@@ -109,7 +136,7 @@ export default function ReservationsTable({
       return (x < y ? -1 : x > y ? 1 : 0) * sign;
     });
     return limit ? sorted.slice(0, limit) : sorted;
-  }, [reservations, query, sort, limit]);
+  }, [reservations, filterDefs, filterState, query, sort, limit]);
 
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const current = Math.min(page, pageCount - 1);
@@ -143,30 +170,17 @@ export default function ReservationsTable({
   return (
     <>
       <div className="card rounded-2xl">
-        <div className="flex flex-wrap items-center gap-3 border-b border-navy-700/8 px-6 py-3.5">
-          {title && <h2 className="mr-auto text-sm font-semibold text-navy-800">{title}</h2>}
-          <div className="relative w-full max-w-sm">
-            <i
-              className="bi bi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-navy-700/40"
-              aria-hidden
-            />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(0);
-              }}
-              placeholder="Rechercher un client, une prestation, un statut…"
-              className="w-full rounded-lg border border-navy-700/15 bg-white py-2 pl-9 pr-3 text-sm text-navy-800 outline-none transition placeholder:text-navy-700/35 focus:border-gold focus:ring-2 focus:ring-gold/25"
-            />
-          </div>
-          {query && (
-            <span className="text-xs text-navy-700/50">
-              {rows.length} résultat{rows.length === 1 ? "" : "s"}
-            </span>
-          )}
-        </div>
+        {title && <h2 className="px-6 pt-4 text-sm font-semibold text-navy-800">{title}</h2>}
+        <TableFilters
+          defs={limit ? [] : filterDefs}
+          state={filterState}
+          onState={(next) => { setFilterState(next); setPage(0); }}
+          query={query}
+          onQuery={(next) => { setQuery(next); setPage(0); }}
+          placeholder="Client, prestation, activité, statut…"
+          shown={rows.length}
+          total={reservations.length}
+        />
 
         {rows.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-navy-700/45">
@@ -211,34 +225,34 @@ export default function ReservationsTable({
                   const st = statusOf(r.status);
                   return (
                     <tr key={r.reservationId} className="transition hover:bg-gold/[0.06]">
-                      <td className="px-6 py-3 font-medium text-navy-800">{r.userName}</td>
+                      <td className="min-w-[9rem] px-6 py-3 font-medium text-navy-800">{r.userName}</td>
                       {variant === "stays" ? (
                         <>
                           <td className="px-6 py-3">
                             <div className="font-medium tabular-nums text-navy-800">{guestCounts(r).coming}</div>
                             <div className="text-[12px] text-navy-700/55">{guestBreakdown(r)}</div>
                           </td>
-                          <td className="px-6 py-3 text-navy-700/75">{accommodationSummary(r) || "—"}</td>
+                          <td className="min-w-[10rem] px-6 py-3 text-navy-700/75">{accommodationSummary(r) || "—"}</td>
                           <td className="px-6 py-3 tabular-nums text-navy-700/75">{nightsOf(r) ?? "—"}</td>
                         </>
                       ) : (
                         <td className="px-6 py-3 text-navy-700/75">{prestation(r)}</td>
                       )}
+                      <td className="max-w-[16rem] px-6 py-3 text-[13px] text-navy-700/75">{activitySummary(r) || "—"}</td>
                       <td className="px-6 py-3">
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>
+                        <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>
                           {st.label}
                         </span>
                       </td>
                       <td className="px-6 py-3">
                         <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${paymentStatusOf(r.paymentSummary?.paymentStatus).className}`}
+                          className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${paymentStatusOf(r.paymentSummary?.paymentStatus).className}`}
                         >
                           {paymentStatusOf(r.paymentSummary?.paymentStatus).label}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-navy-700/75">{dateOf(r) || "—"}</td>
-                      <td className="px-6 py-3 text-navy-700/55">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</td>
-                      <td className="px-6 py-3 text-right font-medium tabular-nums text-navy-800">
+                      <td className="whitespace-nowrap px-6 py-3 tabular-nums text-navy-700/75">{dateOf(r) || "—"}</td>
+                      <td className="whitespace-nowrap px-6 py-3 text-right font-medium tabular-nums text-navy-800">
                         {r.totalAmount} {sym(r.currency)}
                       </td>
                       <td className="px-6 py-3">
@@ -331,35 +345,7 @@ export default function ReservationsTable({
         )}
       </div>
 
-      {viewing && (
-        <Modal title={viewing.userName} onClose={() => setViewing(null)}>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-            <Info label="Prestation" value={prestation(viewing)} />
-            <Info
-              label="Statut"
-              value={
-                <span
-                  className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${statusOf(viewing.status).className}`}
-                >
-                  {statusOf(viewing.status).label}
-                </span>
-              }
-            />
-            <Info label="Arrivée" value={viewing.checkInDate ?? viewing.serviceDate ?? "—"} />
-            <Info label="Départ" value={viewing.checkOutDate ?? "—"} />
-            <Info label="Montant" value={`${viewing.totalAmount} ${sym(viewing.currency)}`} />
-            <Info label="Créée le" value={new Date(viewing.createdAt).toLocaleDateString("fr-FR")} />
-          </dl>
-          <div className="mt-6 flex justify-end gap-2">
-            <button type="button" className="btn btn-secondary" onClick={() => setViewing(null)}>
-              Fermer
-            </button>
-            <Link href={`/reservations/${viewing.reservationId}`} className="btn btn-primary">
-              Ouvrir la fiche
-            </Link>
-          </div>
-        </Modal>
-      )}
+      {viewing && <ReservationQuickView reservation={viewing} onClose={() => setViewing(null)} />}
 
       {deleting && (
         <Modal title="Supprimer la réservation" onClose={() => (busy ? undefined : setDeleting(null))}>
@@ -386,6 +372,95 @@ function Info({ label, value }: { label: string; value: React.ReactNode }) {
     <div>
       <dt className="text-[11px] uppercase tracking-wide text-navy-700/45">{label}</dt>
       <dd className="mt-0.5 font-medium text-navy-800">{value}</dd>
+    </div>
+  );
+}
+
+const cityLabel = (city: string | null | undefined) => CITY_OPTIONS.find((c) => c.value === city)?.label ?? city ?? "";
+
+/** The details a team member needs at a glance, before opening the full record. */
+function ReservationQuickView({ reservation: r, onClose }: { reservation: AdminReservation; onClose: () => void }) {
+  const st = statusOf(r.status);
+  const pay = paymentStatusOf(r.paymentSummary?.paymentStatus);
+  const currency = sym(r.currency);
+  const nights = nightsOf(r);
+  const activities = activityLines(r);
+  const options = optionLines(r);
+  const services = serviceLines(r);
+  const returnCity = r.returnCityOther ? `${r.returnCityOther} (hors liste)` : cityLabel(r.returnCity);
+  const languages = [...(r.preferredLanguages ?? []).map((l) => l.name), r.otherLanguageRequested].filter(Boolean).join(", ");
+
+  return (
+    <Modal title={r.userName} onClose={onClose}>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        <Info label="Prestation" value={prestation(r)} />
+        <Info label="Statut" value={<span className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>{st.label}</span>} />
+        <Info label="Arrivée" value={r.checkInDate ?? r.serviceDate ?? "—"} />
+        <Info label="Départ" value={r.checkOutDate ?? "—"} />
+        <Info label="Voyageurs" value={`${guestCounts(r).coming}${guestBreakdown(r) ? ` — ${guestBreakdown(r)}` : ""}`} />
+        {nights != null && <Info label="Nuits" value={nights} />}
+        {accommodationSummary(r) && <Info label="Hébergement" value={accommodationSummary(r)} />}
+        {r.groupName && <Info label="Groupe" value={r.groupName} />}
+        {r.departureCity && <Info label="Ville de départ" value={cityLabel(r.departureCity)} />}
+        {returnCity && <Info label="Ville de retour" value={returnCity} />}
+        {r.meetUpPlace && <Info label="Rendez-vous" value={r.meetUpPlace} />}
+        {languages && <Info label="Langue(s)" value={languages} />}
+        <Info
+          label="Paiement"
+          value={
+            <span>
+              <span className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${pay.className}`}>{pay.label}</span>
+              {r.paymentSummary && (
+                <span className="mt-1 block text-[12px] font-normal text-navy-700/60">
+                  Payé {r.paymentSummary.totalPaid} {currency} · reste {r.paymentSummary.remainingTotal} {currency}
+                </span>
+              )}
+            </span>
+          }
+        />
+        <Info label="Montant" value={`${r.totalAmount} ${currency}`} />
+      </dl>
+
+      <QuickLines title="Activités choisies" lines={activities} currency={currency} />
+      <QuickLines title="Améliorations et options" lines={options} currency={currency} />
+      <QuickLines title="Guide, transport et autres services" lines={services} currency={currency} />
+
+      {r.demandeSpecial && (
+        <div className="mt-4">
+          <div className="text-[11px] uppercase tracking-wide text-navy-700/45">Remarques du client</div>
+          <p className="mt-0.5 whitespace-pre-line text-sm text-navy-800">{r.demandeSpecial}</p>
+        </div>
+      )}
+
+      <p className="mt-4 text-[12px] text-navy-700/45">Créée le {new Date(r.createdAt).toLocaleDateString("fr-FR")}</p>
+
+      <div className="mt-5 flex justify-end gap-2">
+        <button type="button" className="btn btn-secondary" onClick={onClose}>
+          Fermer
+        </button>
+        <Link href={`/reservations/${r.reservationId}`} className="btn btn-primary">
+          Ouvrir la fiche
+        </Link>
+      </div>
+    </Modal>
+  );
+}
+
+function QuickLines({ title, lines, currency }: { title: string; lines: ReturnType<typeof activityLines>; currency: string }) {
+  if (lines.length === 0) return null;
+  return (
+    <div className="mt-4">
+      <div className="text-[11px] uppercase tracking-wide text-navy-700/45">{title}</div>
+      <ul className="mt-1 divide-y divide-navy-700/8 rounded-lg border border-navy-700/10">
+        {lines.map((line) => (
+          <li key={line.reservationExtraId} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+            <span className="text-navy-800">{lineLabel(line)}</span>
+            <span className="whitespace-nowrap tabular-nums text-navy-700/70">
+              {line.totalPrice != null ? `${line.totalPrice} ${currency}` : "—"}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

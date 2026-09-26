@@ -11,6 +11,7 @@ import TranslationsField, {
 } from "@/components/payload/TranslationsField";
 import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import type { AdminExtra } from "@/lib/api";
+import { optionsFrom } from "@/lib/tableFilters";
 
 const BASE_PATH = "/catalogue/extras";
 const API_PATH = "extras";
@@ -213,6 +214,9 @@ export function ExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
       titleKey="name"
       items={initialItems}
       columns={columns}
+      filters={[
+        { id: "category", label: "Catégorie", kind: "select", options: optionsFrom(initialItems, (e) => e.category), get: (e) => e.category },
+      ]}
     />
   );
 }
@@ -235,7 +239,8 @@ export function ExtraEditor({ id, initialData }: { id?: string; initialData?: Ad
 export function ServiceExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
   return <CollectionList title="Véhicules & transport" basePath="/catalogue/guides-transport"
     apiPath="extras" idKey="extraId" titleKey="name" items={initialItems}
-    columns={columns} />;
+    columns={columns}
+    filters={[{ id: "category", label: "Catégorie", kind: "select", options: optionsFrom(initialItems, (e) => e.category), get: (e) => e.category }]} />;
 }
 
 export function ServiceExtraEditor({ id, initialData }: { id?: string; initialData?: AdminExtra }) {

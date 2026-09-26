@@ -155,6 +155,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const idempotencyKeyRef = useRef("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // A picked arrival mode settles the errors raised about it earlier.
+  const clearArrivalErrors = () => setErrors((cur) => { const next = { ...cur }; delete next.arrivalMode; delete next.transport; return next; });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [booking, setBooking] = useState<{ id: string } | null>(null);
@@ -351,7 +353,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     }
     if (category === "accommodation" && step === 4) {
       if (hasOwnVehicle === null) e.arrivalMode = ts("errorArrivalMode");
-      if (hasOwnVehicle === false && !transportSlug) e.transport = ts("errorTransportRequired");
+      if (hasOwnVehicle === false && transportOptions.length > 0 && !transportSlug) e.transport = ts("errorTransportRequired");
       if (needsPickupDetails && !pickupHotelName.trim() && !pickupAirport.trim() && !pickupAddress.trim() && !pickupInstructions.trim()) {
         e.pickup = ts("errorPickup");
       }
@@ -769,12 +771,12 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <label>{ts("howWillYouJoin")}</label>
           <div className="ride-options">
             <label className="ride-option">
-              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === true} onChange={() => { setHasOwnVehicle(true); setTransportSlug(""); }} />
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === true} onChange={() => { setHasOwnVehicle(true); clearArrivalErrors(); setTransportSlug(""); }} />
               <span>{ts("ownVehicle")}</span>
               <span className="ride-price">{ts("ownVehicleHint")}</span>
             </label>
             <label className="ride-option">
-              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => setHasOwnVehicle(false)} />
+              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => { setHasOwnVehicle(false); clearArrivalErrors(); }} />
               <span>{ts("needTransport")}</span>
               <span className="ride-price">{ts("needTransportHint")}</span>
             </label>

@@ -5,6 +5,7 @@ import CollectionEditor from "@/components/payload/CollectionEditor";
 import type { ColumnDef, FieldDef } from "@/components/payload/fields";
 import type { AdminExtra } from "@/lib/api";
 import { optionKindLabel, optionPriceLabel, slugify } from "@/lib/tourOptions";
+import { optionsFrom } from "@/lib/tableFilters";
 
 const BASE_PATH = "/catalogue/ameliorations";
 const LABEL = "Améliorations de circuit";
@@ -110,6 +111,9 @@ export function TourOptionsList({ initialItems }: { initialItems: AdminExtra[] }
       titleKey="name"
       items={initialItems}
       columns={columns}
+      filters={[
+        { id: "kind", label: "Type", kind: "select", options: optionsFrom(initialItems, (e) => e.serviceType), get: (e) => e.serviceType },
+      ]}
     />
   );
 }

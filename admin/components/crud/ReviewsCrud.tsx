@@ -2,10 +2,12 @@
 
 import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { AdminReview } from "@/lib/api";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
 
 const PRODUCT_LABEL: Record<AdminReview["productType"], string> = {
   TOURTYPE: "Hébergement",
@@ -26,18 +28,19 @@ const PRODUCT_LABEL: Record<AdminReview["productType"], string> = {
 export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
   const router = useRouter();
   const toast = useToast();
-  const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminReview | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return initialItems;
-    const q = query.toLowerCase();
-    return initialItems.filter(
-      (r) => r.userName.toLowerCase().includes(q) || (r.comment ?? "").toLowerCase().includes(q),
-    );
-  }, [initialItems, query]);
+  const { filtered, bar } = useTableFilters(
+    initialItems,
+    [
+      { id: "rating", label: "Note", kind: "select", options: [5, 4, 3, 2, 1].map((n) => ({ value: String(n), label: "★".repeat(n) })), get: (r) => String(r.rating) },
+      { id: "product", label: "Produit", kind: "select", options: Object.entries(PRODUCT_LABEL).map(([value, label]) => ({ value, label })), get: (r) => r.productType },
+      { id: "date", label: "Date", kind: "date", get: (r) => r.createdAt },
+    ],
+    (r) => [r.userName, r.comment, PRODUCT_LABEL[r.productType]],
+  );
 
   async function onDelete() {
     if (!deleteTarget) return;
@@ -66,28 +69,21 @@ export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
         </p>
       </div>
 
-      <input
-        type="text"
-        placeholder="Rechercher…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full max-w-sm rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none transition placeholder:text-navy-700/30 focus:border-gold/60 focus:ring-3 focus:ring-gold/15"
-      />
-
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="Client, commentaire…" />
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun avis pour le moment.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                  <th className="px-6 py-3 font-medium">Client</th>
-                  <th className="px-6 py-3 font-medium">Produit</th>
-                  <th className="px-6 py-3 font-medium">Note</th>
-                  <th className="px-6 py-3 font-medium">Commentaire</th>
-                  <th className="px-6 py-3 font-medium">Date</th>
-                  <th className="px-6 py-3 text-right font-medium">Actions</th>
+                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
+                  <th className="px-6 py-3 font-semibold">Client</th>
+                  <th className="px-6 py-3 font-semibold">Produit</th>
+                  <th className="px-6 py-3 font-semibold">Note</th>
+                  <th className="px-6 py-3 font-semibold">Commentaire</th>
+                  <th className="px-6 py-3 font-semibold">Date</th>
+                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

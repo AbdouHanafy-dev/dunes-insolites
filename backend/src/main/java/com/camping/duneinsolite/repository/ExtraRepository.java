@@ -15,6 +15,7 @@ import java.util.UUID;
 public interface ExtraRepository extends JpaRepository<Extra, UUID> {
     List<Extra> findByIsActiveTrue();
     boolean existsByName(String name);
+    boolean existsByCategoryAndIsActiveTrue(com.camping.duneinsolite.model.enums.ExtraCategory category);
     boolean existsBySlug(String slug);
     Optional<Extra> findBySlugAndIsActiveTrue(String slug);
 

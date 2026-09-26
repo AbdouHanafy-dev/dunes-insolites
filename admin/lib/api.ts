@@ -100,6 +100,10 @@ export type AdminReservation = {
   currency: string;
   createdAt: string;
   extras?: AdminReservationExtra[];
+  groupName?: string | null;
+  demandeSpecial?: string | null;
+  preferredLanguages?: AdminSpokenLanguage[];
+  otherLanguageRequested?: string | null;
   tourTypes: AdminReservationLine[];
   tours: AdminReservationLine[];
   // Derived server-side from recorded transactions (PaymentServiceImpl) -

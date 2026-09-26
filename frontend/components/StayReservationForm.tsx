@@ -254,6 +254,8 @@ export default function StayReservationForm({
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const idempotencyKeyRef = useRef("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // A picked arrival mode settles the errors raised about it earlier.
+  const clearArrivalErrors = () => setErrors((cur) => { const next = { ...cur }; delete next.arrivalMode; delete next.transport; return next; });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [booking, setBooking] = useState<{ id: string } | null>(null);
@@ -406,7 +408,7 @@ export default function StayReservationForm({
       if (hasOwnVehicle === false && otherReturn && !returnCityOther.trim()) e.returnCityOther = t("errorReturnCityOther");
       if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
       if (stay.guideRequired && !guideSlug) e.guide = t("errorGuideRequired");
-      if (hasOwnVehicle === false && !transportSlug) e.transport = t("errorTransportRequired");
+      if (hasOwnVehicle === false && transportOptions.length > 0 && !transportSlug) e.transport = t("errorTransportRequired");
       if (
         needsPickupDetails &&
         !pickupHotelName.trim() &&
@@ -463,7 +465,7 @@ export default function StayReservationForm({
     if (stay.guideRequired && !guideSlug) {
       newErrors.guide = t("errorGuideRequired");
     }
-    if (hasOwnVehicle === false && !transportSlug) {
+    if (hasOwnVehicle === false && transportOptions.length > 0 && !transportSlug) {
       newErrors.transport = t("errorTransportRequired");
     }
     if (
@@ -703,7 +705,7 @@ export default function StayReservationForm({
               name="hasOwnVehicle"
               checked={hasOwnVehicle === true}
               onChange={() => {
-                setHasOwnVehicle(true);
+                setHasOwnVehicle(true); clearArrivalErrors();
                 setTransportSlug("");
               }}
             />
@@ -716,7 +718,7 @@ export default function StayReservationForm({
               name="hasOwnVehicle"
               checked={hasOwnVehicle === false}
               onChange={() => {
-                setHasOwnVehicle(false);
+                setHasOwnVehicle(false); clearArrivalErrors();
                 if (selectedGuide?.requiresCustomerVehicle) setGuideSlug("");
               }}
             />

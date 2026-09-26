@@ -44,6 +44,9 @@ public final class PickupCities {
     /** {@code chosen} is the raw enum name from the request; null means the guest skipped it. */
     public static void requireOffered(String field, String chosen, Set<DepartureCity> offered) {
         if (chosen == null || chosen.isBlank()) return;
+        // A product saved before cities existed has none ticked, and the site then offers every city
+        // for departure (lib/cities.ts); refusing the very city the site offered would block the booking.
+        if ("departure".equals(field) && (offered == null || offered.isEmpty())) return;
         boolean ok = offered != null && offered.stream().anyMatch(c -> c.name().equals(chosen));
         if (!ok) {
             throw new InvalidPickupCitiesException("The " + field + " city " + chosen + " is not offered for this product.");

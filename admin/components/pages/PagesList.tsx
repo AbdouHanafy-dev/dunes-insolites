@@ -3,6 +3,7 @@
 import CollectionList from "@/components/payload/CollectionList";
 import type { ColumnDef } from "@/components/payload/fields";
 import type { AdminPage } from "@/lib/api";
+import { optionsFrom } from "@/lib/tableFilters";
 
 const columns: ColumnDef<AdminPage>[] = [
   { key: "title", label: "Titre" },
@@ -50,6 +51,12 @@ export default function PagesList({ initialItems }: { initialItems: AdminPage[] 
       titleKey="title"
       items={initialItems}
       columns={columns}
+      filters={[
+        { id: "status", label: "Statut", kind: "select", options: [{ value: "PUBLISHED", label: "Publiée" }, { value: "DRAFT", label: "Brouillon" }], get: (p) => p.status },
+        { id: "locale", label: "Langue", kind: "select", options: optionsFrom(initialItems, (p) => p.locale), get: (p) => p.locale },
+        { id: "brand", label: "Marque", kind: "select", options: optionsFrom(initialItems, (p) => p.companyType, (v) => (v === "DUNES_INSOLITES" ? "Dunes Insolites" : "Route Insolite")), get: (p) => p.companyType },
+        { id: "category", label: "Catégorie", kind: "select", options: optionsFrom(initialItems, (p) => p.category), get: (p) => p.category },
+      ]}
     />
   );
 }

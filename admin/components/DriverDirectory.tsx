@@ -7,6 +7,8 @@ import { useToast } from "@/components/Toast";
 import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminDriverProfile } from "@/lib/api";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
 
 const DRIVER_FIELDS = [
   { key: "firstName", label: "Prénom", type: "text", required: true },
@@ -21,6 +23,9 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
   const toast = useToast();
   const fi = useFormIssues(DRIVER_FIELDS);
   const [drivers, setDrivers] = useState(initialDrivers);
+  const { filtered, bar } = useTableFilters(drivers, [
+      { id: "active", label: "Statut", kind: "select", options: [{ value: "active", label: "Actif" }, { value: "inactive", label: "Inactif" }], get: (d) => (d.active ? "active" : "inactive") },
+    ], (d) => [d.firstName, d.lastName, d.email, d.phoneNumber, d.vehicleModel]);
   const [busy, setBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AdminDriverProfile | null>(null);
   const [form, setForm] = useState({
@@ -133,17 +138,18 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
       </form>
 
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="Nom, e-mail, téléphone, véhicule…" />
         {drivers.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun chauffeur dans l’annuaire.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                <th className="px-6 py-3 font-medium">Chauffeur</th><th className="px-6 py-3 font-medium">Contact</th>
-                <th className="px-6 py-3 font-medium">Véhicule</th><th className="px-6 py-3 font-medium">Statut</th><th className="px-6 py-3" />
+              <thead><tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
+                <th className="px-6 py-3 font-semibold">Chauffeur</th><th className="px-6 py-3 font-semibold">Contact</th>
+                <th className="px-6 py-3 font-semibold">Véhicule</th><th className="px-6 py-3 font-semibold">Statut</th><th className="px-6 py-3" />
               </tr></thead>
               <tbody className="divide-y divide-gray-100">
-                {drivers.map((driver) => (
+                {filtered.map((driver) => (
                   <tr key={driver.driverProfileId} className="hover:bg-gray-50">
                     <td className="px-6 py-3 font-medium text-gray-900">{driver.firstName} {driver.lastName}</td>
                     <td className="px-6 py-3 text-gray-600"><div>{driver.email}</div><div>{driver.phoneNumber ?? "—"}</div></td>

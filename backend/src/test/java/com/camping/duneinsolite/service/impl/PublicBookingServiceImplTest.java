@@ -360,6 +360,7 @@ class PublicBookingServiceImplTest {
     void transportModeWithoutATransportOptionFailsBeforeCreatingAUser() {
         when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
                 .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        when(extraRepository.existsByCategoryAndIsActiveTrue(com.camping.duneinsolite.model.enums.ExtraCategory.TRANSPORT)).thenReturn(true);
         PublicStayBookingRequest request = baseRequest();
         request.setArrivalMode("TRANSPORT");
 

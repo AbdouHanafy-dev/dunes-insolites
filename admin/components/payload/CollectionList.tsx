@@ -3,10 +3,13 @@
 import { readApiError } from "@/lib/apiError";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import type { ColumnDef } from "./fields";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
+import type { FilterDef } from "@/lib/tableFilters";
 
 /**
  * Payload's collection list view: a plain page (not a modal), a search
@@ -21,6 +24,7 @@ export default function CollectionList<T extends Record<string, unknown>>({
   titleKey,
   items,
   columns,
+  filters = [],
 }: {
   title: string;
   /** Route prefix, e.g. "/catalogue/hebergements" — /new and /{id} are appended. */
@@ -31,19 +35,36 @@ export default function CollectionList<T extends Record<string, unknown>>({
   titleKey: string;
   items: T[];
   columns: ColumnDef<T>[];
+  /** Extra drop-down or date filters for this list; an active/inactive and a creation-date filter are added when the rows have those fields. */
+  filters?: FilterDef<T>[];
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return items;
-    const q = query.toLowerCase();
-    return items.filter((i) => String(i[titleKey] ?? "").toLowerCase().includes(q));
-  }, [items, query, titleKey]);
+  // Every list gets the same essentials for free: active/inactive and the creation date, when the rows carry them.
+  const activeKey = items.some((i) => typeof i.isActive === "boolean") ? "isActive" : items.some((i) => typeof i.active === "boolean") ? "active" : null;
+  const hasCreatedAt = items.some((i) => typeof i.createdAt === "string");
+  const defs: FilterDef<T>[] = [
+    ...filters,
+    ...(activeKey
+      ? [{
+          id: "__active", label: "Statut", kind: "select" as const,
+          options: [{ value: "on", label: "Actif" }, { value: "off", label: "Inactif" }],
+          get: (i: T) => (i[activeKey] === false ? "off" : "on"),
+        }]
+      : []),
+    ...(hasCreatedAt ? [{ id: "__created", label: "Créé le", kind: "date" as const, get: (i: T) => (typeof i.createdAt === "string" ? i.createdAt : null) }] : []),
+  ];
+  const { filtered, bar } = useTableFilters(items, defs, (i) => [
+    i[titleKey] as string | number | null | undefined,
+    ...columns.map((c) => {
+      const v = i[c.key];
+      return typeof v === "string" || typeof v === "number" ? v : null;
+    }),
+  ]);
 
   async function onDelete() {
     if (!deleteTarget) return;
@@ -73,28 +94,21 @@ export default function CollectionList<T extends Record<string, unknown>>({
         </Link>
       </div>
 
-      <input
-        type="text"
-        placeholder="Rechercher…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full max-w-sm rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none transition placeholder:text-navy-700/30 focus:border-gold/60 focus:ring-3 focus:ring-gold/15"
-      />
-
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="Rechercher un nom, un texte, une valeur…" />
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun élément pour le moment.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
+                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
                   {columns.map((c) => (
-                    <th key={c.key} className="px-6 py-3 font-medium">
+                    <th key={c.key} className="px-6 py-3 font-semibold">
                       {c.label}
                     </th>
                   ))}
-                  <th className="px-6 py-3 text-right font-medium">Actions</th>
+                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

@@ -464,7 +464,10 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 .toList();
         boolean hasTransport = resolvedServiceOptions.stream()
                 .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
-        if ("TRANSPORT".equals(request.getArrivalMode()) && !hasTransport) {
+        // A guest who needs transportation must pick a vehicle - unless none is configured yet, in which
+        // case the request goes through and the team assigns the chauffeur.
+        if ("TRANSPORT".equals(request.getArrivalMode()) && !hasTransport
+                && extraRepository.existsByCategoryAndIsActiveTrue(ExtraCategory.TRANSPORT)) {
             throw new ReservationValidationException(
                     "Please choose transportation to reach the experience.");
         }

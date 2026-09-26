@@ -42,6 +42,13 @@ class PickupCitiesTest {
     }
 
     @Test
+    void aProductWithNoDepartureCitiesTickedOffersThemAll() {
+        // Saved before cities existed: the site offers every city, so the server must accept one.
+        assertDoesNotThrow(() -> PickupCities.requireOffered("departure", "TUNIS", Set.of()));
+        assertDoesNotThrow(() -> PickupCities.requireOffered("departure", "TUNIS", null));
+    }
+
+    @Test
     void namesFollowDeclarationOrder() {
         assertEquals(java.util.List.of("TUNIS", "TOZEUR"),
                 PickupCities.names(EnumSet.of(DepartureCity.TOZEUR, DepartureCity.TUNIS)));

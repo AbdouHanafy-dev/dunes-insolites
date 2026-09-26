@@ -3,12 +3,15 @@
 import { useFormIssues } from "@/components/useFormIssues";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/Toast";
 import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminReservation, AdminTransaction } from "@/lib/api";
 import { sym } from "@/lib/currency";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
+import { optionsFrom } from "@/lib/tableFilters";
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "En attente",
@@ -31,15 +34,17 @@ const METHOD_LABEL: Record<string, string> = {
 // exposes no PUT/DELETE for them, deliberately (see ARCHITECTURE.md §9 on
 // money handling). This list is read + create-a-new-payment only.
 export function TransactionsList({ initialItems }: { initialItems: AdminTransaction[] }) {
-  const [query, setQuery] = useState("");
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return initialItems;
-    const q = query.toLowerCase();
-    return initialItems.filter(
-      (t) => t.transactionNumber.toLowerCase().includes(q) || t.reservationId.includes(q),
-    );
-  }, [initialItems, query]);
+  const { filtered, bar } = useTableFilters(
+    initialItems,
+    [
+      { id: "status", label: "Statut", kind: "select", options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })), get: (t) => t.status },
+      { id: "method", label: "Méthode", kind: "select", options: Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label })), get: (t) => t.paymentMethod },
+      { id: "currency", label: "Devise", kind: "select", options: optionsFrom(initialItems, (t) => t.currency), get: (t) => t.currency },
+      { id: "date", label: "Date", kind: "date", get: (t) => t.transactionDate },
+    ],
+    (t) => [t.transactionNumber, t.reservationId, t.amount, STATUS_LABEL[t.status], METHOD_LABEL[t.paymentMethod]],
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -53,28 +58,21 @@ export function TransactionsList({ initialItems }: { initialItems: AdminTransact
         </Link>
       </div>
 
-      <input
-        type="text"
-        placeholder="Rechercher par n° de transaction ou réservation…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full max-w-sm rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none transition placeholder:text-navy-700/30 focus:border-gold/60 focus:ring-3 focus:ring-gold/15"
-      />
-
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="N° de transaction, réservation, montant…" />
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun paiement pour le moment.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                  <th className="px-6 py-3 font-medium">N° transaction</th>
-                  <th className="px-6 py-3 font-medium">Montant</th>
-                  <th className="px-6 py-3 font-medium">Méthode</th>
-                  <th className="px-6 py-3 font-medium">Statut</th>
-                  <th className="px-6 py-3 font-medium">Réservation</th>
-                  <th className="px-6 py-3 font-medium">Date</th>
+                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
+                  <th className="px-6 py-3 font-semibold">N° transaction</th>
+                  <th className="px-6 py-3 font-semibold">Montant</th>
+                  <th className="px-6 py-3 font-semibold">Méthode</th>
+                  <th className="px-6 py-3 font-semibold">Statut</th>
+                  <th className="px-6 py-3 font-semibold">Réservation</th>
+                  <th className="px-6 py-3 font-semibold">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

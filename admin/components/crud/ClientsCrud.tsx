@@ -4,6 +4,7 @@ import CollectionList from "@/components/payload/CollectionList";
 import CollectionEditor from "@/components/payload/CollectionEditor";
 import type { ColumnDef, FieldDef } from "@/components/payload/fields";
 import type { AdminUser } from "@/lib/api";
+import { optionsFrom } from "@/lib/tableFilters";
 
 const BASE_PATH = "/clients";
 const API_PATH = "users";
@@ -57,6 +58,11 @@ export function ClientsList({ initialItems }: { initialItems: AdminUser[] }) {
       titleKey="name"
       items={initialItems}
       columns={columns}
+      filters={[
+        { id: "role", label: "Type", kind: "select", options: optionsFrom(initialItems, (u) => u.role), get: (u) => u.role },
+        { id: "tier", label: "Fidélité", kind: "select", options: optionsFrom(initialItems, (u) => u.loyaltyTier), get: (u) => u.loyaltyTier },
+        { id: "terms", label: "Inscription", kind: "date", get: (u) => u.termsAcceptedAt },
+      ]}
     />
   );
 }
