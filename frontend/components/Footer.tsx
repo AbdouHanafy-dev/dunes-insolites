@@ -28,7 +28,7 @@ export default async function Footer({
   stays: Stay[];
   activities: Activity[];
 }) {
-  const [t, tNav] = await Promise.all([getTranslations("footer"), getTranslations("nav")]);
+  const [t, tNav, tA] = await Promise.all([getTranslations("footer"), getTranslations("nav"), getTranslations("a11y")]);
   const coords = `${settings.coords.lat.toFixed(4)}°N · ${settings.coords.lng.toFixed(4)}°E`;
 
   const circuits: FooterLink[] = tours.slice(0, MAX_PER_COLUMN).map((tour) => ({
@@ -95,7 +95,7 @@ export default async function Footer({
             </div>
           </div>
 
-          <nav className="pf-cols" aria-label="Footer navigation">
+          <nav className="pf-cols" aria-label={tA("navFooter")}>
             {columns.map((col) =>
               col.links.length === 0 ? null : (
                 <div key={col.title} className="pf-col">

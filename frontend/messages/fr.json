@@ -80,7 +80,9 @@
     "averageRating": "Note moyenne",
     "newRating": "Nouveau",
     "yearsSuffix": "Ans",
-    "ofExperience": "D'expérience"
+    "ofExperience": "D'expérience",
+    "location": "Sabria · Sud tunisien",
+    "tagline": "Là où le Sahara semble infini."
   },
   "steps": {
     "eyebrow": "Comment ça marche",
@@ -2861,5 +2863,13 @@
   },
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} h} other {{rest, plural, =0 {{days, plural, one {# jour} other {# jours}} ({hours} h)} other {{days, plural, one {# jour} other {# jours}} et {rest} h ({hours} h)}}}}"
+  },
+  "a11y": {
+    "navPrimary": "Navigation principale",
+    "navMobile": "Navigation mobile",
+    "navFooter": "Navigation du pied de page",
+    "prevReview": "Avis précédent",
+    "nextReview": "Avis suivant",
+    "ctaGateAlt": "Porte du désert au crépuscule"
   }
 }

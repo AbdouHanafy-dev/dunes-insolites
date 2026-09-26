@@ -49,7 +49,12 @@
     "follow": "Seguici",
     "privacy": "Privacy",
     "terms": "Termini",
-    "location": "Sahara · Tunisia"
+    "location": "Sahara · Tunisia",
+    "info": "Informazioni",
+    "favorites": "I miei preferiti",
+    "allCircuits": "Tutti i circuiti",
+    "allAccommodation": "Tutti gli alloggi",
+    "allActivities": "Tutte le attività"
   },
   "cookieConsent": {
     "dialogLabel": "Scelta dei cookie",
@@ -75,7 +80,9 @@
     "averageRating": "Valutazione media",
     "newRating": "Nuovo",
     "yearsSuffix": "Anni",
-    "ofExperience": "Di esperienza"
+    "ofExperience": "Di esperienza",
+    "location": "Sabria · Tunisia meridionale",
+    "tagline": "Dove il Sahara sembra infinito."
   },
   "steps": {
     "eyebrow": "Come funziona",
@@ -767,13 +774,34 @@
     "goldenHourOnly": "Solo ora dorata",
     "difficultyEasy": "Facile",
     "difficultyModerate": "Moderato",
-    "difficultyAdventurous": "Avventuroso"
+    "difficultyAdventurous": "Avventuroso",
+    "searchLabel": "Cerca",
+    "searchPlaceholder": "Cerca un’attività…",
+    "sortLabel": "Ordina per",
+    "sortDefault": "Rilevanza",
+    "sortPriceAsc": "Prezzo: dal più basso al più alto",
+    "sortPriceDesc": "Prezzo: dal più alto al più basso",
+    "sortDurationAsc": "Durata: dalla più breve alla più lunga",
+    "sortDurationDesc": "Durata: dalla più lunga alla più breve",
+    "noResults": "Nessuna attività corrisponde alla tua ricerca.",
+    "resetFilters": "Reimposta",
+    "ctaTitle": "Una domanda prima di prenotare?",
+    "ctaBody": "Scrivici: ti aiuteremo a scegliere l’attività più adatta a te.",
+    "ctaLabel": "Contattaci"
   },
   "campPage": {
     "eyebrow": "Scegli la tua notte",
     "titleLine1": "Due modi di dormire",
     "titleLine2": "tra le dune.",
-    "lead": "Il campo fisso, oppure un bivacco più lontano — scegliete una notte, poi aggiungete cammello, quad o sandboarding se lo desiderate. Confermiamo gli orari una volta sul posto."
+    "lead": "Il campo fisso, oppure un bivacco più lontano — scegliete una notte, poi aggiungete cammello, quad o sandboarding se lo desiderate. Confermiamo gli orari una volta sul posto.",
+    "searchLabel": "Cerca",
+    "searchPlaceholder": "Cerca un soggiorno…",
+    "sortLabel": "Ordina per",
+    "sortDefault": "Rilevanza",
+    "sortPriceAsc": "Prezzo: dal più basso al più alto",
+    "sortPriceDesc": "Prezzo: dal più alto al più basso",
+    "noResults": "Nessun soggiorno corrisponde alla tua ricerca.",
+    "resetFilters": "Reimposta"
   },
   "bookPage": {
     "eyebrow": "Riservate il vostro posto",
@@ -997,7 +1025,8 @@
       "PARTENAIRE": "Partner",
       "ADMIN": "Amministratore",
       "CAMPING": "Staff del campo"
-    }
+    },
+    "tabFavorites": "Preferiti"
   },
   "meta": {
     "about": {
@@ -1069,6 +1098,46 @@
     "circuits": {
       "title": "Circuiti multi-giorno nel Sahara",
       "description": "Escursioni di più giorni in partenza da Djerba — il patrimonio del sud tunisino, notti in bivacco nomade e relax al mare, con Route Insolite."
+    },
+    "guideDjerbaTataouine": {
+      "title": "Da Djerba a Tataouine e Chenini: guida pratica al percorso",
+      "description": "Come capire e pianificare il percorso da Djerba a Tataouine, Chenini e ai ksour del sud della Tunisia, con fonti ufficiali del turismo e dell’UNESCO."
+    },
+    "guideSabriaDouz": {
+      "title": "Sabria, Douz e Chott el-Jerid: capire la regione del deserto",
+      "description": "Una guida documentata alle dune, ai villaggi di oasi e ai paesaggi di sale intorno a Sabria e Douz, nella regione di Kébili in Tunisia."
+    },
+    "guideDunesCamp": {
+      "title": "Dunes Insolites a Sabria: la guida completa al campo",
+      "description": "Dove si trova Dunes Insolites, come arrivare, alloggi, servizi e come si svolge una notte nel campo nel deserto di Sabria."
+    },
+    "guideDunesExperience": {
+      "title": "Attività, cena e serate a Dunes Insolites",
+      "description": "Una guida pratica a giri in cammello, escursioni in quad, sandboarding, pasti nel deserto, bivacchi e serate a Dunes Insolites."
+    },
+    "guideBivouacCamp": {
+      "title": "Bivacco o campo nel deserto a Sabria: quale notte scegliere?",
+      "description": "Confronta una notte al campo Dunes Insolites con un bivacco tra le dune per scegliere il giusto comfort, ritmo e livello di immersione."
+    },
+    "guideBedouinDinner": {
+      "title": "Cena beduina e pane di sabbia a Dunes Insolites",
+      "description": "Capire una cena nel deserto a Sabria, dal tramonto e dal pane di sabbia alla serata attorno al fuoco."
+    },
+    "guideChooseActivity": {
+      "title": "Cammello, quad o sandboard a Sabria: cosa scegliere?",
+      "description": "Confronta il ritmo, lo sforzo e le sensazioni di cammello, quad e sandboarding prima di pianificare il tuo soggiorno."
+    },
+    "guideFamilyStay": {
+      "title": "Pianificare un soggiorno in famiglia nel deserto di Sabria",
+      "description": "Accesso, alloggio, pasti, attività e i dettagli da comunicare per organizzare una notte in famiglia a Dunes Insolites."
+    },
+    "guideDesertLight": {
+      "title": "Tramonto, stelle e fotografia a Sabria",
+      "description": "Semplici consigli per godersi la luce delle dune, fotografare il tramonto e osservare il cielo notturno a Dunes Insolites."
+    },
+    "guideDjerbaSabria": {
+      "title": "Da Djerba a Sabria in due giorni: pianificare il percorso",
+      "description": "Un percorso realistico tra Djerba, Matmata e i paesaggi del sud con una notte al campo Dunes Insolites a Sabria."
     }
   },
   "legal": {
@@ -1274,7 +1343,41 @@
     "q9": "Cosa succede in caso di gravidanza o esigenze particolari di mobilità?",
     "a9": "Comunicatecelo al momento della prenotazione — preferiamo indirizzarvi verso l'escursione giusta piuttosto che rifiutarvi l'accesso all'ingresso.",
     "stillQuestions": "Hai un'altra domanda?",
-    "contactCta": "Contattaci →"
+    "contactCta": "Contattaci →",
+    "catDestination": "Come arrivare e capire la regione",
+    "q10": "Posso arrivare con il mio veicolo o richiedere un trasferimento?",
+    "a10": "Entrambe le opzioni sono supportate nel percorso di prenotazione. Scegli il tuo veicolo o un’opzione di trasporto disponibile, poi fornisci i dati di ritiro richiesti. Il team conferma il punto d’incontro o di ritiro esatto prima della partenza.",
+    "q11": "Che cosa sono un ksar e una ghorfa?",
+    "a11": "Un ksar è un granaio collettivo fortificato; ksour è il plurale. Le sue camere di stoccaggio sovrapposte si chiamano ghorfa. Intorno a Tataouine e Medenine queste strutture conservavano i raccolti ed erano legate alla vita seminomade della regione.",
+    "q12": "Perché visitare Chenini e Tataouine invece di considerarle una semplice sosta fotografica?",
+    "a12": "Il paesaggio racconta una storia coerente: insediamenti in cima alle colline, case scavate nella roccia, sistemi di gestione dell’acqua e granai collettivi. Chenini e la vicina Douiret sono luoghi vivi, quindi una visita più lenta e con un contesto locale è più rispettosa e più istruttiva.",
+    "q13": "Djerba è patrimonio mondiale dell’UNESCO?",
+    "a13": "Sì. L’UNESCO ha iscritto Djerba nel 2023 per il suo particolare modello di insediamento disperso e per il modo in cui le comunità si sono adattate a un ambiente insulare povero d’acqua. Il bene iscritto è una serie di siti e monumenti, non un singolo edificio.",
+    "q14": "Qual è la stagione migliore per il Sahara tunisino?",
+    "a14": "Il portale ufficiale del turismo tunisino indica l’inverno come stagione ideale per esplorare il Sahara e l’autunno come adatto ai viaggi nel deserto. Le condizioni variano di giorno in giorno, quindi controlla le previsioni e segui le decisioni del team operativo su orari e meteo.",
+    "q15": "Devo consultare le indicazioni ufficiali di viaggio prima di un viaggio nel sud della Tunisia?",
+    "a15": "Sì. Le indicazioni e le zone vietate possono cambiare. Consulta le indicazioni attuali emesse per la tua nazionalità, assicurati che la tua assicurazione copra il percorso e le attività previsti e non improvvisare viaggi in zone di confine o militari.",
+    "catCamp": "Il campo Dunes Insolites",
+    "q16": "Dove si trova esattamente Dunes Insolites?",
+    "a16": "Il campo si trova a Sabria, nel governatorato tunisino di Kébili, a circa 30 km da Douz secondo la presentazione ufficiale di Dunes Insolites. Il punto GPS preciso e le istruzioni di arrivo ti vengono confermati per la tua prenotazione.",
+    "q17": "Un’auto familiare normale può raggiungere il campo?",
+    "a17": "Le informazioni ufficiali del campo indicano che è accessibile in auto familiare in condizioni normali. Segui solo l’accesso confermato e contatta il team se il meteo o la sabbia hanno modificato la pista; non improvvisare un altro percorso.",
+    "q18": "Ci sono docce e servizi igienici al campo?",
+    "a18": "Sì. La presentazione ufficiale del campo elenca docce in loco, anche con acqua calda, accanto agli alloggi in tenda. I servizi esatti dell’alloggio scelto sono mostrati durante la prenotazione e confermati dal team.",
+    "q19": "Che tipo di notti posso prenotare?",
+    "a19": "Il catalogo distingue il campo stabile da un bivacco più semplice più addentro nel deserto. Nel campo fisso gli alloggi possono comprendere una tenda tradizionale, una camera o una suite, in base alla disponibilità.",
+    "q20": "Quali pasti fanno parte dell’esperienza Dunes Insolites?",
+    "a20": "Il campo propone pasti tradizionali preparati con prodotti regionali, tè alla menta e pane del deserto cotto con sabbia calda e braci. Il soggiorno scelto indica ciò che è incluso; le esigenze alimentari vanno comunicate prima della conferma.",
+    "q21": "Quali attività posso aggiungere a Dunes Insolites?",
+    "a21": "Le informazioni pubbliche del campo e il catalogo attuale comprendono escursioni in cammello, giri in quad, sandboarding, esperienze a cavallo, fotografia al tramonto e bivacchi nel deserto. Compaiono o vengono confermate per la prenotazione solo le attività effettivamente disponibili per la tua data.",
+    "q22": "Qual è la differenza tra il campo fisso e un bivacco?",
+    "a22": "Il campo fisso privilegia alloggi e servizi consolidati. Un bivacco è una notte più semplice e mobile, più addentro nelle dune. Scegli in base al livello di comfort, al tempo di viaggio e al programma descritti nella pagina del soggiorno specifico.",
+    "q23": "Si possono accogliere famiglie, gruppi privati o eventi?",
+    "a23": "Dunes Insolites propone pubblicamente attività di gruppo ed eventi, mentre il sistema di prenotazione registra la dimensione del gruppo e le richieste speciali. Invia età, date ed esigenze del gruppo prima della conferma, così il team potrà proporre un programma adatto invece di dare per scontato che ogni attività vada bene per tutti.",
+    "q24": "Cosa succede dopo aver inviato una richiesta di prenotazione?",
+    "a24": "Il sito non addebita nulla subito. La richiesta viene verificata rispetto alla disponibilità e ai servizi scelti; il team locale conferma poi il programma, i dettagli di arrivo o ritiro e il passaggio successivo per il pagamento via e-mail o WhatsApp.",
+    "sourcesHeading": "Le fonti dietro queste risposte sulle destinazioni",
+    "sourcesNote": "Le risposte operative derivano dalle regole di prenotazione. Le risposte su destinazioni e patrimonio sono verificate sulle seguenti fonti primarie."
   },
   "guidesPage": {
     "eyebrow": "Guide al deserto",
@@ -1343,7 +1446,8 @@
   "activitiesSection": {
     "eyebrow": "Guida sul campo",
     "lead": "Dal dondolio lento di un cammello all'ora dorata al ruggito di un quad sulle dune — ogni uscita a Sabria finisce nello stesso modo, guardando il sole scomparire dietro il Sahara.",
-    "fromPrice": "A partire da {price}"
+    "fromPrice": "A partire da {price}",
+    "included": "Included for camp guests"
   },
   "circuitsSection": {
     "eyebrow": "Route Insolite",
@@ -1376,5 +1480,1396 @@
   },
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} h} other {{rest, plural, =0 {{days, plural, one {# giorno} other {# giorni}} ({hours} h)} other {{days, plural, one {# giorno} other {# giorni}} e {rest} h ({hours} h)}}}}"
+  },
+  "a11y": {
+    "navPrimary": "Navigazione principale",
+    "navMobile": "Navigazione mobile",
+    "navFooter": "Navigazione del piè di pagina",
+    "prevReview": "Recensione precedente",
+    "nextReview": "Recensione successiva",
+    "ctaGateAlt": "Porta del deserto al crepuscolo"
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "Chi siamo",
+      "title": "Dunes Insolites – Un’esperienza autentica nel cuore del Sahara tunisino",
+      "lead": "Un campo vicino a Sabria, circondato dai paesaggi desertici del sud della Tunisia, dove scoperta, tradizioni, ospitalità e comfort si incontrano.",
+      "cta": "Scopri il campo"
+    },
+    "story": {
+      "eyebrow": "La nostra storia",
+      "title": "Un’avventura nata dalla nostra passione per il deserto",
+      "p1": "Dunes Insolites è un progetto locale, nato per aiutare i viaggiatori a scoprire il Sahara tunisino in modo diverso: senza fretta e vicino alle persone che vivono qui.",
+      "p2": "Il campo è molto più di un posto dove dormire. È un luogo di incontro e condivisione, per scoprire le tradizioni del Sud, ritrovare il silenzio del deserto, e dove ogni viaggiatore è accolto come un ospite.",
+      "cta": "Vedi gli alloggi",
+      "photoAlt": "Il campo Dunes Insolites al tramonto"
+    },
+    "experience": {
+      "eyebrow": "L’esperienza",
+      "title": "Un’esperienza, non solo una notte",
+      "items": [
+        {
+          "title": "Dormire nel deserto",
+          "text": "Alloggi autentici e diverse opzioni di comfort, per dormire in pace tra le dune.",
+          "cta": "I nostri alloggi",
+          "href": "/camp"
+        },
+        {
+          "title": "Scoprire le tradizioni",
+          "text": "Pane di sabbia Mella, musica popolare, una cena tradizionale e momenti condivisi attorno al fuoco.",
+          "cta": "Scopri il campo",
+          "href": "/camp"
+        },
+        {
+          "title": "Vivere le dune",
+          "text": "Tramonto, sandboarding, escursioni in cammello, quad e gite in 4x4.",
+          "cta": "Le nostre attività",
+          "href": "/activities"
+        },
+        {
+          "title": "Condividere un momento",
+          "text": "Tè di benvenuto, un cielo stellato e un’atmosfera cordiale al campo.",
+          "cta": "Prenota una notte",
+          "href": "/book"
+        }
+      ]
+    },
+    "philosophy": {
+      "eyebrow": "La nostra filosofia",
+      "title": "Un Sahara autentico, accessibile e accogliente",
+      "text": "Dunes Insolites vuole preservare lo spirito del deserto e le tradizioni locali offrendo al tempo stesso il comfort di cui i viaggiatori hanno bisogno. Si viene qui per rallentare, condividere e assaporare la vita nel sud della Tunisia.",
+      "words": [
+        "Ospitalità",
+        "Autenticità",
+        "Condivisione",
+        "Semplicità",
+        "Cultura locale"
+      ]
+    },
+    "why": {
+      "eyebrow": "Perché sceglierci",
+      "title": "Perché scegliere Dunes Insolites?",
+      "items": [
+        {
+          "title": "Un team locale",
+          "text": "Un team che conosce perfettamente la regione."
+        },
+        {
+          "title": "A 3 km da Sabria",
+          "text": "Un campo a circa 3 km dal villaggio di Sabria."
+        },
+        {
+          "title": "Accesso facile",
+          "text": "Raggiungibile con una normale automobile."
+        },
+        {
+          "title": "Diversi soggiorni",
+          "text": "Diverse categorie di alloggio per ogni budget e livello di comfort."
+        },
+        {
+          "title": "Attività sul posto",
+          "text": "Cammello, quad, 4x4 e sandboarding, direttamente dal campo."
+        },
+        {
+          "title": "Per ogni viaggiatore",
+          "text": "Adatto a coppie, famiglie, amici, viaggiatori singoli e gruppi."
+        }
+      ]
+    },
+    "team": {
+      "eyebrow": "Il team",
+      "title": "I volti dietro Dunes Insolites",
+      "text": "Guide, autisti, cuochi e il team del campo lavorano insieme per accogliere i viaggiatori e aiutarli a scoprire il deserto nelle migliori condizioni.",
+      "photoAlt": "Il team di Dunes Insolites",
+      "cta": "Contattaci"
+    },
+    "region": {
+      "eyebrow": "La nostra regione",
+      "title": "Sabria, alle porte del Grande Sud tunisino",
+      "text": "Sabria, nella regione di Kébili, è una vera porta d’accesso al Sahara. Il campo si inserisce facilmente in un viaggio in Tunisia, sulla strada verso il profondo sud.",
+      "stopsLabel": "Una tappa naturale tra",
+      "stops": [
+        "Douz",
+        "Matmata",
+        "Chott El Jerid",
+        "Tozeur",
+        "Le oasi di montagna"
+      ],
+      "cta": "Vedi i nostri circuiti",
+      "mapTitle": "Mappa: posizione del campo vicino a Sabria"
+    },
+    "values": {
+      "eyebrow": "I nostri valori",
+      "title": "Ciò che guida la nostra accoglienza",
+      "items": [
+        {
+          "title": "Autenticità",
+          "text": "Preservare lo spirito e le tradizioni del deserto."
+        },
+        {
+          "title": "Ospitalità",
+          "text": "Accogliere ogni viaggiatore con cura."
+        },
+        {
+          "title": "Condivisione",
+          "text": "Favorire incontri e scambi."
+        },
+        {
+          "title": "Semplicità",
+          "text": "Godersi il silenzio, le dune, il fuoco e il cielo stellato."
+        }
+      ]
+    },
+    "final": {
+      "title": "La tua esperienza nel Sahara inizia qui.",
+      "text": "Scopri Dunes Insolites, trascorri una notte nel deserto o aggiungi il campo al tuo circuito in Tunisia.",
+      "accommodations": "Scopri i nostri alloggi",
+      "experiences": "Vedi le nostre esperienze",
+      "book": "Prenota il tuo soggiorno"
+    }
+  },
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Contatti",
+      "title": "Organizziamo la tua notte tra le dune.",
+      "lead": "Domande su un soggiorno, un’attività o un gruppo privato? Scrivici o mandaci un messaggio su WhatsApp: risponde una persona vera del campo.",
+      "ctaWhatsapp": "Scrivici su WhatsApp",
+      "ctaForm": "Invia un messaggio",
+      "badge": "Rispondiamo entro 24 ore",
+      "whatsappText": "Buongiorno, vorrei informazioni su un soggiorno a Dunes Insolites."
+    },
+    "channels": {
+      "whatsapp": {
+        "title": "WhatsApp",
+        "hint": "Risposta più rapida",
+        "cta": "Apri la chat"
+      },
+      "phone": {
+        "title": "Telefono",
+        "hint": "Tutti i giorni",
+        "cta": "Chiamaci"
+      },
+      "email": {
+        "title": "E-mail",
+        "hint": "Dettagli e gruppi",
+        "cta": "Scrivici"
+      },
+      "visit": {
+        "title": "Il campo",
+        "hint": "Sabria, Kébili",
+        "cta": "Indicazioni stradali"
+      }
+    },
+    "form": {
+      "eyebrow": "Scrivici",
+      "title": "Inviaci un messaggio",
+      "lead": "Indicaci le date, la dimensione del gruppo e cosa hai in mente. Ti rispondiamo entro 24 ore.",
+      "note": "I tuoi dati vengono usati solo per risponderti."
+    },
+    "help": {
+      "eyebrow": "Come possiamo aiutarti",
+      "title": "Qualunque sia il piano, probabilmente l’abbiamo già fatto.",
+      "items": [
+        "Notti al campo o in bivacco",
+        "Giro in cammello, safari in quad e sandboarding",
+        "Gruppi privati e famiglie",
+        "Matrimoni, eventi e troupe cinematografiche",
+        "Percorsi su misura nel sud"
+      ]
+    },
+    "find": {
+      "eyebrow": "Dove siamo",
+      "title": "Il campo vicino a Sabria",
+      "text": "Il campo si trova a circa 3 km da Sabria ed è raggiungibile con una normale automobile. Ti confermiamo il punto d’incontro al momento della prenotazione.",
+      "hoursLabel": "Orari della reception",
+      "addressLabel": "Indirizzo",
+      "openMaps": "Apri in Google Maps",
+      "directions": "Indicazioni stradali",
+      "mapTitle": "Mappa che mostra il campo Dunes Insolites vicino a Sabria"
+    },
+    "next": {
+      "bookTitle": "Preferisci prenotare subito?",
+      "bookText": "Scegli il tuo soggiorno e prenota online in pochi minuti.",
+      "bookCta": "Vedi i soggiorni",
+      "faqTitle": "Cerchi una risposta veloce?",
+      "faqText": "Alle domande più frequenti rispondiamo nelle nostre FAQ.",
+      "faqCta": "Leggi le FAQ"
+    }
+  },
+  "accDetail": {
+    "ui": {
+      "back": "← Torna agli alloggi",
+      "from": "Da",
+      "perNight": "a notte",
+      "bookNow": "Prenota ora",
+      "viewPhotos": "Vedi le foto",
+      "viewAllPhotos": "Vedi tutte le foto",
+      "close": "Chiudi",
+      "previous": "Foto precedente",
+      "next": "Foto successiva",
+      "photoOf": "Foto {n} di {total}",
+      "galleryTitle": "Foto",
+      "aboutEyebrow": "L’alloggio",
+      "featuresEyebrow": "Caratteristiche",
+      "featuresTitle": "Cosa troverai sul posto",
+      "comfort": "Comfort",
+      "bathroom": "Bagno",
+      "campFacilities": "Servizi del campo",
+      "timelineEyebrow": "Come si svolge",
+      "forWhomEyebrow": "Per chi è?",
+      "importantEyebrow": "Da sapere",
+      "compareEyebrow": "Confronta",
+      "reviewsEyebrow": "Recensioni",
+      "seeMoreReviews": "Vedi altre recensioni",
+      "locationEyebrow": "Come arrivare",
+      "viewAccommodation": "Vedi questo soggiorno",
+      "current": "Stai visualizzando",
+      "whatsapp": "Scrivici su WhatsApp",
+      "checkAvailability": "Verifica la disponibilità",
+      "stickyFrom": "Da {price}",
+      "map": "Mappa: posizione del campo vicino a Sabria"
+    },
+    "trust": [
+      "Prenotazione diretta",
+      "Team locale",
+      "Assistenza flessibile",
+      "Supporto WhatsApp"
+    ],
+    "included": {
+      "eyebrow": "Incluso",
+      "title": "Il tuo soggiorno offre più di una semplice notte",
+      "note": "Alcune attività e momenti di intrattenimento possono dipendere dal programma del giorno e dalle condizioni del campo.",
+      "items": [
+        {
+          "icon": "tea",
+          "text": "Tè di benvenuto"
+        },
+        {
+          "icon": "sun",
+          "text": "Esperienza al tramonto tra le dune"
+        },
+        {
+          "icon": "board",
+          "text": "Sandboarding"
+        },
+        {
+          "icon": "bread",
+          "text": "Dimostrazione del tradizionale pane di sabbia Mella"
+        },
+        {
+          "icon": "meal",
+          "text": "Cena"
+        },
+        {
+          "icon": "cup",
+          "text": "Colazione"
+        },
+        {
+          "icon": "music",
+          "text": "Atmosfera folcloristica tradizionale"
+        },
+        {
+          "icon": "fire",
+          "text": "Serata attorno al fuoco"
+        },
+        {
+          "icon": "star",
+          "text": "Osservazione delle stelle"
+        },
+        {
+          "icon": "camp",
+          "text": "Accesso ai servizi del campo"
+        }
+      ]
+    },
+    "campFacilities": [
+      "Ristorante",
+      "Caffè",
+      "Aree comuni",
+      "Wi-Fi nelle aree comuni",
+      "Parcheggio",
+      "Area del falò",
+      "Accesso diretto alle dune"
+    ],
+    "activities": {
+      "eyebrow": "Facoltativo",
+      "title": "Rendi indimenticabile il tuo soggiorno nel Sahara",
+      "lead": "Aggiungi un’attività alla tua notte. Confermiamo gli orari sul posto.",
+      "included": "Included in your stay",
+      "items": [
+        {
+          "title": "Giro in cammello",
+          "text": "Una passeggiata lenta tra le dune, al passo dei cammelli.",
+          "cta": "Chiedi informazioni su questa attività",
+          "photo": "camel"
+        },
+        {
+          "title": "Quad",
+          "text": "Un giro in quad attraverso il mare di sabbia.",
+          "cta": "Chiedi informazioni su questa attività",
+          "photo": "quad"
+        },
+        {
+          "title": "Esperienza 4x4 sulle dune",
+          "text": "Una traversata in 4x4 dei paesaggi intorno al campo.",
+          "cta": "Chiedi informazioni su questa attività",
+          "photo": "fourx4"
+        },
+        {
+          "title": "Sandboarding",
+          "text": "Scivola giù dalle dune, nessuna esperienza necessaria.",
+          "cta": "Vedi nel tuo soggiorno",
+          "photo": "board",
+          "included": true
+        }
+      ]
+    },
+    "timeline": {
+      "title": "Una sera e una notte al campo",
+      "note": "Gli orari possono variare a seconda della stagione.",
+      "steps": [
+        {
+          "time": "16:00",
+          "text": "Arrivo e tè di benvenuto"
+        },
+        {
+          "time": "17:00",
+          "text": "Esplorazione delle dune e attività facoltative"
+        },
+        {
+          "time": "Tramonto",
+          "text": "Guarda il sole scomparire sul Sahara"
+        },
+        {
+          "time": "Sera",
+          "text": "Cena tradizionale e atmosfera del deserto"
+        },
+        {
+          "time": "Notte",
+          "text": "Falò e osservazione delle stelle"
+        },
+        {
+          "time": "Mattina",
+          "text": "Colazione nel deserto"
+        },
+        {
+          "time": "11:00",
+          "text": "Check-out"
+        }
+      ]
+    },
+    "important": {
+      "title": "Domande frequenti",
+      "common": [
+        {
+          "q": "Posso raggiungere il campo con un’auto normale?",
+          "a": "Sì. Il campo Dunes Insolites è raggiungibile con un veicolo normale; non è necessario un 4x4."
+        },
+        {
+          "q": "C’è un parcheggio?",
+          "a": "Sì, al campo c’è un parcheggio."
+        },
+        {
+          "q": "A che ora devo arrivare?",
+          "a": "Si consiglia di arrivare intorno alle 16:00 per potersi sistemare e godersi l’esperienza del tramonto."
+        },
+        {
+          "q": "C’è il Wi-Fi?",
+          "a": "Il Wi-Fi è disponibile principalmente nelle aree comuni."
+        },
+        {
+          "q": "Sono forniti asciugamani e biancheria da letto?",
+          "a": "Biancheria da letto e asciugamani fanno parte del comfort offerto nei nostri alloggi."
+        },
+        {
+          "q": "Il campo è adatto alle famiglie?",
+          "a": "Sì."
+        }
+      ]
+    },
+    "compare": {
+      "title": "Quale soggiorno fa per te?",
+      "lead": "Tre modi di dormire al campo: la stessa atmosfera, con un diverso livello di comfort e privacy.",
+      "rows": {
+        "experience": "Stile dell’esperienza",
+        "bathroom": "Bagno",
+        "ac": "Aria condizionata",
+        "privacy": "Privacy",
+        "recommended": "Consigliato per",
+        "price": "A partire da"
+      }
+    },
+    "reviews": {
+      "title": "Gli ospiti ricordano più della semplice notte"
+    },
+    "location": {
+      "title": "Soggiornare ai margini del Sahara",
+      "text": "Il campo Dunes Insolites si trova vicino a Sabria, nella regione di Kébili, circondato da paesaggi desertici e a circa 3 km dal villaggio di Sabria.",
+      "points": [
+        "Accessibile con un’auto normale",
+        "Parcheggio disponibile",
+        "I trasferimenti possono essere organizzati da diverse destinazioni tunisine"
+      ]
+    },
+    "final": {
+      "title": "La tua notte nel Sahara inizia qui.",
+      "text": "Svegliati circondato da dune, silenzio e luce del deserto.",
+      "included": "Dinner and breakfast included."
+    },
+    "types": {
+      "desert-tent": {
+        "eyebrow": "Autentica tenda del deserto",
+        "tagline": "Dormi circondato dal silenzio e dalla bellezza del Sahara tunisino.",
+        "highlights": [
+          "Cena e colazione incluse",
+          "Docce calde",
+          "Attività nel deserto",
+          "Esperienza tradizionale del campo"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Letti comodi"
+          },
+          {
+            "icon": "shower",
+            "label": "Docce calde in comune"
+          },
+          {
+            "icon": "meal",
+            "label": "Mezza pensione inclusa"
+          },
+          {
+            "icon": "plug",
+            "label": "Elettricità disponibile"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi nelle aree comuni"
+          }
+        ],
+        "about": [
+          "Pensata per i viaggiatori che cercano una vera esperienza nel Sahara, la nostra Tenda autentica unisce l’atmosfera tradizionale del deserto ai comfort essenziali per una notte rilassante sotto le stelle.",
+          "Gli ospiti hanno accesso a bagni comuni puliti con docce calde e a tutti i servizi del campo Dunes Insolites."
+        ],
+        "bathroomText": "Servizi igienici in comune con toilette e docce calde.",
+        "comfort": [
+          "Biancheria da letto comoda",
+          "Elettricità",
+          "Biancheria da letto",
+          "Asciugamani",
+          "Illuminazione"
+        ],
+        "forWhom": [
+          {
+            "title": "Chi cerca l’autenticità",
+            "text": "Per vivere il deserto in modo semplice."
+          },
+          {
+            "title": "Coppie",
+            "text": "Una notte tranquilla sotto le stelle."
+          },
+          {
+            "title": "Amici",
+            "text": "Un’atmosfera cordiale attorno al fuoco."
+          },
+          {
+            "title": "Viaggiatori avventurosi",
+            "text": "Per sfruttare al meglio le dune e le attività."
+          }
+        ],
+        "faq": [
+          {
+            "q": "I bagni sono privati?",
+            "a": "No. Le tende autentiche usano servizi igienici comuni puliti con toilette e docce calde."
+          }
+        ],
+        "compare": {
+          "experience": "Atmosfera autentica e tradizionale",
+          "bathroom": "In comune, docce calde",
+          "ac": "—",
+          "privacy": "Tenda privata",
+          "recommended": "Chi cerca l’autenticità, coppie, amici"
+        }
+      },
+      "desert-room": {
+        "eyebrow": "Camera nel deserto",
+        "tagline": "L’atmosfera del campo con un interno più strutturato.",
+        "highlights": [
+          "Cena e colazione incluse",
+          "Camera chiusa",
+          "Zona notte privata",
+          "Tutti i servizi del campo"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Zona notte privata"
+          },
+          {
+            "icon": "shower",
+            "label": "Sistemazione del bagno confermata alla prenotazione"
+          },
+          {
+            "icon": "meal",
+            "label": "Mezza pensione inclusa"
+          },
+          {
+            "icon": "plug",
+            "label": "Elettricità disponibile"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi nelle aree comuni"
+          }
+        ],
+        "about": [
+          "Un’opzione più confortevole per i viaggiatori che desiderano l’atmosfera del nostro campo nel deserto con un interno più strutturato, in stile camera.",
+          "Ideale per coppie, amici e famiglie che cercano un po’ di comfort in più durante il soggiorno nel Sahara."
+        ],
+        "bathroomText": "Confermiamo la sistemazione del bagno al momento della prenotazione.",
+        "comfort": [
+          "Camera chiusa",
+          "Biancheria da letto comoda",
+          "Elettricità",
+          "Biancheria da letto",
+          "Asciugamani",
+          "Illuminazione"
+        ],
+        "forWhom": [
+          {
+            "title": "Coppie",
+            "text": "Un po’ più di privacy e comfort."
+          },
+          {
+            "title": "Famiglie",
+            "text": "Fino a 3 persone nella stessa camera."
+          },
+          {
+            "title": "Amici",
+            "text": "Il campo, con un interno in stile camera."
+          },
+          {
+            "title": "Chi cerca comfort",
+            "text": "Il deserto, senza rinunciare alle comodità di una camera."
+          }
+        ],
+        "faq": [
+          {
+            "q": "I bagni sono privati?",
+            "a": "Confermiamo la sistemazione del bagno della camera al momento della prenotazione."
+          }
+        ],
+        "compare": {
+          "experience": "Atmosfera del campo, interno in stile camera",
+          "bathroom": "Confermato alla prenotazione",
+          "ac": "—",
+          "privacy": "Camera chiusa",
+          "recommended": "Coppie, amici, famiglie"
+        }
+      },
+      "dune-suite": {
+        "eyebrow": "Suite delle dune",
+        "tagline": "Il nostro soggiorno più confortevole, con più privacy.",
+        "highlights": [
+          "Bagno privato",
+          "Aria condizionata",
+          "Cena e colazione incluse",
+          "Più privacy e più spazio"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Biancheria da letto di alta qualità"
+          },
+          {
+            "icon": "shower",
+            "label": "Bagno privato con toilette"
+          },
+          {
+            "icon": "snow",
+            "label": "Aria condizionata (sera e notte)"
+          },
+          {
+            "icon": "meal",
+            "label": "Mezza pensione inclusa"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi nelle aree comuni"
+          }
+        ],
+        "about": [
+          "Il nostro alloggio nel deserto più confortevole, che unisce l’atmosfera del Sahara a maggiore privacy e praticità.",
+          "La suite comprende un bagno privato e l’aria condizionata, disponibile principalmente in serata e durante la notte. Ideale per coppie, famiglie e viaggiatori che cercano un’esperienza nel deserto più esclusiva."
+        ],
+        "bathroomText": "Bagno privato con toilette.",
+        "comfort": [
+          "Biancheria da letto di alta qualità",
+          "Spazio salotto aggiuntivo",
+          "Elettricità",
+          "Biancheria da letto",
+          "Asciugamani",
+          "Illuminazione",
+          "Aria condizionata (principalmente sera e notte)"
+        ],
+        "forWhom": [
+          {
+            "title": "Coppie in cerca di più comfort",
+            "text": "Privacy e calma, nel deserto."
+          },
+          {
+            "title": "Famiglie",
+            "text": "Fino a 4 persone in una suite spaziosa."
+          },
+          {
+            "title": "Un bagno privato",
+            "text": "Per chi lo desidera."
+          },
+          {
+            "title": "Soggiorni esclusivi",
+            "text": "Più comfort, lo stesso spirito del campo."
+          }
+        ],
+        "faq": [
+          {
+            "q": "La suite ha un bagno privato?",
+            "a": "Sì."
+          },
+          {
+            "q": "Ha l’aria condizionata?",
+            "a": "Sì. L’aria condizionata è disponibile principalmente in serata e durante la notte."
+          }
+        ],
+        "compare": {
+          "experience": "Comfort superiore, più privacy",
+          "bathroom": "Privato, con toilette",
+          "ac": "Sì (sera e notte)",
+          "privacy": "Ampia suite privata",
+          "recommended": "Coppie, famiglie, soggiorni esclusivi"
+        }
+      },
+      "default": {
+        "eyebrow": "Alloggio al campo",
+        "tagline": "",
+        "highlights": [
+          "Cena e colazione incluse",
+          "Attività nel deserto",
+          "Servizi del campo",
+          "Esperienza tradizionale del campo"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "meal",
+            "label": "Mezza pensione inclusa"
+          },
+          {
+            "icon": "plug",
+            "label": "Elettricità disponibile"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi nelle aree comuni"
+          }
+        ],
+        "about": [],
+        "bathroomText": "Confermiamo la sistemazione del bagno al momento della prenotazione.",
+        "comfort": [
+          "Biancheria da letto comoda",
+          "Elettricità",
+          "Illuminazione"
+        ],
+        "forWhom": [
+          {
+            "title": "Coppie",
+            "text": "Una notte nel deserto in due."
+          },
+          {
+            "title": "Famiglie",
+            "text": "Un soggiorno condiviso al campo."
+          },
+          {
+            "title": "Amici",
+            "text": "Un’atmosfera cordiale."
+          }
+        ],
+        "faq": [],
+        "compare": {
+          "experience": "Atmosfera del campo",
+          "bathroom": "Confermato alla prenotazione",
+          "ac": "—",
+          "privacy": "—",
+          "recommended": "Tutti i viaggiatori"
+        }
+      }
+    }
+  },
+  "actDetail": {
+    "ui": {
+      "back": "← Tutte le attività",
+      "from": "Da",
+      "perPerson": "/ persona",
+      "included": "Included",
+      "viewPhotos": "Vedi le foto",
+      "viewAllPhotos": "Vedi tutte le foto",
+      "close": "Chiudi",
+      "previous": "Foto precedente",
+      "next": "Foto successiva",
+      "photoOf": "Foto {n} di {total}",
+      "aboutEyebrow": "L’esperienza",
+      "optionsEyebrow": "Opzioni",
+      "expectEyebrow": "Cosa aspettarsi",
+      "bestEyebrow": "Momento migliore",
+      "forWhomEyebrow": "Per chi è?",
+      "safetyEyebrow": "Sicurezza e informazioni pratiche",
+      "bringEyebrow": "Cosa portare",
+      "combineEyebrow": "Con il tuo soggiorno",
+      "othersEyebrow": "Da provare anche",
+      "faqEyebrow": "Domande",
+      "faqTitle": "Domande frequenti",
+      "exploreAccommodation": "Scopri i nostri alloggi",
+      "discoverActivity": "Scopri",
+      "askTeam": "Chiedici",
+      "askAbout": "Chiedici",
+      "sleeps": "{sleeps}",
+      "fromNight": "Da {price} a notte",
+      "map": "Mappa"
+    },
+    "trust": [
+      "Prenotazione diretta",
+      "Team locale",
+      "Assistenza flessibile",
+      "Supporto WhatsApp"
+    ],
+    "best": {
+      "title": "Il momento migliore per andare",
+      "morning": {
+        "title": "Mattina",
+        "text": "Temperature più fresche e un’atmosfera calma nel deserto."
+      },
+      "afternoon": {
+        "title": "Tardo pomeriggio",
+        "text": "Luce bellissima e condizioni ideali per le foto."
+      },
+      "sunset": {
+        "title": "Tramonto",
+        "text": "Il momento più suggestivo, in base alla disponibilità e alla stagione."
+      }
+    },
+    "bring": {
+      "title": "Cosa portare",
+      "items": [
+        {
+          "icon": "glasses",
+          "text": "Occhiali da sole"
+        },
+        {
+          "icon": "sun",
+          "text": "Protezione solare"
+        },
+        {
+          "icon": "shirt",
+          "text": "Abiti comodi"
+        },
+        {
+          "icon": "shoe",
+          "text": "Scarpe chiuse"
+        },
+        {
+          "icon": "drop",
+          "text": "Acqua"
+        },
+        {
+          "icon": "camera",
+          "text": "Telefono o fotocamera"
+        }
+      ],
+      "cool": "Nei mesi più freschi: una giacca leggera per il tardo pomeriggio o la sera."
+    },
+    "combine": {
+      "title": "Rendilo parte della tua esperienza nel Sahara",
+      "text": "Durante il soggiorno a Dunes Insolites puoi abbinare l’alloggio alle attività nel deserto.",
+      "cross": "Soggiorni da noi? Abbina più attività prima del tramonto."
+    },
+    "others": {
+      "title": "Altre attività che potrebbero piacerti",
+      "items": {
+        "quad-desert": {
+          "title": "Quad",
+          "text": "Adrenalina sulle dune.",
+          "photo": "quad"
+        },
+        "camel-trek": {
+          "title": "Giro in cammello",
+          "text": "Il Sahara a un ritmo più lento.",
+          "photo": "camel"
+        },
+        "sandboarding-desert": {
+          "title": "Sandboarding",
+          "text": "Scivola giù dalle dune con famiglia o amici.",
+          "photo": "board"
+        },
+        "4x4": {
+          "title": "Esperienza 4x4 sulle dune",
+          "text": "Una traversata dei paesaggi intorno al campo.",
+          "photo": "fourx4"
+        }
+      }
+    },
+    "faqCommon": [
+      {
+        "q": "Serve esperienza precedente?",
+        "a": "Non è richiesta alcuna esperienza: il team spiega tutto prima della partenza."
+      },
+      {
+        "q": "I bambini possono partecipare?",
+        "a": "Sì, seguendo le istruzioni del team e sotto la supervisione di un adulto. Chiedici informazioni sull’età dei tuoi bambini."
+      },
+      {
+        "q": "Posso prenotare l’attività dopo essere arrivato al campo?",
+        "a": "In base alla disponibilità, sì. Il modo più semplice è prenotare in anticipo o scriverci."
+      },
+      {
+        "q": "Posso pagare sul posto?",
+        "a": "Le modalità di pagamento vengono confermate al momento della prenotazione."
+      },
+      {
+        "q": "L’attività è disponibile ogni giorno?",
+        "a": "In base alla disponibilità e alle condizioni del giorno. Verifica al momento della prenotazione."
+      },
+      {
+        "q": "Posso fare l’attività al tramonto?",
+        "a": "Sì, in base alla disponibilità e alla stagione. È un momento molto richiesto: prenota in anticipo."
+      },
+      {
+        "q": "Serve un abbigliamento particolare?",
+        "a": "Bastano abiti comodi e scarpe chiuse. Consulta l’elenco «Cosa portare»."
+      },
+      {
+        "q": "L’attività è privata o condivisa?",
+        "a": "Chiedici al momento della prenotazione: confermiamo quale opzione è possibile per le tue date."
+      }
+    ],
+    "types": {
+      "quad-desert": {
+        "eyebrow": "Quad nel Sahara",
+        "h1": "Quad nel Sahara",
+        "tagline": "Attraversa le dune e scopri il deserto da una prospettiva completamente diversa.",
+        "highlights": [
+          "Dune del Sahara",
+          "Diverse opzioni di durata",
+          "Disponibile direttamente dal campo",
+          "Adatto ai principianti"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "1 h / 2 h / mezza giornata / giornata intera"
+          },
+          {
+            "icon": "pin",
+            "label": "Partenza da Dunes Insolites"
+          },
+          {
+            "icon": "dune",
+            "label": "Dune del deserto"
+          },
+          {
+            "icon": "helmet",
+            "label": "Attrezzatura di sicurezza fornita"
+          },
+          {
+            "icon": "users",
+            "label": "Attività individuale o di gruppo"
+          },
+          {
+            "icon": "sun",
+            "label": "Opzione al tramonto disponibile"
+          }
+        ],
+        "about": [
+          "Lascia il campo alle spalle e percorri i paesaggi sabbiosi che circondano Dunes Insolites. L’esperienza in quad è ideale per i viaggiatori che cercano più adrenalina e un modo dinamico di esplorare il Sahara.",
+          "Sono disponibili durate diverse, a seconda del tempo che desideri trascorrere nel deserto."
+        ],
+        "optionsTitle": "Scegli il tuo giro",
+        "options": [
+          {
+            "name": "1 ora",
+            "price": "80 TND",
+            "text": "Perfetto per un primo giro nel deserto."
+          },
+          {
+            "name": "2 ore",
+            "price": "160 TND",
+            "text": "Più tempo per esplorare le dune."
+          },
+          {
+            "name": "Mezza giornata",
+            "price": "250 TND",
+            "text": "Un’avventura più lunga nel Sahara."
+          },
+          {
+            "name": "Giornata intera",
+            "price": "350 TND",
+            "text": "Per i viaggiatori che desiderano un’esperienza nel deserto più completa."
+          }
+        ],
+        "optionCta": "Scegli questo giro",
+        "steps": [
+          "Incontra il tuo team dell’attività",
+          "Briefing di sicurezza",
+          "Preparazione del casco e dell’attrezzatura",
+          "Inizia il tuo giro in quad",
+          "Esplora le dune circostanti",
+          "Sosta per le foto",
+          "Ritorno al campo Dunes Insolites"
+        ],
+        "bestNote": "I giri al tramonto sono tra le nostre uscite più richieste: un’esperienza premium.",
+        "forWhom": [
+          "Amanti dell’avventura",
+          "Coppie",
+          "Amici",
+          "Gruppi",
+          "Viaggiatori in cerca di adrenalina"
+        ],
+        "safety": [
+          "Le istruzioni di sicurezza vengono fornite prima della partenza.",
+          "I caschi sono forniti.",
+          "Segui le istruzioni della guida durante l’attività.",
+          "Si consigliano scarpe chiuse e comode.",
+          "Si consigliano occhiali da sole e protezione solare.",
+          "L’attività può essere adattata in base al meteo o alle condizioni operative."
+        ],
+        "faq": [
+          {
+            "q": "Possono salire in due sullo stesso quad?",
+            "a": "Chiedici al momento della prenotazione: il team conferma cosa è possibile."
+          },
+          {
+            "q": "Cosa succede se le condizioni meteo non sono adatte?",
+            "a": "L’attività può essere adattata o rinviata in base al meteo e alle condizioni operative."
+          }
+        ],
+        "final": {
+          "title": "Pronto a percorrere il Sahara in quad?",
+          "text": "Aggiungi un po’ di adrenalina al tuo soggiorno a Dunes Insolites.",
+          "cta": "Prenota la tua esperienza in quad"
+        },
+        "hero": {
+          "cta": "Prenota il tuo giro in quad"
+        },
+        "sticky": "Prenota il quad"
+      },
+      "camel-trek": {
+        "eyebrow": "Giro in cammello a Dunes Insolites",
+        "h1": "Giro in cammello a Dunes Insolites",
+        "tagline": "Vivi il Sahara a un ritmo più lento e goditi l’atmosfera senza tempo del deserto.",
+        "highlights": [
+          "Esperienza tradizionale nel deserto",
+          "Circa 1 ora di cammino",
+          "Bellissimi paesaggi di dune",
+          "Perfetto intorno al tramonto"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Circa 1 ora"
+          },
+          {
+            "icon": "pin",
+            "label": "Dal campo"
+          },
+          {
+            "icon": "camel",
+            "label": "Giro in cammello guidato"
+          },
+          {
+            "icon": "users",
+            "label": "Adatto alle famiglie"
+          },
+          {
+            "icon": "sun",
+            "label": "Ideale intorno al tramonto"
+          }
+        ],
+        "about": [
+          "Scopri il Sahara in uno dei suoi modi più tradizionali. Il giro in cammello ti porta tra le dune che circondano il campo e offre un momento di pace per godere del paesaggio, del silenzio e dell’atmosfera del deserto.",
+          "È particolarmente bello intorno al tramonto."
+        ],
+        "optionsTitle": "Il tuo giro",
+        "options": [
+          {
+            "name": "Giro in cammello di 1 ora",
+            "price": "50 TND",
+            "text": "Un giro guidato tra le dune intorno al campo."
+          }
+        ],
+        "optionCta": "Prenota questo giro",
+        "steps": [
+          "Incontra la tua guida dei cammelli",
+          "Presentazione del tuo cammello",
+          "Partenza del giro dal campo",
+          "Attraversamento delle dune vicine",
+          "Goditi il paesaggio del Sahara",
+          "Sosta facoltativa per le foto al tramonto",
+          "Ritorno al campo"
+        ],
+        "bestNote": "Il tramonto è uno dei momenti più richiesti per il giro in cammello.",
+        "forWhom": [
+          "Coppie",
+          "Famiglie",
+          "Chi visita il Sahara per la prima volta",
+          "Fotografi",
+          "Viaggiatori in cerca di un’esperienza autentica"
+        ],
+        "safety": [
+          "L’attività è accompagnata da conduttori locali.",
+          "Si consiglia un abbigliamento comodo.",
+          "Sono preferibili scarpe chiuse.",
+          "Segui le istruzioni della guida quando sali e scendi.",
+          "La durata può variare leggermente in base alle condizioni."
+        ],
+        "faq": [
+          {
+            "q": "Quanto dura il giro?",
+            "a": "Circa 1 ora. La durata può variare leggermente in base alle condizioni."
+          },
+          {
+            "q": "Il giro in cammello è adatto ai bambini?",
+            "a": "È adatto alle famiglie. Chiedici al momento della prenotazione l’età dei tuoi bambini."
+          }
+        ],
+        "final": {
+          "title": "Scopri il Sahara a un ritmo diverso",
+          "text": "Cavalca tra le dune e vivi una delle tradizioni più iconiche del deserto.",
+          "cta": "Prenota il tuo giro in cammello"
+        },
+        "hero": {
+          "cta": "Prenota il tuo giro in cammello"
+        },
+        "sticky": "Prenota il giro in cammello"
+      },
+      "sandboarding-desert": {
+        "eyebrow": "Sandboarding nel Sahara",
+        "h1": "Sandboarding nel Sahara",
+        "tagline": "Sali sulle dune, prendi la tavola e goditi una delle esperienze più divertenti del campo.",
+        "highlights": [
+          "Facile da provare",
+          "Ottimo per famiglie e amici",
+          "Direttamente sulle dune",
+          "Nessuna esperienza necessaria"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Durata flessibile"
+          },
+          {
+            "icon": "pin",
+            "label": "Direttamente sulle dune"
+          },
+          {
+            "icon": "board",
+            "label": "Tavola fornita"
+          },
+          {
+            "icon": "users",
+            "label": "Adatto alle famiglie"
+          },
+          {
+            "icon": "star",
+            "label": "Adatto ai principianti"
+          }
+        ],
+        "about": [
+          "Un’attività semplice, divertente e indimenticabile per tutte le età. Sali sulle dune, prendi la tavola e scivola giù sulla morbida sabbia del Sahara.",
+          "Non è richiesta alcuna esperienza."
+        ],
+        "optionsTitle": "La tua attività",
+        "options": [
+          {
+            "name": "Sandboarding",
+            "price": "",
+            "text": "Incluso per gli ospiti del campo, ove previsto. Verifica la disponibilità al campo."
+          }
+        ],
+        "optionCta": "Chiedici",
+        "steps": [
+          "Ritira la tua tavola",
+          "Cammina fino alle dune vicine",
+          "Breve spiegazione",
+          "Scegli la tua duna",
+          "Scivola giù",
+          "Ripeti quante volte vuoi"
+        ],
+        "bestNote": "Consigliamo la mattina o il tardo pomeriggio, quando la sabbia è più confortevole.",
+        "forWhom": [
+          "Famiglie",
+          "Amici",
+          "Bambini",
+          "Viaggiatori avventurosi",
+          "Chiunque cerchi un’attività divertente nel deserto"
+        ],
+        "safety": [
+          "Non è richiesta alcuna esperienza.",
+          "Le tavole sono fornite.",
+          "Segui le istruzioni del personale.",
+          "I bambini devono essere sorvegliati.",
+          "Evita l’attività durante il caldo estremo di mezzogiorno, quando possibile."
+        ],
+        "faq": [
+          {
+            "q": "Il sandboarding è difficile?",
+            "a": "No, è facile da provare e non richiede alcuna esperienza."
+          },
+          {
+            "q": "La tavola è fornita?",
+            "a": "Sì, le tavole sono fornite."
+          }
+        ],
+        "final": {
+          "title": "Pronto a scivolare giù dalle dune?",
+          "text": "Un’esperienza semplice e divertente nel Sahara per tutta la famiglia.",
+          "cta": "Prova il sandboarding"
+        },
+        "hero": {
+          "cta": "Scopri il sandboarding"
+        },
+        "sticky": "Chiedici"
+      },
+      "default": {
+        "eyebrow": "Attività del campo",
+        "h1": "",
+        "tagline": "",
+        "highlights": [
+          "Nel deserto",
+          "Dal campo",
+          "Guidata dal nostro team",
+          "Parte del tuo soggiorno"
+        ],
+        "quick": [
+          {
+            "icon": "pin",
+            "label": "Dal campo"
+          },
+          {
+            "icon": "users",
+            "label": "Individuale o di gruppo"
+          }
+        ],
+        "about": [],
+        "optionsTitle": "La tua attività",
+        "options": [],
+        "optionCta": "Prenota",
+        "steps": [],
+        "bestNote": "",
+        "forWhom": [
+          "Coppie",
+          "Famiglie",
+          "Amici"
+        ],
+        "safety": [
+          "Segui le istruzioni del team.",
+          "L’attività può essere adattata in base al meteo o alle condizioni operative."
+        ],
+        "faq": [],
+        "final": {
+          "title": "Pronto a vivere il Sahara?",
+          "text": "Aggiungi un’attività al tuo soggiorno a Dunes Insolites.",
+          "cta": "Prenota questa attività"
+        },
+        "hero": {
+          "cta": "Prenota questa attività"
+        },
+        "sticky": "Prenota"
+      }
+    }
+  },
+  "favorites": {
+    "eyebrow": "I tuoi preferiti",
+    "title": "I miei preferiti",
+    "lead": "I circuiti, i soggiorni e le attività che hai salvato.",
+    "accountLead": "I circuiti, i soggiorni e le attività che hai salvato. Ti seguono su tutti i tuoi dispositivi.",
+    "linkLabel": "Preferiti",
+    "linkWithCount": "Preferiti ({count})",
+    "guestNote": "I tuoi preferiti sono salvati su questo dispositivo. Accedi per ritrovarli nel tuo account, su tutti i tuoi dispositivi.",
+    "logIn": "Accedi",
+    "empty": "Non hai ancora preferiti. Tocca il cuore su una scheda per conservarla qui.",
+    "browseStays": "Vedi gli alloggi",
+    "browseActivities": "Vedi le attività",
+    "browseCircuits": "Vedi i circuiti",
+    "count": "{count, plural, one {# preferito} other {# preferiti}}",
+    "fromPrice": "Da {price}",
+    "kind": {
+      "tour": "Circuito",
+      "stay": "Soggiorno",
+      "activity": "Attività"
+    }
+  },
+  "guideDjerbaTataouine": {
+    "eyebrow": "Guida al percorso documentata",
+    "title": "Da Djerba a Tataouine e Chenini",
+    "lead": "Un percorso tra patrimonio insulare, granai fortificati e insediamenti in cima alle colline, con il contesto fornito dall’UNESCO e dal portale ufficiale del turismo tunisino.",
+    "contextHeading": "Cosa collega questo percorso",
+    "contextP1": "Djerba è più di un semplice punto di partenza per la spiaggia. L’UNESCO ha iscritto l’isola nel 2023 per un sistema di insediamento disperso plasmato dalla scarsità d’acqua, dall’autosufficienza e dalla convivenza tra comunità. Menzel, moschee rurali, quartieri di mercato e una rete di piccole strade fanno parte di questo paesaggio più ampio.",
+    "contextP2": "A sud-ovest dell’isola il terreno cambia intorno a Medenine e Tataouine. Il portale ufficiale del turismo tunisino descrive una regione di altipiani rocciosi, villaggi di crinale e ksour: granai collettivi fortificati le cui singole camere di stoccaggio sono note come ghorfa.",
+    "routeHeading": "Tataouine, Chenini e i ksour",
+    "routeP1": "Tataouine è una porta d’accesso pratica più che l’intera storia. Chenini e Douiret mostrano come gli insediamenti occupassero le alture e usassero abitazioni in parte scavate nella roccia. I ksour come Ouled Soltane e Haddada rivelano un’altra forma: file di ghorfa disposte attorno a un cortile per conservare i raccolti.",
+    "routeP2": "Considera questi luoghi come un patrimonio abitato, non come uno scenario. Vestiti per camminare, chiedi prima di fotografare le persone, ricorri a guide locali dove serve una spiegazione e lascia tempo per l’architettura, l’artigianato e i sistemi di gestione dell’acqua che hanno reso possibile l’insediamento.",
+    "practicalHeading": "Pianificare la giornata in modo responsabile",
+    "practicalP1": "Le informazioni ufficiali del turismo collocano Tataouine a circa 140 km su strada asfaltata dall’aeroporto di Djerba. Il tempo di guida effettivo dipende dal punto di partenza, dalle soste e dalle condizioni stradali; un circuito dovrebbe quindi indicare il proprio orario di partenza invece di promettere una durata universale.",
+    "practicalP2": "Prima della partenza, controlla le indicazioni di viaggio governative attuali e le condizioni assicurative. Le indicazioni per le aree del sud e di confine cambiano nel tempo. Resta sull’itinerario confermato e non estendere mai da solo un’escursione sul patrimonio in territori di confine remoti.",
+    "sourcesHeading": "Fonti utilizzate"
+  },
+  "guideSabriaDouz": {
+    "eyebrow": "Guida regionale sul campo",
+    "title": "Sabria, Douz e Chott el-Jerid",
+    "lead": "Come si combinano dune, villaggi di oasi e paesaggio salino nella regione di Kébili.",
+    "contextHeading": "Tra sabbia, palme e sale",
+    "contextP1": "Il portale ufficiale del turismo tunisino colloca Sabria, Nouil ed El Faouar tra il deserto sabbioso e il Chott el-Jerid. È importante: la regione non è un unico mare uniforme di dune, ma un incontro di agricoltura d’oasi, villaggi di sabbia, distese di sale e Grande Erg Orientale.",
+    "contextP2": "Douz è la porta d’accesso più nota, mentre Sabria offre un contatto diretto con le dune e con la vita del campo. Il Chott el-Jerid è un bacino salino per lo più prosciugato, attraversato da una strada asfaltata; il suo bagliore e i miraggi fanno parte del paesaggio, ma la crosta non va considerata una superficie percorribile senza limiti.",
+    "routeHeading": "Cosa abbinare senza fretta",
+    "routeP1": "Un buon itinerario dà a ogni paesaggio il suo tempo: le palmerie e la cultura dei mercati intorno a Douz, un’esperienza guidata tra le dune vicino a Sabria e una traversata o un punto panoramico sul Chott el-Jerid con la luce del giorno. I viaggi più lunghi possono proseguire verso il paesaggio di oasi di Tozeur invece di forzare ogni tappa in un solo giorno.",
+    "routeP2": "Il portale ufficiale indica l’inverno come stagione eccellente per esplorare il Sahara e l’autunno come un altro periodo adatto. L’estate è promossa soprattutto per la costa tunisina. Nel deserto contano più l’orario del giorno, l’ombra, il vento e la temperatura che una generica etichetta mensile.",
+    "practicalHeading": "Meteo, guide e limiti del percorso",
+    "practicalP1": "Il profilo climatico della Tunisia della Banca Mondiale documenta la forte esposizione al caldo del paese e le variazioni regionali. Usa una previsione locale aggiornata, porta acqua e protezione solare e accetta le modifiche di percorso o di orario decise per le condizioni meteo.",
+    "practicalP2": "Viaggiare nel deserto remoto è diverso dal raggiungere su strada un campo consolidato. Usa la guida prenotata e il percorso confermato, verifica le indicazioni ufficiali di viaggio attuali e non dare mai per scontato che una traccia visibile sia pubblica, sicura o fuori da una zona vietata.",
+    "sourcesHeading": "Fonti utilizzate"
+  },
+  "guideDunesCamp": {
+    "eyebrow": "Guida di Dunes Insolites",
+    "title": "Una notte a Dunes Insolites a Sabria",
+    "lead": "Cos’è il campo, come raggiungerlo e cosa aspettarsi prima di inviare una richiesta di prenotazione.",
+    "contextHeading": "Un campo accanto alle dune, non un hotel anonimo",
+    "contextP1": "Dunes Insolites si trova a Sabria, nella regione di Kébili, a circa 30 km da Douz secondo la presentazione ufficiale del campo. La sua identità si basa sull’accesso diretto al deserto, sull’ospitalità locale e su alloggi che mantengono l’atmosfera di un campo sahariano offrendo i servizi essenziali.",
+    "contextP2": "La presentazione pubblica elenca tende arredate, docce calde, un caffè e ristorante e un team in loco. Il catalogo di prenotazione attuale può inoltre distinguere tende, camere e suite. Disponibilità e servizi esatti di ogni opzione devono sempre provenire dalla pagina di prenotazione aggiornata e non da una vecchia descrizione promozionale.",
+    "routeHeading": "Dall’arrivo alla colazione",
+    "routeP1": "Un soggiorno tipico inizia con le istruzioni di arrivo e la sistemazione, seguite da tempo tra le dune intorno al tramonto. Cena, tè alla menta, pane del deserto e una serata al campo formano l’esperienza centrale descritta da Dunes Insolites; colazione e partenza seguono la mattina dopo, se inclusi nella formula scelta.",
+    "routeP2": "Il campo dichiara di essere raggiungibile in auto familiare in condizioni normali. Ciò non significa che ogni traccia visibile sia adatta. Usa il punto GPS e l’accesso confermati, tieni WhatsApp a portata di mano e contatta il team invece di scegliere un altro percorso se vento o sabbia hanno modificato l’accesso.",
+    "practicalHeading": "Scegliere il giusto livello di comfort",
+    "practicalP1": "Scegli il campo stabile se contano soprattutto servizi igienici, docce e una categoria di alloggio definita. Scegli un bivacco quando l’offerta specifica descrive una notte più semplice più addentro nelle dune e quel livello ridotto di infrastrutture fa parte di ciò che desideri.",
+    "practicalP2": "Prima della conferma, indica numero di persone, età dei bambini, esigenze alimentari o mediche, scelta del trasporto e attività desiderate. Così il server e il team locale possono validare un soggiorno coerente invece di trattare alloggio, ritiro e attività come acquisti scollegati.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideDunesExperience": {
+    "eyebrow": "Costruisci il tuo soggiorno",
+    "title": "Attività, pasti e serate a Dunes Insolites",
+    "lead": "Come comporre un soggiorno attorno al campo senza cercare di far stare tutte le attività del deserto in una sola serata.",
+    "contextHeading": "Il campo è la base dell’esperienza",
+    "contextP1": "Dunes Insolites presenta le sue attività come aggiunte a un soggiorno nel deserto: uscite in cammello o a cavallo, quad, sandboarding, fotografia al tramonto, pasti e bivacchi. L’obiettivo non è spuntare ogni casella, ma scegliere un ritmo che lasci tempo per le dune e per il campo stesso.",
+    "contextP2": "Il cibo fa parte di questo ritmo. Il sito ufficiale mette in evidenza la cucina regionale, il tè alla menta e il pane preparato con sabbia calda e braci. Le formule scelte determinano se cena, colazione o un altro pasto sono inclusi; il riepilogo della prenotazione resta quindi il riferimento finale.",
+    "routeHeading": "Un programma equilibrato",
+    "routeP1": "Per una sola notte, un’attività principale prima del tramonto è di solito più chiara che accumulare più partenze. Un’uscita lenta in cammello, una sessione guidata in quad o il sandboarding creano ciascuno un’esperienza diversa; orario di rientro, luce del giorno e meteo devono restare compatibili con cena e sistemazione.",
+    "routeP2": "Un soggiorno più lungo può separare i momenti attivi da quelli tranquilli: un’attività al tramonto, una serata completa al campo, poi un’altra uscita la mattina dopo o un’estensione con bivacco. Gruppi privati ed eventi vanno pianificati direttamente perché trasporto, guide, pasti e capacità devono essere coordinati insieme.",
+    "practicalHeading": "Cosa indicare al momento della prenotazione",
+    "practicalP1": "Indica le età reali e il numero di viaggiatori, la modalità di arrivo, l’attività preferita, le esigenze alimentari e ogni informazione sulla mobilità o sulla salute rilevante per la partecipazione. Le scelte di guida e trasporto vengono validate insieme, così non si accettano opzioni contraddittorie.",
+    "practicalP2": "Prezzi e disponibilità possono variare in base alla data, all’unità di prezzo e alla dimensione del gruppo. Il sito ricalcola i servizi scelti sul server; uno screenshot, una vecchia pagina promozionale o un totale digitato a mano non è mai il prezzo finale della prenotazione.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideBivouacCamp": {
+    "eyebrow": "Scegli la tua notte",
+    "title": "Bivacco o campo stabile a Sabria?",
+    "lead": "Due modi di dormire nel deserto, con livelli di comfort e di immersione molto diversi.",
+    "contextHeading": "Il campo stabile: una base attrezzata",
+    "contextP1": "Dunes Insolites è un campo fisso a Sabria. Le informazioni pubbliche citano tende attrezzate, servizi igienici, docce calde, elettricità e un team in loco. Spesso è la scelta più semplice per una prima notte nel deserto, per una famiglia o per chi vuole servizi pratici vicini.",
+    "contextP2": "Una notte al campo comprende comunque i momenti essenziali: la luce delle dune, la cena, il fuoco, il cielo notturno e il risveglio nel deserto. Il comfort esatto dipende dalla categoria prenotata, quindi controlla la scheda dell’alloggio invece di affidarti a una descrizione generale.",
+    "routeHeading": "Il bivacco: viaggiare più addentro nelle dune",
+    "routeP1": "Il bivacco ufficiale parte dal campo con una guida, poi combina il viaggio tra le dune, un campo temporaneo, un pasto e un pernottamento. Privilegia la quiete e l’isolamento, con un’infrastruttura naturalmente più leggera rispetto al campo fisso.",
+    "routeP2": "Non scegliere basandoti solo su una fotografia. Chiedi come si viaggia, quale attrezzatura è fornita, quali soluzioni ci sono per i servizi igienici, se cibo e bevande sono inclusi e quale alternativa è prevista se il meteo richiede un cambiamento.",
+    "practicalHeading": "Tre domande che rendono la scelta più semplice",
+    "practicalP1": "Scegli il campo se contano soprattutto una doccia, servizi igienici vicini, una camera definita o un accesso stradale semplice. Scegli il bivacco se accetti meno servizi in cambio di più tempo guidato lontano dal campo stabile.",
+    "practicalP2": "Prima della conferma, segnala bambini, mobilità, allergie, farmaci, esigenze di elettricità e sensibilità al caldo o al freddo. Il team potrà così consigliare un formato adatto invece di confermare un’opzione che non va bene.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideBedouinDinner": {
+    "eyebrow": "Cucina del campo",
+    "title": "Cena beduina e pane di sabbia a Sabria",
+    "lead": "Cosa trasforma un pasto al campo in una serata completa nel deserto.",
+    "contextHeading": "Il pasto segue la luce che cambia",
+    "contextP1": "Dunes Insolites descrive la sua cena come una sequenza di accoglienza, tramonto, preparazione del pane, un pasto sotto la tenda, musica e falò. È quindi un’esperienza serale, non semplicemente un tavolo da ristorante spostato sulla sabbia.",
+    "contextP2": "Le pagine ufficiali citano piatti tunisini, tè alla menta, cucina al fuoco e pane di sabbia. Il menu può dipendere dal pacchetto scelto e dal gruppo; è la conferma di prenotazione, non una vecchia pagina promozionale, a stabilire cosa è incluso alla tua data.",
+    "routeHeading": "Perché il pane di sabbia è importante",
+    "routeP1": "La preparazione del pane lega la cucina al paesaggio: impasto, braci e sabbia calda diventano una dimostrazione condivisa prima della cena. Osservare la tecnica e ascoltarne la spiegazione dà a questa pratica più significato che trattarla come un semplice oggetto per le foto.",
+    "routeP2": "Dopo cena, fuoco e musica possono prolungare la serata. Tieni a portata di mano indumenti caldi, perché il comfort dopo il tramonto non si giudica dalla temperatura del pomeriggio.",
+    "practicalHeading": "Allergie, diete e dettagli della prenotazione",
+    "practicalP1": "Comunica allergie, restrizioni religiose, diete ed esigenze dei bambini prima della conferma. Il cibo preparato in loco richiede un preavviso; una richiesta fatta durante il servizio potrebbe essere impossibile da soddisfare in modo sicuro o corretto.",
+    "practicalP2": "Verifica anche se la cena fa parte del pacchetto con pernottamento o è un’attività separata, e quali bevande e quale trasporto sono inclusi. Il riepilogo finale deve nominare chiaramente ogni elemento.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideChooseActivity": {
+    "eyebrow": "Attività tra le dune",
+    "title": "Cammello, quad o sandboard: cosa scegliere?",
+    "lead": "Confronta ogni esperienza per ritmo e vincoli, non solo per la fotografia.",
+    "contextHeading": "Tre modi molto diversi di leggere le dune",
+    "contextP1": "Un’uscita in cammello rallenta il ritmo e lascia spazio per osservare il paesaggio. Il quad copre più terreno e mette al centro guida e sensazioni. Il sandboarding usa un pendio scelto e alterna salita, pratica e discesa.",
+    "contextP2": "Queste attività non sono intercambiabili. Tempo disponibile, forma fisica, età dei partecipanti, vento e condizioni della sabbia possono rendere una più adatta di un’altra. Un’attività ben scelta nel momento giusto vale più di tre esperienze affrettate.",
+    "routeHeading": "Abbinare l’attività al momento della giornata",
+    "routeP1": "Un’uscita lenta prima del tramonto si presta all’osservazione e alla fotografia. La guida del quad richiede la piena attenzione del conducente e segue un percorso sorvegliato. Il sandboarding funziona come sessione giocosa su dune adatte, seguendo le istruzioni della guida.",
+    "routeP2": "Per una sola notte, scegli in genere un’attività principale prima di cena. In un soggiorno più lungo, separa attività motorizzate, camminate e momenti di quiete, in modo che la serata al campo resti un’esperienza a sé.",
+    "practicalHeading": "Cosa comunicare prima di prenotare",
+    "practicalP1": "Indica età dei partecipanti, esperienza di guida, mobilità e limitazioni mediche rilevanti. Chiedi chi guida, quale attrezzatura è fornita, cosa copre davvero la durata prenotata e se le condizioni possono richiedere un cambiamento.",
+    "practicalP2": "Segui sempre la guida e resta sul percorso previsto. Le pagine ufficiali descrivono attività organizzate da Dunes Insolites; non sono un permesso per portare un veicolo da solo su qualsiasi traccia visibile.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideFamilyStay": {
+    "eyebrow": "Deserto con i bambini",
+    "title": "Pianificare una notte a Sabria in famiglia",
+    "lead": "Un soggiorno semplice quando età, ritmo ed esigenze di comfort vengono comunicati prima dell’arrivo.",
+    "contextHeading": "Iniziare dall’alloggio giusto",
+    "contextP1": "L’accesso stradale dichiarato, i servizi igienici e un team in loco rendono il campo stabile più facile da prendere in considerazione, per molte famiglie, rispetto a un bivacco remoto. Serve comunque una verifica: chiedi la reale capacità della camera o della tenda, la disposizione dei letti e la distanza dai servizi.",
+    "contextP2": "L’età da sola non determina l’attività giusta. Un bambino può divertirsi in una breve uscita sulle dune ma stancarsi con trasferimenti ripetuti. Costruisci il programma attorno a sonno, pasti e pause invece che a una lista di cose da fare.",
+    "routeHeading": "Un programma familiare con spazio per respirare",
+    "routeP1": "Arrivare abbastanza presto da sistemarsi, un’attività adatta, il tramonto, la cena e il pernottamento formano già un’esperienza completa. La mattina può restare senza fretta, con la colazione e una breve passeggiata vicino al campo prima della partenza.",
+    "routeP2": "Sabbia, sole e vento cambiano rapidamente il comfort. Porta acqua, protezione solare, scarpe chiuse, abiti caldi e una piccola luce. Tieni con te farmaci e oggetti essenziali invece di lasciarli in un veicolo che potrebbe essere spostato altrove.",
+    "practicalHeading": "Cosa deve sapere il team",
+    "practicalP1": "Invia numero ed età dei bambini, esigenze di letti, allergie, preferenze alimentari, mobilità e attività desiderate. Chiedi esplicitamente eventuali regole di età o di partecipazione valide alla data scelta.",
+    "practicalP2": "Non dare per scontato che una foto di famiglia significhi che ogni attività va bene per tutti. La conferma del team dovrebbe coprire separatamente alloggio, cibo, trasporto e ogni attività scelta.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideDesertLight": {
+    "eyebrow": "Luce del Sahara",
+    "title": "Tramonto, stelle e fotografia a Sabria",
+    "lead": "Goditi la luce migliore del deserto senza trasformare l’intera serata in un servizio fotografico.",
+    "contextHeading": "Arriva prima che la luce cambi",
+    "contextP1": "Dunes Insolites mette in evidenza tramonti e fotografia tra le dune. Il consiglio più utile è logistico: sii sistemato e pronto prima dell’ora prevista, perché raggiungere un punto panoramico quando il sole scompare non lascia margine.",
+    "contextP2": "La luce bassa rivela le forme delle dune e i segni sulla sabbia. Una composizione semplice, un orizzonte dritto e qualche minuto senza fotocamera creano spesso ricordi migliori che correre di continuo da una duna all’altra.",
+    "routeHeading": "Dal crepuscolo al cielo notturno",
+    "routeP1": "I colori non svaniscono subito dopo il tramonto. Osserva il crepuscolo, poi lascia che gli occhi si adattino prima di osservare le stelle. Tieni gli schermi luminosi lontani dal gruppo e non usare il flash vicino ad animali o ad altri viaggiatori.",
+    "routeP2": "Con un telefono, stabilizzalo ed evita lo zoom digitale. Con una fotocamera, porta una batteria carica, proteggi l’attrezzatura dalla sabbia e riduci al minimo i cambi di obiettivo quando si alza il vento.",
+    "practicalHeading": "Rispettare il luogo e le sue persone",
+    "practicalP1": "Chiedi prima di fotografare il personale, le guide, gli artisti o altri ospiti. Una serata culturale non è uno studio; alcuni momenti si vivono meglio senza schermo o luci invadenti.",
+    "practicalP2": "Tempi e visibilità dipendono dalla stagione e dal meteo. Chiedi l’orario di arrivo consigliato per la data della tua prenotazione e accetta che nuvole o vento possano cambiare il punto panoramico scelto.",
+    "sourcesHeading": "Fonti di Dunes Insolites"
+  },
+  "guideDjerbaSabria": {
+    "eyebrow": "Percorso di due giorni",
+    "title": "Da Djerba a Sabria con una notte nel deserto",
+    "lead": "Un percorso coerente che unisce il patrimonio del sud, i paesaggi del deserto e una serata a Dunes Insolites.",
+    "contextHeading": "Due giorni richiedono delle scelte",
+    "contextP1": "I tour pubblicati da Dunes Insolites collegano Djerba, Matmata e Sabria con tappe culturali e arrivo al campo a fine giornata. Due giorni permettono un’introduzione significativa, ma non di vedere ogni ksar, oasi e villaggio del Sud senza trascorrere gran parte del viaggio in veicolo.",
+    "contextP2": "Scegli un asse principale: Matmata e i suoi paesaggi, oppure Tataouine e i ksour, seguito dalla notte a Sabria. Il percorso esatto va confermato con l’autista o la guida in base al punto di partenza, alla stagione e agli orari di apertura.",
+    "routeHeading": "Proteggere la serata al campo",
+    "routeP1": "Il primo giorno l’arrivo dovrebbe essere abbastanza presto da sistemarsi e vedere il tramonto. Aggiungere un’ultima tappa quando il programma è già in ritardo sacrifica il momento per cui è stata scelta la notte nel deserto.",
+    "routeP2": "Il secondo giorno si può tornare a Djerba per un altro percorso o includere una tappa principale. Lascia margine per la colazione, le condizioni stradali e le pause; una stima di arrivo senza margine non è una garanzia.",
+    "practicalHeading": "Trasporto, guida e contenuti confermati",
+    "practicalP1": "Verifica luogo di ritiro, tipo di veicolo, bagaglio ammesso, pasti, ingressi e lingua della guida. Se raggiungi il campo in autonomia, richiedi separatamente il punto GPS e l’ora limite di arrivo.",
+    "practicalP2": "Le pagine di ispirazione descrivono degli esempi. Solo il riepilogo della tua prenotazione conferma le tappe effettivamente incluse. Consulta le indicazioni ufficiali di viaggio attuali prima della partenza e non modificare il percorso verso aree isolate di tua iniziativa.",
+    "sourcesHeading": "Fonti consultate"
   }
 }

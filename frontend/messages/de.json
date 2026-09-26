@@ -49,7 +49,12 @@
     "follow": "Folgen Sie uns",
     "privacy": "Datenschutz",
     "terms": "AGB",
-    "location": "Sahara · Tunesien"
+    "location": "Sahara · Tunesien",
+    "info": "Informationen",
+    "favorites": "Meine Favoriten",
+    "allCircuits": "Alle Rundreisen",
+    "allAccommodation": "Alle Unterkünfte",
+    "allActivities": "Alle Aktivitäten"
   },
   "cookieConsent": {
     "dialogLabel": "Cookie-Auswahl",
@@ -75,7 +80,9 @@
     "averageRating": "Durchschnittsbewertung",
     "newRating": "Neu",
     "yearsSuffix": "Jahre",
-    "ofExperience": "Erfahrung"
+    "ofExperience": "Erfahrung",
+    "location": "Sabria · Südtunesien",
+    "tagline": "Wo sich die Sahara endlos anfühlt."
   },
   "steps": {
     "eyebrow": "So funktioniert's",
@@ -767,13 +774,34 @@
     "goldenHourOnly": "Nur goldene Stunde",
     "difficultyEasy": "Einfach",
     "difficultyModerate": "Moderat",
-    "difficultyAdventurous": "Abenteuerlich"
+    "difficultyAdventurous": "Abenteuerlich",
+    "searchLabel": "Suchen",
+    "searchPlaceholder": "Aktivität suchen…",
+    "sortLabel": "Sortieren nach",
+    "sortDefault": "Relevanz",
+    "sortPriceAsc": "Preis: aufsteigend",
+    "sortPriceDesc": "Preis: absteigend",
+    "sortDurationAsc": "Dauer: kurz bis lang",
+    "sortDurationDesc": "Dauer: lang bis kurz",
+    "noResults": "Keine Aktivität entspricht Ihrer Suche.",
+    "resetFilters": "Zurücksetzen",
+    "ctaTitle": "Eine Frage vor der Buchung?",
+    "ctaBody": "Schreiben Sie uns: Wir helfen Ihnen, die passende Aktivität zu finden.",
+    "ctaLabel": "Kontakt aufnehmen"
   },
   "campPage": {
     "eyebrow": "Wählen Sie Ihre Nacht",
     "titleLine1": "Zwei Arten zu schlafen",
     "titleLine2": "in den Dünen.",
-    "lead": "Das feste Lager, oder ein Biwak weiter draußen — wählen Sie eine Nacht und fügen Sie dann Kamel, Quad oder Sandboarding hinzu, wenn Sie möchten. Wir bestätigen die Zeiten, sobald Sie vor Ort sind."
+    "lead": "Das feste Lager, oder ein Biwak weiter draußen — wählen Sie eine Nacht und fügen Sie dann Kamel, Quad oder Sandboarding hinzu, wenn Sie möchten. Wir bestätigen die Zeiten, sobald Sie vor Ort sind.",
+    "searchLabel": "Suchen",
+    "searchPlaceholder": "Aufenthalt suchen…",
+    "sortLabel": "Sortieren nach",
+    "sortDefault": "Relevanz",
+    "sortPriceAsc": "Preis: aufsteigend",
+    "sortPriceDesc": "Preis: absteigend",
+    "noResults": "Kein Aufenthalt entspricht Ihrer Suche.",
+    "resetFilters": "Zurücksetzen"
   },
   "bookPage": {
     "eyebrow": "Reservieren Sie Ihren Platz",
@@ -997,7 +1025,8 @@
       "PARTENAIRE": "Partner",
       "ADMIN": "Administrator",
       "CAMPING": "Camp-Personal"
-    }
+    },
+    "tabFavorites": "Favoriten"
   },
   "meta": {
     "about": {
@@ -1069,6 +1098,46 @@
     "circuits": {
       "title": "Mehrtägige Sahara-Rundreisen",
       "description": "Mehrtägige Ausflüge ab Djerba — das Erbe Südtunesiens, Nächte im Nomaden-Biwak und Entspannung am Meer, mit Route Insolite."
+    },
+    "guideDjerbaTataouine": {
+      "title": "Von Djerba nach Tataouine und Chenini: ein praktischer Routenführer",
+      "description": "So verstehen und planen Sie die Route von Djerba nach Tataouine, Chenini und zu den Ksour Südtunesiens, anhand offizieller Tourismus- und UNESCO-Quellen."
+    },
+    "guideSabriaDouz": {
+      "title": "Sabria, Douz und Chott el-Jerid: die Wüstenregion verstehen",
+      "description": "Ein belegter Führer zu den Dünen, Oasendörfern und Salzlandschaften rund um Sabria und Douz in der Region Kébili in Tunesien."
+    },
+    "guideDunesCamp": {
+      "title": "Dunes Insolites in Sabria: der komplette Campführer",
+      "description": "Wo Dunes Insolites liegt, wie Sie anreisen, Unterkünfte, Einrichtungen und wie eine Nacht im Wüstencamp von Sabria abläuft."
+    },
+    "guideDunesExperience": {
+      "title": "Aktivitäten, Abendessen und Abende bei Dunes Insolites",
+      "description": "Ein praktischer Führer zu Kameltouren, Quadfahrten, Sandboarding, Wüstenmahlzeiten, Biwaks und Abenden bei Dunes Insolites."
+    },
+    "guideBivouacCamp": {
+      "title": "Biwak oder Wüstencamp in Sabria: Welche Nacht sollten Sie wählen?",
+      "description": "Vergleichen Sie eine Nacht im Camp Dunes Insolites mit einem Biwak in den Dünen, um den richtigen Komfort, das passende Tempo und die gewünschte Intensität zu wählen."
+    },
+    "guideBedouinDinner": {
+      "title": "Beduinen-Abendessen und Sandbrot bei Dunes Insolites",
+      "description": "Ein Wüstenabendessen in Sabria verstehen – vom Sonnenuntergang und dem Sandbrot bis zum Abend am Lagerfeuer."
+    },
+    "guideChooseActivity": {
+      "title": "Kamel, Quad oder Sandboard in Sabria: Was sollten Sie wählen?",
+      "description": "Vergleichen Sie Tempo, Anstrengung und Gefühl von Kameltour, Quadfahren und Sandboarding, bevor Sie Ihren Aufenthalt planen."
+    },
+    "guideFamilyStay": {
+      "title": "Einen Familienaufenthalt in der Wüste von Sabria planen",
+      "description": "Anreise, Unterkunft, Mahlzeiten, Aktivitäten und die Angaben, die Sie für eine Familiennacht bei Dunes Insolites mitteilen sollten."
+    },
+    "guideDesertLight": {
+      "title": "Sonnenuntergang, Sterne und Fotografie in Sabria",
+      "description": "Einfache Tipps, um das Licht der Dünen zu genießen, den Sonnenuntergang zu fotografieren und den Nachthimmel bei Dunes Insolites zu beobachten."
+    },
+    "guideDjerbaSabria": {
+      "title": "Von Djerba nach Sabria in zwei Tagen: die Route planen",
+      "description": "Eine realistische Route über Djerba, Matmata und Landschaften des Südens mit einer Nacht im Camp Dunes Insolites in Sabria."
     }
   },
   "legal": {
@@ -1274,7 +1343,41 @@
     "q9": "Was ist bei Schwangerschaft oder besonderem Mobilitätsbedarf?",
     "a9": "Sagen Sie es uns bei der Buchung — wir weisen Sie lieber auf den richtigen Ausflug hin, als Sie am Tor abzuweisen.",
     "stillQuestions": "Noch eine Frage?",
-    "contactCta": "Kontaktieren Sie uns →"
+    "contactCta": "Kontaktieren Sie uns →",
+    "catDestination": "Anreise und die Region verstehen",
+    "q10": "Kann ich mit dem eigenen Fahrzeug anreisen oder einen Transfer anfragen?",
+    "a10": "Beides wird im Buchungsablauf unterstützt. Wählen Sie Ihr eigenes Fahrzeug oder eine verfügbare Transportoption und geben Sie dann die verlangten Abholdaten an. Das Team bestätigt den genauen Treff- oder Abholpunkt vor der Abreise.",
+    "q11": "Was sind ein Ksar und eine Ghorfa?",
+    "a11": "Ein Ksar ist ein befestigter Gemeinschaftsspeicher; Ksour ist der Plural. Die übereinander gestapelten Lagerkammern heißen Ghorfas. Rund um Tataouine und Medenine dienten diese Bauten der Lagerung von Ernten und waren mit dem halbnomadischen Leben der Region verbunden.",
+    "q12": "Warum Chenini und Tataouine besuchen, statt sie nur als Fotostopp zu behandeln?",
+    "a12": "Die Landschaft erzählt eine zusammenhängende Geschichte: Siedlungen auf Hügelkuppen, in den Fels gehauene Häuser, Wassersysteme und Gemeinschaftsspeicher. Chenini und das nahe Douiret sind lebendige Orte, daher ist ein ruhigerer Besuch mit lokalem Hintergrund respektvoller und aufschlussreicher.",
+    "q13": "Ist Djerba UNESCO-Welterbe?",
+    "a13": "Ja. Die UNESCO hat Djerba 2023 wegen seines besonderen verstreuten Siedlungsmusters und der Anpassung der Gemeinschaften an eine wasserarme Inselumgebung eingetragen. Das Welterbe ist eine Reihe von Stätten und Denkmälern, nicht ein einzelnes Gebäude.",
+    "q14": "Wann ist die beste Reisezeit für die tunesische Sahara?",
+    "a14": "Das offizielle Tourismusportal Tunesiens nennt den Winter als ideale Jahreszeit, um die Sahara zu erkunden, und den Herbst als geeignet für Wüstenreisen. Die Bedingungen ändern sich von Tag zu Tag, prüfen Sie daher die Vorhersage und folgen Sie den Zeit- und Wetterentscheidungen des Einsatzteams.",
+    "q15": "Sollte ich vor einer Reise in den Süden Tunesiens die offiziellen Reisehinweise prüfen?",
+    "a15": "Ja. Hinweise und Sperrzonen können sich ändern. Prüfen Sie die aktuellen Hinweise für Ihre Staatsangehörigkeit, stellen Sie sicher, dass Ihre Versicherung die geplante Route und Aktivitäten abdeckt, und reisen Sie nicht spontan in Grenz- oder Militärzonen.",
+    "catCamp": "Das Camp Dunes Insolites",
+    "q16": "Wo genau liegt Dunes Insolites?",
+    "a16": "Das Camp liegt in Sabria im tunesischen Gouvernement Kébili, laut der offiziellen Vorstellung von Dunes Insolites etwa 30 km von Douz entfernt. Den genauen GPS-Punkt und die Anreisehinweise bestätigen wir Ihnen für Ihre Buchung.",
+    "q17": "Kann ein normales Familienauto das Camp erreichen?",
+    "a17": "Laut den offiziellen Campinformationen ist es unter normalen Bedingungen mit einem Familienauto erreichbar. Folgen Sie nur der bestätigten Anfahrt und kontaktieren Sie das Team, falls Wetter oder Sand die Piste verändert haben; wählen Sie keine andere Route auf eigene Faust.",
+    "q18": "Gibt es Duschen und Toiletten im Camp?",
+    "a18": "Ja. Die offizielle Vorstellung des Camps nennt vor Ort Duschen, auch mit warmem Wasser, neben den Zeltunterkünften. Die genauen Einrichtungen Ihrer gewählten Unterkunft werden bei der Buchung angezeigt und vom Team bestätigt.",
+    "q19": "Welche Arten von Nächten kann ich buchen?",
+    "a19": "Der Katalog unterscheidet das feste Camp von einem einfacheren Biwak tiefer in der Wüste. Im festen Camp können die Unterkünfte je nach Verfügbarkeit ein traditionelles Zelt, ein Zimmer oder eine Suite umfassen.",
+    "q20": "Welche Verpflegung gehört zum Erlebnis bei Dunes Insolites?",
+    "a20": "Das Camp bietet traditionelle Mahlzeiten aus regionalen Produkten, Minztee und Wüstenbrot, das in heißem Sand und Glut gebacken wird. Ihr gewählter Aufenthalt gibt an, was enthalten ist; Ernährungsbedürfnisse sollten vor der Bestätigung mitgeteilt werden.",
+    "q21": "Welche Aktivitäten kann ich bei Dunes Insolites hinzufügen?",
+    "a21": "Die öffentlichen Campinformationen und der aktuelle Katalog umfassen Kameltouren, Quadfahrten, Sandboarding, Pferdeerlebnisse, Sonnenuntergangsfotografie und Wüstenbiwaks. Nur Aktivitäten, die für Ihr Datum tatsächlich verfügbar sind, erscheinen oder werden für die Buchung bestätigt.",
+    "q22": "Was ist der Unterschied zwischen dem festen Camp und einem Biwak?",
+    "a22": "Das feste Camp legt den Schwerpunkt auf etablierte Unterkünfte und Einrichtungen. Ein Biwak ist eine einfachere, mobilere Nacht weiter in den Dünen. Wählen Sie nach Komfortniveau, Anreisezeit und dem Programm, das auf der jeweiligen Aufenthaltsseite beschrieben ist.",
+    "q23": "Können Familien, private Gruppen oder Veranstaltungen untergebracht werden?",
+    "a23": "Dunes Insolites bietet öffentlich Gruppenaktivitäten und Veranstaltungen an, während das Buchungssystem Gruppengröße und Sonderwünsche erfasst. Senden Sie Alter, Daten und Bedürfnisse der Gruppe vor der Bestätigung, damit das Team ein passendes Programm vorschlagen kann, statt anzunehmen, dass jede Aktivität für alle geeignet ist.",
+    "q24": "Was passiert, nachdem ich eine Buchungsanfrage gesendet habe?",
+    "a24": "Die Website belastet nicht sofort. Die Anfrage wird anhand der Verfügbarkeit und der gewählten Leistungen geprüft; anschließend bestätigt das lokale Team Programm, Ankunfts- oder Abholdetails und den nächsten Zahlungsschritt per E-Mail oder WhatsApp.",
+    "sourcesHeading": "Quellen zu diesen Antworten über Reiseziele",
+    "sourcesNote": "Betriebliche Antworten stammen aus den Buchungsregeln. Antworten zu Reisezielen und Kulturerbe wurden anhand der folgenden Primärquellen geprüft."
   },
   "guidesPage": {
     "eyebrow": "Wüstenführer",
@@ -1343,7 +1446,8 @@
   "activitiesSection": {
     "eyebrow": "Feldführer",
     "lead": "Vom langsamen Schaukeln eines Kamels zur goldenen Stunde bis zum Dröhnen eines Quads über die Dünen — jeder Sabria-Ausflug endet auf dieselbe Weise: beim Blick auf die Sonne, die hinter der Sahara verschwindet.",
-    "fromPrice": "Ab {price}"
+    "fromPrice": "Ab {price}",
+    "included": "Included for camp guests"
   },
   "circuitsSection": {
     "eyebrow": "Route Insolite",
@@ -1376,5 +1480,1396 @@
   },
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} Std.} other {{rest, plural, =0 {{days, plural, one {# Tag} other {# Tage}} ({hours} Std.)} other {{days, plural, one {# Tag} other {# Tage}} und {rest} Std. ({hours} Std.)}}}}"
+  },
+  "a11y": {
+    "navPrimary": "Hauptnavigation",
+    "navMobile": "Mobile Navigation",
+    "navFooter": "Navigation im Fußbereich",
+    "prevReview": "Vorherige Bewertung",
+    "nextReview": "Nächste Bewertung",
+    "ctaGateAlt": "Wüstentor in der Dämmerung"
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "Wer wir sind",
+      "title": "Dunes Insolites – Ein authentisches Erlebnis im Herzen der tunesischen Sahara",
+      "lead": "Ein Camp bei Sabria, umgeben von den Wüstenlandschaften Südtunesiens, wo sich Entdeckung, Traditionen, Gastfreundschaft und Komfort verbinden.",
+      "cta": "Das Camp entdecken"
+    },
+    "story": {
+      "eyebrow": "Unsere Geschichte",
+      "title": "Ein Abenteuer, geboren aus unserer Leidenschaft für die Wüste",
+      "p1": "Dunes Insolites ist ein lokales Projekt, das Reisenden helfen soll, die tunesische Sahara anders zu entdecken: ohne Eile und nah bei den Menschen, die hier leben.",
+      "p2": "Das Camp ist weit mehr als ein Schlafplatz. Es ist ein Ort der Begegnung und des Teilens, um die Traditionen des Südens kennenzulernen, die Stille der Wüste wiederzufinden – und an dem jeder Reisende als Gast willkommen geheißen wird.",
+      "cta": "Die Unterkünfte ansehen",
+      "photoAlt": "Das Camp Dunes Insolites bei Sonnenuntergang"
+    },
+    "experience": {
+      "eyebrow": "Das Erlebnis",
+      "title": "Ein Erlebnis, nicht nur eine Nacht",
+      "items": [
+        {
+          "title": "In der Wüste schlafen",
+          "text": "Authentische Unterkünfte und mehrere Komfortstufen, um friedlich zwischen den Dünen zu schlafen.",
+          "cta": "Unsere Unterkünfte",
+          "href": "/camp"
+        },
+        {
+          "title": "Traditionen entdecken",
+          "text": "Mella-Sandbrot, Volksmusik, ein traditionelles Abendessen und gemeinsame Momente am Feuer.",
+          "cta": "Das Camp entdecken",
+          "href": "/camp"
+        },
+        {
+          "title": "Die Dünen erleben",
+          "text": "Sonnenuntergang, Sandboarding, Kameltouren, Quads und 4x4-Ausflüge.",
+          "cta": "Unsere Aktivitäten",
+          "href": "/activities"
+        },
+        {
+          "title": "Einen Moment teilen",
+          "text": "Willkommenstee, ein Sternenhimmel und eine freundliche Atmosphäre im Camp.",
+          "cta": "Eine Nacht buchen",
+          "href": "/book"
+        }
+      ]
+    },
+    "philosophy": {
+      "eyebrow": "Unsere Philosophie",
+      "title": "Eine authentische, zugängliche und gastfreundliche Sahara",
+      "text": "Dunes Insolites möchte den Geist der Wüste und die lokalen Traditionen bewahren und zugleich den Komfort bieten, den Reisende brauchen. Man kommt hierher, um innezuhalten, zu teilen und das Leben im Süden Tunesiens zu genießen.",
+      "words": [
+        "Gastfreundschaft",
+        "Authentizität",
+        "Teilen",
+        "Einfachheit",
+        "Lokale Kultur"
+      ]
+    },
+    "why": {
+      "eyebrow": "Warum wir",
+      "title": "Warum Dunes Insolites wählen?",
+      "items": [
+        {
+          "title": "Ein lokales Team",
+          "text": "Ein Team, das die Region bestens kennt."
+        },
+        {
+          "title": "3 km von Sabria",
+          "text": "Ein Camp rund 3 km vom Dorf Sabria entfernt."
+        },
+        {
+          "title": "Einfache Anreise",
+          "text": "Mit einem normalen Auto erreichbar."
+        },
+        {
+          "title": "Mehrere Aufenthalte",
+          "text": "Mehrere Unterkunftskategorien für jedes Budget und jeden Komfortanspruch."
+        },
+        {
+          "title": "Aktivitäten vor Ort",
+          "text": "Kamel, Quad, 4x4 und Sandboarding, direkt ab dem Camp."
+        },
+        {
+          "title": "Für jeden Reisenden",
+          "text": "Geeignet für Paare, Familien, Freunde, Alleinreisende und Gruppen."
+        }
+      ]
+    },
+    "team": {
+      "eyebrow": "Das Team",
+      "title": "Die Gesichter hinter Dunes Insolites",
+      "text": "Guides, Fahrer, Köche und das Campteam arbeiten zusammen, um Reisende willkommen zu heißen und ihnen die Wüste unter besten Bedingungen zu zeigen.",
+      "photoAlt": "Das Team von Dunes Insolites",
+      "cta": "Kontakt aufnehmen"
+    },
+    "region": {
+      "eyebrow": "Unsere Region",
+      "title": "Sabria, am Tor zum tunesischen Grand Sud",
+      "text": "Sabria in der Region Kébili ist ein echtes Tor zur Sahara. Das Camp lässt sich leicht in eine Tunesienreise auf dem Weg in den tiefen Süden einfügen.",
+      "stopsLabel": "Ein natürlicher Halt zwischen",
+      "stops": [
+        "Douz",
+        "Matmata",
+        "Chott El Jerid",
+        "Tozeur",
+        "Den Bergoasen"
+      ],
+      "cta": "Unsere Rundreisen ansehen",
+      "mapTitle": "Karte: Lage des Camps bei Sabria"
+    },
+    "values": {
+      "eyebrow": "Unsere Werte",
+      "title": "Was unseren Empfang leitet",
+      "items": [
+        {
+          "title": "Authentizität",
+          "text": "Den Geist und die Traditionen der Wüste bewahren."
+        },
+        {
+          "title": "Gastfreundschaft",
+          "text": "Jeden Reisenden mit Sorgfalt empfangen."
+        },
+        {
+          "title": "Teilen",
+          "text": "Begegnungen und Austausch fördern."
+        },
+        {
+          "title": "Einfachheit",
+          "text": "Die Stille, die Dünen, das Feuer und den Sternenhimmel genießen."
+        }
+      ]
+    },
+    "final": {
+      "title": "Ihr Sahara-Erlebnis beginnt hier.",
+      "text": "Entdecken Sie Dunes Insolites, verbringen Sie eine Nacht in der Wüste oder fügen Sie das Camp Ihrer Rundreise durch Tunesien hinzu.",
+      "accommodations": "Unsere Unterkünfte entdecken",
+      "experiences": "Unsere Erlebnisse ansehen",
+      "book": "Ihren Aufenthalt buchen"
+    }
+  },
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Kontakt",
+      "title": "Planen wir Ihre Nacht in den Dünen.",
+      "lead": "Fragen zu einem Aufenthalt, einer Aktivität oder einer privaten Gruppe? Schreiben Sie uns oder senden Sie uns eine WhatsApp-Nachricht: Ein echter Mensch aus dem Camp antwortet.",
+      "ctaWhatsapp": "Per WhatsApp chatten",
+      "ctaForm": "Nachricht senden",
+      "badge": "Wir antworten innerhalb von 24 Stunden",
+      "whatsappText": "Guten Tag, ich hätte gern Informationen zu einem Aufenthalt bei Dunes Insolites."
+    },
+    "channels": {
+      "whatsapp": {
+        "title": "WhatsApp",
+        "hint": "Schnellste Antwort",
+        "cta": "Chat öffnen"
+      },
+      "phone": {
+        "title": "Telefon",
+        "hint": "Täglich",
+        "cta": "Rufen Sie uns an"
+      },
+      "email": {
+        "title": "E-Mail",
+        "hint": "Details und Gruppen",
+        "cta": "Schreiben Sie uns"
+      },
+      "visit": {
+        "title": "Das Camp",
+        "hint": "Sabria, Kébili",
+        "cta": "Route anzeigen"
+      }
+    },
+    "form": {
+      "eyebrow": "Schreiben Sie uns",
+      "title": "Senden Sie uns eine Nachricht",
+      "lead": "Nennen Sie uns Ihre Reisedaten, die Gruppengröße und was Sie sich vorstellen. Wir melden uns innerhalb von 24 Stunden.",
+      "note": "Ihre Angaben werden nur verwendet, um Ihnen zu antworten."
+    },
+    "help": {
+      "eyebrow": "Wie wir helfen können",
+      "title": "Was auch immer der Plan ist, wir haben es wahrscheinlich schon gemacht.",
+      "items": [
+        "Nächte im Camp oder im Biwak",
+        "Kameltour, Quad-Safari und Sandboarding",
+        "Private Gruppen und Familien",
+        "Hochzeiten, Veranstaltungen und Filmteams",
+        "Individuelle Routen durch den Süden"
+      ]
+    },
+    "find": {
+      "eyebrow": "So finden Sie uns",
+      "title": "Das Camp bei Sabria",
+      "text": "Das Camp liegt etwa 3 km von Sabria entfernt und ist mit einem normalen Auto erreichbar. Den Treffpunkt bestätigen wir Ihnen bei der Buchung.",
+      "hoursLabel": "Öffnungszeiten",
+      "addressLabel": "Adresse",
+      "openMaps": "In Google Maps öffnen",
+      "directions": "Route anzeigen",
+      "mapTitle": "Karte mit dem Camp Dunes Insolites bei Sabria"
+    },
+    "next": {
+      "bookTitle": "Lieber gleich buchen?",
+      "bookText": "Wählen Sie Ihren Aufenthalt und reservieren Sie in wenigen Minuten online.",
+      "bookCta": "Aufenthalte ansehen",
+      "faqTitle": "Eine schnelle Antwort gesucht?",
+      "faqText": "Die häufigsten Fragen beantworten wir in unseren FAQ.",
+      "faqCta": "FAQ lesen"
+    }
+  },
+  "accDetail": {
+    "ui": {
+      "back": "← Zurück zu den Unterkünften",
+      "from": "Ab",
+      "perNight": "pro Nacht",
+      "bookNow": "Jetzt buchen",
+      "viewPhotos": "Fotos ansehen",
+      "viewAllPhotos": "Alle Fotos ansehen",
+      "close": "Schließen",
+      "previous": "Vorheriges Foto",
+      "next": "Nächstes Foto",
+      "photoOf": "Foto {n} von {total}",
+      "galleryTitle": "Fotos",
+      "aboutEyebrow": "Die Unterkunft",
+      "featuresEyebrow": "Ausstattung",
+      "featuresTitle": "Was Sie vor Ort finden",
+      "comfort": "Komfort",
+      "bathroom": "Bad",
+      "campFacilities": "Campeinrichtungen",
+      "timelineEyebrow": "Der Ablauf",
+      "forWhomEyebrow": "Für wen geeignet?",
+      "importantEyebrow": "Gut zu wissen",
+      "compareEyebrow": "Vergleichen",
+      "reviewsEyebrow": "Bewertungen",
+      "seeMoreReviews": "Weitere Bewertungen ansehen",
+      "locationEyebrow": "Anreise",
+      "viewAccommodation": "Diese Unterkunft ansehen",
+      "current": "Sie sehen gerade",
+      "whatsapp": "Schreiben Sie uns auf WhatsApp",
+      "checkAvailability": "Verfügbarkeit prüfen",
+      "stickyFrom": "Ab {price}",
+      "map": "Karte: Lage des Camps bei Sabria"
+    },
+    "trust": [
+      "Direkt buchen",
+      "Lokales Team",
+      "Flexible Unterstützung",
+      "WhatsApp-Support"
+    ],
+    "included": {
+      "eyebrow": "Inklusive",
+      "title": "Ihr Aufenthalt bietet mehr als nur eine Nacht",
+      "note": "Manche Unterhaltung und Aktivitäten können vom Tagesprogramm und den Bedingungen im Camp abhängen.",
+      "items": [
+        {
+          "icon": "tea",
+          "text": "Willkommenstee"
+        },
+        {
+          "icon": "sun",
+          "text": "Sonnenuntergangserlebnis in den Dünen"
+        },
+        {
+          "icon": "board",
+          "text": "Sandboarding"
+        },
+        {
+          "icon": "bread",
+          "text": "Vorführung des traditionellen Mella-Sandbrots"
+        },
+        {
+          "icon": "meal",
+          "text": "Abendessen"
+        },
+        {
+          "icon": "cup",
+          "text": "Frühstück"
+        },
+        {
+          "icon": "music",
+          "text": "Traditionelle folkloristische Atmosphäre"
+        },
+        {
+          "icon": "fire",
+          "text": "Lagerfeuerrunde"
+        },
+        {
+          "icon": "star",
+          "text": "Sternenbeobachtung"
+        },
+        {
+          "icon": "camp",
+          "text": "Zugang zu den Campeinrichtungen"
+        }
+      ]
+    },
+    "campFacilities": [
+      "Restaurant",
+      "Café",
+      "Gemeinschaftsbereiche",
+      "WLAN in den Gemeinschaftsbereichen",
+      "Parkplatz",
+      "Feuerstelle",
+      "Direkter Zugang zu den Dünen"
+    ],
+    "activities": {
+      "eyebrow": "Optional",
+      "title": "Machen Sie Ihren Sahara-Aufenthalt unvergesslich",
+      "lead": "Ergänzen Sie Ihre Nacht um eine Aktivität. Die Zeiten bestätigen wir vor Ort.",
+      "included": "Included in your stay",
+      "items": [
+        {
+          "title": "Kameltour",
+          "text": "Ein gemächlicher Ritt durch die Dünen im Tempo der Kamele.",
+          "cta": "Nach dieser Aktivität fragen",
+          "photo": "camel"
+        },
+        {
+          "title": "Quadfahren",
+          "text": "Eine Quadfahrt durch das Sandmeer.",
+          "cta": "Nach dieser Aktivität fragen",
+          "photo": "quad"
+        },
+        {
+          "title": "4x4-Dünenerlebnis",
+          "text": "Eine 4x4-Fahrt durch die Landschaften rund um das Camp.",
+          "cta": "Nach dieser Aktivität fragen",
+          "photo": "fourx4"
+        },
+        {
+          "title": "Sandboarding",
+          "text": "Die Dünen hinuntergleiten, ohne Vorkenntnisse.",
+          "cta": "In Ihrem Aufenthalt ansehen",
+          "photo": "board",
+          "included": true
+        }
+      ]
+    },
+    "timeline": {
+      "title": "Ein Abend und eine Nacht im Camp",
+      "note": "Die Zeiten können je nach Jahreszeit variieren.",
+      "steps": [
+        {
+          "time": "16:00 Uhr",
+          "text": "Ankunft und Willkommenstee"
+        },
+        {
+          "time": "17:00 Uhr",
+          "text": "Die Dünen erkunden und optionale Aktivitäten"
+        },
+        {
+          "time": "Sonnenuntergang",
+          "text": "Die Sonne über der Sahara verschwinden sehen"
+        },
+        {
+          "time": "Abend",
+          "text": "Traditionelles Abendessen und Wüstenatmosphäre"
+        },
+        {
+          "time": "Nacht",
+          "text": "Lagerfeuer und Sternenbeobachtung"
+        },
+        {
+          "time": "Morgen",
+          "text": "Frühstück in der Wüste"
+        },
+        {
+          "time": "11:00 Uhr",
+          "text": "Check-out"
+        }
+      ]
+    },
+    "important": {
+      "title": "Häufig gestellte Fragen",
+      "common": [
+        {
+          "q": "Kann ich das Camp mit einem normalen Auto erreichen?",
+          "a": "Ja. Das Camp Dunes Insolites ist mit einem normalen Fahrzeug erreichbar; ein 4x4 ist nicht erforderlich."
+        },
+        {
+          "q": "Gibt es Parkplätze?",
+          "a": "Ja, am Camp stehen Parkplätze zur Verfügung."
+        },
+        {
+          "q": "Wann sollte ich ankommen?",
+          "a": "Eine Ankunft gegen 16:00 Uhr wird empfohlen, damit die Gäste in Ruhe ankommen und den Sonnenuntergang genießen können."
+        },
+        {
+          "q": "Gibt es WLAN?",
+          "a": "WLAN gibt es hauptsächlich in den Gemeinschaftsbereichen."
+        },
+        {
+          "q": "Werden Handtücher und Bettwäsche gestellt?",
+          "a": "Bettwäsche und Handtücher gehören zum Komfort unserer Unterkünfte."
+        },
+        {
+          "q": "Ist das Camp für Familien geeignet?",
+          "a": "Ja."
+        }
+      ]
+    },
+    "compare": {
+      "title": "Welcher Aufenthalt passt zu Ihnen?",
+      "lead": "Drei Arten, im Camp zu schlafen: dieselbe Atmosphäre, mit unterschiedlichem Komfort und unterschiedlicher Privatsphäre.",
+      "rows": {
+        "experience": "Art des Erlebnisses",
+        "bathroom": "Bad",
+        "ac": "Klimaanlage",
+        "privacy": "Privatsphäre",
+        "recommended": "Empfohlen für",
+        "price": "Ab"
+      }
+    },
+    "reviews": {
+      "title": "Gäste erinnern sich an mehr als nur die Nacht"
+    },
+    "location": {
+      "title": "Übernachten am Rand der Sahara",
+      "text": "Das Camp Dunes Insolites liegt bei Sabria in der Region Kébili, umgeben von Wüstenlandschaften und etwa 3 km vom Dorf Sabria entfernt.",
+      "points": [
+        "Mit einem normalen Auto erreichbar",
+        "Parkplatz vorhanden",
+        "Transfers aus verschiedenen Orten Tunesiens können organisiert werden"
+      ]
+    },
+    "final": {
+      "title": "Ihre Nacht in der Sahara beginnt hier.",
+      "text": "Wachen Sie umgeben von Dünen, Stille und Wüstenlicht auf.",
+      "included": "Dinner and breakfast included."
+    },
+    "types": {
+      "desert-tent": {
+        "eyebrow": "Authentisches Wüstenzelt",
+        "tagline": "Schlafen Sie umgeben von der Stille und Schönheit der tunesischen Sahara.",
+        "highlights": [
+          "Abendessen und Frühstück inklusive",
+          "Warme Duschen",
+          "Wüstenaktivitäten",
+          "Traditionelles Campleben"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Bequeme Betten"
+          },
+          {
+            "icon": "shower",
+            "label": "Gemeinschaftliche warme Duschen"
+          },
+          {
+            "icon": "meal",
+            "label": "Halbpension inklusive"
+          },
+          {
+            "icon": "plug",
+            "label": "Strom vorhanden"
+          },
+          {
+            "icon": "wifi",
+            "label": "WLAN in den Gemeinschaftsbereichen"
+          }
+        ],
+        "about": [
+          "Unser authentisches Zelt ist für Reisende gedacht, die ein echtes Sahara-Erlebnis suchen, und verbindet die traditionelle Wüstenatmosphäre mit dem Nötigsten an Komfort für eine erholsame Nacht unter den Sternen.",
+          "Die Gäste nutzen saubere Gemeinschaftsbäder mit warmen Duschen und alle Einrichtungen des Camps Dunes Insolites."
+        ],
+        "bathroomText": "Gemeinschaftliche Sanitäranlagen mit Toiletten und warmen Duschen.",
+        "comfort": [
+          "Bequeme Betten",
+          "Strom",
+          "Bettwäsche",
+          "Handtücher",
+          "Beleuchtung"
+        ],
+        "forWhom": [
+          {
+            "title": "Suchende nach Authentizität",
+            "text": "Um die Wüste ganz einfach zu erleben."
+          },
+          {
+            "title": "Paare",
+            "text": "Eine ruhige Nacht unter den Sternen."
+          },
+          {
+            "title": "Freunde",
+            "text": "Eine freundliche Atmosphäre am Feuer."
+          },
+          {
+            "title": "Abenteuerreisende",
+            "text": "Um Dünen und Aktivitäten voll auszukosten."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Sind die Bäder privat?",
+            "a": "Nein. Die authentischen Zelte nutzen saubere Gemeinschaftssanitäranlagen mit Toiletten und warmen Duschen."
+          }
+        ],
+        "compare": {
+          "experience": "Authentische, traditionelle Atmosphäre",
+          "bathroom": "Gemeinschaftlich, warme Duschen",
+          "ac": "—",
+          "privacy": "Privates Zelt",
+          "recommended": "Suchende nach Authentizität, Paare, Freunde"
+        }
+      },
+      "desert-room": {
+        "eyebrow": "Wüstenzimmer",
+        "tagline": "Die Campatmosphäre mit einem strukturierteren Innenraum.",
+        "highlights": [
+          "Abendessen und Frühstück inklusive",
+          "Geschlossenes Zimmer",
+          "Privater Schlafbereich",
+          "Alle Campeinrichtungen"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Privater Schlafbereich"
+          },
+          {
+            "icon": "shower",
+            "label": "Badausstattung wird bei der Buchung bestätigt"
+          },
+          {
+            "icon": "meal",
+            "label": "Halbpension inklusive"
+          },
+          {
+            "icon": "plug",
+            "label": "Strom vorhanden"
+          },
+          {
+            "icon": "wifi",
+            "label": "WLAN in den Gemeinschaftsbereichen"
+          }
+        ],
+        "about": [
+          "Eine komfortablere Option für Reisende, die die Atmosphäre unseres Wüstencamps mit einem strukturierteren, zimmerartigen Innenraum wünschen.",
+          "Ideal für Paare, Freunde und Familien, die während ihres Sahara-Aufenthalts etwas mehr Komfort suchen."
+        ],
+        "bathroomText": "Die Badausstattung bestätigen wir Ihnen bei der Buchung.",
+        "comfort": [
+          "Geschlossenes Zimmer",
+          "Bequeme Betten",
+          "Strom",
+          "Bettwäsche",
+          "Handtücher",
+          "Beleuchtung"
+        ],
+        "forWhom": [
+          {
+            "title": "Paare",
+            "text": "Etwas mehr Privatsphäre und Komfort."
+          },
+          {
+            "title": "Familien",
+            "text": "Bis zu 3 Personen im selben Zimmer."
+          },
+          {
+            "title": "Freunde",
+            "text": "Das Camp, mit einem zimmerartigen Innenraum."
+          },
+          {
+            "title": "Komfortsuchende",
+            "text": "Die Wüste, ohne auf den Komfort eines Zimmers zu verzichten."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Sind die Bäder privat?",
+            "a": "Die Badausstattung des Zimmers bestätigen wir Ihnen bei der Buchung."
+          }
+        ],
+        "compare": {
+          "experience": "Campatmosphäre, zimmerartiger Innenraum",
+          "bathroom": "Wird bei der Buchung bestätigt",
+          "ac": "—",
+          "privacy": "Geschlossenes Zimmer",
+          "recommended": "Paare, Freunde, Familien"
+        }
+      },
+      "dune-suite": {
+        "eyebrow": "Dünen-Suite",
+        "tagline": "Unsere komfortabelste Unterkunft, mit mehr Privatsphäre.",
+        "highlights": [
+          "Privates Bad",
+          "Klimaanlage",
+          "Abendessen und Frühstück inklusive",
+          "Mehr Privatsphäre und Platz"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Hochwertige Bettwäsche"
+          },
+          {
+            "icon": "shower",
+            "label": "Privates Bad mit Toilette"
+          },
+          {
+            "icon": "snow",
+            "label": "Klimaanlage (abends und nachts)"
+          },
+          {
+            "icon": "meal",
+            "label": "Halbpension inklusive"
+          },
+          {
+            "icon": "wifi",
+            "label": "WLAN in den Gemeinschaftsbereichen"
+          }
+        ],
+        "about": [
+          "Unsere komfortabelste Wüstenunterkunft verbindet die Atmosphäre der Sahara mit mehr Privatsphäre und Bequemlichkeit.",
+          "Die Suite verfügt über ein privates Bad und eine Klimaanlage, die vor allem abends und über Nacht verfügbar ist. Ideal für Paare, Familien und Reisende, die ein gehobeneres Wüstenerlebnis suchen."
+        ],
+        "bathroomText": "Privates Bad mit Toilette.",
+        "comfort": [
+          "Hochwertige Bettwäsche",
+          "Zusätzlicher Loungebereich",
+          "Strom",
+          "Bettwäsche",
+          "Handtücher",
+          "Beleuchtung",
+          "Klimaanlage (vor allem abends und nachts)"
+        ],
+        "forWhom": [
+          {
+            "title": "Paare, die mehr Komfort suchen",
+            "text": "Privatsphäre und Ruhe, mitten in der Wüste."
+          },
+          {
+            "title": "Familien",
+            "text": "Bis zu 4 Personen in einer geräumigen Suite."
+          },
+          {
+            "title": "Ein privates Bad",
+            "text": "Für alle, die eines möchten."
+          },
+          {
+            "title": "Gehobene Aufenthalte",
+            "text": "Mehr Komfort, derselbe Campgeist."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Hat die Suite ein privates Bad?",
+            "a": "Ja."
+          },
+          {
+            "q": "Gibt es eine Klimaanlage?",
+            "a": "Ja. Die Klimaanlage ist vor allem abends und über Nacht verfügbar."
+          }
+        ],
+        "compare": {
+          "experience": "Mehr Komfort, mehr Privatsphäre",
+          "bathroom": "Privat, mit Toilette",
+          "ac": "Ja (abends und nachts)",
+          "privacy": "Geräumige private Suite",
+          "recommended": "Paare, Familien, gehobene Aufenthalte"
+        }
+      },
+      "default": {
+        "eyebrow": "Unterkunft im Camp",
+        "tagline": "",
+        "highlights": [
+          "Abendessen und Frühstück inklusive",
+          "Wüstenaktivitäten",
+          "Campeinrichtungen",
+          "Traditionelles Campleben"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "meal",
+            "label": "Halbpension inklusive"
+          },
+          {
+            "icon": "plug",
+            "label": "Strom vorhanden"
+          },
+          {
+            "icon": "wifi",
+            "label": "WLAN in den Gemeinschaftsbereichen"
+          }
+        ],
+        "about": [],
+        "bathroomText": "Die Badausstattung bestätigen wir Ihnen bei der Buchung.",
+        "comfort": [
+          "Bequeme Betten",
+          "Strom",
+          "Beleuchtung"
+        ],
+        "forWhom": [
+          {
+            "title": "Paare",
+            "text": "Eine Nacht in der Wüste zu zweit."
+          },
+          {
+            "title": "Familien",
+            "text": "Ein gemeinsamer Aufenthalt im Camp."
+          },
+          {
+            "title": "Freunde",
+            "text": "Eine freundliche Atmosphäre."
+          }
+        ],
+        "faq": [],
+        "compare": {
+          "experience": "Campatmosphäre",
+          "bathroom": "Wird bei der Buchung bestätigt",
+          "ac": "—",
+          "privacy": "—",
+          "recommended": "Alle Reisenden"
+        }
+      }
+    }
+  },
+  "actDetail": {
+    "ui": {
+      "back": "← Alle Aktivitäten",
+      "from": "Ab",
+      "perPerson": "/ Person",
+      "included": "Included",
+      "viewPhotos": "Fotos ansehen",
+      "viewAllPhotos": "Alle Fotos ansehen",
+      "close": "Schließen",
+      "previous": "Vorheriges Foto",
+      "next": "Nächstes Foto",
+      "photoOf": "Foto {n} von {total}",
+      "aboutEyebrow": "Das Erlebnis",
+      "optionsEyebrow": "Optionen",
+      "expectEyebrow": "Was Sie erwartet",
+      "bestEyebrow": "Beste Zeit",
+      "forWhomEyebrow": "Für wen geeignet?",
+      "safetyEyebrow": "Sicherheit und praktische Informationen",
+      "bringEyebrow": "Was Sie mitbringen sollten",
+      "combineEyebrow": "Zu Ihrem Aufenthalt",
+      "othersEyebrow": "Auch einen Versuch wert",
+      "faqEyebrow": "Fragen",
+      "faqTitle": "Häufig gestellte Fragen",
+      "exploreAccommodation": "Unsere Unterkünfte entdecken",
+      "discoverActivity": "Entdecken",
+      "askTeam": "Fragen Sie uns",
+      "askAbout": "Fragen Sie uns",
+      "sleeps": "{sleeps}",
+      "fromNight": "Ab {price} pro Nacht",
+      "map": "Karte"
+    },
+    "trust": [
+      "Direkt buchen",
+      "Lokales Team",
+      "Flexible Unterstützung",
+      "WhatsApp-Support"
+    ],
+    "best": {
+      "title": "Die beste Reisezeit",
+      "morning": {
+        "title": "Morgen",
+        "text": "Kühlere Temperaturen und eine ruhige Wüstenatmosphäre."
+      },
+      "afternoon": {
+        "title": "Später Nachmittag",
+        "text": "Wunderschönes Licht und ideale Bedingungen für Fotos."
+      },
+      "sunset": {
+        "title": "Sonnenuntergang",
+        "text": "Der stimmungsvollste Moment, je nach Verfügbarkeit und Jahreszeit."
+      }
+    },
+    "bring": {
+      "title": "Was Sie mitbringen sollten",
+      "items": [
+        {
+          "icon": "glasses",
+          "text": "Sonnenbrille"
+        },
+        {
+          "icon": "sun",
+          "text": "Sonnenschutz"
+        },
+        {
+          "icon": "shirt",
+          "text": "Bequeme Kleidung"
+        },
+        {
+          "icon": "shoe",
+          "text": "Geschlossene Schuhe"
+        },
+        {
+          "icon": "drop",
+          "text": "Wasser"
+        },
+        {
+          "icon": "camera",
+          "text": "Handy oder Kamera"
+        }
+      ],
+      "cool": "In kühleren Monaten: eine leichte Jacke für den späten Nachmittag oder Abend."
+    },
+    "combine": {
+      "title": "Machen Sie es zu einem Teil Ihres Sahara-Erlebnisses",
+      "text": "Während Ihres Aufenthalts bei Dunes Insolites können Sie Ihre Unterkunft mit Wüstenaktivitäten kombinieren.",
+      "cross": "Sie übernachten bei uns? Kombinieren Sie mehrere Aktivitäten vor dem Sonnenuntergang."
+    },
+    "others": {
+      "title": "Weitere Aktivitäten, die Ihnen gefallen könnten",
+      "items": {
+        "quad-desert": {
+          "title": "Quadfahren",
+          "text": "Adrenalin auf den Dünen.",
+          "photo": "quad"
+        },
+        "camel-trek": {
+          "title": "Kameltour",
+          "text": "Die Sahara in ruhigerem Tempo.",
+          "photo": "camel"
+        },
+        "sandboarding-desert": {
+          "title": "Sandboarding",
+          "text": "Mit Familie oder Freunden die Dünen hinuntergleiten.",
+          "photo": "board"
+        },
+        "4x4": {
+          "title": "4x4-Dünenerlebnis",
+          "text": "Eine Fahrt durch die Landschaften rund um das Camp.",
+          "photo": "fourx4"
+        }
+      }
+    },
+    "faqCommon": [
+      {
+        "q": "Brauche ich Vorerfahrung?",
+        "a": "Keine Vorerfahrung nötig: Das Team erklärt Ihnen alles, bevor es losgeht."
+      },
+      {
+        "q": "Können Kinder teilnehmen?",
+        "a": "Ja, nach den Anweisungen des Teams und unter Aufsicht eines Erwachsenen. Fragen Sie uns nach dem Alter Ihrer Kinder."
+      },
+      {
+        "q": "Kann ich die Aktivität auch nach der Ankunft im Camp buchen?",
+        "a": "Je nach Verfügbarkeit ja. Am einfachsten buchen Sie im Voraus oder schreiben uns."
+      },
+      {
+        "q": "Kann ich vor Ort bezahlen?",
+        "a": "Die Zahlungsbedingungen werden bei der Buchung bestätigt."
+      },
+      {
+        "q": "Ist die Aktivität jeden Tag verfügbar?",
+        "a": "Je nach Verfügbarkeit und Tagesbedingungen. Bitte bei der Buchung prüfen."
+      },
+      {
+        "q": "Kann ich die Aktivität bei Sonnenuntergang machen?",
+        "a": "Ja, je nach Verfügbarkeit und Jahreszeit. Es ist eine beliebte Zeit: Buchen Sie im Voraus."
+      },
+      {
+        "q": "Brauche ich besondere Kleidung?",
+        "a": "Bequeme Kleidung und geschlossene Schuhe genügen. Siehe die Liste „Was Sie mitbringen sollten“."
+      },
+      {
+        "q": "Ist die Aktivität privat oder in der Gruppe?",
+        "a": "Fragen Sie uns bei der Buchung: Wir bestätigen, welche Option für Ihre Daten möglich ist."
+      }
+    ],
+    "types": {
+      "quad-desert": {
+        "eyebrow": "Quadfahren in der Sahara",
+        "h1": "Quadfahren in der Sahara",
+        "tagline": "Fahren Sie über die Dünen und entdecken Sie die Wüste aus einer ganz anderen Perspektive.",
+        "highlights": [
+          "Dünen der Sahara",
+          "Verschiedene Dauern zur Auswahl",
+          "Direkt ab dem Camp verfügbar",
+          "Für Anfänger geeignet"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "1 Std. / 2 Std. / halber Tag / ganzer Tag"
+          },
+          {
+            "icon": "pin",
+            "label": "Abfahrt ab Dunes Insolites"
+          },
+          {
+            "icon": "dune",
+            "label": "Wüstendünen"
+          },
+          {
+            "icon": "helmet",
+            "label": "Sicherheitsausrüstung wird gestellt"
+          },
+          {
+            "icon": "users",
+            "label": "Einzeln oder in der Gruppe"
+          },
+          {
+            "icon": "sun",
+            "label": "Option bei Sonnenuntergang verfügbar"
+          }
+        ],
+        "about": [
+          "Lassen Sie das Camp hinter sich und fahren Sie durch die Sandlandschaften rund um Dunes Insolites. Das Quad-Erlebnis ist ideal für Reisende, die mehr Adrenalin und eine dynamische Art suchen, die Sahara zu erkunden.",
+          "Je nachdem, wie viel Zeit Sie in der Wüste verbringen möchten, stehen verschiedene Dauern zur Verfügung."
+        ],
+        "optionsTitle": "Wählen Sie Ihre Tour",
+        "options": [
+          {
+            "name": "1 Stunde",
+            "price": "80 TND",
+            "text": "Perfekt für die erste Fahrt in der Wüste."
+          },
+          {
+            "name": "2 Stunden",
+            "price": "160 TND",
+            "text": "Mehr Zeit, um die Dünen zu erkunden."
+          },
+          {
+            "name": "Halber Tag",
+            "price": "250 TND",
+            "text": "Ein längeres Sahara-Abenteuer."
+          },
+          {
+            "name": "Ganzer Tag",
+            "price": "350 TND",
+            "text": "Für Reisende, die ein umfassenderes Wüstenerlebnis wünschen."
+          }
+        ],
+        "optionCta": "Diese Tour wählen",
+        "steps": [
+          "Lernen Sie Ihr Aktivitätenteam kennen",
+          "Sicherheitseinweisung",
+          "Helm und Ausrüstung vorbereiten",
+          "Ihre Quadtour beginnt",
+          "Die umliegenden Dünen erkunden",
+          "Fotostopp",
+          "Rückkehr zum Camp Dunes Insolites"
+        ],
+        "bestNote": "Fahrten bei Sonnenuntergang gehören zu unseren gefragtesten Ausflügen: ein Premium-Erlebnis.",
+        "forWhom": [
+          "Abenteuerlustige",
+          "Paare",
+          "Freunde",
+          "Gruppen",
+          "Reisende auf der Suche nach Adrenalin"
+        ],
+        "safety": [
+          "Sicherheitshinweise erhalten Sie vor der Abfahrt.",
+          "Helme werden gestellt.",
+          "Befolgen Sie während der Aktivität die Anweisungen des Guides.",
+          "Bequeme geschlossene Schuhe werden empfohlen.",
+          "Sonnenbrille und Sonnenschutz werden empfohlen.",
+          "Die Aktivität kann je nach Wetter oder betrieblichen Bedingungen angepasst werden."
+        ],
+        "faq": [
+          {
+            "q": "Können zwei Personen auf demselben Quad fahren?",
+            "a": "Fragen Sie uns bei der Buchung: Das Team bestätigt, was möglich ist."
+          },
+          {
+            "q": "Was passiert, wenn das Wetter nicht geeignet ist?",
+            "a": "Die Aktivität kann je nach Wetter und betrieblichen Bedingungen angepasst oder verschoben werden."
+          }
+        ],
+        "final": {
+          "title": "Bereit, die Sahara zu erfahren?",
+          "text": "Bringen Sie etwas Adrenalin in Ihren Aufenthalt bei Dunes Insolites.",
+          "cta": "Ihr Quad-Erlebnis buchen"
+        },
+        "hero": {
+          "cta": "Ihre Quadtour buchen"
+        },
+        "sticky": "Quad buchen"
+      },
+      "camel-trek": {
+        "eyebrow": "Kameltour bei Dunes Insolites",
+        "h1": "Kameltour bei Dunes Insolites",
+        "tagline": "Erleben Sie die Sahara in ruhigerem Tempo und genießen Sie die zeitlose Atmosphäre der Wüste.",
+        "highlights": [
+          "Traditionelles Wüstenerlebnis",
+          "Ritt von etwa 1 Stunde",
+          "Wunderschöne Dünenlandschaften",
+          "Perfekt um den Sonnenuntergang"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Etwa 1 Stunde"
+          },
+          {
+            "icon": "pin",
+            "label": "Ab dem Camp"
+          },
+          {
+            "icon": "camel",
+            "label": "Geführte Kameltour"
+          },
+          {
+            "icon": "users",
+            "label": "Für Familien geeignet"
+          },
+          {
+            "icon": "sun",
+            "label": "Ideal um den Sonnenuntergang"
+          }
+        ],
+        "about": [
+          "Entdecken Sie die Sahara auf eine ihrer traditionellsten Arten. Die Kameltour führt Sie durch die Dünen rund um das Camp und bietet einen ruhigen Moment, um Landschaft, Stille und Wüstenatmosphäre zu genießen.",
+          "Besonders schön ist sie um den Sonnenuntergang."
+        ],
+        "optionsTitle": "Ihre Tour",
+        "options": [
+          {
+            "name": "Kameltour von 1 Stunde",
+            "price": "50 TND",
+            "text": "Eine geführte Tour durch die Dünen rund um das Camp."
+          }
+        ],
+        "optionCta": "Diese Tour buchen",
+        "steps": [
+          "Lernen Sie Ihren Kameltreiber kennen",
+          "Kennenlernen Ihres Kamels",
+          "Start der Tour im Camp",
+          "Durch die nahen Dünen ziehen",
+          "Die Landschaft der Sahara genießen",
+          "Optionaler Fotostopp bei Sonnenuntergang",
+          "Rückkehr zum Camp"
+        ],
+        "bestNote": "Der Sonnenuntergang ist einer der beliebtesten Momente für die Kameltour.",
+        "forWhom": [
+          "Paare",
+          "Familien",
+          "Erstbesucher der Sahara",
+          "Fotografen",
+          "Reisende, die ein authentisches Erlebnis suchen"
+        ],
+        "safety": [
+          "Die Aktivität wird von einheimischen Kameltreibern begleitet.",
+          "Bequeme Kleidung wird empfohlen.",
+          "Geschlossene Schuhe sind vorzuziehen.",
+          "Befolgen Sie beim Auf- und Absteigen die Anweisungen des Guides.",
+          "Die Dauer kann je nach Bedingungen leicht variieren."
+        ],
+        "faq": [
+          {
+            "q": "Wie lange dauert der Ritt?",
+            "a": "Etwa 1 Stunde. Die Dauer kann je nach Bedingungen leicht variieren."
+          },
+          {
+            "q": "Ist die Kameltour für Kinder geeignet?",
+            "a": "Sie eignet sich für Familien. Fragen Sie uns bei der Buchung nach dem Alter Ihrer Kinder."
+          }
+        ],
+        "final": {
+          "title": "Entdecken Sie die Sahara in einem anderen Rhythmus",
+          "text": "Reiten Sie durch die Dünen und erleben Sie eine der ikonischsten Traditionen der Wüste.",
+          "cta": "Ihre Kameltour buchen"
+        },
+        "hero": {
+          "cta": "Ihre Kameltour buchen"
+        },
+        "sticky": "Kameltour buchen"
+      },
+      "sandboarding-desert": {
+        "eyebrow": "Sandboarding in der Sahara",
+        "h1": "Sandboarding in der Sahara",
+        "tagline": "Steigen Sie auf die Dünen, schnappen Sie sich Ihr Board und genießen Sie eines der unterhaltsamsten Erlebnisse im Camp.",
+        "highlights": [
+          "Leicht auszuprobieren",
+          "Ideal für Familien und Freunde",
+          "Direkt auf den Dünen",
+          "Keine Vorerfahrung nötig"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Flexible Dauer"
+          },
+          {
+            "icon": "pin",
+            "label": "Direkt auf den Dünen"
+          },
+          {
+            "icon": "board",
+            "label": "Board wird gestellt"
+          },
+          {
+            "icon": "users",
+            "label": "Familienfreundlich"
+          },
+          {
+            "icon": "star",
+            "label": "Anfängerfreundlich"
+          }
+        ],
+        "about": [
+          "Eine einfache, unterhaltsame und unvergessliche Aktivität für alle Altersgruppen. Steigen Sie die Dünen hinauf, nehmen Sie Ihr Board und gleiten Sie über den weichen Sand der Sahara hinunter.",
+          "Keine Vorerfahrung erforderlich."
+        ],
+        "optionsTitle": "Ihre Aktivität",
+        "options": [
+          {
+            "name": "Sandboarding",
+            "price": "",
+            "text": "Für Campgäste gegebenenfalls inklusive. Verfügbarkeit im Camp prüfen."
+          }
+        ],
+        "optionCta": "Fragen Sie uns",
+        "steps": [
+          "Board abholen",
+          "Zu den nahen Dünen laufen",
+          "Kurze Erklärung",
+          "Ihre Düne wählen",
+          "Hinuntergleiten",
+          "So oft wiederholen, wie Sie möchten"
+        ],
+        "bestNote": "Wir empfehlen den Morgen oder den späten Nachmittag, wenn der Sand angenehmer ist.",
+        "forWhom": [
+          "Familien",
+          "Freunde",
+          "Kinder",
+          "Abenteuerreisende",
+          "Alle, die eine unterhaltsame Wüstenaktivität suchen"
+        ],
+        "safety": [
+          "Keine Vorerfahrung erforderlich.",
+          "Boards werden gestellt.",
+          "Befolgen Sie die Anweisungen des Personals.",
+          "Kinder sollten beaufsichtigt werden.",
+          "Vermeiden Sie die Aktivität möglichst in der extremen Mittagshitze."
+        ],
+        "faq": [
+          {
+            "q": "Ist Sandboarding schwierig?",
+            "a": "Nein, es ist leicht auszuprobieren und erfordert keine Vorerfahrung."
+          },
+          {
+            "q": "Wird das Board gestellt?",
+            "a": "Ja, die Boards werden gestellt."
+          }
+        ],
+        "final": {
+          "title": "Bereit, die Dünen hinunterzugleiten?",
+          "text": "Ein einfaches und unterhaltsames Sahara-Erlebnis für die ganze Familie.",
+          "cta": "Sandboarding ausprobieren"
+        },
+        "hero": {
+          "cta": "Sandboarding entdecken"
+        },
+        "sticky": "Fragen Sie uns"
+      },
+      "default": {
+        "eyebrow": "Campaktivität",
+        "h1": "",
+        "tagline": "",
+        "highlights": [
+          "In der Wüste",
+          "Ab dem Camp",
+          "Geleitet von unserem Team",
+          "Teil Ihres Aufenthalts"
+        ],
+        "quick": [
+          {
+            "icon": "pin",
+            "label": "Ab dem Camp"
+          },
+          {
+            "icon": "users",
+            "label": "Einzeln oder in der Gruppe"
+          }
+        ],
+        "about": [],
+        "optionsTitle": "Ihre Aktivität",
+        "options": [],
+        "optionCta": "Buchen",
+        "steps": [],
+        "bestNote": "",
+        "forWhom": [
+          "Paare",
+          "Familien",
+          "Freunde"
+        ],
+        "safety": [
+          "Befolgen Sie die Anweisungen des Teams.",
+          "Die Aktivität kann je nach Wetter oder betrieblichen Bedingungen angepasst werden."
+        ],
+        "faq": [],
+        "final": {
+          "title": "Bereit, die Sahara zu erleben?",
+          "text": "Ergänzen Sie Ihren Aufenthalt bei Dunes Insolites um eine Aktivität.",
+          "cta": "Diese Aktivität buchen"
+        },
+        "hero": {
+          "cta": "Diese Aktivität buchen"
+        },
+        "sticky": "Buchen"
+      }
+    }
+  },
+  "favorites": {
+    "eyebrow": "Ihre Favoriten",
+    "title": "Meine Favoriten",
+    "lead": "Die Rundreisen, Aufenthalte und Aktivitäten, die Sie gespeichert haben.",
+    "accountLead": "Die Rundreisen, Aufenthalte und Aktivitäten, die Sie gespeichert haben. Sie folgen Ihnen auf allen Ihren Geräten.",
+    "linkLabel": "Favoriten",
+    "linkWithCount": "Favoriten ({count})",
+    "guestNote": "Ihre Favoriten werden auf diesem Gerät gespeichert. Melden Sie sich an, um sie in Ihrem Konto auf allen Geräten zu finden.",
+    "logIn": "Anmelden",
+    "empty": "Sie haben noch keine Favoriten. Tippen Sie auf das Herz einer Karte, um sie hier zu speichern.",
+    "browseStays": "Unterkünfte ansehen",
+    "browseActivities": "Aktivitäten ansehen",
+    "browseCircuits": "Rundreisen ansehen",
+    "count": "{count, plural, one {# Favorit} other {# Favoriten}}",
+    "fromPrice": "Ab {price}",
+    "kind": {
+      "tour": "Rundreise",
+      "stay": "Aufenthalt",
+      "activity": "Aktivität"
+    }
+  },
+  "guideDjerbaTataouine": {
+    "eyebrow": "Belegter Routenführer",
+    "title": "Von Djerba nach Tataouine und Chenini",
+    "lead": "Eine Route durch Inselerbe, befestigte Speicher und Siedlungen auf Hügelkuppen – mit Hintergrund von der UNESCO und dem offiziellen Tourismusportal Tunesiens.",
+    "contextHeading": "Was diese Route verbindet",
+    "contextP1": "Djerba ist mehr als ein Ausgangspunkt für den Strand. Die UNESCO hat die Insel 2023 für ein verstreutes Siedlungssystem eingetragen, das von Wasserknappheit, Selbstversorgung und dem Zusammenleben der Gemeinschaften geprägt ist. Menzels, ländliche Moscheen, Marktviertel und ein Netz kleiner Straßen gehören zu dieser weiteren Landschaft.",
+    "contextP2": "Südwestlich der Insel verändert sich das Gelände rund um Medenine und Tataouine. Das offizielle tunesische Tourismusportal beschreibt eine Region mit felsigen Hochebenen, Dörfern auf Bergrücken und Ksour: befestigten Gemeinschaftsspeichern, deren einzelne Lagerkammern Ghorfas heißen.",
+    "routeHeading": "Tataouine, Chenini und die Ksour",
+    "routeP1": "Tataouine ist eher ein praktisches Tor als die ganze Geschichte. Chenini und Douiret zeigen, wie Siedlungen auf hohem Gelände lagen und teils in den Fels gehauene Wohnungen nutzten. Ksour wie Ouled Soltane und Haddada zeigen eine andere Form: Reihen von Ghorfas rund um einen Hof zur Lagerung der Ernte.",
+    "routeP2": "Behandeln Sie diese Orte als bewohntes Erbe, nicht als Kulisse. Kleiden Sie sich fürs Wandern, fragen Sie, bevor Sie Menschen fotografieren, nutzen Sie lokale Guides, wo Erklärungen wichtig sind, und nehmen Sie sich Zeit für Architektur, Handwerk und die Wassersysteme, die die Besiedlung erst möglich machten.",
+    "practicalHeading": "Den Tag verantwortungsvoll planen",
+    "practicalP1": "Laut offiziellen Tourismusinformationen liegt Tataouine etwa 140 km auf asphaltierter Straße vom Flughafen Djerba entfernt. Die tatsächliche Fahrzeit hängt von Ihrem Startpunkt, Ihren Stopps und dem Straßenzustand ab; eine Rundreise sollte daher ihre eigene Abfahrtszeit nennen, statt eine allgemeingültige Dauer zu versprechen.",
+    "practicalP2": "Prüfen Sie vor der Abreise die aktuellen Reisehinweise der Regierung und die Versicherungsbedingungen. Die Hinweise für den Süden und die Grenzgebiete ändern sich mit der Zeit. Bleiben Sie auf der bestätigten Route und verlängern Sie einen Kulturausflug niemals auf eigene Faust in abgelegenes Grenzgebiet.",
+    "sourcesHeading": "Verwendete Quellen"
+  },
+  "guideSabriaDouz": {
+    "eyebrow": "Regionaler Reiseführer",
+    "title": "Sabria, Douz und Chott el-Jerid",
+    "lead": "Wie Dünen, Oasendörfer und Salzlandschaft in der Region Kébili zusammenpassen.",
+    "contextHeading": "Zwischen Sand, Palmen und Salz",
+    "contextP1": "Das offizielle Tourismusportal Tunesiens verortet Sabria, Nouil und El Faouar zwischen der Sandwüste und dem Chott el-Jerid. Das ist wichtig: Die Region ist kein einheitliches Dünenmeer, sondern eine Begegnung von Oasenlandwirtschaft, Sanddörfern, Salzflächen und dem Großen Östlichen Erg.",
+    "contextP2": "Douz ist das bekannteste Tor, während Sabria direkten Kontakt zu den Dünen und zum Campleben bietet. Der Chott el-Jerid ist ein größtenteils ausgetrocknetes Salzbecken, das eine asphaltierte Straße quert; seine Blendung und Luftspiegelungen gehören zur Landschaft, doch die Kruste sollte nicht als frei befahrbare Fläche behandelt werden.",
+    "routeHeading": "Was sich ohne Hektik kombinieren lässt",
+    "routeP1": "Eine gute Route gibt jeder Landschaft ihre eigene Zeit: die Palmenhaine und die Marktkultur rund um Douz, ein geführtes Dünenerlebnis bei Sabria und eine Überquerung oder ein Aussichtspunkt über den Chott el-Jerid bei Tageslicht. Längere Reisen können weiter in Richtung der Oasenlandschaft von Tozeur führen, statt jeden Halt in einen Tag zu pressen.",
+    "routeP2": "Das offizielle Portal nennt den Winter als hervorragende Jahreszeit für Saharaerkundungen und den Herbst als weitere geeignete Zeit. Der Sommer wird vor allem für Tunesiens Küste beworben. In der Wüste zählen Tageszeit, Schatten, Wind und Temperatur mehr als eine pauschale Monatsangabe.",
+    "practicalHeading": "Wetter, Guides und Routengrenzen",
+    "practicalP1": "Das Klimaprofil Tunesiens der Weltbank dokumentiert die starke Hitzebelastung des Landes und regionale Unterschiede. Nutzen Sie eine aktuelle lokale Vorhersage, führen Sie Wasser und Sonnenschutz mit und akzeptieren Sie Änderungen bei Route oder Zeiten, die wegen der Wetterbedingungen vorgenommen werden.",
+    "practicalP2": "Eine Reise in die abgelegene Wüste ist etwas anderes, als ein etabliertes Camp auf der Straße zu erreichen. Nutzen Sie den gebuchten Guide und die bestätigte Route, prüfen Sie die aktuellen offiziellen Reisehinweise und nehmen Sie nie an, dass eine sichtbare Piste öffentlich, sicher oder außerhalb einer Sperrzone ist.",
+    "sourcesHeading": "Verwendete Quellen"
+  },
+  "guideDunesCamp": {
+    "eyebrow": "Führer von Dunes Insolites",
+    "title": "Eine Nacht bei Dunes Insolites in Sabria",
+    "lead": "Was das Camp ist, wie Sie es erreichen und was Sie erwartet, bevor Sie eine Buchungsanfrage senden.",
+    "contextHeading": "Ein Camp neben den Dünen, kein anonymes Hotel",
+    "contextP1": "Dunes Insolites liegt in Sabria in der Region Kébili, laut der offiziellen Vorstellung des Camps etwa 30 km von Douz entfernt. Seine Identität beruht auf dem direkten Zugang zur Wüste, lokaler Gastfreundschaft und Unterkünften, die die Atmosphäre eines Sahara-Camps bewahren und zugleich das Wesentliche an Einrichtungen bieten.",
+    "contextP2": "Die öffentliche Vorstellung nennt möblierte Zelte, warme Duschen, ein Café und Restaurant sowie ein Team vor Ort. Der aktuelle Buchungskatalog kann zudem Zelte, Zimmer und Suiten unterscheiden. Verfügbarkeit und genaue Einrichtungen jeder Option sollten stets von der aktuellen Buchungsseite stammen und nicht aus einer alten Werbebeschreibung.",
+    "routeHeading": "Von der Ankunft bis zum Frühstück",
+    "routeP1": "Ein typischer Aufenthalt beginnt mit den Ankunftshinweisen und dem Einrichten, gefolgt von Zeit in den Dünen rund um den Sonnenuntergang. Abendessen, Minztee, Wüstenbrot und ein Abend im Camp bilden das Kernerlebnis, das Dunes Insolites beschreibt; Frühstück und Abreise folgen am nächsten Morgen, wenn sie in der gewählten Formel enthalten sind.",
+    "routeP2": "Das Camp gibt an, unter normalen Bedingungen mit einem Familienauto erreichbar zu sein. Das heißt nicht, dass jede sichtbare Piste geeignet ist. Nutzen Sie den bestätigten GPS-Punkt und die bestätigte Anfahrt, halten Sie WhatsApp bereit und kontaktieren Sie das Team, statt eine andere Route zu wählen, wenn Wind oder Sand die Zufahrt verändert haben.",
+    "practicalHeading": "Das passende Komfortniveau wählen",
+    "practicalP1": "Wählen Sie das feste Camp, wenn Toiletten, Duschen und eine klar definierte Unterkunftskategorie am wichtigsten sind. Wählen Sie ein Biwak, wenn das konkrete Angebot eine einfachere Nacht weiter in den Dünen beschreibt und diese geringere Infrastruktur zu dem gehört, was Sie möchten.",
+    "practicalP2": "Geben Sie vor der Bestätigung Gruppengröße, Alter der Kinder, Ernährungs- oder medizinische Bedürfnisse, Transportwahl und gewünschte Aktivitäten an. So können Server und lokales Team einen stimmigen Aufenthalt prüfen, statt Unterkunft, Abholung und Aktivitäten als voneinander unabhängige Käufe zu behandeln.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideDunesExperience": {
+    "eyebrow": "Ihren Aufenthalt zusammenstellen",
+    "title": "Aktivitäten, Mahlzeiten und Abende bei Dunes Insolites",
+    "lead": "Wie Sie einen Aufenthalt rund um das Camp zusammenstellen, ohne alle Wüstenaktivitäten in einen Abend zu pressen.",
+    "contextHeading": "Das Camp ist die Basis des Erlebnisses",
+    "contextP1": "Dunes Insolites stellt seine Aktivitäten als Ergänzungen zu einem Wüstenaufenthalt dar: Kamel- oder Pferdeausflüge, Quad, Sandboarding, Sonnenuntergangsfotografie, Mahlzeiten und Biwaks. Es geht nicht darum, alles abzuhaken, sondern ein Tempo zu wählen, das Zeit für die Dünen und das Camp selbst lässt.",
+    "contextP2": "Das Essen gehört zu diesem Rhythmus. Die offizielle Website hebt die regionale Küche, Minztee und Brot hervor, das in heißem Sand und Glut gebacken wird. Die gewählten Formeln bestimmen, ob Abendessen, Frühstück oder eine andere Mahlzeit enthalten ist; die Buchungsübersicht bleibt daher die maßgebliche Referenz.",
+    "routeHeading": "Ein ausgewogenes Programm",
+    "routeP1": "Für eine einzelne Nacht ist eine Hauptaktivität vor dem Sonnenuntergang meist klarer als mehrere Abfahrten hintereinander. Eine ruhige Kameltour, eine geführte Quadfahrt oder Sandboarding schaffen jeweils ein anderes Erlebnis; Rückkehrzeit, Tageslicht und Wetter müssen mit Abendessen und Einrichten vereinbar bleiben.",
+    "routeP2": "Ein längerer Aufenthalt kann aktive und ruhige Momente trennen: eine Aktivität bei Sonnenuntergang, einen ganzen Campabend und dann am nächsten Morgen einen weiteren Ausflug oder eine Biwak-Verlängerung. Private Gruppen und Veranstaltungen sollten direkt geplant werden, da Transport, Guides, Mahlzeiten und Kapazität gemeinsam abgestimmt werden müssen.",
+    "practicalHeading": "Was Sie bei der Buchung angeben sollten",
+    "practicalP1": "Nennen Sie das tatsächliche Alter und die Zahl der Reisenden, Ihre Anreiseart, die bevorzugte Aktivität, Ernährungsbedürfnisse und alle für die Teilnahme relevanten Mobilitäts- oder medizinischen Angaben. Guide- und Transportauswahl werden gemeinsam geprüft, damit sich widersprechende Optionen nicht angenommen werden.",
+    "practicalP2": "Preise und Verfügbarkeit können je nach Datum, Preiseinheit und Gruppengröße variieren. Die Website berechnet die gewählten Leistungen auf dem Server neu; ein Screenshot, eine alte Werbeseite oder eine manuell eingetippte Summe ist nie der endgültige Buchungspreis.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideBivouacCamp": {
+    "eyebrow": "Ihre Nacht wählen",
+    "title": "Biwak oder etabliertes Camp in Sabria?",
+    "lead": "Zwei Arten, in der Wüste zu schlafen, mit sehr unterschiedlichem Komfort und unterschiedlicher Intensität.",
+    "contextHeading": "Das etablierte Camp: eine ausgestattete Basis",
+    "contextP1": "Dunes Insolites ist ein festes Camp in Sabria. Die öffentlichen Informationen nennen ausgestattete Zelte, Toiletten, warme Duschen, Strom und ein Team vor Ort. Das ist oft die einfachere Wahl für eine erste Wüstennacht, für Familien oder alle, die praktische Einrichtungen in der Nähe wünschen.",
+    "contextP2": "Auch eine Nacht im Camp enthält die wesentlichen Momente: Dünenlicht, Abendessen, Feuer, Nachthimmel und Aufwachen in der Wüste. Der genaue Komfort hängt von der gebuchten Kategorie ab; prüfen Sie daher die Unterkunftsseite, statt sich auf eine allgemeine Beschreibung zu verlassen.",
+    "routeHeading": "Das Biwak: weiter in die Dünen hinein",
+    "routeP1": "Das offizielle Biwak startet mit einem Guide vom Camp aus und verbindet dann die Fahrt durch die Dünen, ein temporäres Lager, eine Mahlzeit und eine Übernachtung. Es setzt auf Ruhe und Abgeschiedenheit, mit naturgemäß einfacherer Infrastruktur als das feste Camp.",
+    "routeP2": "Entscheiden Sie nicht allein anhand eines Fotos. Fragen Sie, wie Sie reisen, welche Ausrüstung gestellt wird, welche Toilettenlösungen es gibt, ob Essen und Getränke enthalten sind und welche Alternative geplant ist, falls das Wetter eine Änderung erfordert.",
+    "practicalHeading": "Drei Fragen, die die Entscheidung erleichtern",
+    "practicalP1": "Wählen Sie das Camp, wenn Dusche, nahe Toiletten, ein definiertes Zimmer oder eine einfache Straßenanbindung am wichtigsten sind. Wählen Sie das Biwak, wenn Sie weniger Einrichtungen zugunsten von mehr geführter Zeit abseits des etablierten Camps akzeptieren.",
+    "practicalP2": "Erwähnen Sie vor der Bestätigung Kinder, Mobilität, Allergien, Medikamente, Strombedarf und Empfindlichkeit gegenüber Hitze oder Kälte. Das Team kann dann ein passendes Format empfehlen, statt eine Option zu bestätigen, die nicht passt.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideBedouinDinner": {
+    "eyebrow": "Campküche",
+    "title": "Beduinen-Abendessen und Sandbrot in Sabria",
+    "lead": "Was eine Mahlzeit im Camp zu einem vollständigen Wüstenabend macht.",
+    "contextHeading": "Die Mahlzeit folgt dem wechselnden Licht",
+    "contextP1": "Dunes Insolites beschreibt sein Abendessen als Abfolge aus Empfang, Sonnenuntergang, Brotzubereitung, einer Mahlzeit unter Zeltbahnen, Musik und Lagerfeuer. Es ist also ein Abenderlebnis, nicht bloß ein Restauranttisch, der in den Sand gestellt wurde.",
+    "contextP2": "Die offiziellen Seiten erwähnen tunesische Gerichte, Minztee, Feuerküche und Sandbrot. Das Menü kann vom gewählten Paket und der Gruppe abhängen; die Buchungsbestätigung, nicht eine ältere Werbeseite, legt fest, was an Ihrem Datum enthalten ist.",
+    "routeHeading": "Warum Sandbrot wichtig ist",
+    "routeP1": "Die Brotzubereitung verbindet das Kochen mit der Landschaft: Teig, Glut und heißer Sand werden vor dem Essen zu einer gemeinsamen Vorführung. Die Technik zu sehen und ihre Erklärung zu hören, gibt dem Ganzen mehr Bedeutung, als es nur als Fotokulisse zu betrachten.",
+    "routeP2": "Nach dem Abendessen können Feuer und Musik den Abend verlängern. Halten Sie warme Kleidung bereit, denn der Komfort nach Sonnenuntergang lässt sich nicht an der Nachmittagstemperatur ablesen.",
+    "practicalHeading": "Allergien, Diäten und Buchungsangaben",
+    "practicalP1": "Teilen Sie Allergien, religiöse Einschränkungen, Diäten und Bedürfnisse von Kindern vor der Bestätigung mit. Vor Ort zubereitetes Essen erfordert eine Vorankündigung; eine Bitte während des Service lässt sich womöglich nicht sicher oder angemessen erfüllen.",
+    "practicalP2": "Prüfen Sie auch, ob das Abendessen zum Übernachtungspaket gehört oder eine separate Aktivität ist und welche Getränke und welcher Transport enthalten sind. Die endgültige Übersicht sollte jedes Element klar benennen.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideChooseActivity": {
+    "eyebrow": "Aktivitäten in den Dünen",
+    "title": "Kamel, Quad oder Sandboard: Was sollten Sie wählen?",
+    "lead": "Vergleichen Sie jedes Erlebnis nach Tempo und Voraussetzungen, nicht nur nach dem Foto.",
+    "contextHeading": "Drei sehr unterschiedliche Arten, die Dünen zu lesen",
+    "contextP1": "Eine Kameltour verlangsamt das Tempo und lässt Raum, die Landschaft zu beobachten. Ein Quad legt mehr Strecke zurück und stellt Fahren und Nervenkitzel in den Mittelpunkt. Sandboarding nutzt einen ausgewählten Hang und wechselt zwischen Aufstieg, Üben und Abfahrt.",
+    "contextP2": "Diese Aktivitäten sind nicht austauschbar. Verfügbare Zeit, Fitness, Alter der Teilnehmer, Wind und Sandbedingungen können eine besser geeignet machen als die andere. Eine gut getimte Aktivität ist besser als drei gehetzte Erlebnisse.",
+    "routeHeading": "Die Aktivität zur Tageszeit passend wählen",
+    "routeP1": "Ein ruhiger Ausflug vor dem Sonnenuntergang eignet sich zum Beobachten und Fotografieren. Quadfahren verlangt die volle Aufmerksamkeit des Fahrers und folgt einer beaufsichtigten Route. Sandboarding funktioniert als spielerische Session auf geeigneten Dünen nach den Anweisungen des Guides.",
+    "routeP2": "Für eine Nacht wählen Sie in der Regel eine Hauptaktivität vor dem Abendessen. Bei einem längeren Aufenthalt trennen Sie motorisierte Aktivitäten, Wandern und ruhige Phasen, damit der Campabend ein Erlebnis für sich bleibt.",
+    "practicalHeading": "Was Sie vor der Buchung mitteilen sollten",
+    "practicalP1": "Nennen Sie Alter, Fahrerfahrung, Mobilität und relevante medizinische Einschränkungen der Teilnehmer. Fragen Sie, wer fährt, welche Ausrüstung gestellt wird, was die gebuchte Dauer tatsächlich umfasst und ob die Bedingungen eine Änderung erfordern können.",
+    "practicalP2": "Folgen Sie immer dem Guide und bleiben Sie auf der geplanten Route. Die offiziellen Seiten beschreiben organisierte Aktivitäten von Dunes Insolites; sie sind keine Erlaubnis, mit einem Fahrzeug allein auf eine beliebige sichtbare Piste zu fahren.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideFamilyStay": {
+    "eyebrow": "Wüste mit Kindern",
+    "title": "Eine Nacht in Sabria als Familie planen",
+    "lead": "Ein unkomplizierter Aufenthalt, wenn Alter, Tempo und Komfortbedürfnisse vor der Ankunft mitgeteilt werden.",
+    "contextHeading": "Mit der richtigen Unterkunft beginnen",
+    "contextP1": "Die angegebene Straßenanbindung, Toiletten und ein Team vor Ort machen das etablierte Camp für viele Familien besser in Betracht zu ziehen als ein abgelegenes Biwak. Das erfordert dennoch eine Überprüfung: Fragen Sie nach der tatsächlichen Zimmer- oder Zeltkapazität, der Bettenaufteilung und der Entfernung zu den Einrichtungen.",
+    "contextP2": "Das Alter allein bestimmt nicht die richtige Aktivität. Ein Kind mag einen kurzen Dünenausflug genießen, aber bei wiederholten Transfers müde werden. Bauen Sie das Programm um Schlaf, Mahlzeiten und Pausen herum auf, statt um eine Checkliste.",
+    "routeHeading": "Ein Familienprogramm mit Luft zum Atmen",
+    "routeP1": "Früh genug anzukommen, um sich einzurichten, eine geeignete Aktivität, Sonnenuntergang, Abendessen und die Übernachtung bilden bereits ein komplettes Erlebnis. Der Morgen kann entspannt bleiben, mit Frühstück und einem kurzen Spaziergang beim Camp vor der Abreise.",
+    "routeP2": "Sand, Sonne und Wind verändern den Komfort schnell. Führen Sie Wasser, Sonnenschutz, geschlossene Schuhe, warme Kleidung und eine kleine Lampe mit. Behalten Sie Medikamente und wichtige Dinge bei sich, statt in einem Fahrzeug, das anderswohin gefahren werden könnte.",
+    "practicalHeading": "Was das Team wissen muss",
+    "practicalP1": "Senden Sie Anzahl und Alter der Kinder, Bettenbedarf, Allergien, Essenswünsche, Mobilität und gewünschte Aktivitäten. Fragen Sie ausdrücklich nach Alters- oder Teilnahmeregeln, die am gewählten Datum gelten.",
+    "practicalP2": "Gehen Sie nicht davon aus, dass ein Familienfoto bedeutet, jede Aktivität passe für alle. Die Bestätigung des Teams sollte Unterkunft, Verpflegung, Transport und jede gewählte Aktivität getrennt abdecken.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideDesertLight": {
+    "eyebrow": "Sahara-Licht",
+    "title": "Sonnenuntergang, Sterne und Fotografie in Sabria",
+    "lead": "Genießen Sie das beste Licht der Wüste, ohne den ganzen Abend in ein Fotoshooting zu verwandeln.",
+    "contextHeading": "Kommen Sie an, bevor sich das Licht ändert",
+    "contextP1": "Dunes Insolites hebt Sonnenuntergänge und Fotografie in den Dünen hervor. Der nützlichste Rat ist logistisch: Seien Sie vor der geplanten Zeit eingerichtet und bereit, denn wer einen Aussichtspunkt erreicht, wenn die Sonne verschwindet, hat keinen Spielraum mehr.",
+    "contextP2": "Tiefstehendes Licht macht Dünenformen und Spuren im Sand sichtbar. Eine einfache Komposition, ein gerader Horizont und ein paar Minuten ohne Kamera schaffen oft bessere Erinnerungen, als ständig zwischen den Dünen umherzueilen.",
+    "routeHeading": "Von der Dämmerung zum Nachthimmel",
+    "routeP1": "Die Farben verschwinden nach dem Sonnenuntergang nicht sofort. Beobachten Sie die Dämmerung und lassen Sie dann Ihre Augen sich anpassen, bevor Sie die Sterne betrachten. Halten Sie helle Bildschirme von der Gruppe fern und nutzen Sie keinen Blitz in der Nähe von Tieren oder anderen Reisenden.",
+    "routeP2": "Stabilisieren Sie ein Handy und vermeiden Sie den digitalen Zoom. Bringen Sie mit einer Kamera einen geladenen Akku mit, schützen Sie die Ausrüstung vor Sand und wechseln Sie bei aufkommendem Wind möglichst selten das Objektiv.",
+    "practicalHeading": "Den Ort und seine Menschen respektieren",
+    "practicalP1": "Fragen Sie, bevor Sie Mitarbeitende, Guides, Künstler oder andere Gäste fotografieren. Ein Kulturabend ist kein Studio; manche Momente erlebt man besser ohne Bildschirm oder aufdringliches Licht.",
+    "practicalP2": "Zeitpunkt und Sichtbarkeit hängen von Jahreszeit und Wetter ab. Fragen Sie nach der empfohlenen Ankunftszeit an Ihrem Buchungsdatum und akzeptieren Sie, dass Wolken oder Wind den gewählten Aussichtspunkt ändern können.",
+    "sourcesHeading": "Quellen zu Dunes Insolites"
+  },
+  "guideDjerbaSabria": {
+    "eyebrow": "Zwei-Tages-Route",
+    "title": "Von Djerba nach Sabria mit einer Nacht in der Wüste",
+    "lead": "Eine stimmige Route, die Erbe des Südens, Wüstenlandschaften und einen Abend bei Dunes Insolites verbindet.",
+    "contextHeading": "Zwei Tage verlangen Entscheidungen",
+    "contextP1": "Die veröffentlichten Touren von Dunes Insolites verbinden Djerba, Matmata und Sabria mit Kulturstopps und der Ankunft im Camp spät am Tag. Zwei Tage erlauben eine sinnvolle Einführung, aber nicht jeden Ksar, jede Oase und jedes Dorf des Südens, ohne den Großteil der Reise im Fahrzeug zu verbringen.",
+    "contextP2": "Wählen Sie eine Hauptachse: Matmata und seine Landschaften oder Tataouine und die Ksour, gefolgt von der Nacht in Sabria. Die genaue Route sollte mit dem Fahrer oder Guide je nach Abfahrtsort, Jahreszeit und Öffnungszeiten bestätigt werden.",
+    "routeHeading": "Den Abend im Camp schützen",
+    "routeP1": "Am ersten Tag sollte die Ankunft früh genug erfolgen, um sich einzurichten und den Sonnenuntergang zu sehen. Ein weiterer letzter Halt, obwohl das Programm schon Verspätung hat, opfert den Moment, für den die Wüstennacht gewählt wurde.",
+    "routeP2": "Am zweiten Tag können Sie auf einer anderen Route nach Djerba zurückkehren oder einen Hauptstopp einlegen. Lassen Sie Spielraum für Frühstück, Straßenzustand und Pausen; eine Ankunftsschätzung ohne Puffer ist keine Garantie.",
+    "practicalHeading": "Transport, Guide und bestätigte Inhalte",
+    "practicalP1": "Prüfen Sie Abholort, Fahrzeugtyp, Gepäckmenge, Mahlzeiten, Eintritte und Guide-Sprache. Wenn Sie das Camp selbstständig erreichen, fragen Sie den GPS-Punkt und die späteste Ankunftszeit gesondert an.",
+    "practicalP2": "Inspirationsseiten beschreiben Beispiele. Nur Ihre Buchungsübersicht bestätigt die tatsächlich enthaltenen Stopps. Prüfen Sie vor der Abreise die aktuellen offiziellen Reisehinweise und ändern Sie die Route nicht auf eigene Faust in abgelegene Gebiete.",
+    "sourcesHeading": "Konsultierte Quellen"
   }
 }

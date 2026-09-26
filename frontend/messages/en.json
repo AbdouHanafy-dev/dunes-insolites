@@ -80,7 +80,9 @@
     "averageRating": "Average rating",
     "newRating": "New",
     "yearsSuffix": "Years",
-    "ofExperience": "Of experience"
+    "ofExperience": "Of experience",
+    "location": "Sabria · Southern Tunisia",
+    "tagline": "Where the Sahara feels endless."
   },
   "steps": {
     "eyebrow": "How it works",
@@ -2861,5 +2863,13 @@
   },
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} h} other {{rest, plural, =0 {{days, plural, one {# day} other {# days}} ({hours} h)} other {{days, plural, one {# day} other {# days}} and {rest} h ({hours} h)}}}}"
+  },
+  "a11y": {
+    "navPrimary": "Primary navigation",
+    "navMobile": "Mobile navigation",
+    "navFooter": "Footer navigation",
+    "prevReview": "Previous review",
+    "nextReview": "Next review",
+    "ctaGateAlt": "Desert gate at dusk"
   }
 }

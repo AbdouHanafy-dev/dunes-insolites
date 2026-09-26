@@ -49,7 +49,12 @@
     "follow": "Følg os",
     "privacy": "Privatliv",
     "terms": "Vilkår",
-    "location": "Sahara · Tunesien"
+    "location": "Sahara · Tunesien",
+    "info": "Information",
+    "favorites": "Mine favoritter",
+    "allCircuits": "Alle rundrejser",
+    "allAccommodation": "Alle overnatninger",
+    "allActivities": "Alle aktiviteter"
   },
   "cookieConsent": {
     "dialogLabel": "Cookie-valg",
@@ -75,7 +80,9 @@
     "averageRating": "Gennemsnitlig vurdering",
     "newRating": "Nyt",
     "yearsSuffix": "År",
-    "ofExperience": "Erfaring"
+    "ofExperience": "Erfaring",
+    "location": "Sabria · Sydtunesien",
+    "tagline": "Hvor Sahara føles uendelig."
   },
   "steps": {
     "eyebrow": "Sådan fungerer det",
@@ -767,13 +774,34 @@
     "goldenHourOnly": "Kun golden hour",
     "difficultyEasy": "Let",
     "difficultyModerate": "Moderat",
-    "difficultyAdventurous": "Eventyrlig"
+    "difficultyAdventurous": "Eventyrlig",
+    "searchLabel": "Søg",
+    "searchPlaceholder": "Søg efter en aktivitet…",
+    "sortLabel": "Sortér efter",
+    "sortDefault": "Relevans",
+    "sortPriceAsc": "Pris: lav til høj",
+    "sortPriceDesc": "Pris: høj til lav",
+    "sortDurationAsc": "Varighed: kort til lang",
+    "sortDurationDesc": "Varighed: lang til kort",
+    "noResults": "Ingen aktivitet matcher din søgning.",
+    "resetFilters": "Nulstil",
+    "ctaTitle": "Et spørgsmål før du booker?",
+    "ctaBody": "Skriv til os: Vi hjælper dig med at vælge den aktivitet, der passer til dig.",
+    "ctaLabel": "Kontakt os"
   },
   "campPage": {
     "eyebrow": "Vælg din nat",
     "titleLine1": "To måder at sove",
     "titleLine2": "i klitterne.",
-    "lead": "Den faste lejr, eller et bivuak længere ude — vælg en nat, og tilføj så kamel, quad eller sandboarding, hvis du ønsker det. Vi bekræfter tidspunkter, når du er på stedet."
+    "lead": "Den faste lejr, eller et bivuak længere ude — vælg en nat, og tilføj så kamel, quad eller sandboarding, hvis du ønsker det. Vi bekræfter tidspunkter, når du er på stedet.",
+    "searchLabel": "Søg",
+    "searchPlaceholder": "Søg efter et ophold…",
+    "sortLabel": "Sortér efter",
+    "sortDefault": "Relevans",
+    "sortPriceAsc": "Pris: lav til høj",
+    "sortPriceDesc": "Pris: høj til lav",
+    "noResults": "Intet ophold matcher din søgning.",
+    "resetFilters": "Nulstil"
   },
   "bookPage": {
     "eyebrow": "Reserver din plads",
@@ -997,7 +1025,8 @@
       "PARTENAIRE": "Partner",
       "ADMIN": "Administrator",
       "CAMPING": "Lejrpersonale"
-    }
+    },
+    "tabFavorites": "Favoritter"
   },
   "meta": {
     "about": {
@@ -1069,6 +1098,46 @@
     "circuits": {
       "title": "Flerdages Sahara-ture",
       "description": "Flerdages udflugter fra Djerba — det sydlige Tunesiens arv, nætter i nomadelejr og afslapning ved havet, med Route Insolite."
+    },
+    "guideDjerbaTataouine": {
+      "title": "Fra Djerba til Tataouine og Chenini: en praktisk rutevejledning",
+      "description": "Sådan forstår og planlægger du ruten fra Djerba til Tataouine, Chenini og Sydtunesiens ksour ud fra officielle turisme- og UNESCO-kilder."
+    },
+    "guideSabriaDouz": {
+      "title": "Sabria, Douz og Chott el-Jerid: forstå ørkenregionen",
+      "description": "En kildebaseret guide til klitterne, oaselandsbyerne og saltlandskaberne omkring Sabria og Douz i Tunesiens Kébili-region."
+    },
+    "guideDunesCamp": {
+      "title": "Dunes Insolites i Sabria: den komplette lejrguide",
+      "description": "Hvor Dunes Insolites ligger, hvordan du kommer dertil, overnatning, faciliteter og hvordan en nat i ørkenlejren i Sabria forløber."
+    },
+    "guideDunesExperience": {
+      "title": "Aktiviteter, middag og aftener hos Dunes Insolites",
+      "description": "En praktisk guide til kamelture, quadture, sandboarding, ørkenmåltider, bivuakker og aftener hos Dunes Insolites."
+    },
+    "guideBivouacCamp": {
+      "title": "Bivuak eller ørkenlejr i Sabria: hvilken nat skal du vælge?",
+      "description": "Sammenlign en nat i Dunes Insolites-lejren med en bivuak i klitterne for at vælge den rette komfort, det rette tempo og den rette fordybelse."
+    },
+    "guideBedouinDinner": {
+      "title": "Beduinmiddag og sandbrød hos Dunes Insolites",
+      "description": "Forstå en ørkenmiddag i Sabria, fra solnedgang og sandbrød til aftenen omkring bålet."
+    },
+    "guideChooseActivity": {
+      "title": "Kamel, quad eller sandboard i Sabria: hvad skal du vælge?",
+      "description": "Sammenlign tempo, anstrengelse og følelse ved kameltur, quadkørsel og sandboarding, før du planlægger dit ophold."
+    },
+    "guideFamilyStay": {
+      "title": "Planlæg et familieophold i Sabria-ørkenen",
+      "description": "Adgang, overnatning, måltider, aktiviteter og de oplysninger, du bør dele, når du arrangerer en familienat hos Dunes Insolites."
+    },
+    "guideDesertLight": {
+      "title": "Solnedgang, stjerner og fotografering i Sabria",
+      "description": "Enkle råd til at nyde klitternes lys, fotografere solnedgangen og betragte nattehimlen hos Dunes Insolites."
+    },
+    "guideDjerbaSabria": {
+      "title": "Fra Djerba til Sabria på to dage: planlæg ruten",
+      "description": "En realistisk rute gennem Djerba, Matmata og sydlige landskaber med en nat i Dunes Insolites-lejren i Sabria."
     }
   },
   "legal": {
@@ -1274,7 +1343,41 @@
     "q9": "Hvad med graviditet eller særlige mobilitetsbehov?",
     "a9": "Fortæl os det, når du booker — vi vil hellere henvise dig til den rigtige tur end afvise dig ved porten.",
     "stillQuestions": "Har du et andet spørgsmål?",
-    "contactCta": "Kontakt os →"
+    "contactCta": "Kontakt os →",
+    "catDestination": "Sådan kommer du hertil og forstår regionen",
+    "q10": "Kan jeg komme i mit eget køretøj eller anmode om en transfer?",
+    "a10": "Begge muligheder understøttes i bookingforløbet. Vælg dit eget køretøj eller en tilgængelig transportmulighed, og angiv derefter de ønskede afhentningsoplysninger. Teamet bekræfter det nøjagtige mødested eller afhentningssted før afgang.",
+    "q11": "Hvad er en ksar og en ghorfa?",
+    "a11": "En ksar er et befæstet fælles kornlager; ksour er flertal. De stablede lagerkamre kaldes ghorfaer. Omkring Tataouine og Medenine opbevarede disse bygninger høsten og var knyttet til regionens halvnomadiske liv.",
+    "q12": "Hvorfor besøge Chenini og Tataouine i stedet for blot at behandle dem som et fotostop?",
+    "a12": "Landskabet fortæller en sammenhængende historie: bosættelser på bakketoppe, huse hugget i klippen, vandforvaltningssystemer og fælles kornlagre. Chenini og det nærliggende Douiret er levende steder, så et roligere besøg med lokal forklaring er mere respektfuldt og mere lærerigt.",
+    "q13": "Er Djerba UNESCO-verdensarv?",
+    "a13": "Ja. UNESCO optog Djerba i 2023 på grund af dens særlige spredte bosættelsesmønster og den måde, samfundene har tilpasset sig et vandfattigt ømiljø på. Verdensarven er en række steder og monumenter, ikke en enkelt bygning.",
+    "q14": "Hvornår er den bedste årstid for den tunesiske Sahara?",
+    "a14": "Tunesiens officielle turismeportal fremhæver vinteren som den ideelle årstid til at udforske Sahara og efteråret som velegnet til ørkenrejser. Forholdene varierer fra dag til dag, så tjek vejrudsigten og følg driftsteamets beslutninger om tidspunkter og vejr.",
+    "q15": "Skal jeg tjekke officielle rejsevejledninger før en tur til det sydlige Tunesien?",
+    "a15": "Ja. Vejledninger og forbudte zoner kan ændre sig. Tjek de aktuelle råd for dit statsborgerskab, sørg for, at din forsikring dækker den planlagte rute og de planlagte aktiviteter, og rejs aldrig på egen hånd ind i grænse- eller militærzoner.",
+    "catCamp": "Dunes Insolites-lejren",
+    "q16": "Hvor ligger Dunes Insolites helt præcist?",
+    "a16": "Lejren ligger i Sabria i Tunesiens Kébili-guvernement, ifølge Dunes Insolites' officielle præsentation cirka 30 km fra Douz. Det præcise GPS-punkt og ankomstvejledningen bekræftes for din booking.",
+    "q17": "Kan en almindelig familiebil nå lejren?",
+    "a17": "Lejrens officielle oplysninger siger, at den er tilgængelig med familiebil under normale forhold. Følg kun den bekræftede tilkørsel, og kontakt teamet, hvis vejr eller sand har ændret sporet; find ikke på en anden rute.",
+    "q18": "Er der brusere og toiletter i lejren?",
+    "a18": "Ja. Lejrens officielle præsentation nævner brusere på stedet, også med varmt vand, ved siden af teltovernatningerne. De præcise faciliteter ved din valgte overnatning vises under bookingen og bekræftes af teamet.",
+    "q19": "Hvilke slags nætter kan jeg booke?",
+    "a19": "Kataloget skelner mellem den faste lejr og en enklere bivuak dybere ude i ørkenen. I den faste lejr kan overnatningerne omfatte et traditionelt telt, et værelse eller en suite afhængigt af tilgængelighed.",
+    "q20": "Hvilken mad er en del af oplevelsen hos Dunes Insolites?",
+    "a20": "Lejren serverer traditionelle måltider lavet af regionale produkter, mynte-te og ørkenbrød bagt i varmt sand og gløder. Dit valgte ophold angiver, hvad der er inkluderet; kostbehov bør oplyses før bekræftelse.",
+    "q21": "Hvilke aktiviteter kan tilføjes hos Dunes Insolites?",
+    "a21": "Lejrens offentlige oplysninger og det aktuelle katalog omfatter kameludflugter, quadture, sandboarding, hesteoplevelser, solnedgangsfotografering og ørkenbivuakker. Kun aktiviteter, der faktisk er tilgængelige på din dato, vises eller bekræftes til booking.",
+    "q22": "Hvad er forskellen mellem den faste lejr og en bivuak?",
+    "a22": "Den faste lejr prioriterer etablerede overnatninger og faciliteter. En bivuak er en enklere, mere mobil nat længere inde i klitterne. Vælg efter komfortniveau, rejsetid og det program, der er beskrevet på den enkelte opholdsside.",
+    "q23": "Kan familier, private grupper eller arrangementer tages imod?",
+    "a23": "Dunes Insolites tilbyder offentligt gruppeaktiviteter og arrangementer, mens bookingsystemet registrerer gruppestørrelse og særlige ønsker. Send gruppens aldre, datoer og behov før bekræftelse, så teamet kan foreslå et passende program i stedet for at antage, at enhver aktivitet passer til alle.",
+    "q24": "Hvad sker der, efter jeg har sendt en bookingforespørgsel?",
+    "a24": "Hjemmesiden trækker ikke penge med det samme. Forespørgslen tjekkes mod tilgængelighed og de valgte ydelser; det lokale team bekræfter derefter programmet, ankomst- eller afhentningsoplysninger og næste betalingstrin pr. e-mail eller WhatsApp.",
+    "sourcesHeading": "Kilderne bag disse svar om destinationen",
+    "sourcesNote": "Driftssvar stammer fra bookingreglerne. Svar om destination og kulturarv er kontrolleret mod følgende primære kilder."
   },
   "guidesPage": {
     "eyebrow": "Ørkenguider",
@@ -1343,7 +1446,8 @@
   "activitiesSection": {
     "eyebrow": "Feltguide",
     "lead": "Fra en kamels langsomme gang i den gyldne time til larmen fra en quad over klitterne — hver tur i Sabria ender på samme måde, med udsigt til solen, der forsvinder bag Sahara.",
-    "fromPrice": "Fra {price}"
+    "fromPrice": "Fra {price}",
+    "included": "Included for camp guests"
   },
   "circuitsSection": {
     "eyebrow": "Route Insolite",
@@ -1376,5 +1480,1396 @@
   },
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} t} other {{rest, plural, =0 {{days, plural, one {# dag} other {# dage}} ({hours} t)} other {{days, plural, one {# dag} other {# dage}} og {rest} t ({hours} t)}}}}"
+  },
+  "a11y": {
+    "navPrimary": "Hovednavigation",
+    "navMobile": "Mobilnavigation",
+    "navFooter": "Sidefodsnavigation",
+    "prevReview": "Forrige anmeldelse",
+    "nextReview": "Næste anmeldelse",
+    "ctaGateAlt": "Ørkenporten i tusmørket"
+  },
+  "aboutPage": {
+    "hero": {
+      "eyebrow": "Hvem vi er",
+      "title": "Dunes Insolites – En autentisk oplevelse i hjertet af den tunesiske Sahara",
+      "lead": "En lejr nær Sabria, omgivet af det sydlige Tunesiens ørkenlandskaber, hvor opdagelse, traditioner, gæstfrihed og komfort mødes.",
+      "cta": "Oplev lejren"
+    },
+    "story": {
+      "eyebrow": "Vores historie",
+      "title": "Et eventyr født af vores passion for ørkenen",
+      "p1": "Dunes Insolites er et lokalt projekt, skabt for at hjælpe rejsende med at opleve den tunesiske Sahara på en anden måde: uden hast og tæt på de mennesker, der bor her.",
+      "p2": "Lejren er meget mere end et sted at sove. Det er et sted at mødes og dele, at lære Sydens traditioner at kende, at finde tilbage til ørkenens stilhed – og hvor hver rejsende byder velkommen som gæst.",
+      "cta": "Se overnatningerne",
+      "photoAlt": "Dunes Insolites-lejren ved solnedgang"
+    },
+    "experience": {
+      "eyebrow": "Oplevelsen",
+      "title": "En oplevelse, ikke bare en nat",
+      "items": [
+        {
+          "title": "Sov i ørkenen",
+          "text": "Autentiske overnatninger og flere komfortniveauer, så du kan sove i ro mellem klitterne.",
+          "cta": "Vores overnatninger",
+          "href": "/camp"
+        },
+        {
+          "title": "Oplev traditionerne",
+          "text": "Mella-sandbrød, folkemusik, en traditionel middag og fælles øjeblikke omkring bålet.",
+          "cta": "Oplev lejren",
+          "href": "/camp"
+        },
+        {
+          "title": "Oplev klitterne",
+          "text": "Solnedgang, sandboarding, kamelture, quads og 4x4-udflugter.",
+          "cta": "Vores aktiviteter",
+          "href": "/activities"
+        },
+        {
+          "title": "Del et øjeblik",
+          "text": "Velkomstte, en stjernehimmel og en venlig stemning i lejren.",
+          "cta": "Book en nat",
+          "href": "/book"
+        }
+      ]
+    },
+    "philosophy": {
+      "eyebrow": "Vores filosofi",
+      "title": "En autentisk, tilgængelig og imødekommende Sahara",
+      "text": "Dunes Insolites vil bevare ørkenens ånd og de lokale traditioner og samtidig give den komfort, rejsende har brug for. Man kommer hertil for at sætte tempoet ned, dele og smage livet i det sydlige Tunesien.",
+      "words": [
+        "Gæstfrihed",
+        "Autenticitet",
+        "Deling",
+        "Enkelhed",
+        "Lokal kultur"
+      ]
+    },
+    "why": {
+      "eyebrow": "Hvorfor vælge os",
+      "title": "Hvorfor vælge Dunes Insolites?",
+      "items": [
+        {
+          "title": "Et lokalt team",
+          "text": "Et team, der kender egnen perfekt."
+        },
+        {
+          "title": "3 km fra Sabria",
+          "text": "En lejr cirka 3 km fra landsbyen Sabria."
+        },
+        {
+          "title": "Nem adgang",
+          "text": "Kan nås i en almindelig bil."
+        },
+        {
+          "title": "Flere ophold",
+          "text": "Flere overnatningskategorier til ethvert budget og komfortniveau."
+        },
+        {
+          "title": "Aktiviteter på stedet",
+          "text": "Kamel, quad, 4x4 og sandboarding, direkte fra lejren."
+        },
+        {
+          "title": "Til enhver rejsende",
+          "text": "Velegnet til par, familier, venner, solorejsende og grupper."
+        }
+      ]
+    },
+    "team": {
+      "eyebrow": "Teamet",
+      "title": "Ansigterne bag Dunes Insolites",
+      "text": "Guider, chauffører, kokke og lejrens team arbejder sammen om at byde rejsende velkommen og hjælpe dem med at opleve ørkenen under de bedste forhold.",
+      "photoAlt": "Dunes Insolites-teamet",
+      "cta": "Kontakt os"
+    },
+    "region": {
+      "eyebrow": "Vores egn",
+      "title": "Sabria, ved indgangen til Tunesiens Grand Sud",
+      "text": "Sabria i Kébili-regionen er en ægte port til Sahara. Lejren passer let ind i en rejse gennem Tunesien, på vej mod det dybe syd.",
+      "stopsLabel": "Et naturligt stop mellem",
+      "stops": [
+        "Douz",
+        "Matmata",
+        "Chott El Jerid",
+        "Tozeur",
+        "Bjergoaserne"
+      ],
+      "cta": "Se vores rundrejser",
+      "mapTitle": "Kort: lejrens placering nær Sabria"
+    },
+    "values": {
+      "eyebrow": "Vores værdier",
+      "title": "Hvad der styrer vores modtagelse",
+      "items": [
+        {
+          "title": "Autenticitet",
+          "text": "At bevare ørkenens ånd og traditioner."
+        },
+        {
+          "title": "Gæstfrihed",
+          "text": "At tage imod hver rejsende med omhu."
+        },
+        {
+          "title": "Deling",
+          "text": "At fremme møder og udveksling."
+        },
+        {
+          "title": "Enkelhed",
+          "text": "At nyde stilheden, klitterne, bålet og stjernehimlen."
+        }
+      ]
+    },
+    "final": {
+      "title": "Din Sahara-oplevelse starter her.",
+      "text": "Oplev Dunes Insolites, tilbring en nat i ørkenen, eller føj lejren til din rundrejse gennem Tunesien.",
+      "accommodations": "Oplev vores overnatninger",
+      "experiences": "Se vores oplevelser",
+      "book": "Book dit ophold"
+    }
+  },
+  "contactPage": {
+    "hero": {
+      "eyebrow": "Kontakt",
+      "title": "Lad os planlægge din nat i klitterne.",
+      "lead": "Spørgsmål om et ophold, en aktivitet eller en privat gruppe? Skriv til os eller send en besked på WhatsApp: Et rigtigt menneske fra lejren svarer.",
+      "ctaWhatsapp": "Chat på WhatsApp",
+      "ctaForm": "Send en besked",
+      "badge": "Vi svarer inden for 24 timer",
+      "whatsappText": "Hej, jeg vil gerne have information om et ophold hos Dunes Insolites."
+    },
+    "channels": {
+      "whatsapp": {
+        "title": "WhatsApp",
+        "hint": "Hurtigste svar",
+        "cta": "Åbn chatten"
+      },
+      "phone": {
+        "title": "Telefon",
+        "hint": "Hver dag",
+        "cta": "Ring til os"
+      },
+      "email": {
+        "title": "E-mail",
+        "hint": "Detaljer og grupper",
+        "cta": "Skriv til os"
+      },
+      "visit": {
+        "title": "Lejren",
+        "hint": "Sabria, Kébili",
+        "cta": "Vis vej"
+      }
+    },
+    "form": {
+      "eyebrow": "Skriv til os",
+      "title": "Send os en besked",
+      "lead": "Fortæl os dine datoer, gruppens størrelse og hvad du har i tankerne. Vi vender tilbage inden for 24 timer.",
+      "note": "Dine oplysninger bruges kun til at svare dig."
+    },
+    "help": {
+      "eyebrow": "Sådan kan vi hjælpe",
+      "title": "Uanset planen har vi nok gjort det før.",
+      "items": [
+        "Nætter i lejren eller i bivuak",
+        "Kameltur, quadsafari og sandboarding",
+        "Private grupper og familier",
+        "Bryllupper, arrangementer og filmhold",
+        "Skræddersyede ruter i syd"
+      ]
+    },
+    "find": {
+      "eyebrow": "Find os",
+      "title": "Lejren nær Sabria",
+      "text": "Lejren ligger cirka 3 km fra Sabria og kan nås i en almindelig bil. Vi bekræfter mødestedet med dig, når du booker.",
+      "hoursLabel": "Åbningstider",
+      "addressLabel": "Adresse",
+      "openMaps": "Åbn i Google Maps",
+      "directions": "Vis vej",
+      "mapTitle": "Kort over Dunes Insolites-lejren nær Sabria"
+    },
+    "next": {
+      "bookTitle": "Vil du hellere booke med det samme?",
+      "bookText": "Vælg dit ophold og reservér online på få minutter.",
+      "bookCta": "Se opholdene",
+      "faqTitle": "Leder du efter et hurtigt svar?",
+      "faqText": "De mest almindelige spørgsmål besvarer vi i vores FAQ.",
+      "faqCta": "Læs FAQ"
+    }
+  },
+  "accDetail": {
+    "ui": {
+      "back": "← Tilbage til overnatninger",
+      "from": "Fra",
+      "perNight": "pr. nat",
+      "bookNow": "Book nu",
+      "viewPhotos": "Se billeder",
+      "viewAllPhotos": "Se alle billeder",
+      "close": "Luk",
+      "previous": "Forrige billede",
+      "next": "Næste billede",
+      "photoOf": "Billede {n} af {total}",
+      "galleryTitle": "Billeder",
+      "aboutEyebrow": "Overnatningen",
+      "featuresEyebrow": "Faciliteter",
+      "featuresTitle": "Hvad du finder på stedet",
+      "comfort": "Komfort",
+      "bathroom": "Badeværelse",
+      "campFacilities": "Lejrens faciliteter",
+      "timelineEyebrow": "Sådan forløber det",
+      "forWhomEyebrow": "Hvem er det for?",
+      "importantEyebrow": "Godt at vide",
+      "compareEyebrow": "Sammenlign",
+      "reviewsEyebrow": "Anmeldelser",
+      "seeMoreReviews": "Se flere anmeldelser",
+      "locationEyebrow": "Sådan kommer du hertil",
+      "viewAccommodation": "Se dette ophold",
+      "current": "Du ser på",
+      "whatsapp": "Skriv til os på WhatsApp",
+      "checkAvailability": "Tjek tilgængelighed",
+      "stickyFrom": "Fra {price}",
+      "map": "Kort: lejrens placering nær Sabria"
+    },
+    "trust": [
+      "Direkte booking",
+      "Lokalt team",
+      "Fleksibel hjælp",
+      "WhatsApp-support"
+    ],
+    "included": {
+      "eyebrow": "Inkluderet",
+      "title": "Dit ophold rummer mere end bare en nat",
+      "note": "Nogle underholdningstilbud og aktiviteter kan afhænge af dagens program og forholdene i lejren.",
+      "items": [
+        {
+          "icon": "tea",
+          "text": "Velkomstte"
+        },
+        {
+          "icon": "sun",
+          "text": "Solnedgangsoplevelse i klitterne"
+        },
+        {
+          "icon": "board",
+          "text": "Sandboarding"
+        },
+        {
+          "icon": "bread",
+          "text": "Demonstration af det traditionelle Mella-sandbrød"
+        },
+        {
+          "icon": "meal",
+          "text": "Middag"
+        },
+        {
+          "icon": "cup",
+          "text": "Morgenmad"
+        },
+        {
+          "icon": "music",
+          "text": "Traditionel folkloristisk stemning"
+        },
+        {
+          "icon": "fire",
+          "text": "Samling omkring bålet"
+        },
+        {
+          "icon": "star",
+          "text": "Stjernekiggeri"
+        },
+        {
+          "icon": "camp",
+          "text": "Adgang til lejrens faciliteter"
+        }
+      ]
+    },
+    "campFacilities": [
+      "Restaurant",
+      "Café",
+      "Fællesområder",
+      "Wi-Fi i fællesområderne",
+      "Parkering",
+      "Bålplads",
+      "Direkte adgang til klitterne"
+    ],
+    "activities": {
+      "eyebrow": "Valgfrit",
+      "title": "Gør dit Sahara-ophold uforglemmeligt",
+      "lead": "Tilføj en aktivitet til din nat. Vi bekræfter tidspunkterne på stedet.",
+      "included": "Included in your stay",
+      "items": [
+        {
+          "title": "Kameltur",
+          "text": "En rolig tur gennem klitterne i kamelernes tempo.",
+          "cta": "Spørg om denne aktivitet",
+          "photo": "camel"
+        },
+        {
+          "title": "Quad",
+          "text": "En quadtur gennem sandhavet.",
+          "cta": "Spørg om denne aktivitet",
+          "photo": "quad"
+        },
+        {
+          "title": "4x4-klitoplevelse",
+          "text": "En 4x4-tur gennem landskaberne omkring lejren.",
+          "cta": "Spørg om denne aktivitet",
+          "photo": "fourx4"
+        },
+        {
+          "title": "Sandboarding",
+          "text": "Glid ned ad klitterne, ingen erfaring nødvendig.",
+          "cta": "Se i dit ophold",
+          "photo": "board",
+          "included": true
+        }
+      ]
+    },
+    "timeline": {
+      "title": "En aften og en nat i lejren",
+      "note": "Tidspunkterne kan variere efter årstiden.",
+      "steps": [
+        {
+          "time": "16.00",
+          "text": "Ankomst og velkomstte"
+        },
+        {
+          "time": "17.00",
+          "text": "Udforsk klitterne og valgfrie aktiviteter"
+        },
+        {
+          "time": "Solnedgang",
+          "text": "Se solen forsvinde over Sahara"
+        },
+        {
+          "time": "Aften",
+          "text": "Traditionel middag og ørkenstemning"
+        },
+        {
+          "time": "Nat",
+          "text": "Bål og stjernekiggeri"
+        },
+        {
+          "time": "Morgen",
+          "text": "Morgenmad i ørkenen"
+        },
+        {
+          "time": "11.00",
+          "text": "Udtjekning"
+        }
+      ]
+    },
+    "important": {
+      "title": "Ofte stillede spørgsmål",
+      "common": [
+        {
+          "q": "Kan jeg nå lejren i en almindelig bil?",
+          "a": "Ja. Dunes Insolites-lejren kan nås med et almindeligt køretøj; en 4x4 er ikke nødvendig."
+        },
+        {
+          "q": "Er der parkering?",
+          "a": "Ja, der er parkering ved lejren."
+        },
+        {
+          "q": "Hvornår skal jeg ankomme?",
+          "a": "Vi anbefaler ankomst omkring kl. 16.00, så gæsterne kan falde til og nyde solnedgangsoplevelsen."
+        },
+        {
+          "q": "Er der Wi-Fi?",
+          "a": "Wi-Fi findes primært i fællesområderne."
+        },
+        {
+          "q": "Er håndklæder og sengetøj inkluderet?",
+          "a": "Sengetøj og håndklæder er en del af den komfort, vores overnatninger tilbyder."
+        },
+        {
+          "q": "Er lejren velegnet til familier?",
+          "a": "Ja."
+        }
+      ]
+    },
+    "compare": {
+      "title": "Hvilket ophold passer til dig?",
+      "lead": "Tre måder at sove i lejren på: den samme stemning, med forskelligt niveau af komfort og privatliv.",
+      "rows": {
+        "experience": "Oplevelsens stil",
+        "bathroom": "Badeværelse",
+        "ac": "Aircondition",
+        "privacy": "Privatliv",
+        "recommended": "Anbefalet til",
+        "price": "Fra"
+      }
+    },
+    "reviews": {
+      "title": "Gæster husker mere end selve natten"
+    },
+    "location": {
+      "title": "Bo ved Saharas kant",
+      "text": "Dunes Insolites-lejren ligger nær Sabria i Kébili-regionen, omgivet af ørkenlandskaber og cirka 3 km fra landsbyen Sabria.",
+      "points": [
+        "Kan nås i en almindelig bil",
+        "Parkering til rådighed",
+        "Transfer kan arrangeres fra forskellige steder i Tunesien"
+      ]
+    },
+    "final": {
+      "title": "Din nat i Sahara starter her.",
+      "text": "Vågn op omgivet af klitter, stilhed og ørkenlys.",
+      "included": "Dinner and breakfast included."
+    },
+    "types": {
+      "desert-tent": {
+        "eyebrow": "Autentisk ørkentelt",
+        "tagline": "Sov omgivet af stilheden og skønheden i den tunesiske Sahara.",
+        "highlights": [
+          "Middag og morgenmad inkluderet",
+          "Varme brusere",
+          "Ørkenaktiviteter",
+          "Traditionel lejroplevelse"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Behagelige senge"
+          },
+          {
+            "icon": "shower",
+            "label": "Fælles varme brusere"
+          },
+          {
+            "icon": "meal",
+            "label": "Halvpension inkluderet"
+          },
+          {
+            "icon": "plug",
+            "label": "Strøm til rådighed"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi i fællesområderne"
+          }
+        ],
+        "about": [
+          "Vores autentiske telt er lavet til rejsende, der søger en ægte Sahara-oplevelse, og forener den traditionelle ørkenstemning med den nødvendige komfort til en afslappende nat under stjernerne.",
+          "Gæsterne har adgang til rene fælles badeværelser med varme brusere og alle faciliteter i Dunes Insolites-lejren."
+        ],
+        "bathroomText": "Fælles sanitære faciliteter med toiletter og varme brusere.",
+        "comfort": [
+          "Behageligt sengetøj",
+          "Strøm",
+          "Sengelinned",
+          "Håndklæder",
+          "Belysning"
+        ],
+        "forWhom": [
+          {
+            "title": "Autenticitetssøgende",
+            "text": "For at opleve ørkenen enkelt."
+          },
+          {
+            "title": "Par",
+            "text": "En rolig nat under stjernerne."
+          },
+          {
+            "title": "Venner",
+            "text": "En venlig stemning omkring bålet."
+          },
+          {
+            "title": "Eventyrlystne rejsende",
+            "text": "For at få mest muligt ud af klitterne og aktiviteterne."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Er badeværelserne private?",
+            "a": "Nej. De autentiske telte bruger rene fælles sanitære faciliteter med toiletter og varme brusere."
+          }
+        ],
+        "compare": {
+          "experience": "Autentisk, traditionel stemning",
+          "bathroom": "Fælles, varme brusere",
+          "ac": "—",
+          "privacy": "Privat telt",
+          "recommended": "Autenticitetssøgende, par, venner"
+        }
+      },
+      "desert-room": {
+        "eyebrow": "Ørkenværelse",
+        "tagline": "Lejrstemningen med et mere struktureret indre.",
+        "highlights": [
+          "Middag og morgenmad inkluderet",
+          "Lukket værelse",
+          "Privat soveområde",
+          "Alle lejrens faciliteter"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Privat soveområde"
+          },
+          {
+            "icon": "shower",
+            "label": "Badeværelsesløsning bekræftes ved booking"
+          },
+          {
+            "icon": "meal",
+            "label": "Halvpension inkluderet"
+          },
+          {
+            "icon": "plug",
+            "label": "Strøm til rådighed"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi i fællesområderne"
+          }
+        ],
+        "about": [
+          "En mere komfortabel mulighed for rejsende, der vil have stemningen fra vores ørkenlejr med et mere struktureret indre i værelsesstil.",
+          "Ideelt for par, venner og familier, der ønsker lidt ekstra komfort under deres Sahara-ophold."
+        ],
+        "bathroomText": "Vi bekræfter badeværelsesløsningen, når du booker.",
+        "comfort": [
+          "Lukket værelse",
+          "Behageligt sengetøj",
+          "Strøm",
+          "Sengelinned",
+          "Håndklæder",
+          "Belysning"
+        ],
+        "forWhom": [
+          {
+            "title": "Par",
+            "text": "Lidt mere privatliv og komfort."
+          },
+          {
+            "title": "Familier",
+            "text": "Op til 3 personer på samme værelse."
+          },
+          {
+            "title": "Venner",
+            "text": "Lejren, med et indre i værelsesstil."
+          },
+          {
+            "title": "Komfortsøgende",
+            "text": "Ørkenen, uden at give afkald på et værelses komfort."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Er badeværelserne private?",
+            "a": "Vi bekræfter værelsets badeværelsesløsning, når du booker."
+          }
+        ],
+        "compare": {
+          "experience": "Lejrstemning, indre i værelsesstil",
+          "bathroom": "Bekræftes ved booking",
+          "ac": "—",
+          "privacy": "Lukket værelse",
+          "recommended": "Par, venner, familier"
+        }
+      },
+      "dune-suite": {
+        "eyebrow": "Klitsuite",
+        "tagline": "Vores mest komfortable ophold, med mere privatliv.",
+        "highlights": [
+          "Privat badeværelse",
+          "Aircondition",
+          "Middag og morgenmad inkluderet",
+          "Mere privatliv og plads"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "bed",
+            "label": "Sengetøj i topkvalitet"
+          },
+          {
+            "icon": "shower",
+            "label": "Privat badeværelse og toilet"
+          },
+          {
+            "icon": "snow",
+            "label": "Aircondition (aften og nat)"
+          },
+          {
+            "icon": "meal",
+            "label": "Halvpension inkluderet"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi i fællesområderne"
+          }
+        ],
+        "about": [
+          "Vores mest komfortable ørkenovernatning, der forener Saharas stemning med øget privatliv og bekvemmelighed.",
+          "Suiten har et privat badeværelse og aircondition, som primært er tilgængelig om aftenen og natten. Ideel for par, familier og rejsende, der søger en mere eksklusiv ørkenoplevelse."
+        ],
+        "bathroomText": "Privat badeværelse og toilet.",
+        "comfort": [
+          "Sengetøj i topkvalitet",
+          "Ekstra opholdsareal",
+          "Strøm",
+          "Sengelinned",
+          "Håndklæder",
+          "Belysning",
+          "Aircondition (primært aften og nat)"
+        ],
+        "forWhom": [
+          {
+            "title": "Par, der søger mere komfort",
+            "text": "Privatliv og ro, i ørkenen."
+          },
+          {
+            "title": "Familier",
+            "text": "Op til 4 personer i en rummelig suite."
+          },
+          {
+            "title": "Et privat badeværelse",
+            "text": "For dem, der ønsker et."
+          },
+          {
+            "title": "Eksklusive ophold",
+            "text": "Mere komfort, den samme lejrånd."
+          }
+        ],
+        "faq": [
+          {
+            "q": "Har suiten et privat badeværelse?",
+            "a": "Ja."
+          },
+          {
+            "q": "Er der aircondition?",
+            "a": "Ja. Airconditionen er primært tilgængelig om aftenen og natten."
+          }
+        ],
+        "compare": {
+          "experience": "Øget komfort, mere privatliv",
+          "bathroom": "Privat, med toilet",
+          "ac": "Ja (aften og nat)",
+          "privacy": "Rummelig privat suite",
+          "recommended": "Par, familier, eksklusive ophold"
+        }
+      },
+      "default": {
+        "eyebrow": "Overnatning i lejren",
+        "tagline": "",
+        "highlights": [
+          "Middag og morgenmad inkluderet",
+          "Ørkenaktiviteter",
+          "Lejrens faciliteter",
+          "Traditionel lejroplevelse"
+        ],
+        "quick": [
+          {
+            "icon": "users",
+            "label": ""
+          },
+          {
+            "icon": "meal",
+            "label": "Halvpension inkluderet"
+          },
+          {
+            "icon": "plug",
+            "label": "Strøm til rådighed"
+          },
+          {
+            "icon": "wifi",
+            "label": "Wi-Fi i fællesområderne"
+          }
+        ],
+        "about": [],
+        "bathroomText": "Vi bekræfter badeværelsesløsningen, når du booker.",
+        "comfort": [
+          "Behageligt sengetøj",
+          "Strøm",
+          "Belysning"
+        ],
+        "forWhom": [
+          {
+            "title": "Par",
+            "text": "En nat i ørkenen for to."
+          },
+          {
+            "title": "Familier",
+            "text": "Et fælles ophold i lejren."
+          },
+          {
+            "title": "Venner",
+            "text": "En venlig stemning."
+          }
+        ],
+        "faq": [],
+        "compare": {
+          "experience": "Lejrstemning",
+          "bathroom": "Bekræftes ved booking",
+          "ac": "—",
+          "privacy": "—",
+          "recommended": "Alle rejsende"
+        }
+      }
+    }
+  },
+  "actDetail": {
+    "ui": {
+      "back": "← Alle aktiviteter",
+      "from": "Fra",
+      "perPerson": "/ person",
+      "included": "Included",
+      "viewPhotos": "Se billeder",
+      "viewAllPhotos": "Se alle billeder",
+      "close": "Luk",
+      "previous": "Forrige billede",
+      "next": "Næste billede",
+      "photoOf": "Billede {n} af {total}",
+      "aboutEyebrow": "Oplevelsen",
+      "optionsEyebrow": "Muligheder",
+      "expectEyebrow": "Hvad du kan forvente",
+      "bestEyebrow": "Bedste tidspunkt",
+      "forWhomEyebrow": "Hvem er det for?",
+      "safetyEyebrow": "Sikkerhed og praktiske oplysninger",
+      "bringEyebrow": "Hvad du skal medbringe",
+      "combineEyebrow": "Med dit ophold",
+      "othersEyebrow": "Også værd at prøve",
+      "faqEyebrow": "Spørgsmål",
+      "faqTitle": "Ofte stillede spørgsmål",
+      "exploreAccommodation": "Oplev vores overnatninger",
+      "discoverActivity": "Oplev",
+      "askTeam": "Spørg os",
+      "askAbout": "Spørg os",
+      "sleeps": "{sleeps}",
+      "fromNight": "Fra {price} pr. nat",
+      "map": "Kort"
+    },
+    "trust": [
+      "Direkte booking",
+      "Lokalt team",
+      "Fleksibel hjælp",
+      "WhatsApp-support"
+    ],
+    "best": {
+      "title": "Det bedste tidspunkt at tage af sted",
+      "morning": {
+        "title": "Morgen",
+        "text": "Køligere temperaturer og en rolig ørkenstemning."
+      },
+      "afternoon": {
+        "title": "Sen eftermiddag",
+        "text": "Smukt lys og ideelle forhold til fotos."
+      },
+      "sunset": {
+        "title": "Solnedgang",
+        "text": "Det mest stemningsfulde øjeblik, afhængigt af tilgængelighed og årstid."
+      }
+    },
+    "bring": {
+      "title": "Hvad du skal medbringe",
+      "items": [
+        {
+          "icon": "glasses",
+          "text": "Solbriller"
+        },
+        {
+          "icon": "sun",
+          "text": "Solbeskyttelse"
+        },
+        {
+          "icon": "shirt",
+          "text": "Behageligt tøj"
+        },
+        {
+          "icon": "shoe",
+          "text": "Lukkede sko"
+        },
+        {
+          "icon": "drop",
+          "text": "Vand"
+        },
+        {
+          "icon": "camera",
+          "text": "Telefon eller kamera"
+        }
+      ],
+      "cool": "I de køligere måneder: en let jakke til sen eftermiddag eller aften."
+    },
+    "combine": {
+      "title": "Gør det til en del af din Sahara-oplevelse",
+      "text": "Under dit ophold hos Dunes Insolites kan du kombinere din overnatning med ørkenaktiviteter.",
+      "cross": "Bor du hos os? Kombinér flere aktiviteter før solnedgang."
+    },
+    "others": {
+      "title": "Andre aktiviteter, du måske vil kunne lide",
+      "items": {
+        "quad-desert": {
+          "title": "Quad",
+          "text": "Adrenalin på klitterne.",
+          "photo": "quad"
+        },
+        "camel-trek": {
+          "title": "Kameltur",
+          "text": "Sahara i et roligere tempo.",
+          "photo": "camel"
+        },
+        "sandboarding-desert": {
+          "title": "Sandboarding",
+          "text": "Glid ned ad klitterne med familie eller venner.",
+          "photo": "board"
+        },
+        "4x4": {
+          "title": "4x4-klitoplevelse",
+          "text": "En tur gennem landskaberne omkring lejren.",
+          "photo": "fourx4"
+        }
+      }
+    },
+    "faqCommon": [
+      {
+        "q": "Har jeg brug for tidligere erfaring?",
+        "a": "Ingen tidligere erfaring er nødvendig: Teamet forklarer alt, før I tager af sted."
+      },
+      {
+        "q": "Kan børn deltage?",
+        "a": "Ja, efter teamets anvisninger og under opsyn af en voksen. Spørg os om dine børns alder."
+      },
+      {
+        "q": "Kan jeg booke aktiviteten, efter jeg er ankommet til lejren?",
+        "a": "Afhængigt af tilgængelighed, ja. Det nemmeste er at booke på forhånd eller skrive til os."
+      },
+      {
+        "q": "Kan jeg betale på stedet?",
+        "a": "Betalingsbetingelserne bekræftes, når du booker."
+      },
+      {
+        "q": "Er aktiviteten tilgængelig hver dag?",
+        "a": "Afhængigt af tilgængelighed og dagens forhold. Tjek ved booking."
+      },
+      {
+        "q": "Kan jeg lave aktiviteten ved solnedgang?",
+        "a": "Ja, afhængigt af tilgængelighed og årstid. Det er et populært tidspunkt: Book i god tid."
+      },
+      {
+        "q": "Har jeg brug for særligt tøj?",
+        "a": "Behageligt tøj og lukkede sko er nok. Se listen „Hvad du skal medbringe“."
+      },
+      {
+        "q": "Er aktiviteten privat eller delt?",
+        "a": "Spørg os ved booking: Vi bekræfter, hvilken mulighed der er mulig på dine datoer."
+      }
+    ],
+    "types": {
+      "quad-desert": {
+        "eyebrow": "Quad i Sahara",
+        "h1": "Quad i Sahara",
+        "tagline": "Kør gennem klitterne og oplev ørkenen fra et helt andet perspektiv.",
+        "highlights": [
+          "Sahara-klitter",
+          "Forskellige varigheder",
+          "Tilgængelig direkte fra lejren",
+          "Velegnet til begyndere"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "1 t. / 2 t. / halv dag / hel dag"
+          },
+          {
+            "icon": "pin",
+            "label": "Afgang fra Dunes Insolites"
+          },
+          {
+            "icon": "dune",
+            "label": "Ørkenklitter"
+          },
+          {
+            "icon": "helmet",
+            "label": "Sikkerhedsudstyr udleveres"
+          },
+          {
+            "icon": "users",
+            "label": "Aktivitet alene eller i gruppe"
+          },
+          {
+            "icon": "sun",
+            "label": "Mulighed ved solnedgang"
+          }
+        ],
+        "about": [
+          "Forlad lejren og kør gennem sandlandskaberne omkring Dunes Insolites. Quadoplevelsen er ideel for rejsende, der søger mere adrenalin og en dynamisk måde at udforske Sahara på.",
+          "Der er forskellige varigheder afhængigt af, hvor meget tid du vil bruge i ørkenen."
+        ],
+        "optionsTitle": "Vælg din tur",
+        "options": [
+          {
+            "name": "1 time",
+            "price": "80 TND",
+            "text": "Perfekt til en første tur i ørkenen."
+          },
+          {
+            "name": "2 timer",
+            "price": "160 TND",
+            "text": "Mere tid til at udforske klitterne."
+          },
+          {
+            "name": "Halv dag",
+            "price": "250 TND",
+            "text": "Et længere Sahara-eventyr."
+          },
+          {
+            "name": "Hel dag",
+            "price": "350 TND",
+            "text": "For rejsende, der ønsker en mere komplet ørkenoplevelse."
+          }
+        ],
+        "optionCta": "Vælg denne tur",
+        "steps": [
+          "Mød dit aktivitetsteam",
+          "Sikkerhedsbriefing",
+          "Klargøring af hjelm og udstyr",
+          "Start din quadtur",
+          "Udforsk de omkringliggende klitter",
+          "Fotostop",
+          "Tilbage til Dunes Insolites-lejren"
+        ],
+        "bestNote": "Ture ved solnedgang er blandt vores mest efterspurgte udflugter: en premiumoplevelse.",
+        "forWhom": [
+          "Eventyrlystne",
+          "Par",
+          "Venner",
+          "Grupper",
+          "Rejsende, der søger adrenalin"
+        ],
+        "safety": [
+          "Sikkerhedsinstruktioner gives før afgang.",
+          "Hjelme udleveres.",
+          "Følg guidens anvisninger under aktiviteten.",
+          "Behagelige lukkede sko anbefales.",
+          "Solbriller og solbeskyttelse anbefales.",
+          "Aktiviteten kan tilpasses efter vejret eller driftsforholdene."
+        ],
+        "faq": [
+          {
+            "q": "Kan to personer køre på den samme quad?",
+            "a": "Spørg os ved booking: Teamet bekræfter, hvad der er muligt."
+          },
+          {
+            "q": "Hvad sker der, hvis vejret ikke er egnet?",
+            "a": "Aktiviteten kan tilpasses eller udskydes afhængigt af vejr og driftsforhold."
+          }
+        ],
+        "final": {
+          "title": "Klar til at køre gennem Sahara?",
+          "text": "Tilføj lidt adrenalin til dit ophold hos Dunes Insolites.",
+          "cta": "Book din quadoplevelse"
+        },
+        "hero": {
+          "cta": "Book din quadtur"
+        },
+        "sticky": "Book quad"
+      },
+      "camel-trek": {
+        "eyebrow": "Kameltur hos Dunes Insolites",
+        "h1": "Kameltur hos Dunes Insolites",
+        "tagline": "Oplev Sahara i et roligere tempo og nyd ørkenens tidløse stemning.",
+        "highlights": [
+          "Traditionel ørkenoplevelse",
+          "Cirka 1 times tur",
+          "Smukke klitlandskaber",
+          "Perfekt omkring solnedgang"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Cirka 1 time"
+          },
+          {
+            "icon": "pin",
+            "label": "Fra lejren"
+          },
+          {
+            "icon": "camel",
+            "label": "Guidet kameltur"
+          },
+          {
+            "icon": "users",
+            "label": "Velegnet til familier"
+          },
+          {
+            "icon": "sun",
+            "label": "Ideelt omkring solnedgang"
+          }
+        ],
+        "about": [
+          "Oplev Sahara på en af de mest traditionelle måder. Kamelturen fører dig gennem klitterne omkring lejren og giver et roligt øjeblik til at nyde landskabet, stilheden og ørkenstemningen.",
+          "Den er især smuk omkring solnedgang."
+        ],
+        "optionsTitle": "Din tur",
+        "options": [
+          {
+            "name": "Kameltur på 1 time",
+            "price": "50 TND",
+            "text": "En guidet tur gennem klitterne omkring lejren."
+          }
+        ],
+        "optionCta": "Book denne tur",
+        "steps": [
+          "Mød din kamelguide",
+          "Introduktion til din kamel",
+          "Turen starter fra lejren",
+          "Gennem de nære klitter",
+          "Nyd Sahara-landskabet",
+          "Valgfrit fotostop ved solnedgang",
+          "Tilbage til lejren"
+        ],
+        "bestNote": "Solnedgangen er et af de mest populære tidspunkter for kamelturen.",
+        "forWhom": [
+          "Par",
+          "Familier",
+          "Førstegangsbesøgende i Sahara",
+          "Fotografer",
+          "Rejsende, der søger en autentisk oplevelse"
+        ],
+        "safety": [
+          "Aktiviteten ledsages af lokale kameldrivere.",
+          "Behageligt tøj anbefales.",
+          "Lukkede sko foretrækkes.",
+          "Følg guidens anvisninger, når du stiger op og af.",
+          "Varigheden kan variere lidt afhængigt af forholdene."
+        ],
+        "faq": [
+          {
+            "q": "Hvor lang tid tager turen?",
+            "a": "Cirka 1 time. Varigheden kan variere lidt afhængigt af forholdene."
+          },
+          {
+            "q": "Er kamelturen velegnet til børn?",
+            "a": "Den passer til familier. Spørg os ved booking om dine børns alder."
+          }
+        ],
+        "final": {
+          "title": "Oplev Sahara i et andet tempo",
+          "text": "Rid gennem klitterne og oplev en af ørkenens mest ikoniske traditioner.",
+          "cta": "Book din kameltur"
+        },
+        "hero": {
+          "cta": "Book din kameltur"
+        },
+        "sticky": "Book kameltur"
+      },
+      "sandboarding-desert": {
+        "eyebrow": "Sandboarding i Sahara",
+        "h1": "Sandboarding i Sahara",
+        "tagline": "Gå op ad klitterne, tag dit bræt og nyd en af de sjoveste oplevelser i lejren.",
+        "highlights": [
+          "Nem at prøve",
+          "Perfekt for familier og venner",
+          "Direkte på klitterne",
+          "Ingen tidligere erfaring nødvendig"
+        ],
+        "quick": [
+          {
+            "icon": "clock",
+            "label": "Fleksibel varighed"
+          },
+          {
+            "icon": "pin",
+            "label": "Direkte på klitterne"
+          },
+          {
+            "icon": "board",
+            "label": "Bræt udleveres"
+          },
+          {
+            "icon": "users",
+            "label": "Familievenligt"
+          },
+          {
+            "icon": "star",
+            "label": "Begyndervenligt"
+          }
+        ],
+        "about": [
+          "En enkel, sjov og uforglemmelig aktivitet for alle aldre. Gå op ad klitterne, tag dit bræt og glid ned ad Saharas bløde sand.",
+          "Ingen tidligere erfaring er nødvendig."
+        ],
+        "optionsTitle": "Din aktivitet",
+        "options": [
+          {
+            "name": "Sandboarding",
+            "price": "",
+            "text": "Inkluderet for lejrgæster, hvor det er relevant. Tjek tilgængelighed i lejren."
+          }
+        ],
+        "optionCta": "Spørg os",
+        "steps": [
+          "Hent dit bræt",
+          "Gå til de nære klitter",
+          "Kort forklaring",
+          "Vælg din klit",
+          "Glid ned",
+          "Gentag så mange gange, du vil"
+        ],
+        "bestNote": "Vi anbefaler morgen eller sen eftermiddag, hvor sandet er mere behageligt.",
+        "forWhom": [
+          "Familier",
+          "Venner",
+          "Børn",
+          "Eventyrlystne rejsende",
+          "Alle, der søger en sjov ørkenaktivitet"
+        ],
+        "safety": [
+          "Ingen tidligere erfaring er nødvendig.",
+          "Brætterne udleveres.",
+          "Følg personalets anvisninger.",
+          "Børn skal være under opsyn.",
+          "Undgå om muligt aktiviteten i den ekstreme middagsvarme."
+        ],
+        "faq": [
+          {
+            "q": "Er sandboarding svært?",
+            "a": "Nej, det er nemt at prøve og kræver ingen tidligere erfaring."
+          },
+          {
+            "q": "Udleveres brættet?",
+            "a": "Ja, brætterne udleveres."
+          }
+        ],
+        "final": {
+          "title": "Klar til at glide ned ad klitterne?",
+          "text": "En enkel og sjov Sahara-oplevelse for hele familien.",
+          "cta": "Prøv sandboarding"
+        },
+        "hero": {
+          "cta": "Oplev sandboarding"
+        },
+        "sticky": "Spørg os"
+      },
+      "default": {
+        "eyebrow": "Lejraktivitet",
+        "h1": "",
+        "tagline": "",
+        "highlights": [
+          "I ørkenen",
+          "Fra lejren",
+          "Ledet af vores team",
+          "Del af dit ophold"
+        ],
+        "quick": [
+          {
+            "icon": "pin",
+            "label": "Fra lejren"
+          },
+          {
+            "icon": "users",
+            "label": "Alene eller i gruppe"
+          }
+        ],
+        "about": [],
+        "optionsTitle": "Din aktivitet",
+        "options": [],
+        "optionCta": "Book",
+        "steps": [],
+        "bestNote": "",
+        "forWhom": [
+          "Par",
+          "Familier",
+          "Venner"
+        ],
+        "safety": [
+          "Følg teamets anvisninger.",
+          "Aktiviteten kan tilpasses efter vejret eller driftsforholdene."
+        ],
+        "faq": [],
+        "final": {
+          "title": "Klar til at opleve Sahara?",
+          "text": "Tilføj en aktivitet til dit ophold hos Dunes Insolites.",
+          "cta": "Book denne aktivitet"
+        },
+        "hero": {
+          "cta": "Book denne aktivitet"
+        },
+        "sticky": "Book"
+      }
+    }
+  },
+  "favorites": {
+    "eyebrow": "Dine favoritter",
+    "title": "Mine favoritter",
+    "lead": "De rundrejser, ophold og aktiviteter, du har gemt.",
+    "accountLead": "De rundrejser, ophold og aktiviteter, du har gemt. De følger dig på alle dine enheder.",
+    "linkLabel": "Favoritter",
+    "linkWithCount": "Favoritter ({count})",
+    "guestNote": "Dine favoritter gemmes på denne enhed. Log ind for at finde dem på din konto på alle dine enheder.",
+    "logIn": "Log ind",
+    "empty": "Du har endnu ingen favoritter. Tryk på hjertet på et kort for at gemme det her.",
+    "browseStays": "Se overnatninger",
+    "browseActivities": "Se aktiviteter",
+    "browseCircuits": "Se rundrejser",
+    "count": "{count, plural, one {# favorit} other {# favoritter}}",
+    "fromPrice": "Fra {price}",
+    "kind": {
+      "tour": "Rundrejse",
+      "stay": "Ophold",
+      "activity": "Aktivitet"
+    }
+  },
+  "guideDjerbaTataouine": {
+    "eyebrow": "Kildebaseret rutevejledning",
+    "title": "Fra Djerba til Tataouine og Chenini",
+    "lead": "En rute gennem ø-arv, befæstede kornlagre og bosættelser på bakketoppe – med baggrund fra UNESCO og Tunesiens officielle turismeportal.",
+    "contextHeading": "Hvad ruten forbinder",
+    "contextP1": "Djerba er mere end et udgangspunkt for stranden. UNESCO optog øen i 2023 for et spredt bosættelsessystem formet af vandmangel, selvforsyning og sameksistens mellem samfund. Menzeler, landlige moskéer, markedskvarterer og et net af små veje er en del af dette bredere landskab.",
+    "contextP2": "Sydvest for øen ændrer terrænet sig omkring Medenine og Tataouine. Det officielle tunesiske turismeportal beskriver en region med klippeplateauer, landsbyer på højdedrag og ksour: befæstede fælles kornlagre, hvis enkelte lagerkamre kaldes ghorfaer.",
+    "routeHeading": "Tataouine, Chenini og ksour",
+    "routeP1": "Tataouine er mere en praktisk port end hele historien. Chenini og Douiret viser, hvordan bosættelser lå på høje steder og brugte delvist klippehuggede boliger. Ksour som Ouled Soltane og Haddada viser en anden form: rækker af ghorfaer omkring en gård til opbevaring af høsten.",
+    "routeP2": "Behandl disse steder som beboet arv, ikke som kulisse. Klæd dig til at gå, spørg før du fotograferer folk, brug lokale guider, hvor forklaring har betydning, og sæt tid af til arkitekturen, håndværket og de vandforvaltningssystemer, der gjorde bosættelsen mulig.",
+    "practicalHeading": "Planlæg dagen ansvarligt",
+    "practicalP1": "Officielle turismeoplysninger placerer Tataouine cirka 140 km ad asfalteret vej fra Djerba lufthavn. Den faktiske køretid afhænger af dit udgangspunkt, dine stop og vejforholdene; en rundrejse bør derfor angive sin egen afgangstid i stedet for at love en universel varighed.",
+    "practicalP2": "Før afgang bør du tjekke de aktuelle regeringsrejseråd og forsikringsbetingelserne. Vejledningen for sydlige områder og grænseområder ændrer sig over tid. Hold dig til den bekræftede rute, og forlæng aldrig en kulturarvsudflugt ind i fjerntliggende grænseområder på egen hånd.",
+    "sourcesHeading": "Anvendte kilder"
+  },
+  "guideSabriaDouz": {
+    "eyebrow": "Regional feltguide",
+    "title": "Sabria, Douz og Chott el-Jerid",
+    "lead": "Hvordan klitter, oaselandsbyer og saltlandskab hænger sammen i Kébili-regionen.",
+    "contextHeading": "Mellem sand, palmer og salt",
+    "contextP1": "Tunesiens officielle turismeportal placerer Sabria, Nouil og El Faouar mellem sandørkenen og Chott el-Jerid. Det er vigtigt: Regionen er ikke ét ensartet klithav, men et møde mellem oasebrug, sandlandsbyer, saltsletter og Grand Erg Oriental.",
+    "contextP2": "Douz er den mest kendte port, mens Sabria giver direkte kontakt med klitterne og lejrlivet. Chott el-Jerid er et for det meste udtørret saltbassin, som krydses af en asfalteret vej; dets blænding og luftspejlinger er en del af landskabet, men skorpen bør ikke behandles som en ubegrænset køreflade.",
+    "routeHeading": "Hvad du kan kombinere uden at haste",
+    "routeP1": "En god rute giver hvert landskab sin egen tid: palmelundene og markedskulturen omkring Douz, en guidet klitoplevelse nær Sabria og en krydsning eller et udsigtspunkt over Chott el-Jerid i dagslys. Længere rejser kan fortsætte mod Tozeurs oaselandskab i stedet for at presse alle stop ind på én dag.",
+    "routeP2": "Den officielle portal peger på vinteren som en fremragende årstid til at udforske Sahara og efteråret som en anden egnet periode. Sommeren promoveres primært for Tunesiens kyst. I ørkenen betyder tidspunkt på dagen, skygge, vind og temperatur mere end en generel månedsangivelse.",
+    "practicalHeading": "Vejr, guider og rutebegrænsninger",
+    "practicalP1": "Verdensbankens klimaprofil for Tunesien dokumenterer landets kraftige varmeudsættelse og regionale forskelle. Brug en aktuel lokal vejrudsigt, medbring vand og solbeskyttelse, og accepter ændringer i rute eller tidspunkter, der foretages på grund af vejret.",
+    "practicalP2": "Rejser i den fjerne ørken er noget andet end at nå en etableret lejr ad vej. Brug den bookede guide og den bekræftede rute, tjek de aktuelle officielle rejseråd, og antag aldrig, at et synligt spor er offentligt, sikkert eller uden for en forbudt zone.",
+    "sourcesHeading": "Anvendte kilder"
+  },
+  "guideDunesCamp": {
+    "eyebrow": "Dunes Insolites-guide",
+    "title": "En nat hos Dunes Insolites i Sabria",
+    "lead": "Hvad lejren er, hvordan du kommer dertil, og hvad du kan forvente, før du sender en bookingforespørgsel.",
+    "contextHeading": "En lejr ved siden af klitterne, ikke et anonymt hotel",
+    "contextP1": "Dunes Insolites ligger i Sabria i Kébili-regionen, ifølge lejrens officielle præsentation cirka 30 km fra Douz. Dens identitet bygger på direkte adgang til ørkenen, lokal gæstfrihed og overnatninger, der bevarer stemningen fra en saharisk lejr og samtidig giver de nødvendige faciliteter.",
+    "contextP2": "Den offentlige præsentation nævner møblerede telte, varme brusere, en café og restaurant samt et team på stedet. Det aktuelle bookingkatalog kan også skelne mellem telte, værelser og suiter. Tilgængelighed og de præcise faciliteter for hver mulighed bør altid komme fra den aktuelle bookingside og ikke fra en gammel salgsbeskrivelse.",
+    "routeHeading": "Fra ankomst til morgenmad",
+    "routeP1": "Et typisk ophold begynder med ankomstvejledning og indkvartering, efterfulgt af tid i klitterne omkring solnedgang. Middag, mynte-te, ørkenbrød og en aften i lejren udgør den centrale oplevelse, Dunes Insolites beskriver; morgenmad og afrejse følger næste morgen, når de er inkluderet i den valgte formel.",
+    "routeP2": "Lejren oplyser, at den kan nås med familiebil under normale forhold. Det betyder ikke, at ethvert synligt spor er egnet. Brug det bekræftede GPS-punkt og den bekræftede tilkørsel, hav WhatsApp ved hånden, og kontakt teamet i stedet for at vælge en anden rute, hvis vind eller sand har ændret adgangen.",
+    "practicalHeading": "Vælg det rette komfortniveau",
+    "practicalP1": "Vælg den etablerede lejr, hvis toiletter, brusere og en defineret overnatningskategori betyder mest. Vælg en bivuak, når det konkrete tilbud beskriver en enklere nat længere inde i klitterne, og den mindre infrastruktur er en del af det, du ønsker.",
+    "practicalP2": "Før bekræftelse bør du oplyse gruppestørrelse, børns alder, kost- eller medicinske behov, transportvalg og ønskede aktiviteter. Så kan serveren og det lokale team validere et sammenhængende ophold i stedet for at behandle overnatning, afhentning og aktiviteter som urelaterede køb.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideDunesExperience": {
+    "eyebrow": "Sammensæt dit ophold",
+    "title": "Aktiviteter, måltider og aftener hos Dunes Insolites",
+    "lead": "Sådan sammensætter du et ophold omkring lejren uden at prøve at presse alle ørkenaktiviteter ind i én aften.",
+    "contextHeading": "Lejren er oplevelsens base",
+    "contextP1": "Dunes Insolites præsenterer sine aktiviteter som tilføjelser til et ørkenophold: kamel- eller hesteture, quad, sandboarding, solnedgangsfotografering, måltider og bivuakker. Pointen er ikke at krydse alt af, men at vælge et tempo, der levner tid til klitterne og selve lejren.",
+    "contextP2": "Maden er en del af den rytme. Den officielle hjemmeside fremhæver regional madlavning, mynte-te og brød bagt i varmt sand og gløder. De valgte formler afgør, om middag, morgenmad eller et andet måltid er inkluderet, så bookingoversigten forbliver den endelige reference.",
+    "routeHeading": "Et afbalanceret program",
+    "routeP1": "For en enkelt nat er én hovedaktivitet før solnedgang som regel tydeligere end flere afgange oven i hinanden. En rolig kameltur, en guidet quadtur eller sandboarding skaber hver en forskellig oplevelse; hjemkomsttidspunkt, dagslys og vejr skal forblive forenelige med middag og indkvartering.",
+    "routeP2": "Et længere ophold kan adskille aktive og stille øjeblikke: én solnedgangsaktivitet, en hel lejraften og derefter en ny udflugt næste morgen eller en bivuak-forlængelse. Private grupper og arrangementer bør planlægges direkte, fordi transport, guider, måltider og kapacitet skal koordineres samlet.",
+    "practicalHeading": "Hvad du skal oplyse ved booking",
+    "practicalP1": "Oplys de rigtige aldre og antallet af rejsende, din ankomstmåde, foretrukne aktivitet, kostbehov og eventuelle mobilitets- eller medicinske oplysninger, der er relevante for deltagelsen. Valg af guide og transport valideres samlet, så modstridende muligheder ikke accepteres.",
+    "practicalP2": "Priser og tilgængelighed kan variere efter dato, prisenhed og gruppestørrelse. Hjemmesiden genberegner de valgte ydelser på serveren; et skærmbillede, en gammel salgsside eller en manuelt skrevet sum er aldrig den endelige bookingpris.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideBivouacCamp": {
+    "eyebrow": "Vælg din nat",
+    "title": "Bivuak eller etableret lejr i Sabria?",
+    "lead": "To måder at sove i ørkenen på, med meget forskelligt niveau af komfort og fordybelse.",
+    "contextHeading": "Den etablerede lejr: en udstyret base",
+    "contextP1": "Dunes Insolites er en fast lejr i Sabria. De offentlige oplysninger nævner udstyrede telte, toiletter, varme brusere, strøm og et team på stedet. Det er ofte det nemmeste valg til en første ørkennat, en familie eller enhver, der vil have praktiske faciliteter i nærheden.",
+    "contextP2": "En nat i lejren indeholder stadig de væsentlige øjeblikke: klitternes lys, middag, bål, nattehimlen og at vågne i ørkenen. Den præcise komfort afhænger af den bookede kategori, så tjek overnatningens side i stedet for at stole på en generel beskrivelse.",
+    "routeHeading": "Bivuakken: at rejse længere ind i klitterne",
+    "routeP1": "Den officielle bivuak starter fra lejren med en guide og kombinerer derefter rejse gennem klitterne, en midlertidig lejr, et måltid og en overnatning. Den prioriterer ro og afsondrethed, med naturligt mere beskeden infrastruktur end den faste lejr.",
+    "routeP2": "Vælg ikke ud fra et fotografi alene. Spørg, hvordan du rejser, hvilket udstyr der udleveres, hvilke toiletforhold der findes, om mad og drikke er inkluderet, og hvilket alternativ der er planlagt, hvis vejret kræver en ændring.",
+    "practicalHeading": "Tre spørgsmål, der gør beslutningen nemmere",
+    "practicalP1": "Vælg lejren, hvis en bruser, toiletter i nærheden, et defineret værelse eller nem vejadgang betyder mest. Vælg bivuakken, hvis du accepterer færre faciliteter til gengæld for mere guidet tid væk fra den etablerede lejr.",
+    "practicalP2": "Før bekræftelse bør du nævne børn, mobilitet, allergier, medicin, behov for strøm og følsomhed over for varme eller kulde. Teamet kan så anbefale et passende format i stedet for at bekræfte en mulighed, der ikke passer.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideBedouinDinner": {
+    "eyebrow": "Lejrens køkken",
+    "title": "Beduinmiddag og sandbrød i Sabria",
+    "lead": "Hvad der gør et måltid i lejren til en komplet ørkenaften.",
+    "contextHeading": "Måltidet følger det skiftende lys",
+    "contextP1": "Dunes Insolites beskriver sin middagsoplevelse som en række af velkomst, solnedgang, brødtilberedning, et måltid under teltdug, musik og bål. Det er derfor en aftenoplevelse og ikke blot et restaurantbord flyttet ud i sandet.",
+    "contextP2": "De officielle sider nævner tunesiske retter, mynte-te, madlavning over ild og sandbrød. Menuen kan afhænge af den valgte pakke og gruppen; bookingbekræftelsen, ikke en ældre salgsside, afgør, hvad der er inkluderet på din dato.",
+    "routeHeading": "Hvorfor sandbrød betyder noget",
+    "routeP1": "Brødtilberedningen forbinder madlavning med landskabet: dej, gløder og varmt sand bliver til en fælles demonstration før middagen. At se teknikken og høre forklaringen giver praksissen mere mening end at behandle den som en fotorekvisit.",
+    "routeP2": "Efter middagen kan bål og musik forlænge aftenen. Hav varmt tøj ved hånden, for komforten efter solnedgang kan ikke bedømmes ud fra eftermiddagens temperatur.",
+    "practicalHeading": "Allergier, kost og bookingoplysninger",
+    "practicalP1": "Del allergier, religiøse begrænsninger, kostvaner og børns behov før bekræftelse. Mad, der tilberedes på stedet, kræver forudgående besked; et ønske under servering kan være umuligt at imødekomme sikkert eller ordentligt.",
+    "practicalP2": "Tjek også, om middagen hører til overnatningspakken eller er en separat aktivitet, og hvilke drikkevarer og hvilken transport der er inkluderet. Den endelige oversigt bør nævne hvert element tydeligt.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideChooseActivity": {
+    "eyebrow": "Aktiviteter i klitterne",
+    "title": "Kamel, quad eller sandboard: hvad skal du vælge?",
+    "lead": "Sammenlign hver oplevelse efter tempo og begrænsninger, ikke kun efter fotografiet.",
+    "contextHeading": "Tre meget forskellige måder at læse klitterne på",
+    "contextP1": "En kameltur sænker tempoet og levner plads til at betragte landskabet. En quad dækker mere terræn og sætter kørsel og fornemmelse i centrum. Sandboarding bruger en udvalgt skråning og veksler mellem opstigning, øvelse og nedfart.",
+    "contextP2": "Disse aktiviteter er ikke udskiftelige. Tilgængelig tid, kondition, deltagernes alder, vind og sandforhold kan gøre den ene mere passende end den anden. Én aktivitet på det rette tidspunkt er bedre end tre forhastede oplevelser.",
+    "routeHeading": "Tilpas aktiviteten til tidspunktet på dagen",
+    "routeP1": "En rolig udflugt før solnedgang egner sig til observation og fotografering. Quadkørsel kræver førerens fulde opmærksomhed og følger en overvåget rute. Sandboarding fungerer som en legende session på egnede klitter efter guidens anvisninger.",
+    "routeP2": "For én nat vælger man generelt én hovedaktivitet før middag. På et længere ophold kan du adskille motoriserede aktiviteter, gåture og stille perioder, så lejraftenen forbliver en oplevelse i sig selv.",
+    "practicalHeading": "Hvad du skal dele før booking",
+    "practicalP1": "Oplys deltagernes alder, køreerfaring, mobilitet og relevante medicinske begrænsninger. Spørg, hvem der kører, hvilket udstyr der udleveres, hvad den bookede varighed faktisk dækker, og om forholdene kan kræve en ændring.",
+    "practicalP2": "Følg altid guiden og bliv på den planlagte rute. De officielle sider beskriver organiserede aktiviteter fra Dunes Insolites; de er ikke en tilladelse til selv at tage et køretøj ud på et vilkårligt synligt spor.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideFamilyStay": {
+    "eyebrow": "Ørken med børn",
+    "title": "Planlæg en nat i Sabria som familie",
+    "lead": "Et ligetil ophold, når alder, tempo og komfortbehov deles før ankomst.",
+    "contextHeading": "Start med den rette overnatning",
+    "contextP1": "Den annoncerede vejadgang, toiletter og et team på stedet gør den etablerede lejr lettere at overveje end en fjern bivuak for mange familier. Det kræver stadig kontrol: Spørg om den reelle kapacitet på værelset eller teltet, sengeindretningen og afstanden til faciliteterne.",
+    "contextP2": "Alder alene afgør ikke den rette aktivitet. Et barn kan nyde en kort klittur, men blive træt af gentagne transporter. Byg programmet op om søvn, måltider og pauser i stedet for en tjekliste.",
+    "routeHeading": "Et familieprogram med plads til at trække vejret",
+    "routeP1": "At ankomme tidligt nok til at falde til, én passende aktivitet, solnedgang, middag og overnatningen udgør allerede en komplet oplevelse. Morgenen kan forblive rolig med morgenmad og en kort gåtur nær lejren før afrejse.",
+    "routeP2": "Sand, sol og vind ændrer hurtigt komforten. Medbring vand, solbeskyttelse, lukkede sko, varmt tøj og en lille lampe. Hav medicin og vigtige ting hos dig i stedet for i et køretøj, der kan blive flyttet.",
+    "practicalHeading": "Hvad teamet har brug for at vide",
+    "practicalP1": "Send antal og alder på børn, sengebehov, allergier, madønsker, mobilitet og ønskede aktiviteter. Spørg udtrykkeligt til eventuelle alders- eller deltagelsesregler på den valgte dato.",
+    "practicalP2": "Antag ikke, at et familiebillede betyder, at enhver aktivitet passer til alle. Teamets bekræftelse bør dække overnatning, mad, transport og hver valgt aktivitet hver for sig.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideDesertLight": {
+    "eyebrow": "Saharas lys",
+    "title": "Solnedgang, stjerner og fotografering i Sabria",
+    "lead": "Nyd ørkenens bedste lys uden at forvandle hele aftenen til en fotosession.",
+    "contextHeading": "Kom, før lyset ændrer sig",
+    "contextP1": "Dunes Insolites fremhæver solnedgange og fotografering i klitterne. Det mest nyttige råd er logistisk: Vær på plads og klar før det planlagte tidspunkt, for at nå et udsigtspunkt, når solen forsvinder, levner ingen margin.",
+    "contextP2": "Lavt lys afslører klitternes former og mærker i sandet. En enkel komposition, en lige horisont og et par minutter uden kamera skaber ofte bedre minder end konstant at løbe mellem klitterne.",
+    "routeHeading": "Fra tusmørke til nattehimmel",
+    "routeP1": "Farverne forsvinder ikke øjeblikkeligt efter solnedgang. Betragt tusmørket, og lad derefter øjnene vænne sig til mørket, før du observerer stjernerne. Hold skarpe skærme væk fra gruppen, og brug ikke blitz nær dyr eller andre rejsende.",
+    "routeP2": "Med en telefon bør du stabilisere den og undgå digital zoom. Med et kamera bør du medbringe et opladet batteri, beskytte udstyret mod sand og minimere objektivskift, når vinden tager til.",
+    "practicalHeading": "Vis respekt for stedet og dets mennesker",
+    "practicalP1": "Spørg, før du fotograferer personale, guider, optrædende eller andre gæster. En kulturaften er ikke et studie; nogle øjeblikke opleves bedst uden skærm eller påtrængende lys.",
+    "practicalP2": "Tidspunkt og sigtbarhed afhænger af årstid og vejr. Spørg om den anbefalede ankomsttid på din bookingdato, og accepter, at skyer eller vind kan ændre det valgte udsigtspunkt.",
+    "sourcesHeading": "Dunes Insolites-kilder"
+  },
+  "guideDjerbaSabria": {
+    "eyebrow": "Rute på to dage",
+    "title": "Fra Djerba til Sabria med en nat i ørkenen",
+    "lead": "En sammenhængende rute, der forener sydlig kulturarv, ørkenlandskaber og en aften hos Dunes Insolites.",
+    "contextHeading": "To dage kræver valg",
+    "contextP1": "Dunes Insolites' udgivne ture forbinder Djerba, Matmata og Sabria med kulturelle stop og ankomst til lejren sent på dagen. To dage giver en meningsfuld introduktion, men ikke hver eneste ksar, oase og landsby i syd uden at tilbringe størstedelen af rejsen i et køretøj.",
+    "contextP2": "Vælg én hovedakse: Matmata og dets landskaber eller Tataouine og ksour, efterfulgt af natten i Sabria. Den præcise rute bør bekræftes med chaufføren eller guiden efter afgangssted, årstid og åbningstider.",
+    "routeHeading": "Beskyt aftenen i lejren",
+    "routeP1": "Dag ét bør sigte mod en ankomst tidligt nok til at falde til og se solnedgangen. At tilføje et sidste stop, når programmet allerede er forsinket, ofrer det øjeblik, som ørkennatten blev valgt for.",
+    "routeP2": "Dag to kan gå tilbage til Djerba ad en anden rute eller indeholde ét hovedstop. Hav margin til morgenmad, vejforhold og pauser; et ankomstestimat uden buffer er ikke en garanti.",
+    "practicalHeading": "Transport, guide og bekræftet indhold",
+    "practicalP1": "Tjek afhentningssted, køretøjstype, bagagetilladelse, måltider, entréer og guidens sprog. Hvis du når lejren på egen hånd, så bed om GPS-punktet og seneste ankomsttid separat.",
+    "practicalP2": "Inspirationssider beskriver eksempler. Kun din bookingoversigt bekræfter de stop, der faktisk er inkluderet. Tjek de aktuelle officielle rejseråd før afrejse, og ændr ikke ruten mod isolerede områder på egen hånd.",
+    "sourcesHeading": "Konsulterede kilder"
   }
 }

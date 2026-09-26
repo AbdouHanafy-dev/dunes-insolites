@@ -16,16 +16,16 @@ export default async function AuthLayout({
   image: string;
   children: React.ReactNode;
 }) {
-  const t = await getTranslations("authForm");
+  const [t, tHero] = await Promise.all([getTranslations("authForm"), getTranslations("hero")]);
   return (
     <section className="auth-page">
       <aside className="auth-art">
         <Image src={image} alt="" fill sizes="(max-width: 900px) 100vw, 45vw" preload />
         <div className="auth-art-copy">
           <span className="brand-line">
-            {site.name} · {site.brandLine}
+            {site.name} · {tHero("location").split(" · ").pop()}
           </span>
-          <p className="quote">{site.tagline}</p>
+          <p className="quote">{tHero("tagline")}</p>
         </div>
       </aside>
 

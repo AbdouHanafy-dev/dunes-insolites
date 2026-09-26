@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Stars from "@/components/Stars";
 import PlatformBadge from "@/components/PlatformBadge";
 import type { Review } from "@/lib/types";
 
 export default function ReviewCarousel({ reviews }: { reviews: Review[] }) {
+  const tA = useTranslations("a11y");
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState(false);
   const [atStart, setAtStart] = useState(true);
@@ -59,10 +61,10 @@ export default function ReviewCarousel({ reviews }: { reviews: Review[] }) {
       </div>
       {canScroll && (
         <div className="carousel-nav">
-          <button type="button" onClick={() => scroll(-1)} disabled={atStart} aria-label="Previous review">
+          <button type="button" onClick={() => scroll(-1)} disabled={atStart} aria-label={tA("prevReview")}>
             ‹
           </button>
-          <button type="button" onClick={() => scroll(1)} disabled={atEnd} aria-label="Next review">
+          <button type="button" onClick={() => scroll(1)} disabled={atEnd} aria-label={tA("nextReview")}>
             ›
           </button>
         </div>

@@ -33,6 +33,7 @@ export default async function CTA({
   // parameter default can't be an awaited translation call. Callers that
   // pass their own title/body/label (most detail pages) skip this entirely.
   const [t, images] = await Promise.all([getTranslations("ctaDefault"), getSiteImages()]);
+  const tA = await getTranslations("a11y");
 
   return (
     <section className="block cta-split">
@@ -46,7 +47,7 @@ export default async function CTA({
       <div className="cta-split-media">
         <Image
           src={images["home.cta"]}
-          alt="Desert gate at dusk"
+          alt={tA("ctaGateAlt")}
           fill
           sizes="(max-width: 900px) 100vw, 44vw"
           style={{ objectFit: "cover" }}

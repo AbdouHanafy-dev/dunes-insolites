@@ -73,6 +73,7 @@ export default function Header({
   const tAccount = useTranslations("account");
   const tCircuits = useTranslations("circuitsSection");
   const tMenu = useTranslations("mobileMenu");
+  const tA = useTranslations("a11y");
   const tDuration = useTranslations("tourDuration");
   const pathname = usePathname();
   const router = useRouter();
@@ -230,7 +231,7 @@ export default function Header({
             </span>
           </Link>
 
-          <nav className="nav primary-nav" aria-label="Primary navigation">
+          <nav className="nav primary-nav" aria-label={tA("navPrimary")}>
             {primaryNav.map((item) => (
               <div
                 className={`primary-item${item.items?.length ? " has-dropdown" : ""}`}
@@ -354,7 +355,7 @@ export default function Header({
       <div className="drawer pro-drawer" id="mobile-drawer" data-open={open} aria-hidden={!open}>
         <div className="drawer-scroll">
           <section className="drawer-section">
-            <nav className="drawer-menu-list" aria-label="Mobile navigation">
+            <nav className="drawer-menu-list" aria-label={tA("navMobile")}>
               {primaryNav.filter((item) => item.href !== "/faq" && item.href !== "/contact").map((item) =>
                 (item.href === "/camp" || item.href === "/circuits") && item.items?.length ? (
                   <div className="drawer-group" key={item.href}>
