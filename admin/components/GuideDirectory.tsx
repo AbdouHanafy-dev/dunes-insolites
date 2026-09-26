@@ -8,6 +8,7 @@ import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminGuideProfile, AdminSpokenLanguage } from "@/lib/api";
 import TableFilters from "@/components/TableFilters";
+import PersonCard, { CARD_GRID, pillActive, pillInactive } from "@/components/PersonCard";
 import { useTableFilters } from "@/components/useTableFilters";
 
 const GUIDE_FIELDS = [
@@ -131,20 +132,34 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
       <div className="card overflow-hidden rounded-2xl">
         <TableFilters {...bar} placeholder="Nom, e-mail, téléphone, langue…" />
         {guides.length === 0 ? <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun guide dans l’annuaire.</p> : (
-          <div className="overflow-x-auto"><table className="w-full text-sm">
-            <thead><tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-              <th className="px-6 py-3 font-semibold">Guide</th><th className="px-6 py-3 font-semibold">Contact</th><th className="px-6 py-3 font-semibold">Langues</th><th className="px-6 py-3 font-semibold">Statut</th><th className="px-6 py-3" />
-            </tr></thead>
-            <tbody className="divide-y divide-gray-100">{filtered.map((guide) => (
-              <tr key={guide.guideProfileId} className="hover:bg-gray-50">
-                <td className="px-6 py-3 font-medium text-gray-900">{guide.firstName} {guide.lastName}</td>
-                <td className="px-6 py-3 text-gray-600"><div>{guide.email ?? "—"}</div><div>{guide.phoneNumber ?? "—"}</div></td>
-                <td className="px-6 py-3 text-gray-600">{guide.languages.length ? guide.languages.map((language) => language.name).join(", ") : "—"}</td>
-                <td className="px-6 py-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${guide.active ? "bg-emerald/10 text-emerald" : "bg-gray-100 text-gray-500"}`}>{guide.active ? "Actif" : "Inactif"}</span></td>
-                <td className="px-6 py-3 text-right"><div className="flex justify-end gap-3"><button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(guide, !guide.active)}>{guide.active ? "Désactiver" : "Réactiver"}</button><button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(guide)}>Supprimer</button></div></td>
-              </tr>
-            ))}</tbody>
-          </table></div>
+          <div className={CARD_GRID}>
+            {filtered.map((guide) => (
+              <PersonCard
+                key={guide.guideProfileId}
+                name={`${guide.firstName} ${guide.lastName}`}
+                subtitle={guide.languages.length ? guide.languages.map((language) => language.name).join(" · ") : "Aucune langue renseignée"}
+                badge={<span className={guide.active ? pillActive : pillInactive}>{guide.active ? "Actif" : "Inactif"}</span>}
+                headline={
+                  <>
+                    <span>{guide.phoneNumber ?? "Téléphone non renseigné"}</span>
+                    <span className="truncate text-navy-700/60">{guide.email ?? "E-mail non renseigné"}</span>
+                  </>
+                }
+                actions={
+                  <>
+                    <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(guide, !guide.active)}>{guide.active ? "Désactiver" : "Réactiver"}</button>
+                    <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(guide)}>Supprimer</button>
+                  </>
+                }
+                facts={[
+                  { label: "E-mail", value: guide.email ?? "—" },
+                  { label: "Téléphone", value: guide.phoneNumber ?? "—" },
+                  { label: "Langues parlées", value: guide.languages.length ? guide.languages.map((language) => language.name).join(", ") : "—" },
+                  { label: "Statut", value: guide.active ? "Actif : peut être affecté aux réservations" : "Inactif : n’est plus proposé pour les affectations" },
+                ]}
+              />
+            ))}
+          </div>
         )}
       </div>
 

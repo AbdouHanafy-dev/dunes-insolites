@@ -5,19 +5,15 @@ import { useEffect, useState } from "react";
 import Modal from "@/components/Modal";
 import { CITY_OPTIONS } from "@/lib/cities";
 import { sym } from "@/lib/currency";
-import type { AdminReservation, AdminReservationStaffMember, Page } from "@/lib/api";
+import type { AdminReservation, Page } from "@/lib/api";
 import { paymentStatusOf, statusOf } from "@/components/reservations/reservationStatus";
+import { needsStaff, StaffPair } from "@/components/reservations/StaffPair";
 import { activityLines, lineLabel, optionLines, serviceLines } from "@/lib/reservationLines";
 import { accommodationSummary, guestBreakdown, guestCounts, nightsOf } from "@/lib/stayReservation";
 
 const TYPE_LABEL: Record<string, string> = { HEBERGEMENT: "Hébergement", TOURS: "Circuit", EXTRAS: "Activités" };
 
 const cityLabel = (city: string | null | undefined) => CITY_OPTIONS.find((c) => c.value === city)?.label ?? city ?? "";
-
-/** Who needs a guide and a chauffeur: every circuit, and a stay only when the guest asked for transportation. */
-export function needsStaff(r: Pick<AdminReservation, "reservationType" | "arrivalMode">): boolean {
-  return r.reservationType === "TOURS" || (r.reservationType === "HEBERGEMENT" && r.arrivalMode === "TRANSPORT");
-}
 
 /**
  * Everything booked for one day of the calendar: each reservation with its guests, what they
@@ -105,11 +101,8 @@ function DayReservation({ r }: { r: AdminReservation }) {
   const activities = activityLines(r);
   const options = optionLines(r);
   const services = serviceLines(r);
-  const guides = r.guides ?? [];
-  const chauffeurs = r.chauffeurs ?? [];
   const returnCity = r.returnCityOther ? `${r.returnCityOther} (hors liste)` : cityLabel(r.returnCity);
   const cancelled = ["CANCELLED", "REJECTED", "EXPIRED"].includes(r.status);
-  const staffNeeded = needsStaff(r);
 
   return (
     <article className={`rounded-xl border border-navy-700/12 p-4 ${cancelled ? "opacity-60" : ""}`}>
@@ -156,21 +149,8 @@ function DayReservation({ r }: { r: AdminReservation }) {
         </p>
       )}
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <Staff
-          title="Guide"
-          people={guides}
-          applicable={staffNeeded}
-          empty={staffNeeded ? "Aucun guide affecté" : "Non concerné (véhicule perso)"}
-          detail={(g) => (g.languages?.length ? g.languages.map((l) => l.name).join(", ") : null)}
-        />
-        <Staff
-          title="Chauffeur"
-          people={chauffeurs}
-          applicable={staffNeeded}
-          empty={staffNeeded ? "Aucun chauffeur affecté" : "Non concerné (véhicule perso)"}
-          detail={(c) => [c.vehicleModel, c.numberOfSeats ? `${c.numberOfSeats} places` : null].filter(Boolean).join(" · ") || null}
-        />
+      <div className="mt-3">
+        <StaffPair r={r} />
       </div>
 
       <footer className="mt-3 flex justify-end">
@@ -179,41 +159,6 @@ function DayReservation({ r }: { r: AdminReservation }) {
         </Link>
       </footer>
     </article>
-  );
-}
-
-function Staff({
-  title,
-  people,
-  applicable,
-  empty,
-  detail,
-}: {
-  title: string;
-  people: AdminReservationStaffMember[];
-  applicable: boolean;
-  empty: string;
-  detail: (p: AdminReservationStaffMember) => string | null;
-}) {
-  if (people.length === 0) {
-    return (
-      <div className={`rounded-lg px-3 py-2 text-[13px] ${applicable ? "bg-amber-50 text-amber-800" : "bg-gray-50 text-gray-500"}`}>
-        <div className="text-[11px] font-semibold uppercase tracking-wide opacity-70">{title}</div>
-        {empty}
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-lg bg-emerald-50 px-3 py-2 text-[13px] text-emerald-900">
-      <div className="text-[11px] font-semibold uppercase tracking-wide opacity-70">{title}</div>
-      {people.map((p) => (
-        <div key={p.guideId ?? p.chauffeurId ?? `${p.firstName}${p.lastName}`}>
-          <span className="font-medium">{p.firstName} {p.lastName}</span>
-          {p.phoneNumber && <span className="text-emerald-900/70"> · {p.phoneNumber}</span>}
-          {detail(p) && <div className="text-[12px] text-emerald-900/70">{detail(p)}</div>}
-        </div>
-      ))}
-    </div>
   );
 }
 

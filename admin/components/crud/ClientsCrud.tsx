@@ -1,8 +1,8 @@
 "use client";
 
-import CollectionList from "@/components/payload/CollectionList";
+import UserCards from "@/components/crud/UserCards";
 import CollectionEditor from "@/components/payload/CollectionEditor";
-import type { ColumnDef, FieldDef } from "@/components/payload/fields";
+import type { FieldDef } from "@/components/payload/fields";
 import type { AdminUser } from "@/lib/api";
 import { optionsFrom } from "@/lib/tableFilters";
 
@@ -10,23 +10,6 @@ const BASE_PATH = "/clients";
 const API_PATH = "users";
 const CREATE_PATH = "users/add";
 
-const columns: ColumnDef<AdminUser>[] = [
-  { key: "name", label: "Nom" },
-  { key: "email", label: "Email" },
-  { key: "phone", label: "Téléphone" },
-  { key: "role", label: "Type" },
-  { key: "matriculeFiscal", label: "Matricule fiscal", render: (item) => item.matriculeFiscal || "—" },
-  {
-    key: "termsAcceptedAt",
-    label: "CGU acceptées",
-    // Display-only, real data from a real column — not editable here on
-    // purpose, see AdminUser.termsAcceptedAt's own comment.
-    render: (item) =>
-      item.termsAcceptedAt
-        ? new Date(item.termsAcceptedAt).toLocaleDateString("fr-FR")
-        : "—",
-  },
-];
 
 const fields: FieldDef[] = [
   { type: "text", key: "name", label: "Nom", required: true },
@@ -50,18 +33,14 @@ const emptyForm = { name: "", email: "", password: "", phone: "", role: "CLIENT"
 
 export function ClientsList({ initialItems }: { initialItems: AdminUser[] }) {
   return (
-    <CollectionList
+    <UserCards
       title="Clients & Partenaires"
       basePath={BASE_PATH}
-      apiPath={API_PATH}
-      idKey="userId"
-      titleKey="name"
       items={initialItems}
-      columns={columns}
-      filters={[
-        { id: "role", label: "Type", kind: "select", options: optionsFrom(initialItems, (u) => u.role), get: (u) => u.role },
+      roleLabel={(user) => (user.role === "PARTENAIRE" ? "Partenaire" : user.role === "CLIENT" ? "Client" : user.role)}
+      extraFilters={[
         { id: "tier", label: "Fidélité", kind: "select", options: optionsFrom(initialItems, (u) => u.loyaltyTier), get: (u) => u.loyaltyTier },
-        { id: "terms", label: "Inscription", kind: "date", get: (u) => u.termsAcceptedAt },
+        { id: "terms", label: "CGU acceptées", kind: "date", get: (u) => u.termsAcceptedAt },
       ]}
     />
   );

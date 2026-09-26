@@ -8,6 +8,7 @@ import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminDriverProfile } from "@/lib/api";
 import TableFilters from "@/components/TableFilters";
+import PersonCard, { CARD_GRID, pillActive, pillInactive } from "@/components/PersonCard";
 import { useTableFilters } from "@/components/useTableFilters";
 
 const DRIVER_FIELDS = [
@@ -142,30 +143,35 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
         {drivers.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun chauffeur dans l’annuaire.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead><tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-                <th className="px-6 py-3 font-semibold">Chauffeur</th><th className="px-6 py-3 font-semibold">Contact</th>
-                <th className="px-6 py-3 font-semibold">Véhicule</th><th className="px-6 py-3 font-semibold">Statut</th><th className="px-6 py-3" />
-              </tr></thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((driver) => (
-                  <tr key={driver.driverProfileId} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 font-medium text-gray-900">{driver.firstName} {driver.lastName}</td>
-                    <td className="px-6 py-3 text-gray-600"><div>{driver.email}</div><div>{driver.phoneNumber ?? "—"}</div></td>
-                    <td className="px-6 py-3 text-gray-600">{driver.vehicleModel ?? "—"}{driver.numberOfSeats ? ` · ${driver.numberOfSeats} places` : ""}</td>
-                    <td className="px-6 py-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${driver.active ? "bg-emerald/10 text-emerald" : "bg-gray-100 text-gray-500"}`}>{driver.active ? "Actif" : "Inactif"}</span></td>
-                    <td className="px-6 py-3 text-right">
-                      <div className="flex justify-end gap-3">
-                        {driver.active && <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => resendInvitation(driver)}>Renvoyer l’invitation</button>}
-                        <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(driver, !driver.active)}>{driver.active ? "Désactiver" : "Réactiver"}</button>
-                        <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(driver)}>Supprimer</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className={CARD_GRID}>
+            {filtered.map((driver) => (
+              <PersonCard
+                key={driver.driverProfileId}
+                name={`${driver.firstName} ${driver.lastName}`}
+                subtitle={`${driver.vehicleModel ?? "Véhicule non renseigné"}${driver.numberOfSeats ? ` · ${driver.numberOfSeats} places` : ""}`}
+                badge={<span className={driver.active ? pillActive : pillInactive}>{driver.active ? "Actif" : "Inactif"}</span>}
+                headline={
+                  <>
+                    <span>{driver.phoneNumber ?? "Téléphone non renseigné"}</span>
+                    <span className="truncate text-navy-700/60">{driver.email}</span>
+                  </>
+                }
+                actions={
+                  <>
+                    {driver.active && <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => resendInvitation(driver)}>Renvoyer l’invitation</button>}
+                    <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(driver, !driver.active)}>{driver.active ? "Désactiver" : "Réactiver"}</button>
+                    <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(driver)}>Supprimer</button>
+                  </>
+                }
+                facts={[
+                  { label: "E-mail", value: driver.email },
+                  { label: "Téléphone", value: driver.phoneNumber ?? "—" },
+                  { label: "Véhicule", value: driver.vehicleModel ?? "—" },
+                  { label: "Places", value: driver.numberOfSeats ? String(driver.numberOfSeats) : "—" },
+                  { label: "Statut", value: driver.active ? "Actif : peut être affecté aux réservations" : "Inactif : n’est plus proposé pour les affectations" },
+                ]}
+              />
+            ))}
           </div>
         )}
       </div>

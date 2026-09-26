@@ -1,8 +1,8 @@
 "use client";
 
-import CollectionList from "@/components/payload/CollectionList";
+import UserCards from "@/components/crud/UserCards";
 import CollectionEditor from "@/components/payload/CollectionEditor";
-import type { ColumnDef, FieldDef } from "@/components/payload/fields";
+import type { FieldDef } from "@/components/payload/fields";
 import type { AdminUser, CustomRole } from "@/lib/api";
 
 // Staff accounts (ADMIN/CAMPING/STAFF) — distinct from the Clients &
@@ -19,17 +19,6 @@ const ROLE_LABELS: Record<string, string> = {
   CHAUFFEUR: "Chauffeur",
 };
 
-const columns: ColumnDef<AdminUser>[] = [
-  { key: "name", label: "Nom" },
-  { key: "email", label: "Email" },
-  { key: "phone", label: "Téléphone" },
-  {
-    key: "role",
-    label: "Rôle",
-    render: (item) =>
-      item.role === "STAFF" ? `Personnalisé (${item.customRoleName ?? "—"})` : ROLE_LABELS[item.role],
-  },
-];
 
 // customRoleName is always in the form (not conditionally shown — the
 // generic FieldDef/CollectionEditor system has no "only if role=X" concept,
@@ -71,14 +60,11 @@ const emptyForm = { name: "", email: "", password: "", phone: "", role: "CAMPING
 
 export function StaffList({ initialItems }: { initialItems: AdminUser[] }) {
   return (
-    <CollectionList
+    <UserCards
       title="Utilisateurs"
       basePath={BASE_PATH}
-      apiPath={API_PATH}
-      idKey="userId"
-      titleKey="name"
       items={initialItems}
-      columns={columns}
+      roleLabel={(user) => (user.role === "STAFF" ? `Personnalisé (${user.customRoleName ?? "—"})` : ROLE_LABELS[user.role] ?? user.role)}
     />
   );
 }

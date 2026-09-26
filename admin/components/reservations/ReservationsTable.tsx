@@ -13,6 +13,7 @@ import { accommodationSummary, guestBreakdown, guestCounts, nightsOf } from "@/l
 import { activityLines, activitySummary, lineLabel, optionLines, serviceLines } from "@/lib/reservationLines";
 import { CITY_OPTIONS } from "@/lib/cities";
 import TableFilters from "@/components/TableFilters";
+import ReservationCard from "./ReservationCard";
 import {
   applyFilters, matchesSearch, optionsFrom,
   type FilterDef, type FilterState,
@@ -32,8 +33,7 @@ const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "client", label: "Client" },
   { key: "prestation", label: "Prestation" },
   { key: "activities", label: "Activités" },
-  { key: "status", label: "Statut" },
-  { key: "payment", label: "Paiement" },
+  { key: "status", label: "Statut / paiement" },
   { key: "date", label: "Date" },
   { key: "amount", label: "Montant", right: true },
 ];
@@ -46,8 +46,7 @@ const STAY_COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "nights", label: "Nuits" },
   { key: "arrival", label: "Arrivée en" },
   { key: "activities", label: "Activités" },
-  { key: "status", label: "Statut" },
-  { key: "payment", label: "Paiement" },
+  { key: "status", label: "Statut / paiement" },
   { key: "date", label: "Arrivée" },
   { key: "amount", label: "Montant", right: true },
 ];
@@ -109,6 +108,8 @@ export default function ReservationsTable({
   const [deleting, setDeleting] = useState<AdminReservation | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  // Cards by default; the compact dashboard table (a row limit) stays a list.
+  const [view, setView] = useState<"cards" | "list">(limit ? "list" : "cards");
   const [page, setPage] = useState(0);
 
   const filterDefs = useMemo<FilterDef<AdminReservation>[]>(
@@ -149,9 +150,10 @@ export default function ReservationsTable({
     return limit ? sorted.slice(0, limit) : sorted;
   }, [reservations, filterDefs, filterState, query, sort, limit]);
 
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const size = view === "cards" ? 9 : pageSize;
+  const pageCount = Math.max(1, Math.ceil(rows.length / size));
   const current = Math.min(page, pageCount - 1);
-  const pageRows = rows.slice(current * pageSize, (current + 1) * pageSize);
+  const pageRows = rows.slice(current * size, (current + 1) * size);
 
   function toggleSort(key: SortKey) {
     setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
@@ -195,7 +197,27 @@ export default function ReservationsTable({
   return (
     <>
       <div className="card rounded-2xl">
-        {title && <h2 className="px-6 pt-4 text-sm font-semibold text-navy-800">{title}</h2>}
+        <div className="flex items-center justify-between gap-3 px-6 pt-4">
+          {title ? <h2 className="text-sm font-semibold text-navy-800">{title}</h2> : <span />}
+          {!limit && (
+            <div className="inline-flex rounded-lg border border-navy-700/15 p-0.5" role="group" aria-label="Affichage">
+              {(["cards", "list"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={view === mode}
+                  onClick={() => { setView(mode); setPage(0); }}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition ${
+                    view === mode ? "bg-navy-800 text-white" : "text-navy-700/60 hover:text-navy-800"
+                  }`}
+                >
+                  <i className={`bi ${mode === "cards" ? "bi-grid-3x2-gap" : "bi-list-ul"}`} aria-hidden />
+                  {mode === "cards" ? "Cartes" : "Liste"}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <TableFilters
           defs={limit ? [] : filterDefs}
           state={filterState}
@@ -214,148 +236,161 @@ export default function ReservationsTable({
               : "Aucune réservation ne correspond à cette recherche."}
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/50">
-                  {columns.map((c) => {
-                    const active = sort.key === c.key;
-                    return (
-                      <th
-                        key={c.key}
-                        aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
-                        className={`px-6 py-3 font-semibold ${c.right ? "text-right" : ""}`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => toggleSort(c.key)}
-                          className={`inline-flex items-center gap-1 uppercase tracking-wide transition hover:text-navy-800 ${active ? "text-navy-800" : ""}`}
+          view === "cards" ? (
+            <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 2xl:grid-cols-3">
+              {pageRows.map((r) => (
+                <ReservationCard
+                  key={r.reservationId}
+                  reservation={r}
+                  canDelete={canDelete}
+                  confirming={confirmingId === r.reservationId}
+                  onConfirm={confirmOnSite}
+                  onDelete={setDeleting}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/50">
+                    {columns.map((c) => {
+                      const active = sort.key === c.key;
+                      return (
+                        <th
+                          key={c.key}
+                          aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+                          className={`px-3 py-3 font-semibold ${c.key === "client" ? "pl-6" : ""} ${c.right ? "text-right" : ""}`}
                         >
-                          {c.label}
-                          <i
-                            className={`bi ${
-                              active ? (sort.dir === "asc" ? "bi-caret-up-fill" : "bi-caret-down-fill") : "bi-chevron-expand"
-                            } text-[10px] ${active ? "" : "opacity-40"}`}
-                            aria-hidden
-                          />
-                        </button>
-                      </th>
-                    );
-                  })}
-                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navy-700/8">
-                {pageRows.map((r) => {
-                  const st = statusOf(r.status);
-                  return (
-                    <tr key={r.reservationId} className="transition hover:bg-gold/[0.06]">
-                      <td className="min-w-[9rem] px-6 py-3 font-medium text-navy-800">{r.userName}</td>
-                      {variant === "stays" ? (
-                        <>
-                          <td className="px-6 py-3">
-                            <div className="font-medium tabular-nums text-navy-800">{guestCounts(r).coming}</div>
-                            <div className="text-[12px] text-navy-700/55">{guestBreakdown(r)}</div>
-                          </td>
-                          <td className="min-w-[10rem] px-6 py-3 text-navy-700/75">{accommodationSummary(r) || "—"}</td>
-                          <td className="px-6 py-3 tabular-nums text-navy-700/75">{nightsOf(r) ?? "—"}</td>
-                          <td className="px-6 py-3">
-                            <span
-                              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${
-                                r.arrivalMode === "TRANSPORT" ? "bg-sky-100 text-sky-800" : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              <i className={`bi ${r.arrivalMode === "TRANSPORT" ? "bi-truck" : "bi-car-front"}`} aria-hidden />
-                              {arrivalLabel(r.arrivalMode)}
-                            </span>
-                          </td>
-                        </>
-                      ) : (
-                        <td className="px-6 py-3 text-navy-700/75">{prestation(r)}</td>
-                      )}
-                      <td className="max-w-[16rem] px-6 py-3 text-[13px] text-navy-700/75">{activitySummary(r) || "—"}</td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>
-                          {st.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3">
-                        <span
-                          className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${paymentStatusOf(r.paymentSummary?.paymentStatus).className}`}
-                        >
-                          {paymentStatusOf(r.paymentSummary?.paymentStatus).label}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-3 tabular-nums text-navy-700/75">{dateOf(r) || "—"}</td>
-                      <td className="whitespace-nowrap px-6 py-3 text-right font-medium tabular-nums text-navy-800">
-                        {r.totalAmount} {sym(r.currency)}
-                      </td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center justify-end gap-0.5">
-                          {r.status === "PENDING" && (
-                            <button
-                              type="button"
-                              className="mr-1 inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-emerald-100 px-2.5 py-1.5 text-[12px] font-semibold text-emerald-800 transition hover:bg-emerald-200 disabled:opacity-50"
-                              title="Confirmer la réservation (paiement sur place, sans lien de paiement)"
-                              disabled={confirmingId === r.reservationId}
-                              onClick={() => confirmOnSite(r)}
-                            >
-                              <i className="bi bi-check2-circle" aria-hidden />
-                              {confirmingId === r.reservationId ? "…" : "Confirmer"}
-                            </button>
-                          )}
                           <button
                             type="button"
-                            className={iconBtn}
-                            title="Voir"
-                            aria-label="Voir"
-                            onClick={() => setViewing(r)}
+                            onClick={() => toggleSort(c.key)}
+                            className={`inline-flex items-center gap-1 uppercase tracking-wide transition hover:text-navy-800 ${active ? "text-navy-800" : ""}`}
                           >
-                            <i className="bi bi-eye" aria-hidden />
+                            {c.label}
+                            <i
+                              className={`bi ${
+                                active ? (sort.dir === "asc" ? "bi-caret-up-fill" : "bi-caret-down-fill") : "bi-chevron-expand"
+                              } text-[10px] ${active ? "" : "opacity-40"}`}
+                              aria-hidden
+                            />
                           </button>
-                          {isEditable(r.status) ? (
-                            <Link
-                              href={`/reservations/${r.reservationId}#gestion`}
-                              className={iconBtn}
-                              title="Modifier"
-                              aria-label="Modifier"
-                            >
-                              <i className="bi bi-pencil" aria-hidden />
-                            </Link>
-                          ) : (
-                            <span
-                              className={`${iconBtn} cursor-not-allowed opacity-30 hover:!bg-transparent`}
-                              title={`Non modifiable — réservation ${st.label.toLowerCase()}`}
-                              aria-label="Non modifiable"
-                            >
-                              <i className="bi bi-pencil" aria-hidden />
+                        </th>
+                      );
+                    })}
+                    <th className="px-3 py-3 pr-6 text-right font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-navy-700/8">
+                  {pageRows.map((r) => {
+                    const st = statusOf(r.status);
+                    return (
+                      <tr key={r.reservationId} className="transition hover:bg-gold/[0.06]">
+                        <td className="px-3 py-3 pl-6 font-medium text-navy-800">{r.userName}</td>
+                        {variant === "stays" ? (
+                          <>
+                            <td className="px-3 py-3">
+                              <div className="font-medium tabular-nums text-navy-800">{guestCounts(r).coming}</div>
+                              <div className="text-[12px] text-navy-700/55">{guestBreakdown(r)}</div>
+                            </td>
+                            <td className="px-3 py-3 text-[13px] text-navy-700/75">{accommodationSummary(r) || "—"}</td>
+                            <td className="px-3 py-3 tabular-nums text-navy-700/75">{nightsOf(r) ?? "—"}</td>
+                            <td className="px-3 py-3">
+                              <span
+                                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${
+                                  r.arrivalMode === "TRANSPORT" ? "bg-sky-100 text-sky-800" : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                <i className={`bi ${r.arrivalMode === "TRANSPORT" ? "bi-truck" : "bi-car-front"}`} aria-hidden />
+                                {arrivalLabel(r.arrivalMode)}
+                              </span>
+                            </td>
+                          </>
+                        ) : (
+                          <td className="px-3 py-3 text-navy-700/75">{prestation(r)}</td>
+                        )}
+                        <td className="px-3 py-3 text-[13px] text-navy-700/75">{activitySummary(r) || "—"}</td>
+                        <td className="px-3 py-3">
+                          <div className="flex flex-col items-start gap-1">
+                            <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>
+                              {st.label}
                             </span>
-                          )}
-                          {canDelete && (
+                            <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${paymentStatusOf(r.paymentSummary?.paymentStatus).className}`}>
+                              {paymentStatusOf(r.paymentSummary?.paymentStatus).label}
+                            </span>
+                            {r.status === "PENDING" && (
+                              <button
+                                type="button"
+                                className="mt-1 inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-emerald-600 px-2.5 py-1 text-[12px] font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                                title="Confirmer la réservation (paiement sur place, sans lien de paiement)"
+                                disabled={confirmingId === r.reservationId}
+                                onClick={() => confirmOnSite(r)}
+                              >
+                                <i className="bi bi-check2-circle" aria-hidden />
+                                {confirmingId === r.reservationId ? "…" : "Confirmer"}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 tabular-nums text-navy-700/75">{dateOf(r) || "—"}</td>
+                        <td className="whitespace-nowrap px-3 py-3 text-right font-medium tabular-nums text-navy-800">
+                          {r.totalAmount} {sym(r.currency)}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center justify-end gap-0.5">
                             <button
                               type="button"
-                              className={`${iconBtn} hover:!bg-rose/10 hover:!text-rose`}
-                              title="Supprimer"
-                              aria-label="Supprimer"
-                              onClick={() => setDeleting(r)}
+                              className={iconBtn}
+                              title="Voir"
+                              aria-label="Voir"
+                              onClick={() => setViewing(r)}
                             >
-                              <i className="bi bi-trash3" aria-hidden />
+                              <i className="bi bi-eye" aria-hidden />
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                            {isEditable(r.status) ? (
+                              <Link
+                                href={`/reservations/${r.reservationId}#gestion`}
+                                className={iconBtn}
+                                title="Modifier"
+                                aria-label="Modifier"
+                              >
+                                <i className="bi bi-pencil" aria-hidden />
+                              </Link>
+                            ) : (
+                              <span
+                                className={`${iconBtn} cursor-not-allowed opacity-30 hover:!bg-transparent`}
+                                title={`Non modifiable — réservation ${st.label.toLowerCase()}`}
+                                aria-label="Non modifiable"
+                              >
+                                <i className="bi bi-pencil" aria-hidden />
+                              </span>
+                            )}
+                            {canDelete && (
+                              <button
+                                type="button"
+                                className={`${iconBtn} hover:!bg-rose/10 hover:!text-rose`}
+                                title="Supprimer"
+                                aria-label="Supprimer"
+                                onClick={() => setDeleting(r)}
+                              >
+                                <i className="bi bi-trash3" aria-hidden />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )
         )}
 
-        {rows.length > pageSize && (
+        {rows.length > size && (
           <div className="flex items-center justify-between gap-3 border-t border-navy-700/8 px-6 py-3 text-xs text-navy-700/55">
             <span>
-              {current * pageSize + 1}–{Math.min((current + 1) * pageSize, rows.length)} sur {rows.length}
+              {current * size + 1}–{Math.min((current + 1) * size, rows.length)} sur {rows.length}
             </span>
             <div className="flex items-center gap-1">
               <button
