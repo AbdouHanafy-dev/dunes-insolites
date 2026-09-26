@@ -3,6 +3,7 @@
 import { readApiError } from "@/lib/apiError";
 import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/Modal";
+import DayDetailModal from "./DayDetailModal";
 import type { AdminTourType, AvailabilityDay } from "@/lib/api";
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -61,6 +62,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
   const [blockTarget, setBlockTarget] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [detailDay, setDetailDay] = useState<AvailabilityDay | null>(null);
 
   const calendarCells = useMemo(() => buildMonthGrid(month, days), [month, days]);
   const today = new Date().toLocaleDateString("en-CA");
@@ -232,10 +234,19 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                   return (
                     <article
                       key={day.date}
-                      className={`relative min-h-36 bg-white p-3 transition-colors hover:bg-gold/[0.035] ${
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setDetailDay(day)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setDetailDay(day);
+                        }
+                      }}
+                      className={`relative min-h-36 cursor-pointer bg-white p-3 transition-colors hover:bg-gold/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
                         day.blockId ? "bg-rose/[0.035]" : ""
                       }`}
-                      aria-label={formatDate(day.date)}
+                      aria-label={`Détail du ${formatDate(day.date)}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span
@@ -279,7 +290,10 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                           <button
                             type="button"
                             disabled={busy}
-                            onClick={() => unblock(day.blockId!)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              unblock(day.blockId!);
+                            }}
                             className="w-full rounded-md border border-navy-700/15 px-2 py-1 text-[11px] font-medium text-navy-700 hover:bg-navy-700/5 disabled:opacity-50"
                           >
                             Rouvrir
@@ -288,7 +302,8 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                           <button
                             type="button"
                             disabled={busy}
-                            onClick={() => {
+                            onClick={(event) => {
+                              event.stopPropagation();
                               setBlockTarget(day.date);
                               setNoteDraft("");
                             }}
@@ -314,8 +329,18 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
         <span className="inline-flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-rose" /> Fermé
         </span>
-        <span>Les nombres affichés proviennent des réservations réelles.</span>
+        <span>Les nombres affichés proviennent des réservations réelles. Cliquez sur un jour pour voir le détail.</span>
       </div>
+
+      {detailDay && (
+        <DayDetailModal
+          date={detailDay.date}
+          dateLabel={formatDate(detailDay.date)}
+          closed={!!detailDay.blockId}
+          blockNote={detailDay.blockNote}
+          onClose={() => setDetailDay(null)}
+        />
+      )}
 
       {blockTarget && (
         <Modal title={`Fermer le ${formatDate(blockTarget)}`} onClose={() => setBlockTarget(null)}>

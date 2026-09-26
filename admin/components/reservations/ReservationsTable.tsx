@@ -19,10 +19,14 @@ import {
 } from "@/lib/tableFilters";
 import { PAYMENT_STATUS, RESERVATION_STATUS } from "./reservationStatus";
 
+/** How the guest gets to the camp: it decides whether a guide and a chauffeur are assigned. */
+const arrivalLabel = (mode: AdminReservation["arrivalMode"]) =>
+  mode === "TRANSPORT" ? "Transport demandé" : mode === "OWN_VEHICLE" ? "Véhicule perso" : "—";
+
 const prestation = (r: AdminReservation) => [...r.tourTypes, ...r.tours][0]?.name ?? r.reservationType;
 const dateOf = (r: AdminReservation) => r.checkInDate ?? r.serviceDate ?? "";
 
-type SortKey = "client" | "prestation" | "guests" | "accommodation" | "nights" | "activities" | "status" | "payment" | "date" | "created" | "amount";
+type SortKey = "client" | "arrival" | "prestation" | "guests" | "accommodation" | "nights" | "activities" | "status" | "payment" | "date" | "created" | "amount";
 
 const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "client", label: "Client" },
@@ -40,6 +44,7 @@ const STAY_COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "guests", label: "Voyageurs" },
   { key: "accommodation", label: "Hébergement" },
   { key: "nights", label: "Nuits" },
+  { key: "arrival", label: "Arrivée en" },
   { key: "activities", label: "Activités" },
   { key: "status", label: "Statut" },
   { key: "payment", label: "Paiement" },
@@ -57,6 +62,8 @@ function sortValue(r: AdminReservation, key: SortKey): string | number {
       return nightsOf(r) ?? 0;
     case "activities":
       return activitySummary(r).toLowerCase();
+    case "arrival":
+      return arrivalLabel(r.arrivalMode);
     case "client":
       return r.userName.toLowerCase();
     case "prestation":
@@ -117,6 +124,9 @@ export default function ReservationsTable({
         get: (r) => r.paymentSummary?.paymentStatus,
       },
       { id: "prestation", label: "Prestation", kind: "select", options: optionsFrom(reservations, prestation), get: prestation },
+      ...(variant === "stays"
+        ? [{ id: "arrivalMode", label: "Arrivée en", kind: "select" as const, options: [{ value: "TRANSPORT", label: "Transport demandé" }, { value: "OWN_VEHICLE", label: "Véhicule perso" }], get: (r: AdminReservation) => r.arrivalMode }]
+        : []),
       { id: "arrival", label: variant === "stays" ? "Arrivée" : "Date", kind: "date", get: dateOf },
       { id: "created", label: "Créée", kind: "date", get: (r) => r.createdAt },
     ],
@@ -249,6 +259,16 @@ export default function ReservationsTable({
                           </td>
                           <td className="min-w-[10rem] px-6 py-3 text-navy-700/75">{accommodationSummary(r) || "—"}</td>
                           <td className="px-6 py-3 tabular-nums text-navy-700/75">{nightsOf(r) ?? "—"}</td>
+                          <td className="px-6 py-3">
+                            <span
+                              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-medium ${
+                                r.arrivalMode === "TRANSPORT" ? "bg-sky-100 text-sky-800" : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              <i className={`bi ${r.arrivalMode === "TRANSPORT" ? "bi-truck" : "bi-car-front"}`} aria-hidden />
+                              {arrivalLabel(r.arrivalMode)}
+                            </span>
+                          </td>
                         </>
                       ) : (
                         <td className="px-6 py-3 text-navy-700/75">{prestation(r)}</td>
@@ -444,6 +464,7 @@ function ReservationQuickView({
         <Info label="Voyageurs" value={`${guestCounts(r).coming}${guestBreakdown(r) ? ` — ${guestBreakdown(r)}` : ""}`} />
         {nights != null && <Info label="Nuits" value={nights} />}
         {accommodationSummary(r) && <Info label="Hébergement" value={accommodationSummary(r)} />}
+        {r.arrivalMode && <Info label="Arrivée en" value={arrivalLabel(r.arrivalMode)} />}
         {r.groupName && <Info label="Groupe" value={r.groupName} />}
         {r.departureCity && <Info label="Ville de départ" value={cityLabel(r.departureCity)} />}
         {returnCity && <Info label="Ville de retour" value={returnCity} />}

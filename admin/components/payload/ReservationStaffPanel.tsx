@@ -48,9 +48,9 @@ export default function ReservationStaffPanel({
   const [chauffeurs, setChauffeurs] = useState(initialChauffeurs);
   const [busy, setBusy] = useState(false);
 
-  const manageable =
-    reservationType === "TOURS" &&
-    !["CANCELLED", "REJECTED", "COMPLETED"].includes(status);
+  // Every circuit takes a guide and a chauffeur; a stay only when the guest asked for transportation.
+  const takesStaff = reservationType === "TOURS" || (reservationType === "HEBERGEMENT" && arrivalMode === "TRANSPORT");
+  const manageable = takesStaff && !["CANCELLED", "REJECTED", "COMPLETED"].includes(status);
 
   /** Returns null on success, or the exact reason the assignment was refused. */
   async function addStaff(kind: "guides" | "chauffeurs", entry: Record<string, unknown>): Promise<string | null> {
@@ -88,8 +88,10 @@ export default function ReservationStaffPanel({
 
   const unmanageableNotice = !manageable && (
     <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
-      {reservationType !== "TOURS"
-        ? "Le personnel ne peut être affecté qu'aux réservations de type Circuit."
+      {!takesStaff
+        ? reservationType === "HEBERGEMENT"
+          ? "Le client vient avec son propre véhicule : aucun guide ni chauffeur à affecter."
+          : "Le personnel ne peut être affecté qu'aux circuits et aux séjours avec transport."
         : `Le personnel ne peut plus être modifié pour une réservation ${status.toLowerCase()}.`}
     </p>
   );

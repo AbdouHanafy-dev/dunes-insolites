@@ -95,7 +95,7 @@ public class ChauffeurServiceImpl implements ChauffeurService {
                             .reservationId(r.getReservationId())
                             .chauffeurId(c.getChauffeurId())
                             .tourName(tourName)
-                            .serviceDate(r.getServiceDate())
+                            .serviceDate(r.getServiceDate() != null ? r.getServiceDate() : r.getCheckInDate())
                             .groupName(r.getGroupName())
                             .groupLeaderName(r.getGroupLeaderName())
                             .numberOfAdults(r.getNumberOfAdults())

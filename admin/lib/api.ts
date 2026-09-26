@@ -101,6 +101,8 @@ export type AdminReservation = {
   createdAt: string;
   extras?: AdminReservationExtra[];
   groupName?: string | null;
+  guides?: AdminReservationStaffMember[];
+  chauffeurs?: AdminReservationStaffMember[];
   demandeSpecial?: string | null;
   preferredLanguages?: AdminSpokenLanguage[];
   otherLanguageRequested?: string | null;

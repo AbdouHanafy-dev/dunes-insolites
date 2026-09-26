@@ -2038,11 +2038,19 @@ public class ReservationServiceImpl implements ReservationService {
     // ReservationStatusException (422) instead of a bare IllegalStateException
     // that only ever got 400 via the deprecated blanket RuntimeException
     // handler (see GlobalExceptionHandler's own comment on that handler).
+    /**
+     * Guides and chauffeurs go on every circuit. A stay only gets them when the guest asked for
+     * transportation: a guest who comes in their own vehicle needs neither.
+     */
     private void validateIsTourReservation(Reservation reservation) {
-        if (reservation.getReservationType() != ReservationType.TOURS) {
+        ReservationType type = reservation.getReservationType();
+        boolean stayWithTransport = type == ReservationType.HEBERGEMENT
+                && reservation.getArrivalMode() == com.camping.duneinsolite.model.enums.ArrivalMode.TRANSPORT;
+        if (type != ReservationType.TOURS && !stayWithTransport) {
             throw new ReservationStatusException(
-                    "Staff (guides and chauffeurs) can only be managed on TOURS reservations. " +
-                            "Current type: " + reservation.getReservationType());
+                    "Staff (guides and chauffeurs) can be managed on circuits, and on stays where the guest asked "
+                            + "for transportation. Current type: " + type
+                            + (type == ReservationType.HEBERGEMENT ? " (own vehicle)" : ""));
         }
     }
 
