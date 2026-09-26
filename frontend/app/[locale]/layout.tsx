@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { alexandria, inter } from "../fonts";
-import { getActivities, getStays, getTours, getNavigation, getSiteSettings, getReviews } from "@/lib/api";
+import { getActivities, getStays, getTours, getNavigation, getSiteSettings, getReviews, getCurrencyRates } from "@/lib/api";
+import { CurrencyProvider } from "@/components/CurrencyProvider";
 import { averageRating } from "@/lib/data/reviews";
 import { site, nav as staticNav } from "@/lib/site";
 import { routing, isRtl } from "@/i18n/routing";
@@ -86,7 +87,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   // rendering just to read the current locale.
   setRequestLocale(locale);
 
-  const [activities, stays, tours, cmsNav, messages, t, tNav, settings, reviews] = await Promise.all([
+  const [activities, stays, tours, cmsNav, messages, t, tNav, settings, reviews, rates] = await Promise.all([
     getActivities(locale),
     getStays(locale),
     getTours(locale),
@@ -96,6 +97,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     getTranslations({ locale, namespace: "nav" }),
     getSiteSettings(),
     getReviews(),
+    getCurrencyRates(),
   ]);
 
   // An admin-managed nav (docs/cms.md) wins if anything has been authored
@@ -211,6 +213,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     >
       <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
+          <CurrencyProvider rates={rates}>
           <ToastProvider>
             <script
               type="application/ld+json"
@@ -231,6 +234,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             <ScrollToTop />
             <Analytics />
           </ToastProvider>
+          </CurrencyProvider>
         </NextIntlClientProvider>
       </body>
     </html>

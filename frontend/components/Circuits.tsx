@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { Link } from "@/i18n/navigation";
 import { getTours } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -69,7 +71,7 @@ export default async function Circuits() {
                     {tour.groupSize && (
                       <span>{tour.groupSize}</span>
                     )}
-                    <span>{t("fromPrice", { price: tour.priceFrom })}</span>
+                    <span>{<PriceText text={t("fromPrice", { price: priceToken(tour.priceFrom)})} />}</span>
                   </span>
                   <span className="route-dossier-arrow" aria-hidden="true">↗</span>
                 </span>

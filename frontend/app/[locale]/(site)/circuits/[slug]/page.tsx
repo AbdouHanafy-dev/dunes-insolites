@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Price } from "@/components/Price";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -411,9 +414,9 @@ export default async function TourDetail({ params }: Props) {
               <h2>{tour.title}</h2>
             </div>
             <div className="tour-booking-price">
-              {hasDiscount && <span className="tour-price-original">{tour.originalPriceFrom} €</span>}
+              {hasDiscount && <span className="tour-price-original"><Price eur={tour.originalPriceFrom} /></span>}
               <span className={hasDiscount ? "tour-price-discounted" : undefined}>
-                {t("fromPrice", { price: tour.priceFrom })}
+                {<PriceText text={t("fromPrice", { price: priceToken(tour.priceFrom)})} />}
               </span>
               <small>{t("perAdultLabel")}</small>
             </div>
@@ -439,7 +442,7 @@ export default async function TourDetail({ params }: Props) {
       </section>
 
       <TourMobileBookingBar
-        priceLabel={t("fromPrice", { price: tour.priceFrom })}
+        priceLabel={t("fromPrice", { price: priceToken(tour.priceFrom)})}
         unitLabel={t("perAdultLabel")}
         actionLabel={t("ctaLabel")}
         cancellationLabel={tour.cancellationPolicy?.freeCancellation ? t("freeCancellationNote") : undefined}

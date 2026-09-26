@@ -1,5 +1,8 @@
 "use client";
 
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
+import { useCurrency } from "@/components/CurrencyProvider";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -50,6 +53,7 @@ export default function AccommodationPicker({
   onAssign?: (slug: string, guests: Guests) => void;
 }) {
   const t = useTranslations("stayReservationForm");
+  const { format: money } = useCurrency();
   const selectedCount = Object.keys(selections).length;
   const assigning = Boolean(party && onAssign && assignments && mode === "multi" && selectedCount > 1);
   const left = party && assignments
@@ -110,11 +114,11 @@ export default function AccommodationPicker({
                   <em>{t("soldOutForDate")}</em>
                 ) : (
                   <>
-                    <b>€{rates.adult}</b>
+                    <b>{money(rates.adult)}</b>
                     <small>{t("tierPerPerson")}</small>
                     <small>
-                      {t("tierChildPrice", { price: rates.child })} ·{" "}
-                      {rates.infant > 0 ? t("tierInfantPrice", { price: rates.infant }) : t("tierInfantFree")}
+                      {<PriceText text={t("tierChildPrice", { price: priceToken(rates.child)})} />} ·{" "}
+                      {rates.infant > 0 ? <PriceText text={t("tierInfantPrice", { price: priceToken(rates.infant)})} /> : t("tierInfantFree")}
                     </small>
                     {unitsLeft != null && <em>{t("tierUnitsLeft", { units: unitsLeft })}</em>}
                   </>

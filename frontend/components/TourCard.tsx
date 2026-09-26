@@ -1,4 +1,7 @@
 import Image from "next/image";
+import { Price } from "@/components/Price";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { getTranslations } from "next-intl/server";
 import { formatTourDuration } from "@/lib/tourDuration";
 import { Link } from "@/i18n/navigation";
@@ -59,10 +62,10 @@ export default async function TourCard({
           )}
           <span className="edit-card-price">
             {hasDiscount && (
-              <span className="edit-card-price-original">{tour.originalPriceFrom} €</span>
+              <span className="edit-card-price-original"><Price eur={tour.originalPriceFrom} /></span>
             )}
             <span className={hasDiscount ? "edit-card-price-discounted" : undefined}>
-              {t("fromPrice", { price: tour.priceFrom })}
+              {<PriceText text={t("fromPrice", { price: priceToken(tour.priceFrom)})} />}
             </span>
           </span>
         </span>

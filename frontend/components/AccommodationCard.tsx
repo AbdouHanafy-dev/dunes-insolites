@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import type { Accommodation } from "@/lib/types";
@@ -44,7 +46,7 @@ export default async function AccommodationCard({
           </ul>
         )}
         <div className="accommodation-meta">
-          <span>{t("fromPrice", { price: accommodation.priceFrom })}</span>
+          <span>{<PriceText text={t("fromPrice", { price: priceToken(accommodation.priceFrom)})} />}</span>
           <span aria-hidden="true">·</span>
           <span>{accommodation.sleeps}</span>
         </div>

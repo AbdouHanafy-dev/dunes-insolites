@@ -97,6 +97,15 @@ source de vérité ; les décisions en attente sont listées plus bas.
   le camp ne compte plus les tentes des circuits (affectation par l’équipe). Modification de la logique de prix
   (`ReservationServiceImpl`, un cas de plus) testée côté public seulement, pas de bout en bout.
 
+### Devise d’affichage : EUR / USD / TND (26 sept.)
+- Sélecteur dans l’en-tête à côté de la langue (`CurrencySwitcher`), choix mémorisé dans le navigateur. Les pages restent
+  statiques et rendues en euros ; `<Price>` / `<PriceText>` (client) convertissent l’affichage après chargement.
+  Les phrases traduites reçoivent le montant en jeton (`priceToken`) au lieu de « €{price} ».
+- **Affichage seulement** : les réservations, prix serveur, e-mails, factures et pages de compte restent en euros ; le sélecteur le dit.
+- Taux : `GET /api/currency/rates` (`CurrencyConfig`, défauts 3,4 TND par EUR et 2,5 TND par USD, donc 1 EUR = 1,36 USD).
+  **À confirmer par le propriétaire** : ces taux sont des valeurs de configuration, pas un cours en direct, et aucune marge n’est appliquée.
+- Les prix écrits en dur dans les traductions (« 80 TND » des options d’activité) suivent aussi la devise choisie.
+
 ### Hébergement : ville de retour libre et tableau enrichi (26 sept.)
 - Le formulaire d’hébergement a la même case « Ma ville de retour n’est pas dans la liste » que les circuits : même option
   « Autre ville de retour » (un seul prix pour circuits et hébergements ; les améliorations par nuit restent réservées aux circuits).

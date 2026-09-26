@@ -343,6 +343,22 @@ body:has(.auth-page) .site-header {
   border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(36, 27, 23, 0.18);
 }
+.lang-btn .currency-code,
+.lang-menu .currency-code {
+  font-size: calc(11px * var(--ui));
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.lang-menu .currency-code { min-width: 34px; }
+.lang-menu .currency-note {
+  padding: calc(8px * var(--ui)) calc(12px * var(--ui)) calc(6px * var(--ui));
+  max-width: 220px;
+  border-top: 1px solid rgba(36, 27, 23, 0.1);
+  color: rgba(36, 27, 23, 0.6);
+  font-size: calc(11px * var(--ui));
+  line-height: 1.4;
+}
+.header-language { display: flex; align-items: center; gap: 2px; }
 .chev {
   width: 6px;
   height: 6px;

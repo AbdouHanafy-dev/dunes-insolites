@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { Link } from "@/i18n/navigation";
 import { getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -61,7 +63,7 @@ export default async function Stays() {
                   <strong>{stay.title}</strong>
                   <span className="stay-tile-desc">{stay.description}</span>
                   <span className="stay-tile-foot">
-                    <span>{t("fromPrice", { price: stay.priceFrom })}</span>
+                    <span>{<PriceText text={t("fromPrice", { price: priceToken(stay.priceFrom)})} />}</span>
                     <span className="stay-tile-cta">{tCard("exploreThisStay")}</span>
                   </span>
                 </span>
@@ -93,7 +95,7 @@ export default async function Stays() {
                     <span className="stay-choice-body">
                       <strong>{acc.title}</strong>
                       <span className="stay-choice-sleeps">{acc.sleeps}</span>
-                      <span className="stay-choice-price">{t("fromPrice", { price: acc.priceFrom })}</span>
+                      <span className="stay-choice-price">{<PriceText text={t("fromPrice", { price: priceToken(acc.priceFrom)})} />}</span>
                     </span>
                   </Link>
                 </Reveal>

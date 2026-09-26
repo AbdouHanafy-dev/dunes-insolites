@@ -13,6 +13,7 @@
  * The exact endpoints and payloads expected are in API_CONTRACT.md.
  */
 
+import { DEFAULT_RATES, normalizeRates, type Rates } from "@/lib/currency";
 import {
   getActivities as seedActivities,
   getActivity as seedActivity,
@@ -365,6 +366,17 @@ export type SiteSettingsData = {
   googleRatingCount: number | null;
   googlePlaceId: string | null;
 };
+
+/** The live rates the back office sets (units of EUR per unit of currency); defaults when unreachable. */
+export async function getCurrencyRates(): Promise<Rates> {
+  if (!BASE) return DEFAULT_RATES;
+  const raw = await get<Record<string, number>>(
+    "/currency/rates",
+    { seed: DEFAULT_RATES, empty: DEFAULT_RATES },
+    { revalidate: 3600 },
+  );
+  return normalizeRates(raw);
+}
 
 export async function getSiteSettings(): Promise<SiteSettingsData> {
   const fallback: SiteSettingsData = {

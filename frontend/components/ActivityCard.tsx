@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Activity } from "@/lib/types";
@@ -46,7 +48,7 @@ export default async function ActivityCard({
         <span className="edit-card-desc">{activity.description}</span>
         <span className="edit-card-meta">
           <span className="edit-card-price">
-            {activity.priceFrom > 0 ? t("fromPrice", { price: activity.priceFrom }) : t("included")}
+            {activity.priceFrom > 0 ? <PriceText text={t("fromPrice", { price: priceToken(activity.priceFrom)})} /> : t("included")}
           </span>
         </span>
         <span className="edit-card-arrow" aria-hidden="true">

@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { priceStringToToken, priceToken } from "@/lib/currency";
+import { PriceText } from "@/components/Price";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
@@ -77,7 +79,7 @@ export default async function ActivityView({
   const isFree = activity.priceFrom <= 0;
   const bookHref = isFree ? "/contact" : `/book?activity=${activity.slug}`;
   const firstPriced = copy.options.find((o) => o.price);
-  const heroPrice = firstPriced ? firstPriced.price : !isFree && copy.options.length === 0 ? `${activity.priceFrom} €` : null;
+  const heroPrice = firstPriced ? priceStringToToken(firstPriced.price) : !isFree && copy.options.length === 0 ? priceToken(activity.priceFrom) : null;
   const waDigits = whatsapp.replace(/[^\d]/g, "");
   const waHref = waDigits ? `https://wa.me/${waDigits}` : "/contact";
 
@@ -113,7 +115,7 @@ export default async function ActivityView({
           <p className="acc-hero-price">
             {heroPrice ? (
               <>
-                <span>{t("ui.from")}</span> <strong>{heroPrice}</strong> <span>{t("ui.perPerson")}</span>
+                <span>{t("ui.from")}</span> <strong><PriceText text={heroPrice} /></strong> <span>{t("ui.perPerson")}</span>
               </>
             ) : (
               <span>{copy.options[0]?.text}</span>
@@ -188,7 +190,7 @@ export default async function ActivityView({
                   <div className="act-option">
                     <strong>{o.name}</strong>
                     <span className="act-option-price">
-                      {o.price ? <>{o.price} <small>{t("ui.perPerson")}</small></> : t("ui.included")}
+                      {o.price ? <><PriceText text={priceStringToToken(o.price)} /> <small>{t("ui.perPerson")}</small></> : t("ui.included")}
                     </span>
                     <span className="act-option-text">{o.text}</span>
                     <Link href={bookHref} className="acc-btn acc-btn--terracotta acc-btn--small">{copy.optionCta} →</Link>
@@ -317,7 +319,7 @@ export default async function ActivityView({
                     <span className="acc-act-body">
                       <strong>{a.title}</strong>
                       <span>{a.sleeps}</span>
-                      <span className="acc-link acc-link--small">{t("ui.fromNight", { price: a.priceFrom })} →</span>
+                      <span className="acc-link acc-link--small"><PriceText text={t("ui.fromNight", { price: priceToken(a.priceFrom) })} /> →</span>
                     </span>
                   </Link>
                 </Reveal>
@@ -392,7 +394,7 @@ export default async function ActivityView({
 
       {/* Sticky booking bar (phones only) */}
       <div className="acc-sticky">
-        <span>{heroPrice ? `${t("ui.from")} ${heroPrice}` : t("ui.included")}</span>
+        <span>{heroPrice ? <PriceText text={`${t("ui.from")} ${heroPrice}`} /> : t("ui.included")}</span>
         <Link href={bookHref} className="acc-btn acc-btn--terracotta acc-btn--small">{copy.sticky} →</Link>
       </div>
     </div>

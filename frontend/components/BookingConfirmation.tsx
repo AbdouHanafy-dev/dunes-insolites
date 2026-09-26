@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrency } from "@/components/CurrencyProvider";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ type State = { status: "loading" } | { status: "found"; booking: Booking } | { s
 export default function BookingConfirmation({ id }: { id: string }) {
   const locale = useLocale();
   const t = useTranslations("bookingConfirmation");
+  const { format: money } = useCurrency();
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -123,7 +125,7 @@ export default function BookingConfirmation({ id }: { id: string }) {
           </div>
           <div>
             <div className="k">{t("total")}</div>
-            <div className="v">€{booking.total}</div>
+            <div className="v">{money(booking.total)}</div>
           </div>
           <div>
             <div className="k">{t("bookedBy")}</div>

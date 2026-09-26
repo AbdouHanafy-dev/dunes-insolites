@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { priceToken } from "@/lib/currency";
+import { Price, PriceText } from "@/components/Price";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import Reveal from "@/components/Reveal";
@@ -105,7 +107,7 @@ export default async function AccommodationView({
           <h1>{accommodation.title}</h1>
           <p className="acc-hero-lead">{copy.tagline || accommodation.tagline}</p>
           <p className="acc-hero-price">
-            <span>{t("ui.from")}</span> <strong>{accommodation.priceFrom} €</strong> <span>{t("ui.perNight")}</span>
+            <span>{t("ui.from")}</span> <strong><Price eur={accommodation.priceFrom} /></strong> <span>{t("ui.perNight")}</span>
           </p>
           <ul className="acc-highlights">
             {copy.highlights.map((h) => (
@@ -337,7 +339,7 @@ export default async function AccommodationView({
                       <th scope="row">{rowLabels.price}</th>
                       {others.map((o) => (
                         <td key={o.slug} className={o.slug === accommodation.slug ? "is-current" : undefined}>
-                          <strong>{o.priceFrom} €</strong> <span className="acc-per">{t("ui.perNight")}</span>
+                          <strong><Price eur={o.priceFrom} /></strong> <span className="acc-per">{t("ui.perNight")}</span>
                         </td>
                       ))}
                     </tr>
@@ -408,7 +410,7 @@ export default async function AccommodationView({
           <h2>{t("final.title")}</h2>
           <p>{t("final.text")}</p>
           <p className="acc-final-price">
-            {t("ui.from")} <strong>{accommodation.priceFrom} €</strong> {t("ui.perNight")} — {t("final.included")}
+            {t("ui.from")} <strong><Price eur={accommodation.priceFrom} /></strong> {t("ui.perNight")} — {t("final.included")}
           </p>
           <div className="acc-actions acc-actions--center">
             <Link href={bookHref} className="acc-btn acc-btn--terracotta">{t("ui.checkAvailability")} →</Link>
@@ -419,7 +421,7 @@ export default async function AccommodationView({
 
       {/* Sticky booking bar (phones only) */}
       <div className="acc-sticky">
-        <span>{t("ui.stickyFrom", { price: accommodation.priceFrom })}</span>
+        <span><PriceText text={t("ui.stickyFrom", { price: priceToken(accommodation.priceFrom) })} /></span>
         <Link href={bookHref} className="acc-btn acc-btn--terracotta acc-btn--small">{t("ui.bookNow")} →</Link>
       </div>
     </div>

@@ -1,5 +1,8 @@
 "use client";
 
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
+import { useCurrency } from "@/components/CurrencyProvider";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -71,6 +74,7 @@ export default function TourBookingFlow({
   returnCities?: readonly DepartureCity[];
 }) {
   const t = useTranslations("tourBookingForm");
+  const { format: money } = useCurrency();
   const ta = useTranslations("authForm");
   const tb = useTranslations("bookingFlow");
   const toast = useToast();
@@ -309,12 +313,12 @@ export default function TourBookingFlow({
         <span>0{activeStepPosition + 1}</span>
         <h3>{activeStep.label}</h3>
         <strong className="tour-book-step-amount">
-          {step === 0 && `€${total}`}
-          {step === 1 && "€0"}
-          {step === 2 && (returnOtherTotal > 0 ? `€${returnOtherTotal}` : "")}
-          {step === 6 && `€${upgradesTotal}`}
-          {step === 3 && `€${extrasTotal}`}
-          {step === 4 && `€${total + optionsTotal + extrasTotal}`}
+          {step === 0 && `${money(total)}`}
+          {step === 1 && money(0)}
+          {step === 2 && (returnOtherTotal > 0 ? `${money(returnOtherTotal)}` : "")}
+          {step === 6 && `${money(upgradesTotal)}`}
+          {step === 3 && `${money(extrasTotal)}`}
+          {step === 4 && `${money(total + optionsTotal + extrasTotal)}`}
         </strong>
       </div>
 
@@ -398,7 +402,7 @@ export default function TourBookingFlow({
                 <span>{t("returnOtherToggle")}</span>
                 <span className="ride-price">
                   {otherReturnOption && (otherReturnOption.priceTtc ?? 0) > 0
-                    ? t("returnOtherPrice", { price: optionTotal(otherReturnOption, party, nights) })
+                    ? <PriceText text={t("returnOtherPrice", { price: priceToken(optionTotal(otherReturnOption, party, nights))})} />
                     : t("returnOtherOnRequest")}
                 </span>
               </label>
@@ -432,7 +436,7 @@ export default function TourBookingFlow({
                 <input type="checkbox" checked={upgradeSlugs.includes(option.slug)} onChange={() => toggleUpgrade(option.slug)} />
                 <span>{option.name}</span>
                 <span className="ride-price">
-                  {t("upgradePrice", { price: optionTotal(option, party, nights) })}
+                  {<PriceText text={t("upgradePrice", { price: priceToken(optionTotal(option, party, nights))})} />}
                 </span>
               </label>
             ))}
@@ -460,7 +464,7 @@ export default function TourBookingFlow({
                     onChange={() => toggleRide(a.slug)}
                   />
                   <span>{a.title}</span>
-                  <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
+                  <span className="ride-price">{<PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}</span>
                 </label>
 {rideSlugs.includes(a.slug) && canExtend(a) && (
 <ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
@@ -560,7 +564,7 @@ export default function TourBookingFlow({
                 <span>
                   {activities
                     .filter((a) => rideSlugs.includes(a.slug))
-                    .map((a) => `${a.title}${durationNote(a)} — €${activityTotal(a, adults + children, 1, minutesFor(a))}`)
+                    .map((a) => `${a.title}${durationNote(a)} — ${money(activityTotal(a, adults + children, 1, minutesFor(a)))}`)
                     .join(", ")}
                 </span>
               </div>
@@ -592,30 +596,30 @@ export default function TourBookingFlow({
             )}
             <div className="row">
               <span className="k">{adults} × {t("adultsLabel")}</span>
-              <span>€{adultPrice * adults}</span>
+              <span>{money(adultPrice * adults)}</span>
             </div>
             {children > 0 && (
               <div className="row">
                 <span className="k">{children} × {t("childrenLabel")}</span>
-                <span>€{childPrice * children}</span>
+                <span>{money(childPrice * children)}</span>
               </div>
             )}
             {infants > 0 && (
               <div className="row">
                 <span className="k">{infants} × {t("infantsLabel")}</span>
-                <span>€{infantPrice * infants}</span>
+                <span>{money(infantPrice * infants)}</span>
               </div>
             )}
             {chosenUpgrades.map((option) => (
               <div className="row" key={option.slug}>
                 <span className="k">{option.name}</span>
-                <span>€{optionTotal(option, party, nights)}</span>
+                <span>{money(optionTotal(option, party, nights))}</span>
               </div>
             ))}
             {returnOtherTotal > 0 && (
               <div className="row">
                 <span className="k">{otherReturnOption?.name}</span>
-                <span>€{returnOtherTotal}</span>
+                <span>{money(returnOtherTotal)}</span>
               </div>
             )}
             {activities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
@@ -624,12 +628,12 @@ export default function TourBookingFlow({
                   {a.title}{durationNote(a)}
                   {activityQuantity(a, adults + children) > 1 ? ` × ${activityQuantity(a, adults + children)}` : ""}
                 </span>
-                <span>€{activityTotal(a, adults + children, 1, minutesFor(a))}</span>
+                <span>{money(activityTotal(a, adults + children, 1, minutesFor(a)))}</span>
               </div>
             ))}
             <div className="row total">
               <span>{t("totalLabel")}</span>
-              <span>€{total + optionsTotal + extrasTotal}</span>
+              <span>{money(total + optionsTotal + extrasTotal)}</span>
             </div>
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>

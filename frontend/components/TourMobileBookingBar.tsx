@@ -1,5 +1,6 @@
 "use client";
 
+import { PriceText } from "@/components/Price";
 import { useEffect, useState } from "react";
 
 export default function TourMobileBookingBar({
@@ -32,7 +33,7 @@ export default function TourMobileBookingBar({
       {cancellationLabel && <p>{cancellationLabel}</p>}
       <div>
         <span className="tour-mobile-booking-price">
-          <small>{priceLabel}</small>
+          <small><PriceText text={priceLabel} /></small>
           <strong>{unitLabel}</strong>
         </span>
         <a href="#reserve" tabIndex={formVisible ? -1 : undefined}>{actionLabel}</a>

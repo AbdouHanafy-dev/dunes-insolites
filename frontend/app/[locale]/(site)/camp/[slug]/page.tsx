@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { priceToken } from "@/lib/currency";
+import { PriceText } from "@/components/Price";
+import { Price } from "@/components/Price";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -289,21 +292,21 @@ export default async function StayDetail({ params, searchParams }: Props) {
               <h2>{stay.title}</h2>
             </div>
             <div className="tour-booking-price">
-              <span>€{hasTiers ? lowestTierPrice : adultRate}</span>
+              <span><Price eur={hasTiers ? lowestTierPrice : adultRate} /></span>
               <small>
                 {hasTiers ? t("perNight") : sameRate ? t("perPersonPerNight") : t("perAdultPerNight")}
               </small>
             </div>
             <ul className="tour-booking-promises">
               {[
-                !hasTiers && !sameRate ? `€${childRate} ${t("perChildPerNight")}` : "",
+                !hasTiers && !sameRate ? `${priceToken(childRate)} ${t("perChildPerNight")}` : "",
                 stay.groupSize,
                 t("sabriaCamp"),
                 maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight"),
               ]
                 .filter((text) => text && text.trim())
                 .map((text) => (
-                  <li key={text}>{text}</li>
+                  <li key={text}><PriceText text={text} /></li>
                 ))}
             </ul>
             <StayReservationForm

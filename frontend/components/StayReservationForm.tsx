@@ -1,5 +1,8 @@
 "use client";
 
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
+import { useCurrency } from "@/components/CurrencyProvider";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -71,6 +74,7 @@ export default function StayReservationForm({
   initialAccommodationSlug?: string;
 }) {
   const t = useTranslations("stayReservationForm");
+  const { format: money } = useCurrency();
   const ta = useTranslations("authForm");
   const tb = useTranslations("bookingFlow");
   const locale = useLocale();
@@ -602,10 +606,10 @@ export default function StayReservationForm({
         <span>0{activeStepPosition + 1}</span>
         <h3>{activeStep.label}</h3>
         <strong className="tour-book-step-amount">
-          {(step === 0 || step === 1) && (headerFromPrice != null ? t("fromPrice", { price: headerFromPrice }) : `€${total}`)}
+          {(step === 0 || step === 1) && (headerFromPrice != null ? <PriceText text={t("fromPrice", { price: priceToken(headerFromPrice)})} /> : `${money(total)}`)}
           {step === 2 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
-          {step === 3 && `€${extrasTotal}`}
-          {step === 4 && `€${total + extrasTotal + serviceTotal + returnOtherTotal}`}
+          {step === 3 && `${money(extrasTotal)}`}
+          {step === 4 && `${money(total + extrasTotal + serviceTotal + returnOtherTotal)}`}
         </strong>
       </div>
 
@@ -772,7 +776,7 @@ export default function StayReservationForm({
               <span>{t("returnOtherToggle")}</span>
               <span className="ride-price">
                 {otherReturnOption && (otherReturnOption.priceTtc ?? 0) > 0
-                  ? t("returnOtherPrice", { price: optionTotal(otherReturnOption, partySize, nights) })
+                  ? <PriceText text={t("returnOtherPrice", { price: priceToken(optionTotal(otherReturnOption, partySize, nights))})} />
                   : t("returnOtherOnRequest")}
               </span>
             </label>
@@ -821,7 +825,7 @@ export default function StayReservationForm({
                         ? t("unavailable")
                         : o.priceTtc == null
                           ? t("contactUsShort")
-                          : t("pricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
+                          : <PriceText text={t("pricePerUnit", { price: priceToken(o.priceTtc), unit: PRICING_UNIT_LABEL[o.pricingUnit] })} />}
                       {!unavailable && availability?.unitsAvailable != null && availability.unitsAvailable <= 3 && (
                         <small>
                           {availability.unitsAvailable === 1
@@ -922,7 +926,7 @@ export default function StayReservationForm({
                         ? t("unavailable")
                         : o.priceTtc == null
                           ? t("contactUsShort")
-                          : t("plusPricePerUnit", { price: o.priceTtc, unit: PRICING_UNIT_LABEL[o.pricingUnit] })}
+                          : <PriceText text={t("plusPricePerUnit", { price: priceToken(o.priceTtc), unit: PRICING_UNIT_LABEL[o.pricingUnit] })} />}
                       {!unavailable && availability?.unitsAvailable != null && availability.unitsAvailable <= 3 && (
                         <small>
                           {availability.unitsAvailable === 1
@@ -961,7 +965,7 @@ export default function StayReservationForm({
                   onChange={() => toggleRide(a.slug)}
                 />
                 <span>{a.title}</span>
-                <span className="ride-price">{t("fromPrice", { price: a.priceFrom })}</span>
+                <span className="ride-price">{<PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}</span>
               </label>
 {rideSlugs.includes(a.slug) && canExtend(a) && (
 <ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
@@ -1057,7 +1061,7 @@ export default function StayReservationForm({
                 <span>
                   {activities
                     .filter((a) => rideSlugs.includes(a.slug))
-                    .map((a) => `${a.title}${durationNote(a)} — €${activityTotal(a, partySize, nights, minutesFor(a))}`)
+                    .map((a) => `${a.title}${durationNote(a)} — ${money(activityTotal(a, partySize, nights, minutesFor(a)))}`)
                     .join(", ")}
                 </span>
               </div>
@@ -1069,25 +1073,25 @@ export default function StayReservationForm({
               selectedAccommodations.map(({ accommodation, qty }) => (
                 <div className="row" key={accommodation.slug}>
                   <span>{qty} × {accommodation.title}{nightsSuffix}</span>
-                  <span>€{tierPerNight(accommodation, tierGuests[accommodation.slug]) * nights}</span>
+                  <span>{money(tierPerNight(accommodation, tierGuests[accommodation.slug]) * nights)}</span>
                 </div>
               ))
             ) : (
               <>
                 <div className="row">
-                  <span>{t("summaryAdults", { count: adults, price: adultRate })}{nightsSuffix}</span>
-                  <span>€{adults * adultRate * nights}</span>
+                  <span>{<PriceText text={t("summaryAdults", { count: adults, price: priceToken(adultRate)})} />}{nightsSuffix}</span>
+                  <span>{money(adults * adultRate * nights)}</span>
                 </div>
                 {children > 0 && (
                   <div className="row">
-                    <span>{t("summaryChildren", { count: children, price: childRate })}{nightsSuffix}</span>
-                    <span>€{children * childRate * nights}</span>
+                    <span>{<PriceText text={t("summaryChildren", { count: children, price: priceToken(childRate)})} />}{nightsSuffix}</span>
+                    <span>{money(children * childRate * nights)}</span>
                   </div>
                 )}
                 {infants > 0 && (
                   <div className="row">
-                    <span>{infantRate > 0 ? t("summaryInfants", { count: infants, price: infantRate }) : t("summaryInfantsFree", { count: infants })}{nightsSuffix}</span>
-                    <span>€{infants * infantRate * nights}</span>
+                    <span>{infantRate > 0 ? <PriceText text={t("summaryInfants", { count: infants, price: priceToken(infantRate)})} /> : t("summaryInfantsFree", { count: infants })}{nightsSuffix}</span>
+                    <span>{money(infants * infantRate * nights)}</span>
                   </div>
                 )}
               </>
@@ -1095,19 +1099,19 @@ export default function StayReservationForm({
             {selectedGuide && (
               <div className="row">
                 <span>{selectedGuide.name}</span>
-                <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `€${optionPrice(selectedGuide)}`}</span>
+                <span>{optionPrice(selectedGuide) == null ? t("onRequest") : `${money(optionPrice(selectedGuide))}`}</span>
               </div>
             )}
             {selectedTransport && (
               <div className="row">
                 <span>{selectedTransport.name}</span>
-                <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `€${optionPrice(selectedTransport)}`}</span>
+                <span>{optionPrice(selectedTransport) == null ? t("onRequest") : `${money(optionPrice(selectedTransport))}`}</span>
               </div>
             )}
             {returnOtherTotal > 0 && (
               <div className="row">
                 <span>{otherReturnOption?.name}</span>
-                <span>€{returnOtherTotal}</span>
+                <span>{money(returnOtherTotal)}</span>
               </div>
             )}
             {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
@@ -1116,12 +1120,12 @@ export default function StayReservationForm({
                   {activity.title}
                   {activityQuantity(activity, partySize, nights) > 1 ? ` × ${activityQuantity(activity, partySize, nights)}` : ""}
                 </span>
-                <span>€{activityTotal(activity, partySize, nights, minutesFor(activity))}</span>
+                <span>{money(activityTotal(activity, partySize, nights, minutesFor(activity)))}</span>
               </div>
             ))}
             <div className="row total">
               <span>{t("grandTotal")}</span>
-              <span>€{total + extrasTotal + serviceTotal + returnOtherTotal}</span>
+              <span>{money(total + extrasTotal + serviceTotal + returnOtherTotal)}</span>
             </div>
           </div>
 

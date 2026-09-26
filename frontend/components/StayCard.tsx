@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Stay } from "@/lib/types";
@@ -40,7 +42,7 @@ export default async function StayCard({ stay }: { stay: Stay }) {
         <span className="edit-card-title">{stay.title}</span>
         <span className="edit-card-desc">{stay.description}</span>
         <span className="edit-card-meta">
-          <span className="edit-card-price">{t("fromPrice", { price: stay.priceFrom })}</span>
+          <span className="edit-card-price">{<PriceText text={t("fromPrice", { price: priceToken(stay.priceFrom)})} />}</span>
         </span>
         <span className="edit-card-arrow" aria-hidden="true">
           →

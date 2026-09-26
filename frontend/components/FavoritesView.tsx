@@ -1,5 +1,7 @@
 "use client";
 
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -68,7 +70,7 @@ export default function FavoritesView({
                   </span>
                   <span className="edit-card-title">{item.title}</span>
                   <span className="edit-card-meta">
-                    <span className="edit-card-price">{t("fromPrice", { price: item.priceFrom })}</span>
+                    <span className="edit-card-price">{<PriceText text={t("fromPrice", { price: priceToken(item.priceFrom)})} />}</span>
                   </span>
                   <span className="edit-card-arrow" aria-hidden="true">
                     →

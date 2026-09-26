@@ -7,6 +7,7 @@ import { formatTourDuration } from "@/lib/tourDuration";
 import { sortByPrice } from "@/lib/guestPricing";
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import FavoritesLink from "@/components/FavoritesLink";
 import { logout } from "@/lib/api";
@@ -312,6 +313,7 @@ export default function Header({
           <div className="header-actions">
             <div className="header-language">
               <LanguageSwitcher panelAnchor="header" />
+              <CurrencySwitcher panelAnchor="header" />
             </div>
 
             <FavoritesLink loggedIn={loggedIn} />
@@ -456,6 +458,11 @@ export default function Header({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z" /></svg>
                 <span>{tMenu("language")}</span>
                 <LanguageSwitcher showName />
+              </div>
+              <div className="drawer-language-row">
+                <span aria-hidden="true" style={{ fontWeight: 700 }}>¤</span>
+                <span>{tMenu("currency")}</span>
+                <CurrencySwitcher showName />
               </div>
               {loggedIn && (
                 <button type="button" className="drawer-logout" onClick={onLogout} tabIndex={open ? 0 : -1}>

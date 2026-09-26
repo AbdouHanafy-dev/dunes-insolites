@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { PriceText } from "@/components/Price";
+import { priceToken } from "@/lib/currency";
 import { Link } from "@/i18n/navigation";
 import { getActivities } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -85,7 +87,7 @@ export default async function Activities() {
                   </span>
                 </span>
                 <span className="field-row-price">
-                  {activity.priceFrom > 0 ? t("fromPrice", { price: activity.priceFrom }) : t("included")}
+                  {activity.priceFrom > 0 ? <PriceText text={t("fromPrice", { price: priceToken(activity.priceFrom)})} /> : t("included")}
                 </span>
                 <span className="field-row-arrow" aria-hidden="true">
                   →

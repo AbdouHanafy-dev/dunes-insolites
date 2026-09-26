@@ -1,4 +1,5 @@
 import { Link } from "@/i18n/navigation";
+import { Price } from "@/components/Price";
 import { getSiteSettings, getStays } from "@/lib/api";
 import { getLocale, getTranslations } from "next-intl/server";
 
@@ -53,7 +54,7 @@ export default async function HeroBanner() {
       key: "price",
       node: (
         <>
-          {t("fromLabel")} <strong>{fromPrice} €</strong> {t("nightUnit")}
+          {t("fromLabel")} <strong><Price eur={fromPrice} /></strong> {t("nightUnit")}
         </>
       ),
     });
