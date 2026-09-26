@@ -128,6 +128,10 @@ public class Reservation {
     @Column(name = "return_city", length = 20)
     private DepartureCity returnCity;
 
+    /** A return city the guest typed because theirs is not in the list; priced as an option, see V57. */
+    @Column(name = "return_city_other", length = 120)
+    private String returnCityOther;
+
     // Staff-only free text: where the support team meets the guest in the
     // departure city. Written from the backoffice, never by the guest.
     @Column(name = "meet_up_place", length = 255)

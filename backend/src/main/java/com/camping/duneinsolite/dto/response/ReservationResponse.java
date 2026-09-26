@@ -38,6 +38,7 @@ public class ReservationResponse {
     private ArrivalMode arrivalMode;
     private DepartureCity departureCity;
     private DepartureCity returnCity;
+    private String returnCityOther;
     private String meetUpPlace;
     private Set<SpokenLanguageResponse> preferredLanguages;
     private String otherLanguageRequested;

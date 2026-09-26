@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { formatTourDuration, isMultiDayTour } from "@/lib/tourDuration";
+import { formatTourDuration, tourNights } from "@/lib/tourDuration";
 import { getTour, getTours, getRelatedTours, getReviews } from "@/lib/api";
 import { averageRating } from "@/lib/data/reviews";
 import { localeHref, localeAlternates } from "@/i18n/routing";
@@ -430,9 +430,7 @@ export default async function TourDetail({ params }: Props) {
               adultPrice={tour.passengerAdultPrice}
               childPrice={tour.passengerChildPrice}
               infantPrice={tour.passengerInfantPrice}
-              overnightsAtCamp={Boolean(tour.overnightsAtCamp) || isMultiDayTour(tour)}
-              accommodations={tour.accommodations ?? []}
-              campStaySlug={tour.campStaySlug ?? ""}
+              nights={tourNights(tour.durationHours)}
               departureCities={tour.departureCities}
               returnCities={tour.returnCities}
             />

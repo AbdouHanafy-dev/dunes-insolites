@@ -19,6 +19,12 @@ export function formatTourDuration(t: TourDurationTranslate, tour: DurationSourc
   return t("format", { hours, days: Math.floor(hours / 24), rest: hours % 24 });
 }
 
+/** Nights a circuit crosses: its days minus one (48 h = 1, 72 h = 2); 0 for a single day or an unset duration. */
+export function tourNights(hours: number | null | undefined): number {
+  if (hours == null || hours <= 24) return 0;
+  return Math.ceil(hours / 24) - 1;
+}
+
 /** More than 24 h crosses a night, so the circuit needs a camp accommodation. */
 export function isMultiDayTour(tour: Pick<Tour, "durationHours">): boolean {
   return tour.durationHours != null && tour.durationHours > 24;

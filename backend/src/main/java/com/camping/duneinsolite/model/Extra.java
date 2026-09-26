@@ -59,6 +59,10 @@ public class Extra {
     @Builder.Default
     private Integer maxDurationMinutes = 30;
 
+    /** An option shown only to parties of at least this many travelers; null = always. Set in the back office. */
+    @Column(name = "min_party_size")
+    private Integer minPartySize;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;

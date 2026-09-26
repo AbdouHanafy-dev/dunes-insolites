@@ -84,6 +84,26 @@ source de vérité ; les décisions en attente sont listées plus bas.
   fiable seulement derrière nginx. **Durée de conservation non décidée** (e-mail et IP du
   personnel = données personnelles). Tests d’intégration non exécutés (Docker arrêté).
 
+### Réservation d’un circuit : parcours simplifié (26 sept.)
+- Étapes : date et voyageurs → langue → ville de départ et de retour → (améliorations) → activités → récap.
+  Plus de question « véhicule » ni de choix d’hébergement : la nuit au camp est incluse dans le prix du circuit.
+- Une ville de retour hors liste s’écrit librement (`reservations.return_city_other`, V57) et est facturée par l’option
+  « Autre ville de retour » (`TOUR_OPTION`, `serviceType RETURN_CITY`, ajoutée côté serveur).
+- Passer en tente individuelle / en suite : extras de catégorie `TOUR_OPTION`, unité `PER_PERSON_NIGHT`
+  (prix × voyageurs × nuits du circuit = jours − 1), avec un **minimum de voyageurs réglable par option**
+  (`extras.min_party_size`, contrôlé aussi par le serveur). Créés **inactifs à 0 €** par le seeder : prix, minimum
+  et activation dans Catalogue › Véhicules & options circuits.
+- **À confirmer** : la règle des nuits (jours − 1) ; l’hébergement inclus n’est plus réservé par le formulaire, donc
+  le camp ne compte plus les tentes des circuits (affectation par l’équipe). Modification de la logique de prix
+  (`ReservationServiceImpl`, un cas de plus) testée côté public seulement, pas de bout en bout.
+
+### Hébergement : ville de retour libre et tableau enrichi (26 sept.)
+- Le formulaire d’hébergement a la même case « Ma ville de retour n’est pas dans la liste » que les circuits : même option
+  « Autre ville de retour » (un seul prix pour circuits et hébergements ; les améliorations par nuit restent réservées aux circuits).
+- Page « Réservations hébergement » : voyageurs (adultes + enfants, bébés à part), hébergement réservé (« Tente × 1 »,
+  « Suite × 2 ») et nuits, lus sur la réservation (`ReservationTourTypeResponse.accommodations`). Une réservation ancienne sans
+  catégorie enregistrée affiche « — ».
+
 ### Notifications de réservation (25 sept.)
 - **Cloche du backoffice** (`NotificationBell`, en-tête) : compteur de non lues, 20 dernières, lien vers la
   réservation, « tout marquer comme lu », relevé toutes les 30 s et au retour sur l’onglet (un toast

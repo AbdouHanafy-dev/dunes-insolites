@@ -24,6 +24,7 @@ public class PublicStayBookingResponse {
     private String arrivalMode;
     private String departureCity;
     private String returnCity;
+    private String returnCityOther;
     private String name;
     private String email;
     private String phone;

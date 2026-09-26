@@ -23,4 +23,14 @@ class TourDurationTest {
         assertTrue(TourDuration.isMultiDay(25));
         assertTrue(TourDuration.isMultiDay(72));
     }
+
+    @Test
+    void aCircuitCrossesItsDaysMinusOneNights() {
+        org.assertj.core.api.Assertions.assertThat(TourDuration.nights(null)).isZero();
+        org.assertj.core.api.Assertions.assertThat(TourDuration.nights(12)).isZero();
+        org.assertj.core.api.Assertions.assertThat(TourDuration.nights(24)).isZero();
+        org.assertj.core.api.Assertions.assertThat(TourDuration.nights(26)).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(TourDuration.nights(48)).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(TourDuration.nights(72)).isEqualTo(2);
+    }
 }

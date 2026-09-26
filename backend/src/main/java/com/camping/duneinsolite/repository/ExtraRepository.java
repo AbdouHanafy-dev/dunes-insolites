@@ -18,6 +18,10 @@ public interface ExtraRepository extends JpaRepository<Extra, UUID> {
     boolean existsBySlug(String slug);
     Optional<Extra> findBySlugAndIsActiveTrue(String slug);
 
+    /** The active option of a kind, e.g. the paid "another return city" line of a circuit. */
+    Optional<Extra> findFirstByCategoryAndServiceTypeAndIsActiveTrue(
+            com.camping.duneinsolite.model.enums.ExtraCategory category, String serviceType);
+
     /**
      * {@code SELECT ... FOR UPDATE} on one activity row - all capacity
      * allocations for an activity serialize on this lock, held to the end of

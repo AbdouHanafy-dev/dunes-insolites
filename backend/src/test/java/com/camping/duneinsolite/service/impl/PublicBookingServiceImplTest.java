@@ -428,41 +428,150 @@ class PublicBookingServiceImplTest {
     }
 
     @Test
-    void overnightCircuitRequiresAnAccommodationBeforeCreatingAUser() {
+    void anOvernightCircuitNoLongerAsksForAnAccommodation() {
         UUID tourId = UUID.randomUUID();
         when(tourRepository.findBySlugAndIsActiveTrue("sabria-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Sabria circuit")
                         .overnightsAtCamp(true).isActive(true).build()));
         when(tourTypeRepository.findFirstByCircuitCampTrue())
                 .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
-        PublicTourBookingRequest request = tourRequest("sabria-circuit");
+        service.createTourBooking(tourRequest("sabria-circuit"));
 
-        assertThatThrownBy(() -> service.createTourBooking(request))
-                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
-                .hasMessageContaining("Choose at least one accommodation");
-        verify(keycloakUserSyncService, org.mockito.Mockito.never())
-                .createInvitedGuestUser(any(), any(), any());
-        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+        // The night at the camp is included in the circuit's price: nothing to choose, no camp line.
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        assertThat(captor.getValue().getTours().get(0).getHebergements()).isNullOrEmpty();
     }
 
     @Test
-    void multiDayCircuitRequiresAccommodationWhileLegacyFlagIsStillFalse() {
+    void aMultiDayCircuitDoesNotAskForAnAccommodationEither() {
         UUID tourId = UUID.randomUUID();
         when(tourRepository.findBySlugAndIsActiveTrue("two-day-sabria-circuit"))
                 .thenReturn(Optional.of(Tour.builder().tourId(tourId).name("Two-day Sabria circuit")
                         .durationHours(48).overnightsAtCamp(false).isActive(true).build()));
         when(tourTypeRepository.findFirstByCircuitCampTrue())
                 .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).circuitCamp(true).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
 
-        PublicTourBookingRequest request = tourRequest("two-day-sabria-circuit");
+        service.createTourBooking(tourRequest("two-day-sabria-circuit"));
+
+        verify(reservationService).createReservation(any());
+    }
+
+    private Extra tourOption(String slug, com.camping.duneinsolite.model.enums.PricingUnit unit, Integer minParty,
+                             String serviceType) {
+        Extra option = Extra.builder().extraId(UUID.randomUUID()).slug(slug).name(slug).isActive(true)
+                .category(com.camping.duneinsolite.model.enums.ExtraCategory.TOUR_OPTION)
+                .pricingUnit(unit).minPartySize(minParty).serviceType(serviceType).build();
+        when(extraRepository.findBySlugAndIsActiveTrue(slug)).thenReturn(Optional.of(option));
+        return option;
+    }
+
+    private void circuitOfHours(int hours) {
+        when(tourRepository.findBySlugAndIsActiveTrue("circuit"))
+                .thenReturn(Optional.of(Tour.builder().tourId(UUID.randomUUID()).name("Circuit")
+                        .durationHours(hours).isActive(true).build()));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+    }
+
+    private static com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest pick(String slug) {
+        var sel = new com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest();
+        sel.setServiceOptionSlug(slug);
+        return sel;
+    }
+
+    @Test
+    void anUpgradeIsRequestedForEachNightOfTheCircuit() {
+        circuitOfHours(72); // 3 days = 2 nights
+        Extra suite = tourOption("upgrade-suite", com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT, 2, "UPGRADE");
+        PublicTourBookingRequest request = tourRequest("circuit");
+        request.setServiceOptions(List.of(pick("upgrade-suite")));
+
+        service.createTourBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        // The reservation service multiplies the quantity (nights) by the party, so the price is
+        // unit price x people x nights and no client-sent number is involved.
+        assertThat(captor.getValue().getExtras()).singleElement().satisfies(line -> {
+            assertThat(line.getExtraId()).isEqualTo(suite.getExtraId());
+            assertThat(line.getQuantity()).isEqualTo(2);
+        });
+    }
+
+    @Test
+    void anUpgradeIsRefusedForAPartyBelowItsMinimum() {
+        circuitOfHours(48);
+        tourOption("upgrade-tente", com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT, 5, "UPGRADE");
+        PublicTourBookingRequest request = tourRequest("circuit"); // 2 adults + 1 child = 3
+        request.setServiceOptions(List.of(pick("upgrade-tente")));
 
         assertThatThrownBy(() -> service.createTourBooking(request))
                 .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
-                .hasMessageContaining("Choose at least one accommodation");
-        verify(keycloakUserSyncService, org.mockito.Mockito.never())
-                .createInvitedGuestUser(any(), any(), any());
+                .hasMessageContaining("needs at least 5 travelers");
+        verify(keycloakUserSyncService, org.mockito.Mockito.never()).createInvitedGuestUser(any(), any(), any());
         verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
+    void aNightlyUpgradeIsRefusedOnASingleDayCircuit() {
+        circuitOfHours(12);
+        tourOption("upgrade-suite", com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT, null, "UPGRADE");
+        PublicTourBookingRequest request = tourRequest("circuit");
+        request.setServiceOptions(List.of(pick("upgrade-suite")));
+
+        assertThatThrownBy(() -> service.createTourBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("needs a night");
+    }
+
+    @Test
+    void aReturnCityTypedByTheGuestIsChargedThroughTheBackOfficeOption() {
+        circuitOfHours(48);
+        Extra other = tourOption("autre-ville-de-retour", com.camping.duneinsolite.model.enums.PricingUnit.PER_BOOKING,
+                null, PublicBookingServiceImpl.RETURN_CITY_OPTION);
+        when(extraRepository.findFirstByCategoryAndServiceTypeAndIsActiveTrue(
+                com.camping.duneinsolite.model.enums.ExtraCategory.TOUR_OPTION, PublicBookingServiceImpl.RETURN_CITY_OPTION))
+                .thenReturn(Optional.of(other));
+        PublicTourBookingRequest request = tourRequest("circuit");
+        request.setReturnCityOther("  Gabès  ");
+
+        service.createTourBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        assertThat(captor.getValue().getReturnCityOther()).isEqualTo("Gabès");
+        assertThat(captor.getValue().getReturnCity()).isNull();
+        assertThat(captor.getValue().getExtras()).singleElement()
+                .satisfies(line -> assertThat(line.getExtraId()).isEqualTo(other.getExtraId()));
+    }
+
+    @Test
+    void aReturnCityTypedByTheGuestIsKeptEvenWhenNoPriceIsSetUpYet() {
+        circuitOfHours(48);
+        PublicTourBookingRequest request = tourRequest("circuit");
+        request.setReturnCityOther("Gabès");
+
+        service.createTourBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        assertThat(captor.getValue().getReturnCityOther()).isEqualTo("Gabès");
+        assertThat(captor.getValue().getExtras()).isNull();
+    }
+
+    @Test
+    void aListedReturnCityAndATypedOneAreNotAccepted_together() {
+        circuitOfHours(48);
+        PublicTourBookingRequest request = tourRequest("circuit");
+        request.setReturnCity("TUNIS");
+        request.setReturnCityOther("Gabès");
+
+        assertThatThrownBy(() -> service.createTourBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("not both");
     }
 
     @Test
@@ -629,6 +738,56 @@ class PublicBookingServiceImplTest {
         assertThat(campNight.getTourTypeId()).isEqualTo(tourTypeId);
         assertThat(campNight.getAccommodations()).singleElement().satisfies(selected ->
                 assertThat(selected.getAccommodationTypeId()).isEqualTo(accommodationId));
+    }
+
+    @Test
+    void aStayWithAReturnCityTypedByTheGuestIsChargedThroughTheBackOfficeOption() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        Extra other = tourOption("autre-ville-de-retour", com.camping.duneinsolite.model.enums.PricingUnit.PER_BOOKING,
+                null, PublicBookingServiceImpl.RETURN_CITY_OPTION);
+        when(extraRepository.findFirstByCategoryAndServiceTypeAndIsActiveTrue(
+                com.camping.duneinsolite.model.enums.ExtraCategory.TOUR_OPTION, PublicBookingServiceImpl.RETURN_CITY_OPTION))
+                .thenReturn(Optional.of(other));
+        when(reservationService.createReservation(any())).thenReturn(reservationResponseStub());
+        PublicStayBookingRequest request = baseRequest();
+        request.setReturnCityOther("  Gabès ");
+
+        service.createStayBooking(request);
+
+        ArgumentCaptor<ReservationRequest> captor = ArgumentCaptor.forClass(ReservationRequest.class);
+        verify(reservationService).createReservation(captor.capture());
+        assertThat(captor.getValue().getReturnCityOther()).isEqualTo("Gabès");
+        assertThat(captor.getValue().getReturnCity()).isNull();
+        assertThat(captor.getValue().getExtras()).singleElement()
+                .satisfies(line -> assertThat(line.getExtraId()).isEqualTo(other.getExtraId()));
+    }
+
+    @Test
+    void aStayRefusesAListedAndATypedReturnCityTogether() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        PublicStayBookingRequest request = baseRequest();
+        request.setReturnCity("TUNIS");
+        request.setReturnCityOther("Gabès");
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class)
+                .hasMessageContaining("not both");
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
+    }
+
+    @Test
+    void aNightlyUpgradeCannotBeSoldOnAStay() {
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement-desert"))
+                .thenReturn(Optional.of(TourType.builder().tourTypeId(tourTypeId).build()));
+        tourOption("upgrade-suite", com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT, null, "UPGRADE");
+        PublicStayBookingRequest request = baseRequest();
+        request.setServiceOptions(List.of(pick("upgrade-suite")));
+
+        assertThatThrownBy(() -> service.createStayBooking(request))
+                .isInstanceOf(com.camping.duneinsolite.exception.ReservationValidationException.class);
+        verify(reservationService, org.mockito.Mockito.never()).createReservation(any());
     }
 
     private PublicTourBookingRequest tourRequest(String slug) {

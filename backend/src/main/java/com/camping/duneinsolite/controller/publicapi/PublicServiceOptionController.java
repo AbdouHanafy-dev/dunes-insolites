@@ -30,7 +30,8 @@ public class PublicServiceOptionController {
     public ResponseEntity<Map<String, Object>> list(@RequestParam(required = false) ExtraCategory category) {
         List<PublicServiceOptionResponse> options = extraRepository.findByIsActiveTrue().stream()
                 .filter(o -> category == null || o.getCategory() == category)
-                .filter(o -> o.getCategory() == ExtraCategory.GUIDE || o.getCategory() == ExtraCategory.TRANSPORT)
+                .filter(o -> o.getCategory() == ExtraCategory.GUIDE || o.getCategory() == ExtraCategory.TRANSPORT
+                        || o.getCategory() == ExtraCategory.TOUR_OPTION)
                 .filter(o -> Boolean.TRUE.equals(o.getIsActive()))
                 .sorted(java.util.Comparator.comparingInt(com.camping.duneinsolite.model.Extra::getDisplayOrder))
                 .map(PublicServiceOptionResponse::from)

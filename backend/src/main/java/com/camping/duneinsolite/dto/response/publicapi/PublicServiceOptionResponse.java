@@ -20,7 +20,8 @@ public record PublicServiceOptionResponse(
         boolean requiresPickupLocation,
         boolean requiresCustomerVehicle,
         Set<PickupField> pickupFields,
-        Set<PickupField> requiredPickupFields
+        Set<PickupField> requiredPickupFields,
+        Integer minPartySize
 ) {
     public static PublicServiceOptionResponse from(Extra o) {
         // The admin form only ever lets requiredPickupFields be a subset of
@@ -35,6 +36,7 @@ public record PublicServiceOptionResponse(
                 o.getSlug(), o.getName(), o.getDescription(),
                 o.getCategory(), o.getServiceType(),
                 o.getPricingUnit(), o.getUnitPrice(), requiresPickupLocation,
-                o.isRequiresCustomerVehicle(), o.getPickupFields(), o.getRequiredPickupFields());
+                o.isRequiresCustomerVehicle(), o.getPickupFields(), o.getRequiredPickupFields(),
+                o.getMinPartySize());
     }
 }

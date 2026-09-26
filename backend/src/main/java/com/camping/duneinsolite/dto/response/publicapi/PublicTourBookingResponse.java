@@ -20,6 +20,7 @@ public class PublicTourBookingResponse {
     private String arrivalMode;
     private String departureCity;
     private String returnCity;
+    private String returnCityOther;
     private List<String> preferredLanguageIds;
     private String otherLanguageRequested;
     private String name;

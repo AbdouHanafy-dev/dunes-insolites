@@ -4,14 +4,13 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
-import type { Language } from "@/lib/api";
+import type { Language, ServiceOptionCatalogItem } from "@/lib/api";
 import { departureOptions, returnOptions } from "@/lib/cities";
 import { describeWriteFailure } from "@/lib/writeErrors";
-import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity } from "@/lib/types";
+import { DEPARTURE_CITY_LABELS, type Activity, type DepartureCity } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import ListSelect from "@/components/ListSelect";
-import AccommodationPicker from "@/components/booking/AccommodationPicker";
 import { useStepScroll } from "@/lib/useStepScroll";
 import GuestPicker from "@/components/booking/GuestPicker";
 import LanguageChips from "@/components/booking/LanguageChips";
@@ -19,7 +18,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { composePhone } from "@/lib/phone";
-import { tierPerNight } from "@/lib/guestPricing";
+import { optionTotal, returnCityOption, visibleUpgrades } from "@/lib/tourOptions";
 import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
 import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import { localizedLanguageName } from "@/lib/languageFlags";
@@ -42,11 +41,12 @@ function prettyDate(iso: string, locale: string): string {
 
 /**
  * Book-panel wizard for a single Tour (Route Insolite circuit): Date &
- * travelers → Guide language → Vehicle → Accommodation → Extras → Review & book. Guests never
- * choose a staff member: they state their preferred language and the admin
- * assigns an available guide from the reservation staff panel. The guest only
- * says whether transport is needed; staff assign the actual chauffeur and
- * vehicle after reviewing the request. Extras remain catalogue-driven.
+ * travelers → Guide language → Departure & return cities → (paid upgrades, when the back
+ * office offers any for this party) → Extras → Review & book. Guests never choose a staff
+ * member: they state their preferred language and the admin assigns an available guide from
+ * the reservation staff panel. The night at the camp is included in the circuit's price, so
+ * there is no accommodation to choose; a single tent or a suite is a paid upgrade, and a
+ * return city outside the list is a paid option too - both priced in the back office.
  */
 export default function TourBookingFlow({
   tourSlug,
@@ -54,8 +54,7 @@ export default function TourBookingFlow({
   adultPrice,
   childPrice,
   infantPrice = 0,
-  accommodations = [],
-  campStaySlug = "",
+  nights = 0,
   departureCities,
   returnCities,
 }: {
@@ -65,16 +64,13 @@ export default function TourBookingFlow({
   childPrice: number;
   /** 0-3 years, set in the back office. 0 = free. */
   infantPrice?: number;
-  overnightsAtCamp?: boolean;
-  accommodations?: Accommodation[];
-  /** The circuit camp stay (set in the back office) - target of each tier's "voir détails" link. */
-  campStaySlug?: string;
+  /** Nights the circuit crosses (its days minus one). 0 = a single day: no upgrade to offer. */
+  nights?: number;
   /** Cities ticked for this circuit in the back office. */
   departureCities?: readonly DepartureCity[];
   returnCities?: readonly DepartureCity[];
 }) {
   const t = useTranslations("tourBookingForm");
-  const ts = useTranslations("stayReservationForm");
   const ta = useTranslations("authForm");
   const tb = useTranslations("bookingFlow");
   const toast = useToast();
@@ -85,16 +81,17 @@ export default function TourBookingFlow({
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
-  const [accommodationSlug, setAccommodationSlug] = useState("");
-  const [accommodationQty, setAccommodationQty] = useState(1);
-
   const [catalogLoaded, setCatalogLoaded] = useState(false);
-  const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
   const [departureCity, setDepartureCity] = useState<DepartureCity | "">("");
   // Optional return leg after the tour ends - same city list as
   // departureCity, entirely skippable.
   const [returnCity, setReturnCity] = useState<DepartureCity | "">("");
-  const [meetUpPlace, setMeetUpPlace] = useState("");
+  // A return city that is not in the list: typed by the guest, charged as an option.
+  const [otherReturn, setOtherReturn] = useState(false);
+  const [returnCityOther, setReturnCityOther] = useState("");
+  // The back office's paid options for a circuit (upgrades, another return city).
+  const [tourOptions, setTourOptions] = useState<ServiceOptionCatalogItem[]>([]);
+  const [upgradeSlugs, setUpgradeSlugs] = useState<string[]>([]);
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [rideSlugs, setRideSlugs] = useState<string[]>([]);
@@ -121,12 +118,11 @@ export default function TourBookingFlow({
 
   useEffect(() => {
     let cancelled = false;
-    api.getActivities(locale).then((extras) => {
+    Promise.allSettled([api.getActivities(locale), api.getServiceOptions("TOUR_OPTION")]).then(([extras, options]) => {
       if (cancelled) return;
-      setActivities(extras);
+      if (extras.status === "fulfilled") setActivities(extras.value);
+      if (options.status === "fulfilled") setTourOptions(options.value);
       setCatalogLoaded(true);
-    }).catch(() => {
-      if (!cancelled) setCatalogLoaded(true);
     });
     api.getLanguages().then((items) => !cancelled && setLanguages(items));
     return () => {
@@ -134,11 +130,15 @@ export default function TourBookingFlow({
     };
   }, [locale]);
 
+  const party = adults + children;
+  const upgrades = visibleUpgrades(tourOptions, party, nights);
+  const otherReturnOption = returnCityOption(tourOptions);
+
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
     { id: 1, label: t("stepGuide") },
-    { id: 2, label: t("stepVehicle") },
-    { id: 5, label: t("stepAccommodation") },
+    { id: 2, label: t("stepCities") },
+    ...(upgrades.length > 0 ? [{ id: 6, label: t("stepUpgrade") }] : []),
     { id: 3, label: t("stepExtras") },
     { id: 4, label: t("stepReview") },
   ];
@@ -148,13 +148,18 @@ export default function TourBookingFlow({
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activityTotal(activity, adults + children, 1, minutesFor(activity)), 0);
-  const availableAccommodations = accommodations;
-  const selectedAccommodation = availableAccommodations.find((item) => item.slug === accommodationSlug);
-  // One tier: the whole party sleeps there, each guest type at its own per-night price.
-  const accommodationTotal = selectedAccommodation ? tierPerNight(selectedAccommodation, { adults, children, infants }) : 0;
+  // An upgrade that stops being offered (the party shrank below its minimum) is dropped, not kept in the total.
+  const chosenUpgrades = upgrades.filter((option) => upgradeSlugs.includes(option.slug));
+  const upgradesTotal = chosenUpgrades.reduce((sum, option) => sum + optionTotal(option, party, nights), 0);
+  const returnOtherTotal = otherReturn && returnCityOther.trim() && otherReturnOption ? optionTotal(otherReturnOption, party, nights) : 0;
+  const optionsTotal = upgradesTotal + returnOtherTotal;
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
+  }
+
+  function toggleUpgrade(slug: string) {
+    setUpgradeSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
   }
 
   function toggleLanguage(id: string) {
@@ -176,11 +181,8 @@ export default function TourBookingFlow({
         e.language = t("errorLanguageRequired");
       }
     }
-    if (step === 5 && !accommodationSlug) {
-      e.accommodation = t("errorAccommodationRequired");
-    }
-    if (step === 2) {
-      if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
+    if (step === 2 && otherReturn && !returnCityOther.trim()) {
+      e.returnCityOther = t("errorReturnCityOther");
     }
     if (step === 4) {
       if (!name.trim()) e.name = t("errorName");
@@ -220,13 +222,12 @@ export default function TourBookingFlow({
       numberOfInfants: infants > 0 ? infants : undefined,
       rideSlugs,
       activityDurations: durationsPayload(activities, rideSlugs, durations),
-      accommodations: accommodationSlug
-        ? [{ accommodationSlug, quantity: accommodationQty }]
-        : undefined,
-      arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
       departureCity: departureCity || undefined,
-      returnCity: returnCity || undefined,
-      meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
+      // Either a city from the list or one the guest typed, never both.
+      returnCity: !otherReturn && returnCity ? returnCity : undefined,
+      returnCityOther: otherReturn && returnCityOther.trim() ? returnCityOther.trim() : undefined,
+      // Upgrades are sent by slug only: the server prices them and re-checks the minimum party.
+      serviceOptions: chosenUpgrades.length > 0 ? chosenUpgrades.map((option) => ({ serviceOptionSlug: option.slug })) : undefined,
       preferredLanguageIds: preferredLanguageIds.length > 0 ? preferredLanguageIds : undefined,
       otherLanguageRequested: otherLanguageRequested.trim() || undefined,
       name,
@@ -309,11 +310,11 @@ export default function TourBookingFlow({
         <h3>{activeStep.label}</h3>
         <strong className="tour-book-step-amount">
           {step === 0 && `€${total}`}
-          {step === 5 && (selectedAccommodation ? `€${accommodationTotal}` : "")}
           {step === 1 && "€0"}
-          {step === 2 && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
+          {step === 2 && (returnOtherTotal > 0 ? `€${returnOtherTotal}` : "")}
+          {step === 6 && `€${upgradesTotal}`}
           {step === 3 && `€${extrasTotal}`}
-          {step === 4 && `€${total + accommodationTotal + extrasTotal}`}
+          {step === 4 && `€${total + optionsTotal + extrasTotal}`}
         </strong>
       </div>
 
@@ -340,33 +341,6 @@ export default function TourBookingFlow({
         </div>
       )}
 
-      {/* ---------- accommodation at the Sabria camp ---------- */}
-      {step === 5 && (
-        <div className="acc-step" data-invalid={!!errors.accommodation}>
-          <label>{t("chooseAccommodation")}</label>
-          <p className="hint">{t("chooseAccommodationHint")}</p>
-{availableAccommodations.length > 0 ? (
-            <AccommodationPicker
-              name="tourAccommodation"
-              mode="single"
-              items={availableAccommodations}
-              selections={accommodationSlug ? { [accommodationSlug]: accommodationQty } : {}}
-              onChange={(next) => {
-                const first = Object.entries(next)[0];
-                if (first) {
-                  setAccommodationSlug(first[0]);
-                  setAccommodationQty(first[1]);
-                }
-              }}
-              detailsHref={(slug) => (campStaySlug ? `/camp/${campStaySlug}/${slug}` : null)}
-            />
-          ) : (
-            <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
-          )}
-          {errors.accommodation && <span className="err">{errors.accommodation}</span>}
-        </div>
-      )}
-
       {/* ---------- 2. preferred guide language; staff assigns the person ---------- */}
       {step === 1 && (
         <div className="field" data-invalid={!!errors.language}>
@@ -383,57 +357,10 @@ export default function TourBookingFlow({
         </div>
       )}
 
-      {/* ---------- 3. vehicle ---------- */}
+      {/* ---------- 3. departure and return cities ---------- */}
       {step === 2 && (
-        <div className="field" data-invalid={!!errors.arrivalMode}>
-          <label>{t("howWillYouArrive")}</label>
-          <div className="ride-options">
-            <label className="ride-option">
-              <input
-                type="radio"
-                name="hasOwnVehicle"
-                checked={hasOwnVehicle === true}
-                onChange={() => setHasOwnVehicle(true)}
-              />
-              <span>{t("ownVehicle")}</span>
-              <span className="ride-price">{t("ownVehicleHint")}</span>
-            </label>
-            <label className="ride-option">
-              <input
-                type="radio"
-                name="hasOwnVehicle"
-                checked={hasOwnVehicle === false}
-                onChange={() => setHasOwnVehicle(false)}
-              />
-              <span>{t("needTransport")}</span>
-              <span className="ride-price">{t("needTransportHint")}</span>
-            </label>
-          </div>
-          {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
-          {hasOwnVehicle === false && (
-            <div className="field" style={{ marginTop: 12 }}>
-              <label htmlFor="tf-meet-up-place">{t("meetUpPlaceLabel")}</label>
-              <p className="hint">{t("meetUpPlaceHint")}</p>
-              <input
-                id="tf-meet-up-place"
-                maxLength={255}
-                placeholder={t("meetUpPlacePlaceholder")}
-                value={meetUpPlace}
-                onChange={(e) => setMeetUpPlace(e.target.value)}
-              />
-            </div>
-          )}
-          {hasOwnVehicle === false && (
-            <div className="booking-empty-state">
-              <span aria-hidden="true">T</span>
-              <div>
-                <strong>{t("transportOnRequest")}</strong>
-                <small>{t("transportAssignmentHint")}</small>
-              </div>
-            </div>
-          )}
-
-          <div className="field" style={{ marginTop: 16 }}>
+        <div className="reserve-form" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
+          <div className="field">
             <label htmlFor="tf-departure-city">{t("departureCityLabel")}</label>
             <ListSelect
               id="tf-departure-city"
@@ -445,20 +372,71 @@ export default function TourBookingFlow({
             />
           </div>
 
-          {returnOptions(returnCities).length > 0 && (
-          <div className="field" style={{ marginTop: 16 }}>
+          <div className="field" data-invalid={!!errors.returnCityOther}>
             <label htmlFor="tf-return-city">{t("returnCityLabel")}</label>
             <p className="hint">{t("returnCityHint")}</p>
-            <ListSelect
-              id="tf-return-city"
-              value={returnCity}
-              onChange={setReturnCity}
-              options={returnOptions(returnCities)}
-              labels={DEPARTURE_CITY_LABELS}
-              placeholder={t("returnCityPlaceholder")}
-            />
+            {returnOptions(returnCities).length > 0 && !otherReturn && (
+              <ListSelect
+                id="tf-return-city"
+                value={returnCity}
+                onChange={setReturnCity}
+                options={returnOptions(returnCities)}
+                labels={DEPARTURE_CITY_LABELS}
+                placeholder={t("returnCityPlaceholder")}
+              />
+            )}
+            {returnOptions(returnCities).length > 0 && (
+              <label className="ride-option" style={{ marginTop: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={otherReturn}
+                  onChange={(e) => {
+                    setOtherReturn(e.target.checked);
+                    if (e.target.checked) setReturnCity("");
+                  }}
+                />
+                <span>{t("returnOtherToggle")}</span>
+                <span className="ride-price">
+                  {otherReturnOption && (otherReturnOption.priceTtc ?? 0) > 0
+                    ? t("returnOtherPrice", { price: optionTotal(otherReturnOption, party, nights) })
+                    : t("returnOtherOnRequest")}
+                </span>
+              </label>
+            )}
+            {(otherReturn || returnOptions(returnCities).length === 0) && (
+              <input
+                id="tf-return-city-other"
+                maxLength={120}
+                style={{ marginTop: 10 }}
+                placeholder={t("returnOtherPlaceholder")}
+                value={returnCityOther}
+                onChange={(e) => {
+                  setOtherReturn(true);
+                  setReturnCityOther(e.target.value);
+                }}
+              />
+            )}
+            {errors.returnCityOther && <span className="err">{errors.returnCityOther}</span>}
           </div>
-          )}
+        </div>
+      )}
+
+      {/* ---------- 3b. paid upgrades (only when the back office offers one for this party) ---------- */}
+      {step === 6 && (
+        <div className="field">
+          <label>{t("upgradeLabel")}</label>
+          <p className="hint">{t("upgradeHint")}</p>
+          <div className="ride-options">
+            {upgrades.map((option) => (
+              <label className="ride-option" key={option.slug}>
+                <input type="checkbox" checked={upgradeSlugs.includes(option.slug)} onChange={() => toggleUpgrade(option.slug)} />
+                <span>{option.name}</span>
+                <span className="ride-price">
+                  {t("upgradePrice", { price: optionTotal(option, party, nights) })}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
       )}
 
@@ -544,12 +522,6 @@ export default function TourBookingFlow({
               <span className="k">{t("dateLabelSummary")}</span>
               <span>{prettyDate(date, locale)}</span>
             </div>
-            {selectedAccommodation && (
-              <div className="row">
-                <span className="k">{t("accommodationLabel")}</span>
-                <span>{selectedAccommodation.title} × {accommodationQty}</span>
-              </div>
-            )}
             <div className="row">
               <span className="k">{t("travelersLabel")}</span>
               <span>
@@ -558,24 +530,28 @@ export default function TourBookingFlow({
                 {infants > 0 ? ` · ${infants} ${t("infantsLabel").toLowerCase()}` : ""}
               </span>
             </div>
-            <div className="row">
-              <span className="k">{t("reviewVehicleLabel")}</span>
-              <span>
-                {hasOwnVehicle
-                  ? t("ownVehicle")
-                  : t("needTransport")}
-              </span>
-            </div>
             {departureCity && (
               <div className="row">
                 <span className="k">{t("departureCityLabel")}</span>
                 <span>{DEPARTURE_CITY_LABELS[departureCity]}</span>
               </div>
             )}
-            {returnCity && (
+            {!otherReturn && returnCity && (
               <div className="row">
                 <span className="k">{t("returnCityLabel")}</span>
                 <span>{DEPARTURE_CITY_LABELS[returnCity]}</span>
+              </div>
+            )}
+            {otherReturn && returnCityOther.trim() && (
+              <div className="row">
+                <span className="k">{t("returnCityLabel")}</span>
+                <span>{returnCityOther.trim()}</span>
+              </div>
+            )}
+            {chosenUpgrades.length > 0 && (
+              <div className="row">
+                <span className="k">{t("reviewUpgradesLabel")}</span>
+                <span>{chosenUpgrades.map((option) => option.name).join(", ")}</span>
               </div>
             )}
             {rideSlugs.length > 0 && (
@@ -630,10 +606,16 @@ export default function TourBookingFlow({
                 <span>€{infantPrice * infants}</span>
               </div>
             )}
-            {selectedAccommodation && (
+            {chosenUpgrades.map((option) => (
+              <div className="row" key={option.slug}>
+                <span className="k">{option.name}</span>
+                <span>€{optionTotal(option, party, nights)}</span>
+              </div>
+            ))}
+            {returnOtherTotal > 0 && (
               <div className="row">
-                <span className="k">{accommodationQty} × {selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
-                <span>€{accommodationTotal}</span>
+                <span className="k">{otherReturnOption?.name}</span>
+                <span>€{returnOtherTotal}</span>
               </div>
             )}
             {activities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
@@ -647,7 +629,7 @@ export default function TourBookingFlow({
             ))}
             <div className="row total">
               <span>{t("totalLabel")}</span>
-              <span>€{total + accommodationTotal + extrasTotal}</span>
+              <span>€{total + optionsTotal + extrasTotal}</span>
             </div>
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>

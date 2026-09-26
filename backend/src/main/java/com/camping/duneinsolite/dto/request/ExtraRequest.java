@@ -47,6 +47,10 @@ public class ExtraRequest {
     /** Null = not configured, no ceiling enforced. */
     @Min(value = 0, message = "Capacity cannot be negative")
     private Integer maxUnitsPerDay;
+
+    // An option shown only to parties of at least this many travelers; blank = always.
+    @jakarta.validation.constraints.Min(value = 1, message = "Minimum party size must be at least 1")
+    private Integer minPartySize;
     private ExtraCategory category = ExtraCategory.ACTIVITY;
     private String serviceType;
     private PricingUnit pricingUnit = PricingUnit.PER_UNIT;

@@ -49,6 +49,20 @@ export type AdminReservationLine = {
   // the line when the party size is edited.
   catalogTourTypeId?: string;
   activityDate?: string | null;
+  numberOfAdults?: number | null;
+  numberOfChildren?: number | null;
+  numberOfInfants?: number | null;
+  numberOfNights?: number | null;
+  /** The tiers booked on a stay line ("Tente" x 1, "Suite" x 2). */
+  accommodations?: AdminReservationAccommodation[];
+};
+
+export type AdminReservationAccommodation = {
+  accommodationName: string | null;
+  accommodationUnits: number | null;
+  adults?: number | null;
+  children?: number | null;
+  infants?: number | null;
 };
 
 export type AdminReservation = {
@@ -59,9 +73,15 @@ export type AdminReservation = {
   checkInDate: string | null;
   checkOutDate: string | null;
   serviceDate: string | null;
+  numberOfAdults?: number | null;
+  numberOfChildren?: number | null;
+  numberOfInfants?: number | null;
   arrivalMode: "OWN_VEHICLE" | "TRANSPORT" | null;
   departureCity: "TUNIS" | "SOUSSE" | "HAMMAMET" | "DJERBA" | "MAHDIA" | "MONASTIR" | "TOZEUR" | null;
   meetUpPlace?: string | null;
+  returnCity?: "TUNIS" | "SOUSSE" | "HAMMAMET" | "DJERBA" | "MAHDIA" | "MONASTIR" | "TOZEUR" | null;
+  /** A return city the guest typed because theirs was not in the list. */
+  returnCityOther?: string | null;
   totalAmount: number;
   currency: string;
   createdAt: string;
@@ -473,9 +493,11 @@ export type AdminExtra = {
   coverPhotoUrl: string | null;
   photos?: AdminTourPhoto[];
   maxUnitsPerDay: number | null;
-  category: "ACTIVITY" | "GUIDE" | "TRANSPORT" | "RESOURCE";
+  /** An option shown only to parties of at least this many travelers; null = always. */
+  minPartySize: number | null;
+  category: "ACTIVITY" | "GUIDE" | "TRANSPORT" | "RESOURCE" | "TOUR_OPTION";
   serviceType: string | null;
-  pricingUnit: "PER_UNIT" | "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE";
+  pricingUnit: "PER_UNIT" | "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE" | "PER_PERSON_NIGHT";
   requiresCustomerVehicle: boolean;
   displayOrder: number;
   pickupFields: string[];

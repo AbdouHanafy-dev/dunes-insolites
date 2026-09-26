@@ -274,12 +274,16 @@ export type TourBooking = {
   /** Minutes chosen per timed activity, keyed by activity slug (the main activity and any add-on).
    *  Omitted = the activity's base duration. Validated server-side against its base/step/max. */
   activityDurations?: Record<string, number>;
-  /** Required when the selected circuit overnights at the Sabria camp. */
+  /** Optional: the night at the camp is included in a circuit's price. The site no longer sends this; a paid
+   *  upgrade (single tent, suite) goes through `serviceOptions` instead. */
   accommodations?: AccommodationSelection[];
-  /** How the guest reaches the meeting point; validated against selected transport options. */
-  arrivalMode: "OWN_VEHICLE" | "TRANSPORT";
+  /** No longer asked for circuits; the server treats absence as joining with one's own vehicle. */
+  arrivalMode?: "OWN_VEHICLE" | "TRANSPORT";
   /** Where the guest departs from for pickup. Optional — not every guest arranges pickup through the site. */
   departureCity?: DepartureCity;
+  /** A return city the guest typed because theirs is not in the list. Exclusive with `returnCity`; charged
+   *  through the back-office "another return city" option when one is set up. */
+  returnCityOther?: string;
   /** Optional return leg after the tour ends — same city catalog as
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */
@@ -526,6 +530,9 @@ export type StayBooking = {
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */
   returnCity?: DepartureCity;
+  /** A return city the guest typed because theirs is not in the list. Exclusive with `returnCity`; charged
+   *  through the back-office "another return city" option when one is set up. */
+  returnCityOther?: string;
   /** Optional, TRANSPORT only: where the guest would like to be met. The
    *  server ignores it for OWN_VEHICLE and never returns it to guests. */
   meetUpPlace?: string;

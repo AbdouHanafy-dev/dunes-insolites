@@ -229,6 +229,8 @@ public class ReservationServiceImpl implements ReservationService {
                 .arrivalMode(request.getArrivalMode())
                 .departureCity(request.getDepartureCity())
                 .returnCity(request.getReturnCity())
+                .returnCityOther(request.getReturnCityOther() == null || request.getReturnCityOther().isBlank()
+                        ? null : request.getReturnCityOther().trim())
                 .meetUpPlace(request.getArrivalMode() == com.camping.duneinsolite.model.enums.ArrivalMode.TRANSPORT
                         && request.getMeetUpPlace() != null && !request.getMeetUpPlace().isBlank()
                         ? request.getMeetUpPlace().trim() : null)
@@ -693,6 +695,8 @@ public class ReservationServiceImpl implements ReservationService {
                 case PER_PERSON -> people;
                 case PER_DAY -> Math.toIntExact(stayDays);
                 case PER_VEHICLE, PER_UNIT -> requestedQuantity;
+                // The caller supplies the nights as the quantity; the party comes from the reservation.
+                case PER_PERSON_NIGHT -> people * requestedQuantity;
             };
             java.math.BigDecimal unitPrice = extraPricingService.unitPrice(catalog, activityDate);
             // Only activities are timed; a guide or transport line ignores any duration sent.
@@ -742,7 +746,8 @@ public class ReservationServiceImpl implements ReservationService {
             reservation.addExtra(extra);
 
             int days = catalog.getPricingUnit() == PricingUnit.PER_DAY ? pricedQuantity : 1;
-            int ownUnits = catalog.getPricingUnit() == PricingUnit.PER_PERSON ? people
+            int ownUnits = catalog.getPricingUnit() == PricingUnit.PER_PERSON
+                    || catalog.getPricingUnit() == PricingUnit.PER_PERSON_NIGHT ? people
                     : catalog.getPricingUnit() == PricingUnit.PER_VEHICLE
                     || catalog.getPricingUnit() == PricingUnit.PER_UNIT ? requestedQuantity : 1;
             int componentMultiplier = catalog.getPricingUnit() == PricingUnit.PER_VEHICLE

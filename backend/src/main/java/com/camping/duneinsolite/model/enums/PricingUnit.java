@@ -14,5 +14,10 @@ public enum PricingUnit {
     /** unitPrice × number of participants. */
     PER_PERSON,
     /** unitPrice × number of vehicles requested. */
-    PER_VEHICLE
+    PER_VEHICLE,
+    /**
+     * unitPrice × number of participants × number of nights. The caller supplies the nights as the
+     * requested quantity (a circuit's nights are worked out from its duration, never typed by a guest).
+     */
+    PER_PERSON_NIGHT
 }

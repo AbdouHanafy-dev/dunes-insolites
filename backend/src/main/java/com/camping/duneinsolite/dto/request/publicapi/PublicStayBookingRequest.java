@@ -78,6 +78,11 @@ public class PublicStayBookingRequest {
             message = "Return city must be one of TUNIS, SOUSSE, HAMMAMET, DJERBA, MAHDIA, MONASTIR, TOZEUR")
     private String returnCity;
 
+    // A return city that is not in the list, typed by the guest. Exclusive with returnCity; charged
+    // through the back-office "another return city" option when one is set up.
+    @jakarta.validation.constraints.Size(max = 120)
+    private String returnCityOther;
+
     // Optional, TRANSPORT only: where the guest would like to be met. Support
     // sees and edits it in the backoffice; it is never echoed back to guests.
     @jakarta.validation.constraints.Size(max = 255)

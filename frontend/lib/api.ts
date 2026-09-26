@@ -544,8 +544,8 @@ export async function getActivityAvailability(
 
 /* ------------------------------------------------- guide & transport options */
 
-export type ServiceOptionCategory = "GUIDE" | "TRANSPORT";
-export type PricingUnit = "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE";
+export type ServiceOptionCategory = "GUIDE" | "TRANSPORT" | "TOUR_OPTION";
+export type PricingUnit = "PER_DAY" | "PER_BOOKING" | "PER_PERSON" | "PER_VEHICLE" | "PER_PERSON_NIGHT";
 export type PickupField = "HOTEL_NAME" | "AIRPORT" | "FLIGHT_NUMBER" | "ADDRESS" | "ARRIVAL_TIME" | "INSTRUCTIONS";
 
 /** The catalogue shape for the "Getting There & Guide" step - real price, never invented client-side. */
@@ -561,6 +561,8 @@ export type ServiceOptionCatalogItem = {
   requiresCustomerVehicle: boolean;
   pickupFields: PickupField[];
   requiredPickupFields: PickupField[];
+  /** Shown only to parties of at least this many travelers (set in the back office); null = always. */
+  minPartySize: number | null;
 };
 
 /** Empty array on any failure (no backend, network error...) - the step degrades to "no options available". */

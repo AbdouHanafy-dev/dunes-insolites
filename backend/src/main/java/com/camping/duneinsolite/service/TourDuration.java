@@ -17,6 +17,15 @@ public final class TourDuration {
         return hours != null && hours > 24;
     }
 
+    /**
+     * How many nights a circuit crosses: its days minus one (48 h = 1, 72 h = 2). Zero for a single-day
+     * circuit, or when the duration is not set.
+     */
+    public static int nights(Integer hours) {
+        if (hours == null || hours <= 24) return 0;
+        return (int) Math.ceil(hours / 24.0) - 1;
+    }
+
     /** 26 -> "1 jour et 2 h (26 h)", 48 -> "2 jours (48 h)", 6 -> "6 h". Null when unset. */
     public static String label(Integer hours) {
         if (hours == null) return null;

@@ -234,12 +234,15 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // Same mutual-exclusion rule as createStayBooking: resolve and
         // validate before any side effect (guest-account creation, the
         // reservation itself).
-        List<ResolvedServiceOption> resolvedServiceOptions = request.getServiceOptions() == null
-                ? List.of()
-                : request.getServiceOptions().stream()
-                        .map(sel -> resolveServiceOption(sel, request.getDate(),
-                                request.getNumberOfAdults() + orZero(request.getNumberOfChildren()), 1))
-                        .toList();
+        int headcount = request.getNumberOfAdults() + orZero(request.getNumberOfChildren());
+        int tourNights = com.camping.duneinsolite.service.TourDuration.nights(tour.getDurationHours());
+
+        String returnCityOther = typedReturnCity(request.getReturnCityOther(), request.getReturnCity());
+        List<com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest> optionSelections =
+                optionsWithReturnCity(request.getServiceOptions(), returnCityOther);
+        List<ResolvedServiceOption> resolvedServiceOptions = optionSelections.stream()
+                .map(sel -> resolveServiceOption(sel, request.getDate(), headcount, 1, tourNights, true))
+                .toList();
         boolean hasTransport = resolvedServiceOptions.stream()
                 .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
         // TRANSPORT is a request for staff assignment, not a requirement for
@@ -261,11 +264,9 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // The camp is the stay flagged circuit_camp in the back office. With
         // none set there is nothing to choose, so nothing is required either.
         Optional<TourType> circuitCamp = tourTypeRepository.findFirstByCircuitCampTrue();
-        boolean requiresCampAccommodation = requiresCampAccommodation(tour) && circuitCamp.isPresent();
-        if (requiresCampAccommodation && requestedTourAccommodations.isEmpty()) {
-            throw new ReservationValidationException(
-                    "Choose at least one accommodation for the night at the Sabria camp.");
-        }
+        // The night at the camp is included in a circuit's price, so the guest no longer picks one:
+        // what they can add is a paid upgrade (single tent, suite), sold as a TOUR_OPTION. A booking
+        // may still carry explicit camp tiers (the back office does), and those are priced as before.
         record ResolvedCampTier(AccommodationType accommodation, int units, Guests guests) {}
         List<ResolvedCampTier> resolvedCampTiers = new java.util.ArrayList<>();
         UUID campTourTypeId = null;
@@ -317,6 +318,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
         reservationRequest.setReturnCity(request.getReturnCity() == null ? null
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
+        reservationRequest.setReturnCityOther(returnCityOther);
         reservationRequest.setMeetUpPlace(request.getMeetUpPlace());
         reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));
         reservationRequest.setOtherLanguageRequested(
@@ -401,6 +403,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setArrivalMode(request.getArrivalMode());
         response.setDepartureCity(request.getDepartureCity());
         response.setReturnCity(request.getReturnCity());
+        response.setReturnCityOther(request.getReturnCityOther());
         response.setPreferredLanguageIds(request.getPreferredLanguageIds());
         response.setOtherLanguageRequested(request.getOtherLanguageRequested());
         response.setName(request.getName());
@@ -426,6 +429,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Stay not found: " + request.getStaySlug()));
         com.camping.duneinsolite.service.PickupCities.requireOffered("departure", request.getDepartureCity(), tourType.getDepartureCities());
         com.camping.duneinsolite.service.PickupCities.requireOffered("return", request.getReturnCity(), tourType.getReturnCities());
+        String returnCityOther = typedReturnCity(request.getReturnCityOther(), request.getReturnCity());
 
         int nights = request.getNights() != null ? request.getNights() : 1;
         int maxNights = tourType.getMaxNights() != null ? tourType.getMaxNights() : 1;
@@ -454,11 +458,9 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         // Resolve and validate public slugs before guest-account creation. The
         // mode is explicit because an empty option list alone cannot tell the
         // server whether the guest has a vehicle or forgot transportation.
-        List<ResolvedServiceOption> resolvedServiceOptions = request.getServiceOptions() == null
-                ? List.of()
-                : request.getServiceOptions().stream()
-                        .map(sel -> resolveServiceOption(sel, request.getDate(), request.getPartySize(), nights))
-                        .toList();
+        List<ResolvedServiceOption> resolvedServiceOptions = optionsWithReturnCity(request.getServiceOptions(), returnCityOther).stream()
+                .map(sel -> resolveServiceOption(sel, request.getDate(), request.getPartySize(), nights, nights, false))
+                .toList();
         boolean hasTransport = resolvedServiceOptions.stream()
                 .anyMatch(resolved -> resolved.catalog().getCategory() == ExtraCategory.TRANSPORT);
         if ("TRANSPORT".equals(request.getArrivalMode()) && !hasTransport) {
@@ -542,6 +544,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getDepartureCity()));
         reservationRequest.setReturnCity(request.getReturnCity() == null ? null
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
+        reservationRequest.setReturnCityOther(returnCityOther);
         reservationRequest.setMeetUpPlace(request.getMeetUpPlace());
 
         TourTypeSelectionRequest selection = new TourTypeSelectionRequest();
@@ -604,6 +607,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         response.setArrivalMode(request.getArrivalMode());
         response.setDepartureCity(request.getDepartureCity());
         response.setReturnCity(request.getReturnCity());
+        response.setReturnCityOther(request.getReturnCityOther());
         response.setName(request.getName());
         response.setEmail(request.getEmail());
         response.setPhone(request.getPhone());
@@ -647,16 +651,75 @@ public class PublicBookingServiceImpl implements PublicBookingService {
 
     private record ResolvedServiceOption(Extra catalog, ReservationExtraRequest request) {}
 
+    /**
+     * The return city a guest typed because theirs is not in the list, trimmed; null when none.
+     * It replaces the listed one, so giving both is refused.
+     */
+    private static String typedReturnCity(String typed, String listed) {
+        String clean = typed == null || typed.isBlank() ? null : typed.trim();
+        if (clean != null && listed != null) {
+            throw new ReservationValidationException(
+                    "Choose a return city from the list or write another one, not both.");
+        }
+        return clean;
+    }
+
+    /**
+     * The options the guest picked, plus - when they typed a return city - the back-office "another
+     * return city" option, added here on the server: the guest never sends (or chooses) that price.
+     * Without such an option set up, the city is still kept and staff quote the extra.
+     */
+    private List<com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest> optionsWithReturnCity(
+            List<com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest> requested,
+            String returnCityOther) {
+        List<com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest> all =
+                new java.util.ArrayList<>(requested == null ? List.of() : requested);
+        if (returnCityOther != null) {
+            extraRepository.findFirstByCategoryAndServiceTypeAndIsActiveTrue(ExtraCategory.TOUR_OPTION, RETURN_CITY_OPTION)
+                    .filter(option -> all.stream().noneMatch(sel -> option.getSlug().equals(sel.getServiceOptionSlug())))
+                    .ifPresent(option -> {
+                        var sel = new com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest();
+                        sel.setServiceOptionSlug(option.getSlug());
+                        all.add(sel);
+                    });
+        }
+        return all;
+    }
+
+    /** serviceType of the TOUR_OPTION that charges for a return city outside the list. */
+    public static final String RETURN_CITY_OPTION = "RETURN_CITY";
+
+    /**
+     * @param nights        what a PER_DAY option scales with
+     * @param optionNights  what a PER_PERSON_NIGHT option scales with (a circuit's nights, worked out
+     *                      from its duration)
+     * @param tour          true for a circuit booking, the only place a TOUR_OPTION can be sold
+     */
     private ResolvedServiceOption resolveServiceOption(
             com.camping.duneinsolite.dto.request.publicapi.PublicServiceOptionSelectionRequest sel,
             java.time.LocalDate date,
             int partySize,
-            int nights) {
+            int nights,
+            int optionNights,
+            boolean tour) {
         Extra option = extraRepository.findBySlugAndIsActiveTrue(sel.getServiceOptionSlug())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Service option not found: " + sel.getServiceOptionSlug()));
-        if (option.getCategory() != ExtraCategory.GUIDE && option.getCategory() != ExtraCategory.TRANSPORT) {
+        boolean sellable = option.getCategory() == ExtraCategory.GUIDE || option.getCategory() == ExtraCategory.TRANSPORT
+                || (option.getCategory() == ExtraCategory.TOUR_OPTION
+                        && (tour || RETURN_CITY_OPTION.equals(option.getServiceType())));
+        if (!sellable) {
             throw new ReservationValidationException("Not a guide or transportation option: " + option.getName());
+        }
+        // Set in the back office: some options only make sense for a group of a given size. The
+        // form hides them, but the server is the one that refuses.
+        if (option.getMinPartySize() != null && partySize < option.getMinPartySize()) {
+            throw new ReservationValidationException("\"" + option.getName() + "\" needs at least "
+                    + option.getMinPartySize() + " travelers.");
+        }
+        if (option.getPricingUnit() == com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT
+                && optionNights < 1) {
+            throw new ReservationValidationException("\"" + option.getName() + "\" needs a night to apply to.");
         }
         ReservationExtraRequest req = new ReservationExtraRequest();
         req.setExtraId(option.getExtraId());
@@ -669,6 +732,8 @@ public class PublicBookingServiceImpl implements PublicBookingService {
             case PER_DAY -> Math.max(nights, 1);
             case PER_BOOKING -> 1;
             case PER_VEHICLE, PER_UNIT -> sel.getQuantity() != null ? Math.max(sel.getQuantity(), 1) : 1;
+            // ReservationService multiplies this by the party: the quantity is the nights.
+            case PER_PERSON_NIGHT -> Math.max(optionNights, 1);
         };
         req.setQuantity(quantity);
         req.setActivityDate(date);
@@ -749,11 +814,6 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         return "Accommodation requested: " + accommodations.stream()
                 .map(sel -> sel.getAccommodationSlug() + (sel.getQuantity() != null ? " x" + sel.getQuantity() : ""))
                 .collect(Collectors.joining(", "));
-    }
-
-    private static boolean requiresCampAccommodation(com.camping.duneinsolite.model.Tour tour) {
-        return Boolean.TRUE.equals(tour.getOvernightsAtCamp())
-                || com.camping.duneinsolite.service.TourDuration.isMultiDay(tour.getDurationHours());
     }
 
     private static String demandeSpecial(String notes, String extra) {

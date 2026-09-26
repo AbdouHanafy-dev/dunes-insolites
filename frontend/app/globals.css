@@ -2587,7 +2587,9 @@ section.block {
   border: none;
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
-  color: var(--ink);
+  font-weight: 500;
+  /* A day you can pick is plain black; a past day (below) is grey and cannot be clicked. */
+  color: #141110;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -2595,18 +2597,21 @@ section.block {
   background: rgba(160, 74, 47, 0.12);
 }
 .date-picker-grid button[data-outside] {
-  color: rgba(42, 21, 16, 0.32);
+  color: rgba(20, 17, 16, 0.55);
 }
 .date-picker-grid button[data-today]:not([data-selected]) {
-  font-weight: 700;
-  color: var(--accent);
+  font-weight: 800;
+  color: #141110;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .date-picker-grid button[data-selected] {
   background: var(--accent);
   color: #fff;
 }
 .date-picker-grid button:disabled {
-  color: rgba(42, 21, 16, 0.2);
+  color: #bdb7b0;
+  font-weight: 400;
   cursor: not-allowed;
 }
 .date-range-picker {

@@ -60,6 +60,9 @@ public class ReservationRequest {
     private DepartureCity departureCity;
     // Optional return leg after the stay/tour, same DepartureCity catalog.
     private DepartureCity returnCity;
+
+    @jakarta.validation.constraints.Size(max = 120)
+    private String returnCityOther;
     // Optional meeting place, kept only for ArrivalMode.TRANSPORT.
     private String meetUpPlace;
 

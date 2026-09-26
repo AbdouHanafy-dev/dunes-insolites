@@ -92,6 +92,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     PER_BOOKING: ts("unitBooking"),
     PER_PERSON: ts("unitPerson"),
     PER_VEHICLE: ts("unitVehicle"),
+    PER_PERSON_NIGHT: ts("unitPerson"), // tour options only; never listed in this flow
   };
 
   const [category, setCategory] = useState<Category | "">("");

@@ -114,6 +114,7 @@ public class Seed implements CommandLineRunner {
         once("catalog-tours", this::seedTours);
         once("catalog-extras", this::seedExtras);
         once("catalog-camp-activities", this::seedCampActivities);
+        once("catalog-tour-options", this::seedTourOptions);
         once("catalog-gallery", this::seedGallery);
         once("catalog-circuits-nav", this::seedCircuitsNavItem);
 
@@ -581,6 +582,43 @@ public class Seed implements CommandLineRunner {
                         ContentLocale.IT, new String[]{"Sandboard", "Scivola sulle dune del Sahara: tavola inclusa, nessuna esperienza richiesta."},
                         ContentLocale.DA, new String[]{"Sandboarding", "Glid ned ad Saharas klitter: board medfølger, ingen erfaring nødvendig."},
                         ContentLocale.AR, new String[]{"التزلج على الرمال", "انزلقوا على كثبان الصحراء: اللوح متوفر ولا حاجة إلى خبرة سابقة."}));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // TOUR OPTIONS - the paid options offered on a circuit booking. Created INACTIVE at 0: the
+    // prices and the minimum party size are the owner's to set in the back office, and an option
+    // only appears on the site once it is activated.
+    // ─────────────────────────────────────────────────────────────
+
+    private void seedTourOptions() {
+        seedTourOption("upgrade-tente-individuelle", "Passer en tente individuelle",
+                "Une tente pour vous seul, au lieu de la tente partagée incluse dans le circuit.",
+                null, com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT, 10);
+        seedTourOption("upgrade-suite", "Passer en suite",
+                "Une suite au camp, au lieu de la tente incluse dans le circuit.",
+                "UPGRADE", com.camping.duneinsolite.model.enums.PricingUnit.PER_PERSON_NIGHT, 20);
+        seedTourOption("autre-ville-de-retour", "Autre ville de retour",
+                "Retour dans une ville qui ne figure pas dans la liste (la ville est précisée par le client).",
+                com.camping.duneinsolite.service.impl.PublicBookingServiceImpl.RETURN_CITY_OPTION,
+                com.camping.duneinsolite.model.enums.PricingUnit.PER_BOOKING, 30);
+    }
+
+    private void seedTourOption(String slug, String name, String description, String serviceType,
+                                com.camping.duneinsolite.model.enums.PricingUnit unit, int order) {
+        if (extraRepository.existsBySlug(slug) || extraRepository.existsByName(name)) return;
+        extraRepository.save(Extra.builder()
+                .name(name)
+                .slug(slug)
+                .description(description)
+                .unitPrice(java.math.BigDecimal.ZERO)
+                .category(com.camping.duneinsolite.model.enums.ExtraCategory.TOUR_OPTION)
+                .serviceType(serviceType == null ? "UPGRADE" : serviceType)
+                .pricingUnit(unit)
+                .displayOrder(order)
+                .tva(new java.math.BigDecimal("13.0"))
+                .isActive(false)
+                .build());
+        log.info("Seed: created inactive tour option {}", name);
     }
 
     private void seedActivity(String slug, String name, String description, String duration,

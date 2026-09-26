@@ -30,6 +30,7 @@ public class ExtraResponse {
     private Boolean isActive;
     private java.math.BigDecimal tva;
     private Integer maxUnitsPerDay;
+    private Integer minPartySize;
     private ExtraCategory category;
     private String serviceType;
     private PricingUnit pricingUnit;

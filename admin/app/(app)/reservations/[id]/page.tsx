@@ -55,6 +55,14 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         {reservation.departureCity && (
           <Field label="Ville de départ" value={DEPARTURE_CITY_LABELS[reservation.departureCity]} />
         )}
+        {(reservation.returnCity || reservation.returnCityOther) && (
+          <Field
+            label="Ville de retour"
+            value={reservation.returnCityOther
+              ? `${reservation.returnCityOther} (hors liste)`
+              : DEPARTURE_CITY_LABELS[reservation.returnCity!]}
+          />
+        )}
         {reservation.groupName && <Field label="Groupe" value={reservation.groupName} />}
         {reservation.groupLeaderName && <Field label="Responsable groupe" value={reservation.groupLeaderName} />}
         {reservation.preferredLanguages.length > 0 && (
