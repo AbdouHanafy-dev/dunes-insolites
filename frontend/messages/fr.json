@@ -950,7 +950,14 @@
     "preferredLanguageHint": "Pour vous affecter un guide qui parle votre langue.",
     "reviewLanguageLabel": "Langue préférée",
     "otherLanguagePlaceholder": "Autre langue non listée ? Précisez ici (optionnel)",
-    "infantsLabel": "Bébés"
+    "infantsLabel": "Bébés",
+    "promoLabel": "Code promo",
+    "promoPlaceholder": "Votre code promo (optionnel)",
+    "promoApply": "Appliquer",
+    "promoRemove": "Retirer",
+    "promoApplied": "Code {code} appliqué : -{percent} % sur le prix du circuit.",
+    "promoInvalid": "Ce code promo n’est pas valable.",
+    "promoLine": "Code promo {code} (-{percent} %)"
   },
   "accommodationCard": {
     "exploreThisStay": "Découvrir ce séjour ↗",

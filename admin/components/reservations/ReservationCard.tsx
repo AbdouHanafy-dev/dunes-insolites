@@ -155,6 +155,7 @@ function ReservationBack({ r }: { r: AdminReservation }) {
         {r.meetUpPlace && <Fact label="Rendez-vous" value={r.meetUpPlace} />}
         {languages && <Fact label="Langue(s)" value={languages} />}
         {r.groupName && <Fact label="Groupe" value={r.groupName} />}
+        {r.promoCode && <Fact label="Code promo" value={`${r.promoCode}${r.promoDiscountPercent ? ` (-${r.promoDiscountPercent} %)` : ""}`} />}
         {summary && (
           <Fact label="Paiement" value={`Payé ${summary.totalPaid} ${currency} · reste ${summary.remainingTotal} ${currency}`} />
         )}

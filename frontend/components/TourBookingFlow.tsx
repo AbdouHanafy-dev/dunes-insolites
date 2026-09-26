@@ -101,6 +101,10 @@ export default function TourBookingFlow({
   // A return city that is not in the list: typed by the guest, charged as an option.
   const [otherReturn, setOtherReturn] = useState(false);
   const [returnCityOther, setReturnCityOther] = useState("");
+  // A partner's promo code: the site shows the discount, the server works it out again at booking.
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; percent: number } | null>(null);
+  const [promoState, setPromoState] = useState<"idle" | "checking" | "invalid">("idle");
   // The back office's paid options for a circuit (upgrades, another return city).
   const [tourOptions, setTourOptions] = useState<ServiceOptionCatalogItem[]>([]);
   const [upgradeSlugs, setUpgradeSlugs] = useState<string[]>([]);
@@ -180,6 +184,28 @@ export default function TourBookingFlow({
 
   const min = todayISO();
   const total = adultPrice * adults + childPrice * children + infantPrice * infants;
+  // The code takes a percentage off the circuit price only, never off options or activities.
+  const promoDiscount = promo ? Math.round(total * promo.percent * 10) / 1000 : 0;
+
+  async function applyPromo() {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoState("checking");
+    const result = await api.checkPromoCode(code);
+    if (result.valid && result.discountPercent) {
+      setPromo({ code: code.toUpperCase(), percent: result.discountPercent });
+      setPromoState("idle");
+    } else {
+      setPromo(null);
+      setPromoState("invalid");
+    }
+  }
+
+  function removePromo() {
+    setPromo(null);
+    setPromoInput("");
+    setPromoState("idle");
+  }
 
   function validateStep(): boolean {
     const e: Record<string, string> = {};
@@ -242,6 +268,7 @@ export default function TourBookingFlow({
       // Either a city from the list or one the guest typed, never both.
       returnCity: !otherReturn && returnCity ? returnCity : undefined,
       returnCityOther: otherReturn && returnCityOther.trim() ? returnCityOther.trim() : undefined,
+      promoCode: promo?.code,
       displayCurrency,
       // Upgrades are sent by slug only: the server prices them and re-checks the minimum party.
       serviceOptions: chosenUpgrades.length > 0 ? chosenUpgrades.map((option) => ({ serviceOptionSlug: option.slug })) : undefined,
@@ -666,10 +693,41 @@ export default function TourBookingFlow({
                 <span>{money(activityTotal(a, adults + children, 1, minutesFor(a)))}</span>
               </div>
             ))}
+            {promo && promoDiscount > 0 && (
+              <div className="row">
+                <span className="k">{t("promoLine", { code: promo.code, percent: promo.percent })}</span>
+                <span>-{money(promoDiscount)}</span>
+              </div>
+            )}
             <div className="row total">
               <span>{t("totalLabel")}</span>
-              <span>{money(total + optionsTotal + extrasTotal)}</span>
+              <span>{money(total - promoDiscount + optionsTotal + extrasTotal)}</span>
             </div>
+          </div>
+          <div className="field">
+            <label htmlFor="tf-promo">{t("promoLabel")}</label>
+            {promo ? (
+              <div className="ride-option" style={{ justifyContent: "space-between" }}>
+                <span>{t("promoApplied", { code: promo.code, percent: promo.percent })}</span>
+                <button type="button" className="btn-quiet" onClick={removePromo}>{t("promoRemove")}</button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  id="tf-promo"
+                  maxLength={40}
+                  autoCapitalize="characters"
+                  placeholder={t("promoPlaceholder")}
+                  value={promoInput}
+                  onChange={(e) => { setPromoInput(e.target.value); setPromoState("idle"); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void applyPromo(); } }}
+                />
+                <button type="button" className="btn-quiet" disabled={promoState === "checking" || !promoInput.trim()} onClick={() => void applyPromo()}>
+                  {t("promoApply")}
+                </button>
+              </div>
+            )}
+            {promoState === "invalid" && <span className="err">{t("promoInvalid")}</span>}
           </div>
           <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
             <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />

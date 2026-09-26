@@ -319,6 +319,7 @@ public class PublicBookingServiceImpl implements PublicBookingService {
         reservationRequest.setReturnCity(request.getReturnCity() == null ? null
                 : com.camping.duneinsolite.model.enums.DepartureCity.valueOf(request.getReturnCity()));
         reservationRequest.setReturnCityOther(returnCityOther);
+        reservationRequest.setPromoCode(request.getPromoCode());
         reservationRequest.setDisplayCurrency(request.getDisplayCurrency());
         reservationRequest.setMeetUpPlace(request.getMeetUpPlace());
         reservationRequest.setPreferredLanguageIds(parseLanguageIds(request.getPreferredLanguageIds()));

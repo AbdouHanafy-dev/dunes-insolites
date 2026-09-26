@@ -64,7 +64,7 @@ export default function UserCards({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-navy-800">{title}</h1>
           <p className="mt-1 text-sm text-navy-700/55">{items.length} compte(s)</p>

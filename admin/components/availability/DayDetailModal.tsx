@@ -25,12 +25,15 @@ export default function DayDetailModal({
   blockNote,
   closed,
   onClose,
+  onToggleBlock,
 }: {
   date: string;
   dateLabel: string;
   closed: boolean;
   blockNote: string | null;
   onClose: () => void;
+  /** Closes the day to bookings, or reopens it when it is closed. */
+  onToggleBlock?: () => void;
 }) {
   const [state, setState] = useState<{ date: string; rows: AdminReservation[] | null; failed: boolean } | null>(null);
 
@@ -83,9 +86,14 @@ export default function DayDetailModal({
         </>
       )}
 
-      <div className="mt-5 flex justify-end">
+      <div className="mt-5 flex flex-wrap justify-end gap-2">
+        {onToggleBlock && (
+          <button type="button" className={`btn ${closed ? "btn-secondary" : "btn-danger-outline"}`} onClick={onToggleBlock}>
+            {closed ? "Rouvrir cette date" : "Fermer cette date aux réservations"}
+          </button>
+        )}
         <button type="button" className="btn btn-secondary" onClick={onClose}>
-          Fermer
+          Fermer la fenêtre
         </button>
       </div>
     </Modal>

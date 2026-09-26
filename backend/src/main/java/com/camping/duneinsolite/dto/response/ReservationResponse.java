@@ -34,6 +34,8 @@ public class ReservationResponse {
     private Currency currency;
     private java.math.BigDecimal exchangeRateApplied;
     private String promoCode;
+    private java.math.BigDecimal promoDiscountPercent;
+    private java.math.BigDecimal promoCommissionPercent;
     private String demandeSpecial;
     private ArrivalMode arrivalMode;
     private DepartureCity departureCity;

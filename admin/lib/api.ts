@@ -101,6 +101,9 @@ export type AdminReservation = {
   createdAt: string;
   extras?: AdminReservationExtra[];
   groupName?: string | null;
+  /** The partner promo code the booking used, and the percentage it took off the circuit price. */
+  promoCode?: string | null;
+  promoDiscountPercent?: number | null;
   guides?: AdminReservationStaffMember[];
   chauffeurs?: AdminReservationStaffMember[];
   demandeSpecial?: string | null;
@@ -155,11 +158,23 @@ export async function getSiteTextCatalogue(): Promise<SiteTextCatalogue | null> 
   }
 }
 
+import type { AdminPromoCode } from "@/lib/promoCodes";
+
+export function getPromoCodes(accessToken: string): Promise<AdminPromoCode[]> {
+  return authedGet<AdminPromoCode[]>("/admin/promo-codes", accessToken, []);
+}
+
 export function getPaymentPolicy(accessToken: string): Promise<AdminPaymentPolicy | null> {
   return authedGet<AdminPaymentPolicy | null>("/payment-policy", accessToken, null);
 }
 
 export type Page<T> = { content: T[]; totalElements: number; totalPages: number; number: number };
+
+/** Every reservation, whatever its status, newest first: what the dashboard works its figures out from. */
+export function getAllReservationsPage(accessToken: string, page = 0, size = 500): Promise<Page<AdminReservation>> {
+  const empty: Page<AdminReservation> = { content: [], totalElements: 0, totalPages: 0, number: 0 };
+  return authedGet<Page<AdminReservation>>(`/reservations?page=${page}&size=${size}&sort=createdAt,desc`, accessToken, empty);
+}
 
 export function getActiveReservations(
   accessToken: string,

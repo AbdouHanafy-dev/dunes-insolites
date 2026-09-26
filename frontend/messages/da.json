@@ -743,7 +743,14 @@
     "preferredLanguageHint": "Så vi kan tildele en guide, der taler dit sprog.",
     "reviewLanguageLabel": "Foretrukket sprog",
     "otherLanguagePlaceholder": "Andet sprog, der ikke er angivet? Angiv her (valgfrit)",
-    "infantsLabel": "Babyer"
+    "infantsLabel": "Babyer",
+    "promoLabel": "Rabatkode",
+    "promoPlaceholder": "Din rabatkode (valgfri)",
+    "promoApply": "Anvend",
+    "promoRemove": "Fjern",
+    "promoApplied": "Koden {code} er anvendt: {percent} % rabat på rundrejsens pris.",
+    "promoInvalid": "Denne rabatkode er ikke gyldig.",
+    "promoLine": "Rabatkode {code} (-{percent} %)"
   },
   "accommodationCard": {
     "exploreThisStay": "Udforsk dette ophold ↗",

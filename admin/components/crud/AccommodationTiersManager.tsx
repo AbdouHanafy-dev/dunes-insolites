@@ -214,7 +214,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-[15px] font-bold text-navy-800">Tiers d&apos;hébergement</h2>
           <p className="mt-1 text-sm text-navy-700/55">

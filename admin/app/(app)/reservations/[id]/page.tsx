@@ -66,6 +66,12 @@ export default async function ReservationDetailPage({ params }: { params: Promis
           />
         )}
         {reservation.groupName && <Field label="Groupe" value={reservation.groupName} />}
+        {reservation.promoCode && (
+          <Field
+            label="Code promo"
+            value={`${reservation.promoCode}${reservation.promoDiscountPercent ? ` (-${reservation.promoDiscountPercent} % sur le circuit)` : ""}`}
+          />
+        )}
         {reservation.groupLeaderName && <Field label="Responsable groupe" value={reservation.groupLeaderName} />}
         {reservation.preferredLanguages.length > 0 && (
           <Field label="Langue(s) préférée(s) du client" value={reservation.preferredLanguages.map((l) => l.name).join(", ")} />

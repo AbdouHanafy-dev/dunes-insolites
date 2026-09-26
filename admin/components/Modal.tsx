@@ -13,11 +13,11 @@ export default function Modal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[2000] flex items-start justify-center overflow-y-auto bg-navy-950/40 p-4 pt-12 backdrop-blur-sm"
+      className="fixed inset-0 z-[2000] flex items-start justify-center overflow-y-auto bg-navy-950/40 p-2.5 pt-6 backdrop-blur-sm sm:p-4 sm:pt-12"
       onClick={onClose}
     >
       <div
-        className={`card w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl p-6`}
+        className={`card w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl p-4 sm:p-6`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">

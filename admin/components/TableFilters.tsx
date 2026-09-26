@@ -35,9 +35,9 @@ export default function TableFilters<T>({
   const active = activeFilterCount(state) + (query.trim() ? 1 : 0);
 
   return (
-    <div className="flex flex-col gap-3 border-b border-navy-700/8 px-6 py-4">
+    <div className="flex flex-col gap-3 border-b border-navy-700/8 px-3.5 py-3.5 sm:px-6 sm:py-4">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="relative w-full max-w-xs">
+        <div className="relative w-full sm:max-w-xs">
           <i className="bi bi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-navy-700/40" aria-hidden />
           <input
             type="search"
@@ -50,9 +50,9 @@ export default function TableFilters<T>({
 
         {defs.map((def) =>
           def.kind === "select" ? (
-            <label key={def.id} className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-navy-700/50">
+            <label key={def.id} className="flex w-full flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-navy-700/50 sm:w-auto">
               {def.label}
-              <select value={state[def.id] ?? ""} onChange={(e) => set(def.id, e.target.value)} className={`${control} font-normal normal-case`}>
+              <select value={state[def.id] ?? ""} onChange={(e) => set(def.id, e.target.value)} className={`${control} w-full font-normal normal-case sm:w-auto`}>
                 <option value="">Tous</option>
                 {def.options.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -60,15 +60,15 @@ export default function TableFilters<T>({
               </select>
             </label>
           ) : (
-            <div key={def.id} className="flex flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-navy-700/50">
+            <div key={def.id} className="flex w-full flex-col gap-1 text-[11px] font-semibold uppercase tracking-wide text-navy-700/50 sm:w-auto">
               {def.label}
-              <div className="flex items-center gap-1.5">
+              <div className="flex w-full items-center gap-1.5 sm:w-auto">
                 <input
                   type="date"
                   aria-label={`${def.label}, du`}
                   value={state[dateFromKey(def.id)] ?? ""}
                   onChange={(e) => set(dateFromKey(def.id), e.target.value)}
-                  className={`${control} font-normal`}
+                  className={`${control} min-w-0 flex-1 font-normal sm:flex-none`}
                 />
                 <span className="text-[12px] font-normal normal-case text-navy-700/40">au</span>
                 <input
@@ -76,7 +76,7 @@ export default function TableFilters<T>({
                   aria-label={`${def.label}, au`}
                   value={state[dateToKey(def.id)] ?? ""}
                   onChange={(e) => set(dateToKey(def.id), e.target.value)}
-                  className={`${control} font-normal`}
+                  className={`${control} min-w-0 flex-1 font-normal sm:flex-none`}
                 />
               </div>
             </div>

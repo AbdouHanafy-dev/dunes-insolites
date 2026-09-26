@@ -43,9 +43,9 @@ export default function AppShell({
       />
 
       <div
-        className={`min-h-screen transition-all duration-300 ${collapsed ? "lg:ml-16" : "lg:ml-60"}`}
+        className={`min-h-screen min-w-0 transition-all duration-300 ${collapsed ? "lg:ml-16" : "lg:ml-60"}`}
       >
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-navy-700/10 bg-paper/85 px-5 backdrop-blur-md">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-navy-700/10 bg-paper/85 px-3 backdrop-blur-md sm:gap-3 sm:px-5">
           <button
             className="flex h-9 w-9 items-center justify-center rounded-lg text-navy-700/70 lg:hidden"
             onClick={() => setMobileOpen(true)}
@@ -55,12 +55,19 @@ export default function AppShell({
           </button>
           <span className="flex-1" />
           <NotificationBell />
-          <span className="text-sm text-navy-700/70">
+          <span className="hidden max-w-[16rem] truncate text-sm text-navy-700/70 sm:inline">
             {session.name} <span className="text-navy-700/35">· {session.role}</span>
+          </span>
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-800 text-[12px] font-bold text-white sm:hidden"
+            title={`${session.name} · ${session.role}`}
+            aria-label={session.name}
+          >
+            {session.name.trim().slice(0, 1).toUpperCase()}
           </span>
         </header>
 
-        <main className="p-6 lg:p-8">{children}</main>
+        <main className="min-w-0 p-3.5 sm:p-6 lg:p-8">{children}</main>
       </div>
     </ToastProvider>
   );

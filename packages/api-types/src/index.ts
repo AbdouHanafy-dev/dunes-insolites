@@ -286,6 +286,8 @@ export type TourBooking = {
   returnCityOther?: string;
   /** The currency the guest browsed prices in; their e-mails show amounts in it. Display only. */
   displayCurrency?: "EUR" | "USD" | "TND";
+  /** A partner promo code for this circuit; the server checks it and works out the discount. */
+  promoCode?: string;
   /** Optional return leg after the tour ends — same city catalog as
    *  `departureCity`, reused rather than a second field set. The guest may
    *  skip this; staff arrange the driver later. */

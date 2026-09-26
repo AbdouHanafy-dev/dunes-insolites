@@ -263,6 +263,22 @@ source de vérité ; les décisions en attente sont listées plus bas.
   un lien de paiement reste en euros alors que l'e-mail affiche des dollars ou des dinars.
 - Non essayé contre une vraie base ni un vrai SMTP ; tests unitaires seulement.
 
+### Codes promo des hôtels partenaires (26 sept 2026)
+
+- Table `promo_codes` (V61) : code, hôtel, remise %, commission % (vide tant que le propriétaire ne la fixe pas),
+  période de validité, actif. Deux codes semés : `BADIRA10` (10 %) et `MOURADI2026` (15 %), sans commission.
+- **Décisions du propriétaire :** la remise s'applique au prix du **circuit seulement** (pas aux options ni aux
+  activités) ; seules les réservations **confirmées, arrivées ou terminées** comptent pour la commission ;
+  la commission se calcule sur le prix du circuit après remise, au taux fixé **par code**.
+- Le serveur décide : `PromoCodeService.resolveForBooking` refuse un code inconnu, désactivé, hors dates ou utilisé
+  sur un hébergement. La remise est gelée sur la réservation (`promo_discount_percent`, `promo_commission_percent`) et
+  `Reservation.calculateTotalToursAmount()` la réapplique à chaque recalcul. Le site n'affiche qu'un estimé
+  (`GET /api/public/promo-codes/check`).
+- Backoffice : Opérations → Codes promo hôtels (cartes avec réservations, CA, remises, commission à payer,
+  lien vers la liste filtrée) ; le code figure sur la fiche, la carte et la vue rapide des réservations.
+- **À trancher :** le taux de commission de chaque hôtel ; la commission n'est pas versée par le système, elle est
+  seulement calculée.
+
 ## 5. Vérifier
 
 ```bash

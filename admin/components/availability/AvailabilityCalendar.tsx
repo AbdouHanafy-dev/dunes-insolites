@@ -204,13 +204,13 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
         ) : !tourTypeId ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Sélectionnez un tour.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <div className="min-w-[760px]">
+          <div>
+            <div>
               <div className="grid grid-cols-7 border-b border-navy-700/10 bg-navy-700/[0.025]">
                 {WEEKDAYS.map((weekday) => (
                   <div
                     key={weekday}
-                    className="px-3 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide text-navy-700/45"
+                    className="px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-navy-700/45 md:px-3 md:py-2.5 md:text-[11px]"
                   >
                     {weekday}
                   </div>
@@ -223,7 +223,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                     return (
                       <div
                         key={`empty-${index}`}
-                        className="min-h-36 bg-navy-700/[0.025]"
+                        className="min-h-16 bg-navy-700/[0.025] md:min-h-36"
                         aria-hidden="true"
                       />
                     );
@@ -243,7 +243,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                           setDetailDay(day);
                         }
                       }}
-                      className={`relative min-h-36 cursor-pointer bg-white p-3 transition-colors hover:bg-gold/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
+                      className={`relative min-h-16 cursor-pointer bg-white p-1.5 transition-colors md:min-h-36 md:p-3 hover:bg-gold/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
                         day.blockId ? "bg-rose/[0.035]" : ""
                       }`}
                       aria-label={`Détail du ${formatDate(day.date)}`}
@@ -262,7 +262,14 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                         />
                       </div>
 
-                      <div className="mt-2 space-y-1 text-[12px]">
+                      {day.reservationCount > 0 && (
+                        <span className="mt-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-gold/25 px-1.5 text-[12px] font-bold text-navy-800 md:hidden">
+                          {day.reservationCount}
+                        </span>
+                      )}
+                      {day.blockId && <span className="mt-1 block text-center text-[10px] font-semibold text-rose md:hidden">Fermé</span>}
+
+                      <div className="mt-2 hidden space-y-1 text-[12px] md:block">
                         {day.reservationCount > 0 ? (
                           <>
                             <p className="font-semibold text-navy-800">
@@ -285,7 +292,7 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
                         )}
                       </div>
 
-                      <div className="absolute inset-x-3 bottom-3">
+                      <div className="absolute inset-x-3 bottom-3 hidden md:block">
                         {day.blockId ? (
                           <button
                             type="button"
@@ -339,6 +346,15 @@ export default function AvailabilityCalendar({ tourTypes }: { tourTypes: AdminTo
           closed={!!detailDay.blockId}
           blockNote={detailDay.blockNote}
           onClose={() => setDetailDay(null)}
+          onToggleBlock={() => {
+            const day = detailDay;
+            setDetailDay(null);
+            if (day.blockId) void unblock(day.blockId);
+            else {
+              setBlockTarget(day.date);
+              setNoteDraft("");
+            }
+          }}
         />
       )}
 

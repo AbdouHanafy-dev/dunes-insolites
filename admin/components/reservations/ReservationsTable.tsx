@@ -87,6 +87,7 @@ export default function ReservationsTable({
   pageSize = 5,
   limit,
   variant = "all",
+  initialQuery = "",
 }: {
   reservations: AdminReservation[];
   canDelete: boolean;
@@ -97,11 +98,13 @@ export default function ReservationsTable({
   limit?: number;
   /** "stays" adds the travelers, the accommodation booked and the nights. */
   variant?: "all" | "stays";
+  /** A search already typed, e.g. a promo code carried over from the promo codes page. */
+  initialQuery?: string;
 }) {
   const columns = variant === "stays" ? STAY_COLUMNS : COLUMNS;
   const router = useRouter();
   const toast = useToast();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [filterState, setFilterState] = useState<FilterState>({});
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "created", dir: "desc" });
   const [viewing, setViewing] = useState<AdminReservation | null>(null);
@@ -137,7 +140,7 @@ export default function ReservationsTable({
   const rows = useMemo(() => {
     const filtered = applyFilters(reservations, filterDefs, filterState).filter((r) =>
       matchesSearch(
-        [r.userName, prestation(r), accommodationSummary(r), activitySummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), r.totalAmount],
+        [r.userName, r.promoCode, prestation(r), accommodationSummary(r), activitySummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), r.totalAmount],
         query,
       ),
     );
@@ -519,6 +522,7 @@ function ReservationQuickView({
           }
         />
         <Info label="Montant" value={`${r.totalAmount} ${currency}`} />
+        {r.promoCode && <Info label="Code promo" value={`${r.promoCode}${r.promoDiscountPercent ? ` (-${r.promoDiscountPercent} %)` : ""}`} />}
       </dl>
 
       <QuickLines title="Activités choisies" lines={activities} currency={currency} />

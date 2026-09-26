@@ -568,6 +568,18 @@ export async function getActivityAvailability(
   );
 }
 
+/** Whether a promo code works on a circuit today, and for how much off. The server checks it again at booking. */
+export async function checkPromoCode(code: string, signal?: AbortSignal): Promise<{ valid: boolean; discountPercent: number | null }> {
+  if (!BASE) return { valid: false, discountPercent: null };
+  try {
+    const res = await fetch(url(`/public/promo-codes/check?code=${encodeURIComponent(code.trim())}`), { signal, cache: "no-store" });
+    if (!res.ok) return { valid: false, discountPercent: null };
+    return (await res.json()) as { valid: boolean; discountPercent: number | null };
+  } catch {
+    return { valid: false, discountPercent: null };
+  }
+}
+
 /* ------------------------------------------------- guide & transport options */
 
 export type ServiceOptionCategory = "GUIDE" | "TRANSPORT" | "TOUR_OPTION";

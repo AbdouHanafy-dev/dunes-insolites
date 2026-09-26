@@ -17,6 +17,9 @@ import java.util.UUID;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, UUID>, JpaSpecificationExecutor<Reservation> {
+
+    /** Every booking made with a promo code, whatever its case. */
+    List<Reservation> findByPromoCodeIgnoreCase(String promoCode);
     List<Reservation> findByUserUserIdOrderByCreatedAtDesc(UUID userId);
 
     // Public booking idempotency (V7). The @SQLRestriction on the entity means

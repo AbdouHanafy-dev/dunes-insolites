@@ -52,7 +52,7 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-navy-800">Blocs de contenu</h1>
           <p className="mt-1 text-sm text-navy-700/55">

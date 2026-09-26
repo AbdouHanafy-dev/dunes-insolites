@@ -1123,7 +1123,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
         )}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2">
           {isEdit && (
             <button type="button" onClick={() => setDeleteOpen(true)} className="btn btn-danger-outline">

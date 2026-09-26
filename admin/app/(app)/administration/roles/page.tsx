@@ -66,7 +66,7 @@ export default async function RolesPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {(Object.keys(ROLE_INFO) as UserRole[]).map((role) => (
           <div key={role} className="card rounded-2xl p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-[13px] font-bold text-navy-800">{ROLE_INFO[role].label}</p>
               <span className="rounded-full bg-navy-700/6 px-2.5 py-0.5 text-[12px] font-bold text-navy-700/70">
                 {counts[role]}

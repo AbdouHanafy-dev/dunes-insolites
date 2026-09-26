@@ -11,9 +11,16 @@ const COPY: Record<ReservationKind, { title: string; description: string }> = {
 };
 
 /** One reservations list, filtered to a kind. The three sidebar entries share this page. */
-export default async function ReservationsListPage({ kind }: { kind: ReservationKind }) {
+export default async function ReservationsListPage({
+  kind,
+  searchParams,
+}: {
+  kind: ReservationKind;
+  searchParams?: Promise<{ q?: string }>;
+}) {
   const session = await getSession();
   if (!session) return null;
+  const initialQuery = (await searchParams)?.q ?? "";
 
   // Search and sort run client-side, so load enough rows to cover the list.
   const loaded = await getActiveReservations(session.accessToken, 0, 500);
@@ -22,7 +29,7 @@ export default async function ReservationsListPage({ kind }: { kind: Reservation
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-navy-800">{copy.title}</h1>
           <p className="mt-1 text-sm text-navy-700/55">{copy.description}</p>
@@ -41,6 +48,7 @@ export default async function ReservationsListPage({ kind }: { kind: Reservation
         reservations={reservations}
         canDelete={session.role === "ADMIN"}
         variant={kind === "stays" ? "stays" : "all"}
+        initialQuery={initialQuery}
       />
     </div>
   );

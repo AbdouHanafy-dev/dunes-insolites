@@ -99,6 +99,14 @@ public class Reservation {
     @Column(name = "promo_code")
     private String promoCode;
 
+    /** What the promo code took off the circuit price, in percent, frozen at booking time. Null = none. */
+    @Column(name = "promo_discount_percent", precision = 5, scale = 2)
+    private java.math.BigDecimal promoDiscountPercent;
+
+    /** The partner's commission rate on this booking, frozen at booking time. Null = not set yet. */
+    @Column(name = "promo_commission_percent", precision = 5, scale = 2)
+    private java.math.BigDecimal promoCommissionPercent;
+
     @Column(name = "total_extras_amount")
     @Builder.Default
     private java.math.BigDecimal totalExtrasAmount = java.math.BigDecimal.ZERO;
@@ -344,9 +352,23 @@ public class Reservation {
                 tourTypes.stream().map(ReservationTourType::getTotalPrice).toList());
     }
 
-    public java.math.BigDecimal calculateTotalToursAmount() {
+    /** What the circuits cost before any promo code. */
+    public java.math.BigDecimal toursAmountBeforePromo() {
         return com.camping.duneinsolite.money.Money.sum(
                 tours.stream().map(ReservationTour::getTotalPrice).toList());
+    }
+
+    /** What the promo code takes off the circuit price; zero without a code. Options and activities are never reduced. */
+    public java.math.BigDecimal promoDiscountAmount() {
+        if (promoDiscountPercent == null || promoDiscountPercent.signum() <= 0) {
+            return com.camping.duneinsolite.money.Money.ZERO;
+        }
+        return com.camping.duneinsolite.money.Money.multiply(toursAmountBeforePromo(), promoDiscountPercent.movePointLeft(2));
+    }
+
+    /** The circuits' price after the promo code: every recalculation goes through here, so the discount is never lost. */
+    public java.math.BigDecimal calculateTotalToursAmount() {
+        return com.camping.duneinsolite.money.Money.subtract(toursAmountBeforePromo(), promoDiscountAmount());
     }
     public void addGuide(Guide guide) {
         guides.add(guide);

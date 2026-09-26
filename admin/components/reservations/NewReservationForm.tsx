@@ -768,7 +768,7 @@ export default function NewReservationForm({
       <div className="flex flex-col gap-6">
       {/* ── Extras ── */}
       <section className="card rounded-2xl p-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-[15px] font-bold text-navy-800">Extras (optionnel)</h2>
           <button type="button" onClick={addExtraLine} className="btn btn-secondary btn-sm">
             + Ajouter

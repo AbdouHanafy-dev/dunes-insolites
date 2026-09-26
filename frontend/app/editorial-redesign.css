@@ -4609,3 +4609,85 @@ body:has(.auth-page) .pf { display: none; }
 .drawer .drawer-menu-list > a.drawer-book:hover,
 .drawer .drawer-menu-list > a.drawer-book:focus-visible { background: var(--journal-ink); color: #fff; }
 .drawer .drawer-menu-list > .drawer-book:last-child { border-bottom: 0; }
+
+/* ---- Booking and contact forms on a phone ------------------------------------------------------
+   The forms were laid out for a card at least ~380px wide. On a narrower screen the stepper labels
+   overlapped, the calendar popover ran off the right edge, option rows squeezed their price, and the
+   inputs were small enough for iOS to zoom in when tapped. Everything here only applies below 560px. */
+@media (max-width: 560px) {
+  html, body { overflow-x: clip; }
+
+  /* The step dots carry the progress; the heading under them already names the step. Labels stay for screen readers. */
+  .stepper .step-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .tour-booking-card .stepper { margin-bottom: calc(20px * var(--ui)); }
+  .tour-booking-card .step-dot { width: 28px; height: 28px; }
+
+  .tour-booking-card,
+  .book-card {
+    padding: calc(18px * var(--ui)) calc(14px * var(--ui));
+    border-radius: 16px;
+  }
+  .book-card h2 { font-size: clamp(22px, 6vw, 28px); }
+
+  /* 16px inputs: below that, iOS zooms the page when a field is focused. */
+  .field input,
+  .field select,
+  .field textarea,
+  .phone-input-number,
+  .date-picker-trigger {
+    font-size: 16px;
+  }
+  .form-grid { grid-template-columns: minmax(0, 1fr); gap: calc(16px * var(--ui)); }
+
+  /* Option rows: the name gets the room, the price sits on the right and may wrap under it. */
+  .ride-option { flex-wrap: wrap; align-items: flex-start; }
+  .ride-option span:first-of-type { min-width: 0; flex: 1 1 10rem; overflow-wrap: anywhere; }
+  .ride-option .ride-price { margin-inline-start: auto; max-width: 100%; text-align: end; }
+
+  /* Actions: the main button takes the remaining width beside "Back". */
+  .book-actions { flex-wrap: nowrap; gap: calc(10px * var(--ui)); }
+  .book-actions > * { min-width: 0; }
+  .book-actions > .btn-accent { flex: 1 1 auto; }
+
+  /* Review lines may wrap instead of pushing the amount off the card. */
+  .summary .row,
+  .book-panel .row,
+  .tour-review-summary .row { flex-wrap: wrap; gap: 2px 12px; }
+  .tour-review-summary .row > :last-child { margin-inline-start: auto; }
+
+  /* Popovers: never wider than the screen, whatever column their field sits in. */
+  .date-picker-popover {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1200;
+    width: min(340px, calc(100vw - 24px));
+    max-width: none;
+    transform: translate(-50%, -50%);
+  }
+  .phone-input-popover { right: 0; left: 0; width: auto; max-width: none; }
+
+  /* Product pages (circuits AND camp stays): the booking card fills the column exactly. Only the circuit page had
+     these guards, so on a stay the card was wider than the padded column and stuck out on the right. */
+  .tour-product-content { overflow-x: clip; }
+  .tour-product-content .wrap { width: 100%; max-width: 100%; padding-inline: 16px; box-sizing: border-box; }
+  .tour-product-content .tour-product-grid,
+  .tour-product-content .tour-product-main { min-width: 0; max-width: 100%; }
+  .tour-product-content .tour-booking-card {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-inline: 0;
+    box-sizing: border-box;
+  }
+}

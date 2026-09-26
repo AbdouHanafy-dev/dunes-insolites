@@ -68,6 +68,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final PaymentService             paymentService;
     private final TransactionMapper          transactionMapper;
     private final TransactionRepository      transactionRepository;
+    private final com.camping.duneinsolite.service.PromoCodeService promoCodeService;
     private final InvoiceRepository           invoiceRepository;
     private final InvoiceService              invoiceService;
     private final ReservationCapacityValidator reservationCapacityValidator;
@@ -143,6 +144,9 @@ public class ReservationServiceImpl implements ReservationService {
 
         Reservation reservation = buildBaseReservation(request, user, source, type, globalAdults, globalChildren, globalInfants);
 
+        // The promo code is settled first: the circuit total is worked out from it. An invalid code stops the booking.
+        promoCodeService.resolveForBooking(request.getPromoCode(), type).ifPresent(code -> grantPromo(reservation, code));
+
         applyReservationItems(request, reservation, type, globalAdults, globalChildren, isPartner, user);
 
         if (request.getInitialPayment() != null
@@ -162,6 +166,13 @@ public class ReservationServiceImpl implements ReservationService {
         handleInitialPayment(request, savedReservation);
 
         return toEnrichedResponse(savedReservation);
+    }
+
+    /** Freezes what the code grants on the booking, so editing the code later never changes it. */
+    private static void grantPromo(Reservation reservation, com.camping.duneinsolite.model.PromoCode code) {
+        reservation.setPromoCode(code.getCode());
+        reservation.setPromoDiscountPercent(code.getDiscountPercent());
+        reservation.setPromoCommissionPercent(code.getCommissionPercent());
     }
 
     // ── Validation ────────────────────────────────────────────────────────────────
@@ -241,7 +252,6 @@ public class ReservationServiceImpl implements ReservationService {
                 .numberOfInfants(globalInfants)
                 .currency(com.camping.duneinsolite.config.CurrencyConfig.BASE)
                 .displayCurrency(request.getDisplayCurrency())
-                .promoCode(request.getPromoCode())
                 .status(ReservationStatus.PENDING)
                 .holdExpiresAt(request.getHoldExpiresAt())
                 .idempotencyKey(request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()
@@ -1153,7 +1163,19 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getDemandeSpecial()   != null) reservation.setDemandeSpecial(request.getDemandeSpecial());
         if (request.getPreferredLanguageIds() != null) reservation.setPreferredLanguages(resolveLanguages(request.getPreferredLanguageIds()));
         if (request.getOtherLanguageRequested() != null) reservation.setOtherLanguageRequested(request.getOtherLanguageRequested());
-        if (request.getPromoCode()        != null) reservation.setPromoCode(request.getPromoCode());
+        if (request.getPromoCode() != null) {
+            if (request.getPromoCode().isBlank()) {
+                reservation.setPromoCode(null);
+                reservation.setPromoDiscountPercent(null);
+                reservation.setPromoCommissionPercent(null);
+            } else if (!request.getPromoCode().trim().equalsIgnoreCase(reservation.getPromoCode())) {
+                promoCodeService.resolveForBooking(request.getPromoCode(), reservation.getReservationType())
+                        .ifPresent(code -> grantPromo(reservation, code));
+            }
+            if (reservation.getReservationType() == ReservationType.TOURS) {
+                reservation.setTotalAmount(reservation.calculateTotalToursAmount());
+            }
+        }
         if (request.getLocale()           != null) reservation.setLocale(com.camping.duneinsolite.model.enums.MailLocale.from(request.getLocale()).tag());
         if (request.getNumberOfAdults()   != null) reservation.setNumberOfAdults(request.getNumberOfAdults());
         if (request.getNumberOfChildren() != null) reservation.setNumberOfChildren(request.getNumberOfChildren());

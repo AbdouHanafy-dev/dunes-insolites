@@ -950,7 +950,14 @@
     "preferredLanguageHint": "So we can assign a guide who speaks your language.",
     "reviewLanguageLabel": "Preferred language",
     "otherLanguagePlaceholder": "Other language not listed? Specify here (optional)",
-    "infantsLabel": "Infants"
+    "infantsLabel": "Infants",
+    "promoLabel": "Promo code",
+    "promoPlaceholder": "Your promo code (optional)",
+    "promoApply": "Apply",
+    "promoRemove": "Remove",
+    "promoApplied": "Code {code} applied: {percent}% off the circuit price.",
+    "promoInvalid": "This promo code is not valid.",
+    "promoLine": "Promo code {code} (-{percent}%)"
   },
   "accommodationCard": {
     "exploreThisStay": "Explore this stay ↗",

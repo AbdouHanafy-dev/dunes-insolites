@@ -743,7 +743,14 @@
     "preferredLanguageHint": "Damit wir einen Guide zuweisen können, der Ihre Sprache spricht.",
     "reviewLanguageLabel": "Bevorzugte Sprache",
     "otherLanguagePlaceholder": "Andere Sprache nicht aufgeführt? Hier angeben (optional)",
-    "infantsLabel": "Babys"
+    "infantsLabel": "Babys",
+    "promoLabel": "Aktionscode",
+    "promoPlaceholder": "Ihr Aktionscode (optional)",
+    "promoApply": "Anwenden",
+    "promoRemove": "Entfernen",
+    "promoApplied": "Code {code} angewendet: {percent} % Rabatt auf den Preis der Rundreise.",
+    "promoInvalid": "Dieser Aktionscode ist nicht gültig.",
+    "promoLine": "Aktionscode {code} (-{percent} %)"
   },
   "accommodationCard": {
     "exploreThisStay": "Diese Übernachtung entdecken ↗",

@@ -81,6 +81,10 @@ public class PublicTourBookingRequest {
     @jakarta.validation.constraints.Size(max = 120)
     private String returnCityOther;
 
+    /** A partner promo code for this circuit; checked by the server, never trusted. Optional. */
+    @jakarta.validation.constraints.Size(max = 40)
+    private String promoCode;
+
     /** The currency the guest browsed in (EUR, USD or TND); their e-mails show amounts in it. Optional. */
     private com.camping.duneinsolite.model.enums.Currency displayCurrency;
 

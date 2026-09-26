@@ -25,6 +25,7 @@ const GROUPS: NavGroup[] = [
       { label: "Guides", href: "/guides", icon: "bi-compass" },
       { label: "Chauffeurs", href: "/chauffeurs", icon: "bi-car-front" },
       { label: "Paiements", href: "/operations/paiements", icon: "bi-credit-card" },
+      { label: "Codes promo hôtels", href: "/operations/codes-promo", icon: "bi-ticket-perforated" },
       { label: "Factures", href: "/operations/factures", icon: "bi-receipt" },
       { label: "Proformas", href: "/operations/proformas", icon: "bi-file-earmark-text" },
     ],

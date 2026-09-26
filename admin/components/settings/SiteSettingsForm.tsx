@@ -242,7 +242,7 @@ export default function SiteSettingsForm({ initialData }: { initialData: AdminSi
             value={form.googlePlaceId} onChange={(e) => set("googlePlaceId", e.target.value)} />
           {fi.errs("googlePlaceId")}
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="manualGoogleRating" className="text-[12px] text-navy-700/50">Note Google (saisie manuelle, ex. 4,8)</label>
             <input id="manualGoogleRating" type="text" inputMode="decimal" placeholder="4,8" className={fi.inputClass("manualGoogleRating")}

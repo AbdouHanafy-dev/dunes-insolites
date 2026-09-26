@@ -137,7 +137,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-navy-700/10 bg-white shadow-xl">
+        <div className="fixed inset-x-3 top-16 z-50 overflow-hidden rounded-xl border border-navy-700/10 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-[22rem]">
           <div className="flex items-center justify-between border-b border-navy-700/10 px-4 py-3">
             <span className="text-sm font-bold text-navy-800">Notifications</span>
             <button
@@ -149,7 +149,7 @@ export default function NotificationBell() {
               Tout marquer comme lu
             </button>
           </div>
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[70vh] overflow-y-auto sm:max-h-96">
             {failed ? (
               <p className="px-4 py-8 text-center text-sm text-rose">Impossible de charger les notifications.</p>
             ) : items === null ? (

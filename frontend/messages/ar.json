@@ -743,7 +743,14 @@
     "preferredLanguageHint": "حتى نتمكن من تعيين مرشد يتحدث لغتك.",
     "reviewLanguageLabel": "اللغة المفضلة",
     "otherLanguagePlaceholder": "لغة أخرى غير مدرجة؟ حددها هنا (اختياري)",
-    "infantsLabel": "الرضّع"
+    "infantsLabel": "الرضّع",
+    "promoLabel": "رمز ترويجي",
+    "promoPlaceholder": "رمزك الترويجي (اختياري)",
+    "promoApply": "تطبيق",
+    "promoRemove": "إزالة",
+    "promoApplied": "تم تطبيق الرمز {code}: خصم {percent}% على سعر الرحلة.",
+    "promoInvalid": "هذا الرمز الترويجي غير صالح.",
+    "promoLine": "الرمز الترويجي {code} (-{percent}%)"
   },
   "accommodationCard": {
     "exploreThisStay": "اكتشف هذه الإقامة ←",

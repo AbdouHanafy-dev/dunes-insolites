@@ -743,7 +743,14 @@
     "preferredLanguageHint": "Così possiamo assegnarti una guida che parla la tua lingua.",
     "reviewLanguageLabel": "Lingua preferita",
     "otherLanguagePlaceholder": "Un'altra lingua non elencata? Specificala qui (opzionale)",
-    "infantsLabel": "Neonati"
+    "infantsLabel": "Neonati",
+    "promoLabel": "Codice promozionale",
+    "promoPlaceholder": "Il tuo codice promozionale (facoltativo)",
+    "promoApply": "Applica",
+    "promoRemove": "Rimuovi",
+    "promoApplied": "Codice {code} applicato: {percent}% di sconto sul prezzo del circuito.",
+    "promoInvalid": "Questo codice promozionale non è valido.",
+    "promoLine": "Codice promozionale {code} (-{percent}%)"
   },
   "accommodationCard": {
     "exploreThisStay": "Scopri questo soggiorno ↗",

@@ -172,7 +172,7 @@ export default function ReservationPaymentPanel({
       </div>
 
       {summary && (
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
           <Figure label="Total" value={`${summary.originalTotalAmount} ${sym(currency)}`} />
           <Figure label="Reçu" value={`${summary.totalPaid} ${sym(currency)}`} />
           <Figure label="Reste à payer" value={`${summary.remainingTotal} ${sym(currency)}`} strong />
@@ -238,7 +238,7 @@ export default function ReservationPaymentPanel({
               À utiliser pour ce que le client a réellement réglé, en ligne ou sur place.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
               <div className="flex items-baseline justify-between">
                 <label className={labelClass} htmlFor="payamount">Montant ({sym(currency)})</label>

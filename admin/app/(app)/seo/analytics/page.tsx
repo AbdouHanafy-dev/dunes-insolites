@@ -167,7 +167,7 @@ function StatusCard({
 }) {
   return (
     <div className="card rounded-2xl p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[13px] font-bold text-navy-800">{title}</p>
         <span
           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${
