@@ -21,4 +21,6 @@ public class ReservationTourTypeResponse {
     private Integer numberOfNights;
     private LocalDate activityDate;
     private java.math.BigDecimal tva;
+    /** The tiers booked on this stay: what the back office shows as "Tente x 1", "Suite x 2". */
+    private java.util.List<ReservationAccommodationResponse> accommodations;
 }

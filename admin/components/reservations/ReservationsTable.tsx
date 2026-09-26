@@ -9,11 +9,12 @@ import { useToast } from "@/components/Toast";
 import type { AdminReservation } from "@/lib/api";
 import { isEditable, paymentStatusOf, statusOf } from "./reservationStatus";
 import { sym } from "@/lib/currency";
+import { accommodationSummary, guestBreakdown, guestCounts, nightsOf } from "@/lib/stayReservation";
 
 const prestation = (r: AdminReservation) => [...r.tourTypes, ...r.tours][0]?.name ?? r.reservationType;
 const dateOf = (r: AdminReservation) => r.checkInDate ?? r.serviceDate ?? "";
 
-type SortKey = "client" | "prestation" | "status" | "payment" | "date" | "created" | "amount";
+type SortKey = "client" | "prestation" | "guests" | "accommodation" | "nights" | "status" | "payment" | "date" | "created" | "amount";
 
 const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "client", label: "Client" },
@@ -25,8 +26,27 @@ const COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
   { key: "amount", label: "Montant", right: true },
 ];
 
+/** The accommodation list: who is coming, which tier and how many, and for how many nights. */
+const STAY_COLUMNS: { key: SortKey; label: string; right?: boolean }[] = [
+  { key: "client", label: "Client" },
+  { key: "guests", label: "Voyageurs" },
+  { key: "accommodation", label: "Hébergement" },
+  { key: "nights", label: "Nuits" },
+  { key: "status", label: "Statut" },
+  { key: "payment", label: "Paiement" },
+  { key: "date", label: "Arrivée" },
+  { key: "created", label: "Créée le" },
+  { key: "amount", label: "Montant", right: true },
+];
+
 function sortValue(r: AdminReservation, key: SortKey): string | number {
   switch (key) {
+    case "guests":
+      return guestCounts(r).coming;
+    case "accommodation":
+      return accommodationSummary(r).toLowerCase();
+    case "nights":
+      return nightsOf(r) ?? 0;
     case "client":
       return r.userName.toLowerCase();
     case "prestation":
@@ -50,6 +70,7 @@ export default function ReservationsTable({
   title,
   pageSize = 5,
   limit,
+  variant = "all",
 }: {
   reservations: AdminReservation[];
   canDelete: boolean;
@@ -58,7 +79,10 @@ export default function ReservationsTable({
   pageSize?: number;
   /** Show at most this many rows in total (after search + sort). */
   limit?: number;
+  /** "stays" adds the travelers, the accommodation booked and the nights. */
+  variant?: "all" | "stays";
 }) {
+  const columns = variant === "stays" ? STAY_COLUMNS : COLUMNS;
   const router = useRouter();
   const toast = useToast();
   const [query, setQuery] = useState("");
@@ -72,7 +96,7 @@ export default function ReservationsTable({
     const q = query.trim().toLowerCase();
     const filtered = q
       ? reservations.filter((r) =>
-          [r.userName, prestation(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), String(r.totalAmount)]
+          [r.userName, prestation(r), accommodationSummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), String(r.totalAmount)]
             .join(" ")
             .toLowerCase()
             .includes(q),
@@ -155,7 +179,7 @@ export default function ReservationsTable({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/50">
-                  {COLUMNS.map((c) => {
+                  {columns.map((c) => {
                     const active = sort.key === c.key;
                     return (
                       <th
@@ -188,7 +212,18 @@ export default function ReservationsTable({
                   return (
                     <tr key={r.reservationId} className="transition hover:bg-gold/[0.06]">
                       <td className="px-6 py-3 font-medium text-navy-800">{r.userName}</td>
-                      <td className="px-6 py-3 text-navy-700/75">{prestation(r)}</td>
+                      {variant === "stays" ? (
+                        <>
+                          <td className="px-6 py-3">
+                            <div className="font-medium tabular-nums text-navy-800">{guestCounts(r).coming}</div>
+                            <div className="text-[12px] text-navy-700/55">{guestBreakdown(r)}</div>
+                          </td>
+                          <td className="px-6 py-3 text-navy-700/75">{accommodationSummary(r) || "—"}</td>
+                          <td className="px-6 py-3 tabular-nums text-navy-700/75">{nightsOf(r) ?? "—"}</td>
+                        </>
+                      ) : (
+                        <td className="px-6 py-3 text-navy-700/75">{prestation(r)}</td>
+                      )}
                       <td className="px-6 py-3">
                         <span className={`inline-block rounded-full px-2.5 py-0.5 text-[12px] font-medium ${st.className}`}>
                           {st.label}
