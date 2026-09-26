@@ -3221,6 +3221,13 @@ footer.site-footer.pro-footer .bar a:hover {
   color: rgba(32, 29, 25, 0.55);
   cursor: pointer;
 }
+/* The label goes to the page; the rest of the row, chevron included, opens the list. */
+.drawer-group-head:has(> .drawer-group-toggle) { grid-template-columns: auto minmax(46px, 1fr); }
+.drawer-group-head > .drawer-group-toggle { justify-items: end; padding-inline-end: 4px; }
+/* Favourites row: icon in the icon column like the other rows, count pushed to the end. */
+.drawer .drawer-menu-list > a.header-favorites--row { width: 100%; place-items: center start; justify-content: stretch; }
+.drawer .drawer-menu-list > a.header-favorites--row > span:not(.header-favorites-count) { justify-self: start; }
+.drawer .drawer-menu-list > a.header-favorites--row .header-favorites-count { justify-self: end; }
 .drawer-group-toggle .drawer-row-chevron { transition: transform 0.2s ease; }
 .drawer-group-toggle[aria-expanded="true"] .drawer-row-chevron { transform: rotate(90deg); }
 
@@ -4581,3 +4588,24 @@ body:has(.auth-page) .pf { display: none; }
   .lfb-sort select { flex: 1; }
   .lfb-count { flex: none; }
 }
+
+/* "Book direct" in the mobile menu: the call to action, not one more row. */
+.drawer .drawer-menu-list > a.drawer-book {
+  width: auto;
+  margin: calc(14px * var(--ui)) 0 calc(6px * var(--ui));
+  padding: calc(14px * var(--ui)) calc(16px * var(--ui));
+  border: 0;
+  border-radius: 0;
+  background: var(--journal-rust, #8f412d);
+  color: #fff;
+  font-size: calc(12px * var(--ui));
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 20px rgba(143, 65, 45, 0.35);
+}
+.drawer .drawer-menu-list > a.drawer-book > svg:first-child,
+.drawer .drawer-menu-list > a.drawer-book .drawer-row-chevron { color: #fff; }
+.drawer .drawer-menu-list > a.drawer-book:hover,
+.drawer .drawer-menu-list > a.drawer-book:focus-visible { background: var(--journal-ink); color: #fff; }
+.drawer .drawer-menu-list > .drawer-book:last-child { border-bottom: 0; }

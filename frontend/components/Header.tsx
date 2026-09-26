@@ -436,7 +436,7 @@ export default function Header({
                   </Link>
                 ),
               )}
-              <Link href="/book" tabIndex={open ? 0 : -1}>
+              <Link href="/book" className="drawer-book" tabIndex={open ? 0 : -1}>
                 <DrawerIcon href="/book" />
                 <span>{t("bookDirect")}</span>
                 <MenuChevron />

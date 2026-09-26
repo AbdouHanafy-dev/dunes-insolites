@@ -3414,6 +3414,11 @@ footer.site-footer .bar-social a:hover {
 }
 /* The terms and privacy links open in a new tab; underline them so they read as links. */
 .ride-option a { text-decoration: underline; text-underline-offset: 3px; }
+/* An option the party does not qualify for yet: shown, greyed out, with the reason under its name. */
+.ride-option[data-disabled] { opacity: 0.55; cursor: not-allowed; }
+.ride-option[data-disabled] input { cursor: not-allowed; }
+.ride-option .upgrade-desc { display: block; margin-top: 2px; font-size: 0.78rem; font-weight: 400; color: var(--muted); }
+.ride-option .upgrade-reason { display: block; margin-top: 2px; font-size: 0.78rem; font-weight: 500; color: var(--muted); }
 .ride-option {
   display: flex;
   align-items: center;
