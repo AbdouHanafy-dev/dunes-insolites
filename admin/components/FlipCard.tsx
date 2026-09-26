@@ -5,8 +5,9 @@ import { useState } from "react";
 /**
  * A card with two faces. The front shows who or what it is, with the buttons; a click anywhere on
  * it that is not a button or a link turns it over to the back, which carries the other details.
- * Both faces share one grid cell so the card is as tall as the taller of the two, and the face
- * turned away is `inert` so its buttons cannot be reached by keyboard.
+ * The front sets the height of the card (kept compact); the back fills the same box and scrolls
+ * if it holds more, so a long back never stretches the cards of a list. The face turned away is
+ * `inert` so its buttons cannot be reached by keyboard.
  */
 export default function FlipCard({
   front,
@@ -22,8 +23,7 @@ export default function FlipCard({
 }) {
   const [flipped, setFlipped] = useState(false);
 
-  const face =
-    "card [grid-area:1/1] rounded-2xl p-4 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]";
+  const face = "card rounded-2xl p-4 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]";
 
   return (
     <div className={`h-full [perspective:1600px] ${className}`}>
@@ -42,14 +42,14 @@ export default function FlipCard({
             setFlipped((value) => !value);
           }
         }}
-        className={`grid h-full cursor-pointer transition-transform duration-500 ease-out [transform-style:preserve-3d] motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
+        className={`relative h-full cursor-pointer transition-transform duration-500 ease-out [transform-style:preserve-3d] motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold ${
           flipped ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
-        <div className={face} inert={flipped} aria-hidden={flipped}>
+        <div className={`${face} h-full min-h-[15rem]`} inert={flipped} aria-hidden={flipped}>
           {front}
         </div>
-        <div className={`${face} [transform:rotateY(180deg)]`} inert={!flipped} aria-hidden={!flipped}>
+        <div className={`${face} absolute inset-0 overflow-y-auto [transform:rotateY(180deg)]`} inert={!flipped} aria-hidden={!flipped}>
           {back}
         </div>
       </div>

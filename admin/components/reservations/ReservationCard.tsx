@@ -44,7 +44,7 @@ export default function ReservationCard({
   const arrival = r.checkInDate ?? r.serviceDate;
 
   const front = (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex h-full flex-col gap-2.5">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate text-[16px] font-bold text-navy-800">{r.userName}</h3>
