@@ -7,23 +7,22 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { departureOptions, returnOptions } from "@/lib/cities";
-import { formatTourDuration, isMultiDayTour } from "@/lib/tourDuration";
+import { formatTourDuration, tourNights } from "@/lib/tourDuration";
+import TourBookingFlow from "@/components/TourBookingFlow";
 import { useCallback, Fragment, useEffect, useRef, useState } from "react";
 import * as api from "@/lib/api";
 import { describeWriteFailure } from "@/lib/writeErrors";
-import type { Language, ServiceOptionAvailability, ServiceOptionCatalogItem, StayAvailability } from "@/lib/api";
+import type { ServiceOptionAvailability, ServiceOptionCatalogItem, StayAvailability } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
 import AccommodationPicker from "@/components/booking/AccommodationPicker";
 import { useStepScroll } from "@/lib/useStepScroll";
 import GuestPicker from "@/components/booking/GuestPicker";
-import LanguageChips from "@/components/booking/LanguageChips";
 import { tierPerNight } from "@/lib/guestPricing";
 import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
 import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import DateRangePicker from "@/components/DateRangePicker";
 import ListSelect from "@/components/ListSelect";
-import { localizedLanguageName } from "@/lib/languageFlags";
 import PhoneInput from "@/components/PhoneInput";
 import { getCountryCallingCode, type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
@@ -66,11 +65,6 @@ function nightsBetween(arrival: string, departure: string): number {
   const a = new Date(`${arrival}T00:00:00`).getTime();
   const b = new Date(`${departure}T00:00:00`).getTime();
   return Math.round((b - a) / 86_400_000);
-}
-
-function tourRequiresCampAccommodation(tour: Tour | null | undefined): boolean {
-  if (!tour) return false;
-  return Boolean(tour.overnightsAtCamp) || isMultiDayTour(tour);
 }
 
 /**
@@ -121,12 +115,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
-
-  // ---------- circuit-only: preferred guide language ----------
-  const [languages, setLanguages] = useState<Language[]>([]);
-  const [languagesLoaded, setLanguagesLoaded] = useState(false);
-  const [preferredLanguageIds, setPreferredLanguageIds] = useState<string[]>([]);
-  const [otherLanguageRequested, setOtherLanguageRequested] = useState("");
 
   // ---------- shared: getting there ----------
   const [hasOwnVehicle, setHasOwnVehicle] = useState<boolean | null>(null);
@@ -203,18 +191,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     }
   }, [category, locale]);
 
-  // Circuit's preferred-language catalogue.
-  useEffect(() => {
-    let cancelled = false;
-    api.getLanguages().then((items) => {
-      if (!cancelled) {
-        setLanguages(items);
-        setLanguagesLoaded(true);
-      }
-    }).catch(() => !cancelled && setLanguagesLoaded(true));
-    return () => { cancelled = true; };
-  }, []);
-
   // Stay's transport catalogue.
   useEffect(() => {
     let cancelled = false;
@@ -223,34 +199,14 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }, []);
 
   const nights = multiNight ? Math.max(1, nightsBetween(date, departureDate)) : 1;
-  // The circuit camp is set in the back office and travels on each Tour — it
-  // never depends on which stays happen to offer accommodation types.
-  const campStaySlug = selectedTour?.campStaySlug ?? tours.find((tour) => tour.campStaySlug)?.campStaySlug ?? null;
-  // Before a card is selected, keep the full stepper visible when the loaded
-  // catalogue contains multi-day circuits. After selection, only that tour
-  // decides whether the accommodation step applies.
-  const circuitHasCampStay = selectedTour
-    ? tourRequiresCampAccommodation(selectedTour)
-    : tours.some(tourRequiresCampAccommodation);
-  const circuitAccommodations = selectedTour?.accommodations?.length
-    ? selectedTour.accommodations
-    : circuitHasCampStay
-      ? (tours.find((tour) => tour.accommodations?.length)?.accommodations ?? [])
-      : [];
-
   // Stay tier + service-option availability for the chosen arrival date,
   // across the full [date, date + nights) span for multi-night stays.
   useEffect(() => {
-    const availabilityStaySlug = category === "accommodation"
-      ? selectedStay?.slug
-      : category === "circuit" && circuitHasCampStay
-        ? campStaySlug
-        : null;
+    const availabilityStaySlug = category === "accommodation" ? selectedStay?.slug : null;
     if (!availabilityStaySlug || !date) return;
     if (category === "accommodation" && multiNight && !departureDate) return;
     const ctrl = new AbortController();
-    const availabilityNights = category === "accommodation" ? nights : 1;
-    api.getStayAvailability(availabilityStaySlug, date, availabilityNights, ctrl.signal)
+    api.getStayAvailability(availabilityStaySlug, date, nights, ctrl.signal)
       .then((data) => !ctrl.signal.aborted && setStayAvail({ forDate: date, data }))
       .catch(() => {});
     Promise.all(
@@ -259,10 +215,10 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       if (!ctrl.signal.aborted) setServiceAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
     }).catch(() => {});
     return () => ctrl.abort();
-  }, [category, selectedStay, circuitHasCampStay, campStaySlug, date, departureDate, multiNight, nights, transportOptions]);
+  }, [category, selectedStay, date, departureDate, multiNight, nights, transportOptions]);
 
   const otherActivities = activities;
-  const availableAccommodations = category === "circuit" ? circuitAccommodations : (selectedStay?.accommodations ?? []);
+  const availableAccommodations = selectedStay?.accommodations ?? [];
   const selectedAccommodation = availableAccommodations.find((a) => a.slug === accommodationSlug);
   const partySize = adults + children;
 
@@ -311,14 +267,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + activityTotal(a, partySize, nights, minutesFor(a)), 0);
 
-  const circuitTotal = selectedTour
-    ? selectedTour.passengerAdultPrice * adults + selectedTour.passengerChildPrice * children
-      + (selectedTour.passengerInfantPrice ?? 0) * infants
-    : 0;
-  // A single tier takes the whole party, each guest type at its own per-night price.
-  const circuitAccommodationTotal = circuitHasCampStay && selectedAccommodation
-    ? tierPerNight(selectedAccommodation, { adults, children, infants })
-    : 0;
   // No tier chosen (stay without accommodation types): the stay's own adult and
   // child rates from the back office, per person, per night.
   const stayAdultRate = selectedStay?.adultPrice ?? selectedStay?.priceFrom ?? 0;
@@ -333,9 +281,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   function toggleRide(slug: string) {
     setRideSlugs((cur) => (cur.includes(slug) ? cur.filter((s) => s !== slug) : [...cur, slug]));
-  }
-  function toggleLanguage(id: string) {
-    setPreferredLanguageIds((cur) => (cur.includes(id) ? cur.filter((l) => l !== id) : [...cur, id]));
   }
   function composePhone(): string {
     let dial = "";
@@ -370,8 +315,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           tb("stepResults"),
           t("stepDateTravelers"),
           t("stepGuide"),
-          t("stepVehicle"),
-          ...(circuitHasCampStay ? [t("stepAccommodation")] : []),
+          t("stepCities"),
           t("stepExtras"),
           t("stepReview"),
         ]
@@ -379,10 +323,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         ? [tb("stepCategory"), tb("stepResults"), ts("stepDateTravelers"), ts("stepAccommodation"), ts("stepVehicleGuide"), ts("stepExtras"), ts("stepReview")]
         : [tb("stepCategory")];
   const lastStep = STEPS.length - 1;
-  const circuitGuideStep = 3;
-  const circuitVehicleStep = 4;
-  const circuitAccommodationStep = circuitHasCampStay ? 5 : -1;
-  const circuitExtrasStep = circuitHasCampStay ? 6 : 5;
 
   const validateStep = useCallback((): boolean => {
     const e: Record<string, string> = {};
@@ -394,28 +334,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       if (category === "accommodation" && !selectedStay) e.result = tb("errorPickResult");
     }
 
-    if (category === "circuit" && step === 2) {
-      if (!date) e.date = t("errorPickDate");
-      else if (date < min) e.date = t("errorPastDate");
-      if (adults < 1) e.adults = t("errorAtLeastOneAdult");
-    }
-    if (category === "circuit" && step === circuitAccommodationStep) {
-      if (!accommodationSlug) e.accommodation = t("errorAccommodationRequired");
-      else if (tierSoldOut(accommodationSlug)) e.accommodation = ts("errorSoldOut");
-    }
-    if (category === "circuit" && step === circuitGuideStep) {
-      if (preferredLanguageIds.length === 0 && !otherLanguageRequested.trim()) e.language = t("errorLanguageRequired");
-    }
-    if (category === "circuit" && step === circuitVehicleStep) {
-      if (hasOwnVehicle === null) e.arrivalMode = t("errorArrivalMode");
-    }
-    if (category === "circuit" && step === lastStep) {
-      if (!name.trim()) e.name = t("errorName");
-      if (!email.trim()) e.email = t("errorEmail");
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = t("errorEmailInvalid");
-      if (!phone.trim()) e.phone = t("errorPhone");
-      if (!acceptedTerms) e.acceptedTerms = ta("termsRequired");
-    }
 
     if (category === "accommodation" && step === 2) {
       if (!date) e.date = t("errorPickDate");
@@ -452,9 +370,9 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     step, category, selectedTour, selectedStay, accommodationSlug, date, min, adults, multiNight, departureDate,
-    nights, maxNights, preferredLanguageIds, otherLanguageRequested, hasOwnVehicle, name, email, phone,
+    nights, maxNights, hasOwnVehicle, name, email, phone,
     acceptedTerms, transportSlug, needsPickupDetails, pickupHotelName, pickupAirport, pickupAddress,
-    pickupInstructions, selectedTransport, circuitAccommodationStep, circuitGuideStep, circuitVehicleStep,
+    pickupInstructions, selectedTransport,
   ]);
 
   function next() {
@@ -467,48 +385,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     setErrors({});
     setStep((s) => Math.max(0, s - 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function submitCircuit() {
-    if (!validateStep() || !selectedTour) return;
-    setSubmitting(true);
-    setFormError("");
-    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID();
-
-    const result = await api.createTourBooking({
-      tourSlug: selectedTour.slug,
-      date,
-      numberOfAdults: adults,
-      numberOfChildren: children,
-      numberOfInfants: infants > 0 ? infants : undefined,
-      rideSlugs,
-      activityDurations: durationsPayload(otherActivities, rideSlugs, durations),
-      accommodations: circuitHasCampStay && accommodationSlug
-        ? [{ accommodationSlug, quantity: accommodationQty }]
-        : undefined,
-      arrivalMode: hasOwnVehicle === false ? "TRANSPORT" : "OWN_VEHICLE",
-      departureCity: departureCity || undefined,
-      returnCity: returnCity || undefined,
-      meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
-      preferredLanguageIds: preferredLanguageIds.length > 0 ? preferredLanguageIds : undefined,
-      otherLanguageRequested: otherLanguageRequested.trim() || undefined,
-      name,
-      email,
-      phone: composePhone(),
-      notes: notes.trim() || undefined,
-      idempotencyKey: idempotencyKeyRef.current,
-      acceptedTerms,
-    });
-
-    if (!result.ok) {
-      setErrors(result.errors ?? {});
-      setFormError(describeWriteFailure(result, t("errorGeneric")));
-      setSubmitting(false);
-      return;
-    }
-    setBooking(result.data);
-    setSubmitting(false);
-    toast.success(t("reservedConfirmation", { id: result.data.id }));
   }
 
   async function submitStay() {
@@ -567,7 +443,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }
 
   function submit() {
-    if (category === "circuit") return submitCircuit();
     if (category === "accommodation") return submitStay();
   }
 
@@ -612,6 +487,24 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     );
   }
 
+  // Once a circuit is chosen, the rest is the SAME form as on the circuit's own page, so the two can
+  // never drift apart: it shows the type and the choice as done steps and comes back here on "Back".
+  if (category === "circuit" && step >= 2 && selectedTour) {
+    return (
+      <TourBookingFlow
+        tourSlug={selectedTour.slug}
+        tourTitle={selectedTour.title}
+        adultPrice={selectedTour.passengerAdultPrice}
+        childPrice={selectedTour.passengerChildPrice}
+        infantPrice={selectedTour.passengerInfantPrice}
+        nights={tourNights(selectedTour.durationHours)}
+        departureCities={selectedTour.departureCities}
+        returnCities={selectedTour.returnCities}
+        embedded={{ leadingSteps: [tb("stepCategory"), tb("stepResults")], onBackToChoice: () => setStep(1) }}
+      />
+    );
+  }
+
   return (
     <div className="tour-book-flow" ref={flowRef}>
       <div className="stepper" aria-label={STEPS[step]} style={{ gridTemplateColumns: `repeat(${STEPS.length}, minmax(0, 1fr))` }}>
@@ -630,14 +523,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           {step === 0 && ""}
           {step === 1 && category === "circuit" && selectedTour && `${money(selectedTour.priceFrom)}`}
           {step === 1 && category === "accommodation" && selectedStay && `${money(selectedStay.priceFrom)}`}
-          {category === "circuit" && step === 2 && `${money(circuitTotal)}`}
-          {category === "circuit" && step === circuitAccommodationStep && (
-            selectedAccommodation ? `${money(circuitAccommodationTotal)}` : t("chooseAccommodation")
-          )}
-          {category === "circuit" && step === circuitGuideStep && money(0)}
-          {category === "circuit" && step === circuitVehicleStep && (hasOwnVehicle === false ? t("onRequest") : t("ownVehicle"))}
-          {category === "circuit" && step === circuitExtrasStep && `${money(extrasTotal)}`}
-          {category === "circuit" && step === lastStep && `${money(circuitTotal + circuitAccommodationTotal + extrasTotal)}`}
           {category === "accommodation" && step === 2 && (stayHasTiers ? <PriceText text={ts("fromPrice", { price: priceToken(stayFromPrice)})} /> : `${money(stayTotal)}`)}
           {category === "accommodation" && step === 3 && (selectedAccommodation || !stayHasTiers ? `${money(stayTotal)}` : <PriceText text={ts("fromPrice", { price: priceToken(stayFromPrice)})} />)}
           {category === "accommodation" && step === 4 && (hasOwnVehicle === false ? ts("onRequest") : ts("ownVehicle"))}
@@ -793,160 +678,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           )}
           {stayDetailLoading && <p className="hint">{ts("checkingAvailability")}</p>}
         </>
-      )}
-
-      {/* ---------- circuit: 2. date + travelers ---------- */}
-      {category === "circuit" && step === 2 && (
-        <div className="reserve-form" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
-          <div className="field" data-invalid={!!errors.date}>
-            <label htmlFor="bf-date">{t("dateLabel")}</label>
-            <DatePicker id="bf-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
-            {errors.date && <span className="err">{errors.date}</span>}
-          </div>
-          <GuestPicker
-            adults={adults}
-            kids={children}
-            infants={infants}
-            error={errors.adults}
-            onChange={(a, c, n) => {
-              setAdults(a);
-              setChildren(c);
-              setInfants(n);
-            }}
-          />
-        </div>
-      )}
-
-      {/* ---------- circuit: camp accommodation ---------- */}
-      {category === "circuit" && step === circuitAccommodationStep && (
-        <div className="acc-step" data-invalid={!!errors.accommodation}>
-          <label>{t("chooseAccommodation")}</label>
-          <p className="hint">{t("chooseAccommodationHint")}</p>
-{circuitAccommodations.length > 0 ? (
-            <AccommodationPicker
-              name="circuitAccommodation"
-              mode="single"
-              items={circuitAccommodations}
-              selections={accommodationSlug ? { [accommodationSlug]: accommodationQty } : {}}
-              onChange={(next) => {
-                const first = Object.entries(next)[0];
-                if (first) {
-                  setAccommodationSlug(first[0]);
-                  setAccommodationQty(first[1]);
-                }
-              }}
-              availability={tierAvailability}
-              detailsHref={(slug) => (campStaySlug ? `/camp/${campStaySlug}/${slug}` : null)}
-            />
-          ) : (
-            <div className="booking-empty-state"><span aria-hidden="true">!</span><div><strong>{t("accommodationUnavailable")}</strong></div></div>
-          )}
-          {errors.accommodation && <span className="err">{errors.accommodation}</span>}
-        </div>
-      )}
-
-      {/* ---------- circuit: guide language ---------- */}
-      {category === "circuit" && step === circuitGuideStep && (
-        <div className="field" data-invalid={!!errors.language}>
-          <label>{t("preferredLanguageLabel")}</label>
-          <p className="hint">{t("preferredLanguageHint")}</p>
-<LanguageChips languages={languages} selectedIds={preferredLanguageIds} onToggle={toggleLanguage} />
-          <input className="tour-other-language" placeholder={t("otherLanguagePlaceholder")} value={otherLanguageRequested} onChange={(e) => setOtherLanguageRequested(e.target.value)} />
-          {errors.language && <span className="err">{errors.language}</span>}
-        </div>
-      )}
-
-      {/* ---------- circuit: vehicle ---------- */}
-      {category === "circuit" && step === circuitVehicleStep && (
-        <div className="field" data-invalid={!!errors.arrivalMode}>
-          <label>{t("howWillYouArrive")}</label>
-          <div className="ride-options">
-            <label className="ride-option">
-              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === true} onChange={() => setHasOwnVehicle(true)} />
-              <span>{t("ownVehicle")}</span>
-              <span className="ride-price">{t("ownVehicleHint")}</span>
-            </label>
-            <label className="ride-option">
-              <input type="radio" name="hasOwnVehicle" checked={hasOwnVehicle === false} onChange={() => setHasOwnVehicle(false)} />
-              <span>{t("needTransport")}</span>
-              <span className="ride-price">{t("needTransportHint")}</span>
-            </label>
-          </div>
-          {errors.arrivalMode && <span className="err">{errors.arrivalMode}</span>}
-          {hasOwnVehicle === false && (
-            <div className="field" style={{ marginTop: 12 }}>
-              <label htmlFor="bf-meet-up-place">{t("meetUpPlaceLabel")}</label>
-              <p className="hint">{t("meetUpPlaceHint")}</p>
-              <input
-                id="bf-meet-up-place"
-                maxLength={255}
-                placeholder={t("meetUpPlacePlaceholder")}
-                value={meetUpPlace}
-                onChange={(e) => setMeetUpPlace(e.target.value)}
-              />
-            </div>
-          )}
-          {hasOwnVehicle === false && (
-            <div className="booking-empty-state">
-              <span aria-hidden="true">T</span>
-              <div>
-                <strong>{t("transportOnRequest")}</strong>
-                <small>{t("transportAssignmentHint")}</small>
-              </div>
-            </div>
-          )}
-          <div className="field" style={{ marginTop: 16 }}>
-            <label htmlFor="bf-departure-city">{t("departureCityLabel")}</label>
-            <ListSelect
-              id="bf-departure-city"
-              value={departureCity}
-              onChange={setDepartureCity}
-              options={departureOptions(selectedTour?.departureCities)}
-              labels={DEPARTURE_CITY_LABELS}
-              placeholder={t("departureCityPlaceholder")}
-            />
-          </div>
-          {returnOptions(selectedTour?.returnCities).length > 0 && (
-          <div className="field" style={{ marginTop: 16 }}>
-            <label htmlFor="bf-return-city">{t("returnCityLabel")}</label>
-            <p className="hint">{t("returnCityHint")}</p>
-            <ListSelect
-              id="bf-return-city"
-              value={returnCity}
-              onChange={setReturnCity}
-              options={returnOptions(selectedTour?.returnCities)}
-              labels={DEPARTURE_CITY_LABELS}
-              placeholder={t("returnCityPlaceholder")}
-            />
-          </div>
-          )}
-        </div>
-      )}
-
-      {/* ---------- circuit: extras ---------- */}
-      {category === "circuit" && step === circuitExtrasStep && (
-        <div className="field">
-          <label>{t("addExtra")}</label>
-          {otherActivities.length === 0 ? (
-            <div className="booking-empty-state"><span aria-hidden="true">+</span><div><strong>{t("extrasUnavailable")}</strong></div></div>
-          ) : (
-            <div className="ride-options">
-              {otherActivities.map((a) => (
-                <Fragment key={a.slug}>
-<label className="ride-option">
-                  <input type="checkbox" checked={rideSlugs.includes(a.slug)} onChange={() => toggleRide(a.slug)} />
-                  <span>{a.title}</span>
-                  <span className="ride-price">{<PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}</span>
-                </label>
-{rideSlugs.includes(a.slug) && canExtend(a) && (
-<ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
-)}
-</Fragment>
-              ))}
-            </div>
-          )}
-          <p className="hint">{t("confirmOnSite")}</p>
-        </div>
       )}
 
       {/* ---------- accommodation: 2. dates + travelers ---------- */}
@@ -1154,103 +885,6 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         </div>
       )}
 
-      {/* ---------- circuit: review ---------- */}
-      {category === "circuit" && step === lastStep && (
-        <div className="tour-review-step">
-          <div className="reserve-form tour-review-details" style={{ marginTop: 0, paddingTop: 0, border: 0 }}>
-            <div className="field" data-invalid={!!errors.name}>
-              <label htmlFor="bf-name">{t("fullName")}</label>
-              <input id="bf-name" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
-              {errors.name && <span className="err">{errors.name}</span>}
-            </div>
-            <div className="field" data-invalid={!!errors.email}>
-              <label htmlFor="bf-email">{t("email")}</label>
-              <input id="bf-email" type="email" value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
-              {errors.email && <span className="err">{errors.email}</span>}
-            </div>
-            <div className="field" data-invalid={!!errors.phone}>
-              <label htmlFor="bf-phone">{t("phone")}</label>
-              <PhoneInput id="bf-phone" country={phoneCountry} onCountryChange={setPhoneCountry} value={phone} onChange={setPhone} invalid={!!errors.phone} searchPlaceholder={tb("phoneSearchPlaceholder")} />
-              {errors.phone && <span className="err">{errors.phone}</span>}
-            </div>
-            <div className="field">
-              <label htmlFor="bf-notes">{t("notesLabel")}</label>
-              <input id="bf-notes" placeholder={t("notesPlaceholder")} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </div>
-          </div>
-
-          <p className="hint tour-review-hint">{t("reviewHint")}</p>
-          <div className="summary tour-review-summary">
-            <div className="row"><span className="k">{t("tripLabel")}</span><span>{selectedTour?.title}</span></div>
-            {circuitHasCampStay && selectedAccommodation && (
-              <div className="row">
-                <span className="k">{t("accommodationLabel")}</span>
-                <span>{selectedAccommodation.title} × {accommodationQty}</span>
-              </div>
-            )}
-            <div className="row"><span className="k">{t("dateLabelSummary")}</span><span>{prettyDate(date, locale)}</span></div>
-            <div className="row">
-              <span className="k">{t("travelersLabel")}</span>
-              <span>{adults} {t("adultsLabel").toLowerCase()}{children > 0 ? ` · ${children} ${t("childrenLabel").toLowerCase()}` : ""}{infants > 0 ? ` · ${infants} ${t("infantsLabel").toLowerCase()}` : ""}</span>
-            </div>
-            <div className="row"><span className="k">{t("reviewVehicleLabel")}</span><span>{hasOwnVehicle ? t("ownVehicle") : t("needTransport")}</span></div>
-            {departureCity && <div className="row"><span className="k">{t("departureCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[departureCity]}</span></div>}
-            {returnCity && <div className="row"><span className="k">{t("returnCityLabel")}</span><span>{DEPARTURE_CITY_LABELS[returnCity]}</span></div>}
-            {rideSlugs.length > 0 && (
-              <div className="row">
-                <span className="k">{t("reviewExtrasLabel")}</span>
-                <span>{otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => `${a.title}${durationNote(a)} — ${money(activityTotal(a, partySize, nights, minutesFor(a)))}`).join(", ")}</span>
-              </div>
-            )}
-            {(email || phone) && <div className="row"><span className="k">{t("contactLabel")}</span><span>{email} · {composePhone()}</span></div>}
-            {(preferredLanguageIds.length > 0 || otherLanguageRequested.trim()) && (
-              <div className="row">
-                <span className="k">{t("reviewLanguageLabel")}</span>
-                <span>{[...languages.filter((l) => preferredLanguageIds.includes(l.id)).map((l) => localizedLanguageName(locale, l.name)), ...(otherLanguageRequested.trim() ? [otherLanguageRequested.trim()] : [])].join(", ")}</span>
-              </div>
-            )}
-            {notes && <div className="row"><span className="k">{t("notesLabelSummary")}</span><span>{notes}</span></div>}
-
-            {selectedTour && (
-              <>
-                <div className="row">
-                  <span>{<PriceText text={ts("summaryAdults", { count: adults, price: priceToken(selectedTour.passengerAdultPrice)})} />}</span>
-                  <span>{money(selectedTour.passengerAdultPrice * adults)}</span>
-                </div>
-                {children > 0 && (
-                  <div className="row">
-                    <span>{<PriceText text={ts("summaryChildren", { count: children, price: priceToken(selectedTour.passengerChildPrice)})} />}</span>
-                    <span>{money(selectedTour.passengerChildPrice * children)}</span>
-                  </div>
-                )}
-                {infants > 0 && (
-                  <div className="row">
-                    <span>{(selectedTour.passengerInfantPrice ?? 0) > 0 ? <PriceText text={ts("summaryInfants", { count: infants, price: priceToken(selectedTour.passengerInfantPrice ?? 0)})} /> : ts("summaryInfantsFree", { count: infants })}</span>
-                    <span>{money((selectedTour.passengerInfantPrice ?? 0) * infants)}</span>
-                  </div>
-                )}
-              </>
-            )}
-            {circuitHasCampStay && selectedAccommodation && (
-              <div className="row">
-                <span>{selectedAccommodation.title} · {ts("summaryNights", { nights: 1 })}</span>
-                <span>{money(circuitAccommodationTotal)}</span>
-              </div>
-            )}
-            {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
-              <div className="row" key={a.slug}><span>{a.title}{durationNote(a)}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>{money(activityTotal(a, partySize, nights, minutesFor(a)))}</span></div>
-            ))}
-            <div className="row total"><span>{t("totalLabel")}</span><span>{money(circuitTotal + circuitAccommodationTotal + extrasTotal)}</span></div>
-          </div>
-          <label className="ride-option tour-review-terms" data-invalid={!!errors.acceptedTerms}>
-            <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-            <span>{ta("termsPre")}<Link href="/legal/terms" target="_blank" rel="noopener noreferrer">{ta("termsLinkTerms")}</Link>{ta("termsMid")}<Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">{ta("termsLinkPrivacy")}</Link>{ta("termsPost")}</span>
-          </label>
-          {errors.acceptedTerms && <span className="err">{errors.acceptedTerms}</span>}
-          {formError && <div className="alert">{formError}</div>}
-        </div>
-      )}
-
       {/* ---------- accommodation: review ---------- */}
       {category === "accommodation" && step === lastStep && (
         <div className="tour-review-step">
@@ -1355,7 +989,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
           <button type="button" className="btn-quiet" onClick={back} disabled={submitting}>← {t("back")}</button>
         )}
         {step < lastStep ? (
-          <button type="button" className="btn-accent" onClick={next} disabled={category === "circuit" ? !languagesLoaded : false}>
+          <button type="button" className="btn-accent" onClick={next}>
             {t("continue")}
           </button>
         ) : (

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ServiceOptionCatalogItem } from "@/lib/api";
-import { optionTotal, returnCityOption, visibleUpgrades } from "./tourOptions";
+import { isUpgradeAvailable, optionTotal, returnCityOption, upgradeOptions } from "./tourOptions";
 import { tourNights } from "./tourDuration";
 
 const option = (over: Partial<ServiceOptionCatalogItem>): ServiceOptionCatalogItem => ({
@@ -19,22 +19,31 @@ describe("tourNights", () => {
   });
 });
 
-describe("visibleUpgrades", () => {
+describe("upgradeOptions", () => {
   const tent = option({ slug: "tent", minPartySize: 3 });
   const suite = option({ slug: "suite", minPartySize: 2 });
-  const free = option({ slug: "free" });
   const returnCity = option({ slug: "ret", type: "RETURN_CITY", pricingUnit: "PER_BOOKING" });
   const guide = option({ slug: "guide", category: "GUIDE" });
 
-  it("hides an option until the party reaches its minimum", () => {
-    expect(visibleUpgrades([tent, suite, free], 1, 1).map((o) => o.slug)).toEqual(["free"]);
-    expect(visibleUpgrades([tent, suite, free], 2, 1).map((o) => o.slug)).toEqual(["suite", "free"]);
-    expect(visibleUpgrades([tent, suite, free], 3, 1).map((o) => o.slug)).toEqual(["tent", "suite", "free"]);
+  it("lists every upgrade whatever the party, so a small group still sees them", () => {
+    expect(upgradeOptions([tent, suite], 1).map((o) => o.slug)).toEqual(["tent", "suite"]);
   });
 
-  it("offers nothing on a circuit with no night, and never lists the return-city option or a guide", () => {
-    expect(visibleUpgrades([tent, suite], 4, 0)).toEqual([]);
-    expect(visibleUpgrades([returnCity, guide, suite], 4, 2).map((o) => o.slug)).toEqual(["suite"]);
+  it("lists nothing on a circuit with no night, and never the return-city option or a guide", () => {
+    expect(upgradeOptions([tent, suite], 0)).toEqual([]);
+    expect(upgradeOptions([returnCity, guide, suite], 2).map((o) => o.slug)).toEqual(["suite"]);
+  });
+});
+
+describe("isUpgradeAvailable", () => {
+  it("opens an option once the party reaches its minimum", () => {
+    const tent = option({ minPartySize: 3 });
+    expect(isUpgradeAvailable(tent, 1)).toBe(false);
+    expect(isUpgradeAvailable(tent, 2)).toBe(false);
+    expect(isUpgradeAvailable(tent, 3)).toBe(true);
+  });
+  it("is always available without a minimum", () => {
+    expect(isUpgradeAvailable(option({ minPartySize: null }), 1)).toBe(true);
   });
 });
 

@@ -635,6 +635,7 @@
     "upgradeLabel": "Migliora il tuo soggiorno",
     "upgradeHint": "La tua notte al campo è inclusa. Puoi passare a più comfort - prezzo per persona e per notte.",
     "upgradePrice": "+{price}",
+    "upgradeMinParty": "Disponibile da {count} viaggiatori",
     "reviewUpgradesLabel": "Upgrade",
     "stepExtras": "Attività",
     "stepPayment": "Pagamento",

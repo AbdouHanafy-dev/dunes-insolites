@@ -4,20 +4,21 @@ import type { ServiceOptionCatalogItem } from "@/lib/api";
 export const RETURN_CITY_OPTION_TYPE = "RETURN_CITY";
 
 /**
- * The paid upgrades a guest can add to a circuit (single tent, suite...): the active options
- * of the catalogue that are not the return-city one, on a circuit that crosses at least one
- * night, for a party that reaches the option's minimum. The minimum is set per option in the
- * back office and the server enforces it too.
+ * The paid upgrades listed on a circuit (single tent, suite...): the active options of the catalogue
+ * that are not the return-city one, on a circuit that crosses at least one night. They are ALL
+ * shown; whether one can be picked depends on the party (see isUpgradeAvailable).
  */
-export function visibleUpgrades(
-  options: readonly ServiceOptionCatalogItem[],
-  party: number,
-  nights: number,
-): ServiceOptionCatalogItem[] {
+export function upgradeOptions(options: readonly ServiceOptionCatalogItem[], nights: number): ServiceOptionCatalogItem[] {
   if (nights < 1) return [];
-  return options.filter(
-    (o) => o.category === "TOUR_OPTION" && o.type !== RETURN_CITY_OPTION_TYPE && (o.minPartySize ?? 0) <= party,
-  );
+  return options.filter((o) => o.category === "TOUR_OPTION" && o.type !== RETURN_CITY_OPTION_TYPE);
+}
+
+/**
+ * Can this party pick the option? Its minimum is set per option in the back office; a party below it
+ * still sees the option, greyed out, with the reason. The server enforces the same minimum.
+ */
+export function isUpgradeAvailable(option: Pick<ServiceOptionCatalogItem, "minPartySize">, party: number): boolean {
+  return (option.minPartySize ?? 0) <= party;
 }
 
 /** The option that prices a return city typed by the guest, if the back office set one up. */

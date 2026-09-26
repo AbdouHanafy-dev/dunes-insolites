@@ -635,6 +635,7 @@
     "upgradeLabel": "ارتقِ بإقامتك",
     "upgradeHint": "ليلتك في المخيم مشمولة. يمكنك الترقية لمزيد من الراحة - السعر للشخص الواحد في الليلة.",
     "upgradePrice": "+{price}",
+    "upgradeMinParty": "متاح ابتداءً من {count} مسافرين",
     "reviewUpgradesLabel": "الترقيات",
     "stepExtras": "الأنشطة",
     "stepPayment": "الدفع",

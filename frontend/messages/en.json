@@ -847,6 +847,7 @@
     "upgradeLabel": "Upgrade your stay",
     "upgradeHint": "Your night at the camp is included. Upgrade if you would like more comfort - priced per person, per night.",
     "upgradePrice": "+{price}",
+    "upgradeMinParty": "Available from {count} travelers",
     "reviewUpgradesLabel": "Upgrades",
     "stepExtras": "Activities",
     "stepPayment": "Payment",

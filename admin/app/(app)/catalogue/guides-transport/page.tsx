@@ -10,7 +10,7 @@ export default async function ServiceOptionsPage() {
   if (!session) return null;
 
   const items = (await getAllExtras(session.accessToken))
-    .filter((item) => item.category !== "ACTIVITY");
+    .filter((item) => item.category !== "ACTIVITY" && item.category !== "TOUR_OPTION");
 
   return <ServiceExtrasList initialItems={items} />;
 }

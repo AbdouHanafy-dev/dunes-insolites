@@ -847,6 +847,7 @@
     "upgradeLabel": "Améliorez votre séjour",
     "upgradeHint": "Votre nuit au camp est incluse. Passez à un meilleur confort si vous le souhaitez - prix par personne et par nuit.",
     "upgradePrice": "+{price}",
+    "upgradeMinParty": "Disponible à partir de {count} voyageurs",
     "reviewUpgradesLabel": "Améliorations",
     "stepExtras": "Activités",
     "stepPayment": "Paiement",

@@ -82,20 +82,17 @@ const serviceFields: FieldDef[] = [
     { value: "TRANSPORT", label: "Véhicule / transport / pickup" },
     { value: "GUIDE", label: "Option guide interne (non sélectionnée par le client)" },
     { value: "RESOURCE", label: "Ressource interne (guide/véhicule)" },
-    { value: "TOUR_OPTION", label: "Option de circuit (amélioration, autre ville de retour)" },
   ] },
-  { type: "text", key: "serviceType", label: "Type métier", hint: "Ex. HOTEL_PICKUP, GUIDE_WITH_SUPPORT_VEHICLE. Option de circuit : UPGRADE (passer en tente individuelle ou en suite) ou RETURN_CITY (retour dans une ville hors de la liste, facturé une fois)." },
+  { type: "text", key: "serviceType", label: "Type métier", hint: "Ex. HOTEL_PICKUP, GUIDE_WITH_SUPPORT_VEHICLE" },
   { type: "select", key: "pricingUnit", label: "Unité tarifaire", options: [
     { value: "PER_DAY", label: "Par jour" },
     { value: "PER_BOOKING", label: "Par réservation" },
     { value: "PER_PERSON", label: "Par personne" },
     { value: "PER_VEHICLE", label: "Par véhicule" },
-    { value: "PER_PERSON_NIGHT", label: "Par personne et par nuit (options de circuit)" },
   ] },
-  { type: "number", key: "unitPrice", label: "Prix TTC", required: true, hint: "Pour une option de circuit, l’option n’apparaît sur le site qu’une fois ACTIVE et avec son prix." },
+  { type: "number", key: "unitPrice", label: "Prix TTC", required: true },
   { type: "number", key: "tva", label: "TVA (%)", required: true, step: 0.1 },
   { type: "number", key: "maxUnitsPerDay", label: "Capacité par jour" },
-  { type: "number", key: "minPartySize", label: "Nombre minimum de voyageurs", hint: "Options de circuit : l’option n’est proposée qu’à partir de ce nombre de voyageurs (adultes + enfants). Vide = toujours proposée." },
   { type: "checkbox", key: "requiresCustomerVehicle", label: "Nécessite le véhicule du client" },
   { type: "checkbox", key: "pickupHotelName", label: "Afficher Hôtel" },
   { type: "checkbox", key: "pickupAirport", label: "Afficher Aéroport" },
@@ -236,13 +233,13 @@ export function ExtraEditor({ id, initialData }: { id?: string; initialData?: Ad
 }
 
 export function ServiceExtrasList({ initialItems }: { initialItems: AdminExtra[] }) {
-  return <CollectionList title="Véhicules, transport & options de circuit" basePath="/catalogue/guides-transport"
+  return <CollectionList title="Véhicules & transport" basePath="/catalogue/guides-transport"
     apiPath="extras" idKey="extraId" titleKey="name" items={initialItems}
     columns={columns} />;
 }
 
 export function ServiceExtraEditor({ id, initialData }: { id?: string; initialData?: AdminExtra }) {
-  return <CollectionEditor collectionLabel="Véhicules, transport & options de circuit"
+  return <CollectionEditor collectionLabel="Véhicules & transport"
     basePath="/catalogue/guides-transport" apiPath="extras" id={id}
     initialData={serviceForm(initialData)} fields={serviceFields} toRequestBody={serviceRequest}
     extraSection={translationsSection} />;

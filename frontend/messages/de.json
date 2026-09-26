@@ -635,6 +635,7 @@
     "upgradeLabel": "Werten Sie Ihren Aufenthalt auf",
     "upgradeHint": "Ihre Nacht im Camp ist inbegriffen. Für mehr Komfort können Sie upgraden - Preis pro Person und Nacht.",
     "upgradePrice": "+{price}",
+    "upgradeMinParty": "Ab {count} Reisenden verfügbar",
     "reviewUpgradesLabel": "Upgrades",
     "stepExtras": "Aktivitäten",
     "stepPayment": "Zahlung",

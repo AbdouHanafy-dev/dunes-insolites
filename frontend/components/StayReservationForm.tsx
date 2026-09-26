@@ -74,7 +74,7 @@ export default function StayReservationForm({
   initialAccommodationSlug?: string;
 }) {
   const t = useTranslations("stayReservationForm");
-  const { format: money } = useCurrency();
+  const { format: money, currency: displayCurrency } = useCurrency();
   const ta = useTranslations("authForm");
   const tb = useTranslations("bookingFlow");
   const locale = useLocale();
@@ -533,6 +533,7 @@ export default function StayReservationForm({
       // Either a city from the list or one the guest typed, never both.
       returnCity: !otherReturn && returnCity ? returnCity : undefined,
       returnCityOther: otherReturn && returnCityOther.trim() ? returnCityOther.trim() : undefined,
+      displayCurrency,
       meetUpPlace: hasOwnVehicle === false && meetUpPlace.trim() ? meetUpPlace.trim() : undefined,
       serviceOptions: serviceOptions.length > 0 ? serviceOptions : undefined,
       name,

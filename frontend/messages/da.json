@@ -635,6 +635,7 @@
     "upgradeLabel": "Opgrader dit ophold",
     "upgradeHint": "Din nat i lejren er inkluderet. Opgrader for mere komfort - pris pr. person pr. nat.",
     "upgradePrice": "+{price}",
+    "upgradeMinParty": "Tilgængelig fra {count} rejsende",
     "reviewUpgradesLabel": "Opgraderinger",
     "stepExtras": "Aktiviteter",
     "stepPayment": "Betaling",

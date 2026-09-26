@@ -21,7 +21,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { composePhone } from "@/lib/phone";
-import { optionTotal, returnCityOption, visibleUpgrades } from "@/lib/tourOptions";
+import { isUpgradeAvailable, optionTotal, returnCityOption, upgradeOptions } from "@/lib/tourOptions";
 import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
 import ActivityDurationStepper, { useSessionLabel } from "@/components/booking/ActivityDurationStepper";
 import { localizedLanguageName } from "@/lib/languageFlags";
@@ -60,6 +60,7 @@ export default function TourBookingFlow({
   nights = 0,
   departureCities,
   returnCities,
+  embedded,
 }: {
   tourSlug: string;
   tourTitle: string;
@@ -72,9 +73,16 @@ export default function TourBookingFlow({
   /** Cities ticked for this circuit in the back office. */
   departureCities?: readonly DepartureCity[];
   returnCities?: readonly DepartureCity[];
+  /**
+   * Set when this form is the second half of the general /book flow, which has already asked for the
+   * type and the circuit: those two steps head the progress bar as done, and "Back" on the first step
+   * here returns to the choice of circuit.
+   */
+  embedded?: { leadingSteps: string[]; onBackToChoice: () => void };
 }) {
+  const leadingSteps = embedded?.leadingSteps ?? [];
   const t = useTranslations("tourBookingForm");
-  const { format: money } = useCurrency();
+  const { format: money, currency: displayCurrency } = useCurrency();
   const ta = useTranslations("authForm");
   const tb = useTranslations("bookingFlow");
   const toast = useToast();
@@ -135,7 +143,7 @@ export default function TourBookingFlow({
   }, [locale]);
 
   const party = adults + children;
-  const upgrades = visibleUpgrades(tourOptions, party, nights);
+  const upgrades = upgradeOptions(tourOptions, nights);
   const otherReturnOption = returnCityOption(tourOptions);
 
   const visibleSteps = [
@@ -152,8 +160,8 @@ export default function TourBookingFlow({
   const extrasTotal = activities
     .filter((activity) => rideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activityTotal(activity, adults + children, 1, minutesFor(activity)), 0);
-  // An upgrade that stops being offered (the party shrank below its minimum) is dropped, not kept in the total.
-  const chosenUpgrades = upgrades.filter((option) => upgradeSlugs.includes(option.slug));
+  // An upgrade the party no longer qualifies for (it shrank below the minimum) is dropped, not kept in the total.
+  const chosenUpgrades = upgrades.filter((option) => upgradeSlugs.includes(option.slug) && isUpgradeAvailable(option, party));
   const upgradesTotal = chosenUpgrades.reduce((sum, option) => sum + optionTotal(option, party, nights), 0);
   const returnOtherTotal = otherReturn && returnCityOther.trim() && otherReturnOption ? optionTotal(otherReturnOption, party, nights) : 0;
   const optionsTotal = upgradesTotal + returnOtherTotal;
@@ -209,6 +217,10 @@ export default function TourBookingFlow({
   function back() {
     setErrors({});
     const position = visibleSteps.findIndex((item) => item.id === step);
+    if (position <= 0 && embedded) {
+      embedded.onBackToChoice();
+      return;
+    }
     setStep(visibleSteps[Math.max(0, position - 1)]?.id ?? 0);
   }
 
@@ -230,6 +242,7 @@ export default function TourBookingFlow({
       // Either a city from the list or one the guest typed, never both.
       returnCity: !otherReturn && returnCity ? returnCity : undefined,
       returnCityOther: otherReturn && returnCityOther.trim() ? returnCityOther.trim() : undefined,
+      displayCurrency,
       // Upgrades are sent by slug only: the server prices them and re-checks the minimum party.
       serviceOptions: chosenUpgrades.length > 0 ? chosenUpgrades.map((option) => ({ serviceOptionSlug: option.slug })) : undefined,
       preferredLanguageIds: preferredLanguageIds.length > 0 ? preferredLanguageIds : undefined,
@@ -293,7 +306,17 @@ export default function TourBookingFlow({
 
   return (
     <div className="tour-book-flow" ref={flowRef}>
-      <div className="stepper" aria-label={activeStep.label}>
+      <div
+        className="stepper"
+        aria-label={activeStep.label}
+        style={leadingSteps.length > 0 ? { gridTemplateColumns: `repeat(${leadingSteps.length + visibleSteps.length}, minmax(0, 1fr))` } : undefined}
+      >
+        {leadingSteps.map((label, i) => (
+          <span key={`lead-${i}`} className="s" data-state="done">
+            <span className="step-dot" aria-hidden="true">✓</span>
+            <span className="step-label">{label}</span>
+          </span>
+        ))}
         {visibleSteps.map((item, i) => {
           return (
             <span
@@ -302,7 +325,7 @@ export default function TourBookingFlow({
               data-state={i === activeStepPosition ? "active" : i < activeStepPosition ? "done" : "todo"}
               aria-current={i === activeStepPosition ? "step" : undefined}
             >
-              <span className="step-dot" aria-hidden="true">{i < activeStepPosition ? "✓" : i + 1}</span>
+              <span className="step-dot" aria-hidden="true">{i < activeStepPosition ? "✓" : leadingSteps.length + i + 1}</span>
               <span className="step-label">{item.label}</span>
             </span>
           );
@@ -310,7 +333,7 @@ export default function TourBookingFlow({
       </div>
 
       <div className="tour-book-step-heading">
-        <span>0{activeStepPosition + 1}</span>
+        <span>0{leadingSteps.length + activeStepPosition + 1}</span>
         <h3>{activeStep.label}</h3>
         <strong className="tour-book-step-amount">
           {step === 0 && `${money(total)}`}
@@ -431,15 +454,27 @@ export default function TourBookingFlow({
           <label>{t("upgradeLabel")}</label>
           <p className="hint">{t("upgradeHint")}</p>
           <div className="ride-options">
-            {upgrades.map((option) => (
-              <label className="ride-option" key={option.slug}>
-                <input type="checkbox" checked={upgradeSlugs.includes(option.slug)} onChange={() => toggleUpgrade(option.slug)} />
-                <span>{option.name}</span>
-                <span className="ride-price">
-                  {<PriceText text={t("upgradePrice", { price: priceToken(optionTotal(option, party, nights))})} />}
-                </span>
-              </label>
-            ))}
+            {upgrades.map((option) => {
+              const available = isUpgradeAvailable(option, party);
+              return (
+                <label className="ride-option" key={option.slug} data-disabled={available ? undefined : "true"}>
+                  <input
+                    type="checkbox"
+                    checked={available && upgradeSlugs.includes(option.slug)}
+                    disabled={!available}
+                    onChange={() => toggleUpgrade(option.slug)}
+                  />
+                  <span>
+                    {option.name}
+                    {option.description && <small className="upgrade-desc">{option.description}</small>}
+                    {!available && <small className="upgrade-reason">{t("upgradeMinParty", { count: option.minPartySize ?? 0 })}</small>}
+                  </span>
+                  <span className="ride-price">
+                    <PriceText text={t("upgradePrice", { price: priceToken(optionTotal(option, party, nights)) })} />
+                  </span>
+                </label>
+              );
+            })}
           </div>
         </div>
       )}
@@ -653,7 +688,7 @@ export default function TourBookingFlow({
           this codebase, so nothing here is interactive before that point. */}
 
       <div className="book-actions">
-        {step > 0 && (
+        {(step > 0 || embedded) && (
           <button type="button" className="btn-quiet" onClick={back} disabled={submitting}>
             ← {t("back")}
           </button>
