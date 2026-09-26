@@ -102,8 +102,10 @@ source de vérité ; les décisions en attente sont listées plus bas.
   statiques et rendues en euros ; `<Price>` / `<PriceText>` (client) convertissent l’affichage après chargement.
   Les phrases traduites reçoivent le montant en jeton (`priceToken`) au lieu de « €{price} ».
 - **Affichage seulement** : les réservations, prix serveur, e-mails, factures et pages de compte restent en euros ; le sélecteur le dit.
-- Taux : `GET /api/currency/rates` (`CurrencyConfig`, défauts 3,4 TND par EUR et 2,5 TND par USD, donc 1 EUR = 1,36 USD).
-  **À confirmer par le propriétaire** : ces taux sont des valeurs de configuration, pas un cours en direct, et aucune marge n’est appliquée.
+- Taux : réglables dans Administration › Paramètres › **Taux de change**, dits comme on les dit (« 10 € = 12 $ = 30 TND » ;
+  `currency_rates`, V58, défauts 10 = 13,6 = 34 soit les anciennes valeurs). Ils alimentent `GET /api/currency/rates` **et** `CurrencyConfig`,
+  donc aussi la conversion des paiements et des factures. Le serveur les applique tout de suite (cache 30 s), le site public sous 5 minutes.
+  **À confirmer par le propriétaire** : cours réel et marge éventuelle ; aucune marge n’est appliquée.
 - Les prix écrits en dur dans les traductions (« 80 TND » des options d’activité) suivent aussi la devise choisie.
 
 ### Hébergement : ville de retour libre et tableau enrichi (26 sept.)

@@ -1,3 +1,4 @@
+import type { AdminCurrencyRates } from "@/lib/currencyRates";
 /**
  * The single seam to the Spring Boot backend for this app — same convention
  * as frontend/lib/api.ts. NEXT_PUBLIC_API_URL already includes the
@@ -112,6 +113,10 @@ export type AdminPaymentPolicy = {
   acceptCheque: boolean;
   note: string | null;
 };
+
+export function getCurrencyRates(accessToken: string): Promise<AdminCurrencyRates | null> {
+  return authedGet<AdminCurrencyRates | null>("/admin/currency-rates", accessToken, null);
+}
 
 export function getPaymentPolicy(accessToken: string): Promise<AdminPaymentPolicy | null> {
   return authedGet<AdminPaymentPolicy | null>("/payment-policy", accessToken, null);

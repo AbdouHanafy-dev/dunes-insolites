@@ -36,7 +36,24 @@ public class CurrencyConfig {
      * Units of {@link #BASE} worth one unit of {@code currency}: an amount in
      * BASE divided by this gives the amount in {@code currency}.
      */
+    /**
+     * The rates set in the back office. Field injection on purpose: this class is filled by the
+     * configuration binder, and the store is optional (the built-in values below apply without it).
+     */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private CurrencyRatesStore ratesStore;
+
     public BigDecimal rateFor(Currency currency) {
+        java.util.Optional<CurrencyRatesStore.Amounts> live = ratesStore == null ? java.util.Optional.empty() : ratesStore.current();
+        if (live.isPresent()) {
+            CurrencyRatesStore.Amounts a = live.get();
+            return switch (currency) {
+                case EUR -> BigDecimal.ONE;
+                // "10 EUR = 13.6 USD": one USD is worth 10 / 13.6 EUR.
+                case USD -> a.eur().divide(a.usd(), 10, RoundingMode.HALF_EVEN);
+                case TND -> a.eur().divide(a.tnd(), 10, RoundingMode.HALF_EVEN);
+            };
+        }
         return switch (currency) {
             case EUR -> BigDecimal.ONE;
             case USD -> usdRate.divide(eurRate, 10, RoundingMode.HALF_EVEN);

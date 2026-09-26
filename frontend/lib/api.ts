@@ -373,7 +373,7 @@ export async function getCurrencyRates(): Promise<Rates> {
   const raw = await get<Record<string, number>>(
     "/currency/rates",
     { seed: DEFAULT_RATES, empty: DEFAULT_RATES },
-    { revalidate: 3600 },
+    { revalidate: 300 },
   );
   return normalizeRates(raw);
 }
