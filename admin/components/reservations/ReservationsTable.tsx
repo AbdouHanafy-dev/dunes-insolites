@@ -101,6 +101,7 @@ export default function ReservationsTable({
   const [viewing, setViewing] = useState<AdminReservation | null>(null);
   const [deleting, setDeleting] = useState<AdminReservation | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
 
   const filterDefs = useMemo<FilterDef<AdminReservation>[]>(
@@ -145,6 +146,20 @@ export default function ReservationsTable({
   function toggleSort(key: SortKey) {
     setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
     setPage(0);
+  }
+
+  // One click for the usual case: the guest pays on site, so there is no payment link or deposit to set.
+  async function confirmOnSite(r: AdminReservation) {
+    setConfirmingId(r.reservationId);
+    const res = await fetch(`/api/proxy/reservations/${r.reservationId}/status?status=CONFIRMED`, { method: "PATCH" });
+    setConfirmingId(null);
+    if (!res.ok) {
+      toast.error(await readApiError(res, "Impossible de confirmer la réservation"));
+      return;
+    }
+    toast.success(`Réservation de ${r.userName} confirmée`);
+    setViewing(null);
+    router.refresh();
   }
 
   async function confirmDelete() {
@@ -257,6 +272,18 @@ export default function ReservationsTable({
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex items-center justify-end gap-0.5">
+                          {r.status === "PENDING" && (
+                            <button
+                              type="button"
+                              className="mr-1 inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-emerald-100 px-2.5 py-1.5 text-[12px] font-semibold text-emerald-800 transition hover:bg-emerald-200 disabled:opacity-50"
+                              title="Confirmer la réservation (paiement sur place, sans lien de paiement)"
+                              disabled={confirmingId === r.reservationId}
+                              onClick={() => confirmOnSite(r)}
+                            >
+                              <i className="bi bi-check2-circle" aria-hidden />
+                              {confirmingId === r.reservationId ? "…" : "Confirmer"}
+                            </button>
+                          )}
                           <button
                             type="button"
                             className={iconBtn}
@@ -345,7 +372,14 @@ export default function ReservationsTable({
         )}
       </div>
 
-      {viewing && <ReservationQuickView reservation={viewing} onClose={() => setViewing(null)} />}
+      {viewing && (
+        <ReservationQuickView
+          reservation={viewing}
+          onClose={() => setViewing(null)}
+          onConfirm={viewing.status === "PENDING" ? () => confirmOnSite(viewing) : undefined}
+          confirming={confirmingId === viewing.reservationId}
+        />
+      )}
 
       {deleting && (
         <Modal title="Supprimer la réservation" onClose={() => (busy ? undefined : setDeleting(null))}>
@@ -379,7 +413,17 @@ function Info({ label, value }: { label: string; value: React.ReactNode }) {
 const cityLabel = (city: string | null | undefined) => CITY_OPTIONS.find((c) => c.value === city)?.label ?? city ?? "";
 
 /** The details a team member needs at a glance, before opening the full record. */
-function ReservationQuickView({ reservation: r, onClose }: { reservation: AdminReservation; onClose: () => void }) {
+function ReservationQuickView({
+  reservation: r,
+  onClose,
+  onConfirm,
+  confirming,
+}: {
+  reservation: AdminReservation;
+  onClose: () => void;
+  onConfirm?: () => void;
+  confirming?: boolean;
+}) {
   const st = statusOf(r.status);
   const pay = paymentStatusOf(r.paymentSummary?.paymentStatus);
   const currency = sym(r.currency);
@@ -438,6 +482,11 @@ function ReservationQuickView({ reservation: r, onClose }: { reservation: AdminR
         <button type="button" className="btn btn-secondary" onClick={onClose}>
           Fermer
         </button>
+        {onConfirm && (
+          <button type="button" className="btn btn-secondary" disabled={confirming} onClick={onConfirm}>
+            {confirming ? "Confirmation…" : "Confirmer (paiement sur place)"}
+          </button>
+        )}
         <Link href={`/reservations/${r.reservationId}`} className="btn btn-primary">
           Ouvrir la fiche
         </Link>
