@@ -54,9 +54,14 @@ public class ReservationOverviewFactory {
                 c.apply(o.total()), c.apply(o.paid()), c.apply(o.balance()), to.name());
     }
 
-    /** What the team email needs beyond the overview: where it came from and who booked. */
+    /**
+     * What the team email needs beyond the overview: where it came from, who booked, and which
+     * product it is - Route Insolite's circuits and Dunes Insolites' stays go to different team
+     * inboxes (see StaffBookingNotifier).
+     */
     public record StaffFacts(String sourceName, String customerName, String customerEmail, String customerPhone,
-                             String locale, ReservationOverview overview) {}
+                             String locale, com.camping.duneinsolite.model.enums.ReservationType reservationType,
+                             ReservationOverview overview) {}
 
     @Transactional(readOnly = true)
     public StaffFacts staffFacts(UUID reservationId) {
@@ -66,7 +71,7 @@ public class ReservationOverviewFactory {
         return new StaffFacts(
                 r.getSourceRef() == null ? null : r.getSourceRef().getName(),
                 user == null ? null : user.getName(), user == null ? null : user.getEmail(),
-                user == null ? null : user.getPhone(), r.getLocale(),
+                user == null ? null : user.getPhone(), r.getLocale(), r.getReservationType(),
                 build(r, paymentService.computePaymentSummary(r)));
     }
 

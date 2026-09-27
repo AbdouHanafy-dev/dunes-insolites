@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
 import static com.camping.duneinsolite.mail.MailLayout.*;
 
 /**
- * "You have received a booking" - the email the team gets when a guest books on the site:
- * what was booked, the reference, the date, who is coming and how to reach them, the price
- * and a button that opens the reservation in the backoffice. Always in French: it is for the
- * team, not the guest.
+ * What the team gets by e-mail about a site booking's life: it arrived, it was confirmed, or it
+ * was cancelled. Same recipients, same subject for the three (only "Re:" and the wording differ),
+ * so a mail client that threads by subject - Gmail included - keeps all three under one
+ * conversation per reservation. Always in French: it is for the team, not the guest.
  */
 @Slf4j
 @Component
@@ -48,27 +48,52 @@ public class StaffBookingMailer {
     /** The person who booked, as they gave it on the form. */
     public record Customer(String name, String email, String phone, String language) {}
 
-    public void send(List<String> to, ReservationOverview o, Customer customer, String reservationUrl) {
-        String product = product(o);
-        String date = o.arrival() == null ? "—" : longDate(o.arrival());
-        String subject = "Nouvelle réservation : " + product + " · " + date + " · " + o.reference();
+    /** Which of the booking's three life events this mail announces. */
+    public enum Kind {
+        NEW("Vous avez reçu une nouvelle réservation depuis le site.", "Nouvelle réservation", "Vous avez reçu une réservation",
+                "La demande est en attente : confirmez la disponibilité auprès du client.", false),
+        CONFIRMED("Cette réservation a été confirmée.", "Réservation confirmée", "Réservation confirmée",
+                "Le client en a été informé par e-mail.", true),
+        CANCELLED("Cette réservation a été annulée.", "Réservation annulée", "Réservation annulée",
+                "Aucune action n’est requise ; l’hébergement ou le circuit redevient disponible.", true);
+
+        final String intro;
+        final String eyebrow;
+        final String heading;
+        final String footnote;
+        final boolean reply;
+
+        Kind(String intro, String eyebrow, String heading, String footnote, boolean reply) {
+            this.intro = intro;
+            this.eyebrow = eyebrow;
+            this.heading = heading;
+            this.footnote = footnote;
+            this.reply = reply;
+        }
+    }
+
+    public void send(List<String> to, Kind kind, ReservationOverview o, Customer customer, String reservationUrl) {
+        // The subject's core (product/date/reference) never changes across the three mails - only
+        // NEW carries no "Re:" - so they thread as one conversation about this one reservation.
+        String core = "Nouvelle réservation : " + product(o) + " · " + (o.arrival() == null ? "—" : longDate(o.arrival())) + " · " + o.reference();
+        String subject = kind.reply ? "Re: " + core : core;
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromAddress);
             helper.setTo(to.toArray(String[]::new));
             helper.setSubject(subject);
-            helper.setText(text(o, customer, reservationUrl), html(o, customer, reservationUrl));
+            helper.setText(text(kind, o, customer, reservationUrl), html(kind, o, customer, reservationUrl));
             mailSender.send(message);
-            log.info("new-booking email sent to {} team address(es) for {}", to.size(), o.reference());
+            log.info("staff {} email sent to {} team address(es) for {}", kind, to.size(), o.reference());
         } catch (MessagingException | MailException e) {
-            throw new TransactionalEmailException("new-booking email for " + o.reference() + " failed: " + e.getMessage(), e);
+            throw new TransactionalEmailException("staff " + kind + " email for " + o.reference() + " failed: " + e.getMessage(), e);
         }
     }
 
     // ── content ───────────────────────────────────────────────────
 
-    String html(ReservationOverview o, Customer c, String reservationUrl) {
+    String html(Kind kind, ReservationOverview o, Customer c, String reservationUrl) {
         StringBuilder rows = new StringBuilder();
         rows.append(row("Produit", strong(product(o))));
         rows.append(row("Référence", strong(o.reference())));
@@ -91,16 +116,16 @@ public class StaffBookingMailer {
         }
         rows.append(row("Prix", strong(money(o.total(), o.currency()))));
 
-        String body = p(esc("Bonjour, vous avez reçu une nouvelle réservation depuis le site."))
+        String body = p(esc("Bonjour, " + Character.toLowerCase(kind.intro.charAt(0)) + kind.intro.substring(1)))
                 + panel(rows(rows.toString()))
                 + button(reservationUrl, "Accéder à la réservation")
-                + muted(esc("La demande est en attente : confirmez la disponibilité auprès du client."));
-        return MailLayout.page(new Frame("fr", false, frontendUrl, "Dunes Insolites", "Nouvelle réservation",
-                "Vous avez reçu une réservation", body, "Message automatique destiné à l’équipe."));
+                + muted(esc(kind.footnote));
+        return MailLayout.page(new Frame("fr", false, frontendUrl, "Dunes Insolites", kind.eyebrow,
+                kind.heading, body, "Message automatique destiné à l’équipe."));
     }
 
-    String text(ReservationOverview o, Customer c, String reservationUrl) {
-        StringBuilder t = new StringBuilder("Vous avez reçu une nouvelle réservation depuis le site.\n\n");
+    String text(Kind kind, ReservationOverview o, Customer c, String reservationUrl) {
+        StringBuilder t = new StringBuilder(kind.intro).append("\n\n");
         t.append("Produit : ").append(product(o)).append('\n');
         t.append("Référence : ").append(o.reference()).append('\n');
         t.append("Date : ").append(o.arrival() == null ? "—" : longDate(o.arrival())).append('\n');

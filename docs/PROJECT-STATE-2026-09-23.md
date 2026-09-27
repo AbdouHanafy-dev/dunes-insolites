@@ -279,6 +279,38 @@ source de vérité ; les décisions en attente sont listées plus bas.
 - **À trancher :** le taux de commission de chaque hôtel ; la commission n'est pas versée par le système, elle est
   seulement calculée.
 
+### E-mails d'équipe : nouvelle réservation, confirmation, annulation (27 sept 2026)
+
+- `StaffBookingMailer` gère maintenant trois évènements (`Kind.NEW/CONFIRMED/CANCELLED`), même
+  sujet de base — seul « Re: » change — pour que Gmail (et les autres clients qui threadent par
+  sujet) regroupe les trois e-mails d'une même réservation dans une seule conversation.
+- Déclenchés uniquement pour les réservations venues du site (`Source = "Site web"`), comme
+  l'e-mail de nouvelle réservation existant ; une réservation saisie à la main dans le backoffice
+  n'en déclenche pas, y compris pour confirmation/annulation.
+- **Deux boîtes séparées, une par entité légale** (`StaffBookingNotifier.recipients(ReservationType)`) :
+  un circuit (Route Insolite, `ReservationType.TOURS`) part vers
+  `app.mail.staff-booking-recipients-circuits` (`APP_STAFF_BOOKING_EMAILS_CIRCUITS`, défaut
+  `insoliteroute@gmail.com`) ; un séjour ou une activité (Dunes Insolites) part vers
+  `app.mail.staff-booking-recipients` (`APP_STAFF_BOOKING_EMAILS`, défaut `Dunesinsolites@gmail.com`).
+  Chacune retombe sur tous les comptes ADMIN si elle est vide, indépendamment de l'autre.
+- `onConfirmed`/`onCancelled` de `ReservationServiceImpl` appellent `StaffBookingNotifier`. Deux
+  nouveaux types dans `EmailType` (`STAFF_RESERVATION_CONFIRMED`, `STAFF_RESERVATION_CANCELLED`),
+  dédupliqués comme le reste via `email_dispatch` — pas de migration (colonne texte, pas de contrainte).
+- Défauts serveur dans `docker-compose.vps.yml`. **Ce ne sont que des fallbacks** : si
+  `APP_STAFF_BOOKING_EMAILS` est déjà défini explicitement sur le VPS (probable), il faut aussi y
+  ajouter `APP_STAFF_BOOKING_EMAILS_CIRCUITS` — non fait depuis ici (accès serveur restreint dans
+  cette session).
+- Bug trouvé et corrigé en même temps, sans rapport avec la demande : `StaffBookingMailer.money()`
+  utilise deux espaces spéciaux (U+202F, U+00A0) que NumberFormat insère avant l'unité monétaire en
+  français ; une réécriture précédente du fichier les avait aplatis en espaces ASCII normaux,
+  rendant le remplacement inopérant et cassant `StaffBookingMailerTest`.
+- **Rattrapage (27 sept 2026)** : `POST /api/reservations/backfill-staff-confirmation-emails`
+  (ADMIN, `ReservationController`) envoie l'e-mail « confirmée » pour toute réservation du site déjà
+  CONFIRMED/CHECKED_IN/COMPLETED — pour les réservations confirmées avant que cet e-mail existe.
+  Réutilise `notifyConfirmed` donc respecte les mêmes règles (site uniquement, boîte par entité,
+  jamais deux fois — `email_dispatch`). Bouton dans le backoffice, Administration → Journal
+  d'activité (`StaffEmailBackfillCard`) ; retourne `{considered, sent}`. Sans risque à relancer.
+
 ## 5. Vérifier
 
 ```bash

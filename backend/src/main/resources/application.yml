@@ -199,9 +199,12 @@ app:
     # must match SPRING_MAIL_USERNAME's real mailbox once that's a cPanel
     # account rather than Gmail (which never checked this).
     from: ${APP_MAIL_FROM:noreply@duneinsolite.com}
-    # Who gets the "you have received a booking" email when a guest books on the site.
-    # Comma-separated. Blank = every ADMIN account.
+    # Who gets the team email about a booking's life (new / confirmed / cancelled) - see
+    # StaffBookingNotifier. Two separate legal entities, two inboxes: circuits (Route Insolite)
+    # use *-circuits, everything else (Dunes Insolites: stays, activities) uses the plain one.
+    # Comma-separated. Blank = every ADMIN account, independently for each.
     staff-booking-recipients: ${APP_STAFF_BOOKING_EMAILS:}
+    staff-booking-recipients-circuits: ${APP_STAFF_BOOKING_EMAILS_CIRCUITS:}
   email:
     retry:
       # Transactional-email listener (ReservationEmailConsumer). After

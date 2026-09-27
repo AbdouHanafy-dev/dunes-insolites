@@ -20,6 +20,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID>,
 
     /** Every booking made with a promo code, whatever its case. */
     List<Reservation> findByPromoCodeIgnoreCase(String promoCode);
+
+    /** Site bookings currently in one of these statuses - used to backfill the staff "confirmed" e-mail. */
+    List<Reservation> findByStatusInAndSourceRefName(List<ReservationStatus> statuses, String sourceName);
     List<Reservation> findByUserUserIdOrderByCreatedAtDesc(UUID userId);
 
     // Public booking idempotency (V7). The @SQLRestriction on the entity means

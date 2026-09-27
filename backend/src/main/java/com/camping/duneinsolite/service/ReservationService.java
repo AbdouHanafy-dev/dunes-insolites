@@ -36,6 +36,13 @@ public interface ReservationService {
     List<ReservationResponse> getMyReservations(UUID userId);
     Page<ReservationResponse> searchReservationsByName(String name, Pageable pageable);
 
+    /**
+     * Sends the team's "confirmed" e-mail (traceability only, see StaffBookingNotifier) for every
+     * site booking currently confirmed, checked-in or completed. Safe to call more than once: a
+     * reservation this already covered is skipped, never mailed twice.
+     */
+    com.camping.duneinsolite.dto.response.StaffEmailBackfillResponse backfillStaffConfirmationEmails();
+
 
     ReservationResponse updateMeetUpPlace(UUID reservationId, String meetUpPlace);
 

@@ -66,6 +66,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationMapper          reservationMapper;
     private final NotificationPublisher      notificationPublisher;
     private final PaymentService             paymentService;
+    private final StaffBookingNotifier       staffBookingNotifier;
     private final TransactionMapper          transactionMapper;
     private final TransactionRepository      transactionRepository;
     private final com.camping.duneinsolite.service.PromoCodeService promoCodeService;
@@ -1011,6 +1012,7 @@ public class ReservationServiceImpl implements ReservationService {
             case CONFIRMED -> onConfirmed(savedReservation, companyType);
             case COMPLETED -> onCompleted(savedReservation, companyType);
             case REJECTED  -> onRejected(savedReservation);
+            case CANCELLED -> onCancelled(savedReservation);
             default -> { }
         }
 
@@ -1082,6 +1084,10 @@ public class ReservationServiceImpl implements ReservationService {
                     savedReservation.getUser().getName(),
                     savedReservation.getGroupName()
             );
+
+            // ── Tell the team a site booking was confirmed (same thread as the "new booking" mail) ──
+            staffBookingNotifier.notifyConfirmed(savedReservation.getReservationId(),
+                    com.camping.duneinsolite.observability.CorrelationId.currentOrNew());
     }
 
     /** COMPLETED: generate the FACTURE if a companyType was given, then notify the client. */
@@ -1134,6 +1140,12 @@ public class ReservationServiceImpl implements ReservationService {
                                 ? " Raison: " + savedReservation.getRejectionReason() : ""))
                         .build()
         );
+    }
+
+    /** CANCELLED: tell the team a site booking fell through (guest cancellation or staff action). */
+    private void onCancelled(Reservation savedReservation) {
+        staffBookingNotifier.notifyCancelled(savedReservation.getReservationId(),
+                com.camping.duneinsolite.observability.CorrelationId.currentOrNew());
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1698,6 +1710,22 @@ public class ReservationServiceImpl implements ReservationService {
         String cleaned = meetUpPlace == null ? "" : meetUpPlace.trim();
         reservation.setMeetUpPlace(cleaned.isEmpty() ? null : cleaned);
         return toEnrichedResponse(reservationRepository.save(reservation));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.camping.duneinsolite.dto.response.StaffEmailBackfillResponse backfillStaffConfirmationEmails() {
+        List<Reservation> targets = reservationRepository.findByStatusInAndSourceRefName(
+                List.of(ReservationStatus.CONFIRMED, ReservationStatus.CHECKED_IN, ReservationStatus.COMPLETED),
+                StaffBookingNotifier.VITRINE_SOURCE);
+        int sent = 0;
+        for (Reservation r : targets) {
+            if (staffBookingNotifier.notifyConfirmed(r.getReservationId(),
+                    com.camping.duneinsolite.observability.CorrelationId.currentOrNew())) {
+                sent++;
+            }
+        }
+        return new com.camping.duneinsolite.dto.response.StaffEmailBackfillResponse(targets.size(), sent);
     }
 
     @Override

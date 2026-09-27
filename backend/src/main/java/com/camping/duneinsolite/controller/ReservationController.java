@@ -170,6 +170,15 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.updateMeetUpPlace(reservationId, request.getMeetUpPlace()));
     }
 
+    // One-off traceability tool (StaffBookingNotifier was added 27 Sep 2026): sends the team's
+    // "confirmed" e-mail for site bookings that were already confirmed before then. Idempotent -
+    // safe to click more than once, a reservation it already covered is never mailed twice.
+    @PostMapping("/backfill-staff-confirmation-emails")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.camping.duneinsolite.dto.response.StaffEmailBackfillResponse> backfillStaffConfirmationEmails() {
+        return ResponseEntity.ok(reservationService.backfillStaffConfirmationEmails());
+    }
+
     // Support-team edit of a booked circuit's return city and paid options. Prices come from the
     // catalogue, never from the request.
     @PutMapping("/{reservationId}/circuit-options")
