@@ -198,7 +198,10 @@ app:
     # isn't a real mailbox it hosts ("550 Sender verify failed") - this
     # must match SPRING_MAIL_USERNAME's real mailbox once that's a cPanel
     # account rather than Gmail (which never checked this).
-    from: ${APP_MAIL_FROM:noreply@duneinsolite.com}
+    # Spring passes this straight to MimeMessageHelper#setFrom(String), which parses the RFC 5322
+    # "Display Name <address>" form on its own - a display name here is all it takes for the
+    # sender to read as a real business (Gmail, GetYourGuide-style) instead of the bare address.
+    from: ${APP_MAIL_FROM:Dunes Insolites <noreply@duneinsolite.com>}
     # Who gets the team email about a booking's life (new / confirmed / cancelled) - see
     # StaffBookingNotifier. Two separate legal entities, two inboxes: circuits (Route Insolite)
     # use *-circuits, everything else (Dunes Insolites: stays, activities) uses the plain one.

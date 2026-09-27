@@ -132,7 +132,9 @@ services:
       # invented address - cPanel rejects any "From" it doesn't host
       # ("550 Sender verify failed", found live). Gmail never checked
       # this. Leave unset only while SPRING_MAIL_HOST is still Gmail.
-      APP_MAIL_FROM: ${APP_MAIL_FROM:-noreply@duneinsolite.com}
+      # A bare address shows as its local part ("contact") in Gmail's sender list; a display name
+      # here reads like a real business, matching how GetYourGuide/booking confirmations show up.
+      APP_MAIL_FROM: ${APP_MAIL_FROM:-Dunes Insolites <noreply@duneinsolite.com>}
       SPRING_MAIL_SMTP_SSL_ENABLE: ${SPRING_MAIL_SMTP_SSL_ENABLE:-false}
       SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-true}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
