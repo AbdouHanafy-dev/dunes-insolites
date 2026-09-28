@@ -3321,6 +3321,10 @@ footer.site-footer.pro-footer .bar a:hover {
   padding: calc(14px * var(--ui));
   cursor: pointer;
 }
+.acc-card[data-informational] .acc-card-main {
+  grid-template-columns: 104px minmax(0, 1fr);
+  cursor: default;
+}
 .acc-card-main input {
   width: 17px;
   height: 17px;
@@ -3386,6 +3390,7 @@ footer.site-footer.pro-footer .bar a:hover {
 
 @media (max-width: 520px) {
   .acc-card-main { grid-template-columns: 18px 76px minmax(0, 1fr); gap: calc(10px * var(--ui)); }
+  .acc-card[data-informational] .acc-card-main { grid-template-columns: 76px minmax(0, 1fr); }
   .acc-card-thumb { width: 76px; height: 64px; }
   .acc-card-price {
     grid-column: 2 / -1;

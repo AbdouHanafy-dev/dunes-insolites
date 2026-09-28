@@ -37,6 +37,7 @@ export default function AccommodationPicker({
   party,
   assignments,
   onAssign,
+  informational = false,
 }: {
   name: string;
   items: Accommodation[];
@@ -51,6 +52,8 @@ export default function AccommodationPicker({
   party?: Guests;
   assignments?: Record<string, Guests>;
   onAssign?: (slug: string, guests: Guests) => void;
+  /** Display-only accommodation: the details link is its only interactive control. */
+  informational?: boolean;
 }) {
   const t = useTranslations("stayReservationForm");
   const { format: money } = useCurrency();
@@ -89,16 +92,20 @@ export default function AccommodationPicker({
           : null;
         const rates = tierRates(a);
         const href = detailsHref?.(a.slug) ?? null;
+        const Main = informational ? "div" : "label";
         return (
-          <div className="acc-card" key={a.slug} data-selected={checked || undefined} data-disabled={soldOut || undefined}>
-            <label className="acc-card-main">
-              <input
-                type={mode === "single" ? "radio" : "checkbox"}
-                name={name}
-                checked={checked}
-                disabled={soldOut}
-                onChange={() => toggle(a.slug)}
-              />
+          <div className="acc-card" key={a.slug} data-selected={(!informational && checked) || undefined} data-informational={informational || undefined} data-disabled={!informational && soldOut || undefined}>
+            <Main className="acc-card-main">
+              {!informational && (
+                <input
+                  type={mode === "single" ? "radio" : "checkbox"}
+                  name={name}
+                  aria-label={a.title}
+                  checked={checked}
+                  disabled={soldOut}
+                  onChange={() => toggle(a.slug)}
+                />
+              )}
               {isDisplayableImageSrc(a.image) && (
                 <span className="acc-card-thumb" aria-hidden="true">
                   <Image src={a.image} alt="" fill sizes="120px" />
@@ -109,7 +116,7 @@ export default function AccommodationPicker({
                 {a.sleeps && <span className="acc-card-sleeps">{a.sleeps}</span>}
                 {(a.tagline || a.description) && <span className="acc-card-desc">{a.tagline || a.description}</span>}
               </span>
-              <span className="acc-card-price">
+              {!informational && <span className="acc-card-price">
                 {soldOut ? (
                   <em>{t("soldOutForDate")}</em>
                 ) : (
@@ -123,8 +130,8 @@ export default function AccommodationPicker({
                     {unitsLeft != null && <em>{t("tierUnitsLeft", { units: unitsLeft })}</em>}
                   </>
                 )}
-              </span>
-            </label>
+              </span>}
+            </Main>
             {assigning && checked && party && (
               <TierGuests
                 guests={assignments?.[a.slug] ?? NO_GUESTS}
@@ -140,10 +147,10 @@ export default function AccommodationPicker({
                   </Link>
                 ) : <span />}
                 {checked && (
-                  <div className="guest-stepper">
-                    <button type="button" onClick={() => setQty(a.slug, qty - 1)} disabled={qty <= 1} aria-label={t("decrease")}>−</button>
+                  <div className="guest-stepper" aria-label={t("accommodationQuantity")}>
+                    <button type="button" onClick={() => setQty(a.slug, qty - 1)} disabled={soldOut || qty <= 1} aria-label={t("decrease")}>−</button>
                     <output aria-label={`${qty} ${a.title}`}>{qty}</output>
-                    <button type="button" onClick={() => setQty(a.slug, qty + 1)} disabled={qty >= maxQty} aria-label={t("increase")}>+</button>
+                    <button type="button" onClick={() => setQty(a.slug, qty + 1)} disabled={soldOut || qty >= maxQty} aria-label={t("increase")}>+</button>
                   </div>
                 )}
               </div>

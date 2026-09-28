@@ -24,6 +24,7 @@ import TourPhotoGallery from "@/components/TourPhotoGallery";
 import AccGallery from "@/components/AccGallery";
 import { sortByPrice } from "@/lib/guestPricing";
 import { site } from "@/lib/site";
+import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -71,7 +72,9 @@ export default async function StayDetail({ params, searchParams }: Props) {
   // Price shown follows how the stay is sold: with accommodation types the guest
   // pays per tier (so "from" the cheapest one); without, the stay's own
   // per-person rates from the back office.
-  const tierPrices = (stay.accommodations ?? []).map((a) => a.priceFrom);
+  const tierPrices = hasInformationalAccommodation(stay)
+    ? []
+    : (stay.accommodations ?? []).map((a) => a.priceFrom);
   const hasTiers = tierPrices.length > 0;
   const lowestTierPrice = hasTiers ? Math.min(...tierPrices) : stay.priceFrom;
   const adultRate = stay.adultPrice ?? stay.priceFrom;

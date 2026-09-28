@@ -26,6 +26,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { composePhone } from "@/lib/phone";
+import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
 
 type ServiceAvailabilityState = {
   forDate: string;
@@ -119,6 +120,7 @@ export default function StayReservationForm({
     }
   }
   const initialDraft = typeof window !== "undefined" ? readDraft() : null;
+  const informationalAccommodation = hasInformationalAccommodation(stay);
 
   const [date, setDate] = useState(initialDraft?.date ?? "");
   // Only used when the back office lets this stay run several nights
@@ -139,6 +141,7 @@ export default function StayReservationForm({
   const [accommodationSelections, setAccommodationSelections] = useState<Record<string, number>>(() => {
     // One tier per booking, like the /book flow: the whole party (set in step 1) sleeps in it.
     const saved = Object.entries(initialDraft?.accommodationSelections ?? {});
+    if (informationalAccommodation) return {};
     if (initialAccommodationSlug) return { [initialAccommodationSlug]: 1 };
     return saved[0] ? { [saved[0][0]]: saved[0][1] } : {};
   });
@@ -280,9 +283,9 @@ export default function StayReservationForm({
         if (ctrl.signal.aborted) return;
         setAvail({ forDate, data, error: false });
         if (data?.accommodations.some((t) => t.status === "UNAVAILABLE")) {
-          const unavailableSlugs = new Set(
-            data.accommodations.filter((t) => t.status === "UNAVAILABLE").map((t) => t.slug),
-          );
+          const unavailableSlugs = new Set(data.accommodations
+            .filter((t) => t.status === "UNAVAILABLE")
+            .map((t) => t.slug));
           setAccommodationSelections((cur) =>
             Object.fromEntries(Object.entries(cur).filter(([slug]) => !unavailableSlugs.has(slug))),
           );
@@ -312,7 +315,7 @@ export default function StayReservationForm({
   const partySize = adults + children;
   // Every tier the guest has checked, each with its own quantity — a guest
   // may book several at once (e.g. 2 Suites + 3 Tentes together).
-  const selectedAccommodations = (accommodations ?? [])
+  const selectedAccommodations = informationalAccommodation ? [] : (accommodations ?? [])
     .filter((a) => a.slug in accommodationSelections)
     .map((a) => ({ accommodation: a, qty: accommodationSelections[a.slug] }));
   // Per unit while at least one tent/room/suite is chosen — how many units
@@ -335,7 +338,9 @@ export default function StayReservationForm({
     : adults * adultRate + children * childRate + infants * infantRate;
   const total = nightly * nights;
   // Until a tier is chosen the stay is priced "from" its cheapest available tier.
-  const availableTierPrices = (accommodations ?? []).filter((a) => !tierSoldOut(a.slug)).map((a) => a.priceFrom);
+  const availableTierPrices = informationalAccommodation
+    ? []
+    : (accommodations ?? []).filter((a) => !tierSoldOut(a.slug)).map((a) => a.priceFrom);
   const headerFromPrice = selectedAccommodations.length === 0 && availableTierPrices.length > 0
     ? Math.min(...availableTierPrices)
     : null;
@@ -390,7 +395,7 @@ export default function StayReservationForm({
       }
     }
     if (step === 1) {
-      if ((accommodations?.length ?? 0) > 0 && selectedAccommodations.length === 0) {
+      if (!informationalAccommodation && (accommodations?.length ?? 0) > 0 && selectedAccommodations.length === 0) {
         e.accommodationSlug = tb("errorPickResult");
       }
       const soldOutSelection = selectedAccommodations.find(({ accommodation }) => tierSoldOut(accommodation.slug));
@@ -618,7 +623,7 @@ export default function StayReservationForm({
 
       {step === 1 && accommodations && accommodations.length > 0 && (
         <div className="acc-step" data-invalid={!!errors.accommodationSlug}>
-          <label>{t("chooseCamp")}</label>
+          {!informationalAccommodation && <label>{t("chooseCamp")}</label>}
 <AccommodationPicker
             name="stayAccommodation"
             mode="single"
@@ -627,6 +632,7 @@ export default function StayReservationForm({
             onChange={setAccommodationSelections}
             availability={tierAvailability}
             detailsHref={(slug) => `/camp/${stay.slug}/${slug}`}
+            informational={informationalAccommodation}
           />
           {errors.accommodationSlug && <span className="err">{errors.accommodationSlug}</span>}
         </div>
@@ -654,7 +660,7 @@ export default function StayReservationForm({
               />
               {date && departureDate && <p className="hint">{t("nightsComputedHint", { nights })}</p>}
               {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
-              {availabilityFor &&
+              {!informationalAccommodation && availabilityFor &&
                 availabilityFor.accommodations.length > 0 &&
                 availabilityFor.accommodations.every((a) => a.status === "UNAVAILABLE") && (
                   <p className="hint">{t("everyCampBooked")}</p>
@@ -665,7 +671,7 @@ export default function StayReservationForm({
               <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
               <DatePicker id="s-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
               {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
-              {availabilityFor &&
+              {!informationalAccommodation && availabilityFor &&
                 availabilityFor.accommodations.length > 0 &&
                 availabilityFor.accommodations.every((a) => a.status === "UNAVAILABLE") && (
                   <p className="hint">{t("everyCampBooked")}</p>

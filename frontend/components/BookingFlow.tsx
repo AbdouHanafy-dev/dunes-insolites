@@ -27,6 +27,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { getCountryCallingCode, type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
+import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
 import {
   DEPARTURE_CITY_LABELS,
   type Activity,
@@ -221,7 +222,10 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
 
   const otherActivities = activities;
   const availableAccommodations = selectedStay?.accommodations ?? [];
-  const selectedAccommodation = availableAccommodations.find((a) => a.slug === accommodationSlug);
+  const informationalAccommodation = !!selectedStay && hasInformationalAccommodation(selectedStay);
+  const selectedAccommodation = informationalAccommodation
+    ? undefined
+    : availableAccommodations.find((a) => a.slug === accommodationSlug);
   const partySize = adults + children;
 
   const selectedTransport = transportOptions.find((o) => o.slug === transportSlug);
@@ -260,7 +264,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   // picked, among all of them). Falls back to the stay's own base price when
   // it has no tiers at all (e.g. the bivouac).
   const stayFromPrice = (() => {
-    const tierPrices = (selectedStay?.accommodations ?? [])
+    const tierPrices = (informationalAccommodation ? [] : selectedStay?.accommodations ?? [])
       .filter((a) => !tierSoldOut(a.slug))
       .map((a) => a.priceFrom);
     if (tierPrices.length > 0) return Math.min(...tierPrices);
@@ -278,7 +282,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     ? tierPerNight(selectedAccommodation, { adults, children, infants })
     : stayAdultRate * adults + stayChildRate * children + stayInfantRate * infants;
   const stayTotal = stayNightly * nights;
-  const stayHasTiers = (selectedStay?.accommodations?.length ?? 0) > 0;
+  const stayHasTiers = !informationalAccommodation && (selectedStay?.accommodations?.length ?? 0) > 0;
   const nightsSuffix = nights > 1 ? ` · ${ts("summaryNights", { nights })}` : "";
 
   function toggleRide(slug: string) {
@@ -297,7 +301,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   async function selectStay(stay: Stay) {
     setStayDetailLoading(true);
     const full = await api.getStay(stay.slug, locale);
-    setSelectedStay(full ?? stay);
+    const selected = full ?? stay;
+    setSelectedStay(selected);
     // Each product offers its own cities: never carry one over.
     setDepartureCity("");
     setReturnCity("");
@@ -347,7 +352,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       if (adults < 1) e.adults = t("errorAtLeastOneAdult");
     }
     if (category === "accommodation" && step === 3) {
-      const hasTiers = (selectedStay?.accommodations?.length ?? 0) > 0;
+      const hasTiers = !informationalAccommodation && (selectedStay?.accommodations?.length ?? 0) > 0;
       if (hasTiers && !accommodationSlug) e.accommodation = tb("errorPickResult");
       else if (accommodationSlug && tierSoldOut(accommodationSlug)) e.accommodation = ts("errorSoldOut");
     }
@@ -374,7 +379,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     step, category, selectedTour, selectedStay, accommodationSlug, date, min, adults, multiNight, departureDate,
     nights, maxNights, hasOwnVehicle, name, email, phone,
     acceptedTerms, transportSlug, needsPickupDetails, pickupHotelName, pickupAirport, pickupAddress,
-    pickupInstructions, selectedTransport,
+    pickupInstructions, selectedTransport, informationalAccommodation,
   ]);
 
   function next() {
@@ -736,7 +741,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <>
           {selectedStay && selectedStay.accommodations && selectedStay.accommodations.length > 0 ? (
             <>
-              <p className="hint">{ts("chooseCamp")}</p>
+              {!informationalAccommodation && <p className="hint">{ts("chooseCamp")}</p>}
               <AccommodationPicker
                 name="stayAccommodation"
                 mode="single"
@@ -751,6 +756,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
                 }}
                 availability={tierAvailability}
                 detailsHref={(slug) => `/camp/${selectedStay.slug}/${slug}`}
+                informational={informationalAccommodation}
               />
               {errors.accommodation && <div className="alert">{errors.accommodation}</div>}
             </>
