@@ -9,6 +9,7 @@ import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import { sortByPrice } from "@/lib/guestPricing";
 import { getSiteImages } from "@/lib/api";
 import { stayCardFallback } from "@/lib/siteImages";
+import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
 
 /**
  * Homepage accommodation section (restructured 24 Sep 2026, on request):
@@ -28,7 +29,7 @@ export default async function Stays() {
   ]);
   if (!stays.length) return null;
 
-  const withChoice = stays.find((s) => (s.accommodations?.length ?? 0) > 0);
+  const withChoice = stays.find((s) => !hasInformationalAccommodation(s) && (s.accommodations?.length ?? 0) > 0);
 
   return (
     <section className="block stays stays--split" id="stays">

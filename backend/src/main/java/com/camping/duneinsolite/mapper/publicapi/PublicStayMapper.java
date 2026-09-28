@@ -68,21 +68,33 @@ public class PublicStayMapper {
         response.setItinerary(List.of());
         response.setDepartureCities(com.camping.duneinsolite.service.PickupCities.names(tourType.getDepartureCities()));
         response.setReturnCities(com.camping.duneinsolite.service.PickupCities.names(tourType.getReturnCities()));
-        response.setAccommodations(bookableAccommodations(tourType));
+        response.setAccommodations(publicAccommodations(tourType));
         response.setGuideRequired(Boolean.TRUE.equals(tourType.getGuideRequired()));
         response.setMaxNights(tourType.getMaxNights() == null ? 1 : tourType.getMaxNights());
         return response;
     }
 
     /** Only active + priced tiers reach the vitrine — never an option we can't quote. */
-    private List<PublicStayResponse.Accommodation> bookableAccommodations(TourType tourType) {
-        // Switched off in the back office: no accommodation step at all.
-        if (Boolean.FALSE.equals(tourType.getHasAccommodationTypes())) return List.of();
+    private List<PublicStayResponse.Accommodation> publicAccommodations(TourType tourType) {
+        // The bivouac tent is descriptive content, not a selectable tier. It
+        // therefore remains public even when it has no independent price.
+        boolean informational = "bivouac-desert-tunisie".equals(tourType.getSlug());
+        // Switched off in the back office: no bookable accommodation choices.
+        // The descriptive bivouac tent is still returned for its information card.
+        if (!informational && Boolean.FALSE.equals(tourType.getHasAccommodationTypes())) return List.of();
         return accommodationTypeRepository
                 .findByTourType_TourTypeIdOrderByDisplayOrderAsc(tourType.getTourTypeId())
                 .stream()
-                .filter(AccommodationType::isBookable)
+                .filter(a -> informational ? a.isActive() : a.isBookable())
                 .map(a -> {
+                    java.math.BigDecimal adultPrice = a.getAdultPriceTtc() != null
+                            ? a.getAdultPriceTtc()
+                            : tourType.getPassengerAdultPrice();
+                    java.math.BigDecimal childPrice = a.getChildPriceTtc() != null
+                            ? a.getChildPriceTtc()
+                            : tourType.getPassengerChildPrice() != null
+                                    ? tourType.getPassengerChildPrice()
+                                    : adultPrice;
                     PublicStayResponse.Accommodation dto = new PublicStayResponse.Accommodation();
                     dto.setSlug(a.getSlug());
                     dto.setTitle(a.getName());
@@ -90,9 +102,11 @@ public class PublicStayMapper {
                     dto.setDescription(a.getDescription());
                     dto.setImage(a.getImageUrl());
                     dto.setGallery(List.copyOf(a.getGallery()));
-                    dto.setPriceFrom(a.getAdultPriceTtc());
-                    dto.setAdultPrice(a.getAdultPriceTtc());
-                    dto.setChildPrice(a.getChildPriceTtc() != null ? a.getChildPriceTtc() : a.getAdultPriceTtc());
+                    // These fallback rates only keep the shared public DTO
+                    // complete. The bivouac flow never submits this record.
+                    dto.setPriceFrom(adultPrice);
+                    dto.setAdultPrice(adultPrice);
+                    dto.setChildPrice(childPrice);
                     dto.setInfantPrice(a.getInfantPriceTtc() != null ? a.getInfantPriceTtc() : java.math.BigDecimal.ZERO);
                     dto.setCapacity(a.getCapacity());
                     dto.setSleeps("Jusqu'à " + a.getCapacity()
