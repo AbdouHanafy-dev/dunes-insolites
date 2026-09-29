@@ -542,6 +542,28 @@ export async function getStayAvailability(
   );
 }
 
+/**
+ * Same truthful check as `getStayAvailability`, one entry per day of
+ * `month` (yyyy-MM) - lets the date picker grey out full days up front.
+ * Empty array on any failure or when there's no backend: the picker then
+ * greys out nothing, same as before this existed.
+ */
+export async function getStayAvailabilityRange(
+  slug: string,
+  month: string,
+  nights?: number,
+  signal?: AbortSignal,
+): Promise<StayAvailability[]> {
+  if (!BASE) return [];
+  const nightsQuery = nights && nights > 1 ? `&nights=${nights}` : "";
+  const data = await get<{ days: StayAvailability[] }>(
+    `/public/stays/${encodeURIComponent(slug)}/availability-range?month=${encodeURIComponent(month)}${nightsQuery}`,
+    { seed: { days: [] }, empty: { days: [] } },
+    { signal },
+  );
+  return data.days ?? [];
+}
+
 export type ActivityAvailability = {
   activitySlug: string;
   date: string;
@@ -566,6 +588,21 @@ export async function getActivityAvailability(
     { seed: null, empty: null },
     { signal },
   );
+}
+
+/** Same truthful check as `getActivityAvailability`, one entry per day of `month` (yyyy-MM). Empty array on any failure. */
+export async function getActivityAvailabilityRange(
+  slug: string,
+  month: string,
+  signal?: AbortSignal,
+): Promise<ActivityAvailability[]> {
+  if (!BASE) return [];
+  const data = await get<{ days: ActivityAvailability[] }>(
+    `/public/activities/${encodeURIComponent(slug)}/availability-range?month=${encodeURIComponent(month)}`,
+    { seed: { days: [] }, empty: { days: [] } },
+    { signal },
+  );
+  return data.days ?? [];
 }
 
 /** Whether a promo code works on a circuit today, and for how much off. The server checks it again at booking. */
@@ -650,6 +687,21 @@ export async function getServiceOptionAvailability(
     { seed: null, empty: null },
     { signal },
   );
+}
+
+/** Same truthful check as `getServiceOptionAvailability`, one entry per day of `month` (yyyy-MM). Empty array on any failure. */
+export async function getServiceOptionAvailabilityRange(
+  slug: string,
+  month: string,
+  signal?: AbortSignal,
+): Promise<ServiceOptionAvailability[]> {
+  if (!BASE) return [];
+  const data = await get<{ days: ServiceOptionAvailability[] }>(
+    `/public/service-options/${encodeURIComponent(slug)}/availability-range?month=${encodeURIComponent(month)}`,
+    { seed: { days: [] }, empty: { days: [] } },
+    { signal },
+  );
+  return data.days ?? [];
 }
 
 export async function getGallery(): Promise<GalleryItem[]> {

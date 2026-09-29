@@ -18,12 +18,18 @@ export default function DatePicker({
   onChange,
   min,
   invalid,
+  unavailable,
+  onMonthChange,
 }: {
   id?: string;
   value: string;
   onChange: (iso: string) => void;
   min?: string;
   invalid?: boolean;
+  /** ISO dates known to be fully booked for the currently visible month - greyed out, not pickable. */
+  unavailable?: Set<string>;
+  /** Fired on open and on month navigation, so the parent can fetch that month's availability. */
+  onMonthChange?: (viewMonth: Date) => void;
 }) {
   const locale = useLocale();
   const t = useTranslations("datePicker");
@@ -31,6 +37,11 @@ export default function DatePicker({
   const selected = fromISO(value);
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(selected ?? fromISO(min ?? "") ?? new Date()));
   const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) onMonthChange?.(viewMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, viewMonth]);
 
   useEffect(() => {
     if (!open) return;
@@ -129,7 +140,8 @@ export default function DatePicker({
             {grid.map((day) => {
               const iso = toISO(day);
               const outside = day.getMonth() !== viewMonth.getMonth();
-              const disabled = !!min && iso < min;
+              const full = !!unavailable?.has(iso);
+              const disabled = (!!min && iso < min) || full;
               return (
                 <button
                   type="button"
@@ -139,6 +151,7 @@ export default function DatePicker({
                   data-outside={outside || undefined}
                   data-selected={iso === value || undefined}
                   data-today={iso === todayIso || undefined}
+                  data-unavailable={full || undefined}
                 >
                   {day.getDate()}
                 </button>

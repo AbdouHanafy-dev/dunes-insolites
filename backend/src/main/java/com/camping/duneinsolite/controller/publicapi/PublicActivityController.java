@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,5 +57,17 @@ public class PublicActivityController {
             @PathVariable String slug,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(publicAvailabilityService.forActivity(slug, date));
+    }
+
+    /**
+     * Same truthful check as {@link #getAvailability}, one entry per day of
+     * {@code month} - lets the date picker grey out full days up front.
+     */
+    @GetMapping("/{slug}/availability-range")
+    public ResponseEntity<Map<String, Object>> getAvailabilityRange(
+            @PathVariable String slug,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
+        List<PublicActivityAvailabilityResponse> days = publicAvailabilityService.forActivityMonth(slug, month);
+        return ResponseEntity.ok(Map.of("days", days));
     }
 }

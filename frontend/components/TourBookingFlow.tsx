@@ -150,6 +150,31 @@ export default function TourBookingFlow({
   const upgrades = upgradeOptions(tourOptions, nights);
   const otherReturnOption = returnCityOption(tourOptions);
 
+  // A tent/suite upgrade is a priced Extra (TOUR_OPTION), same mechanism as
+  // the "Getting There & Guide" service options - checked the same way, for
+  // the tour's chosen date, since the upgrade occupies the same camp-night
+  // inventory as a direct nuitée booking. Advisory - the booking call
+  // re-checks under a lock.
+  const [upgradeAvailability, setUpgradeAvailability] = useState<{
+    forDate: string;
+    bySlug: Record<string, api.ServiceOptionAvailability | null>;
+  }>();
+  useEffect(() => {
+    if (!date || upgrades.length === 0) return;
+    const ctrl = new AbortController();
+    Promise.all(
+      upgrades.map(async (o) => [o.slug, await api.getServiceOptionAvailability(o.slug, date, ctrl.signal)] as const),
+    ).then((entries) => {
+      if (!ctrl.signal.aborted) setUpgradeAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
+    }).catch(() => {});
+    return () => ctrl.abort();
+  }, [date, upgrades]);
+
+  function upgradeUnavailable(option: ServiceOptionCatalogItem): boolean {
+    if (upgradeAvailability?.forDate !== date) return false;
+    return upgradeAvailability.bySlug[option.slug]?.status === "UNAVAILABLE";
+  }
+
   const visibleSteps = [
     { id: 0, label: t("stepDateTravelers") },
     { id: 1, label: t("stepGuide") },
@@ -482,7 +507,9 @@ export default function TourBookingFlow({
           <p className="hint">{t("upgradeHint")}</p>
           <div className="ride-options">
             {upgrades.map((option) => {
-              const available = isUpgradeAvailable(option, party);
+              const meetsParty = isUpgradeAvailable(option, party);
+              const soldOut = upgradeUnavailable(option);
+              const available = meetsParty && !soldOut;
               return (
                 <label className="ride-option" key={option.slug} data-disabled={available ? undefined : "true"}>
                   <input
@@ -494,10 +521,12 @@ export default function TourBookingFlow({
                   <span>
                     {option.name}
                     {option.description && <small className="upgrade-desc">{option.description}</small>}
-                    {!available && <small className="upgrade-reason">{t("upgradeMinParty", { count: option.minPartySize ?? 0 })}</small>}
+                    {!meetsParty && <small className="upgrade-reason">{t("upgradeMinParty", { count: option.minPartySize ?? 0 })}</small>}
                   </span>
                   <span className="ride-price">
-                    <PriceText text={t("upgradePrice", { price: priceToken(optionTotal(option, party, nights)) })} />
+                    {soldOut
+                      ? t("unavailable")
+                      : <PriceText text={t("upgradePrice", { price: priceToken(optionTotal(option, party, nights)) })} />}
                   </span>
                 </label>
               );

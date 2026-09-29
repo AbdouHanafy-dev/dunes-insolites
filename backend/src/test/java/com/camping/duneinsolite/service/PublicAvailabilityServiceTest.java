@@ -1,20 +1,26 @@
 package com.camping.duneinsolite.service;
 
+import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.model.ExtraResourceRequirement;
+import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.repository.AccommodationTypeRepository;
 import com.camping.duneinsolite.repository.ExtraRepository;
 import com.camping.duneinsolite.repository.TourTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +35,9 @@ import static org.mockito.Mockito.when;
  */
 class PublicAvailabilityServiceTest {
 
+    private TourTypeRepository tourTypeRepository;
+    private AccommodationTypeRepository accommodationTypeRepository;
+    private AccommodationAvailabilityService accommodationAvailabilityService;
     private ExtraRepository extraRepository;
     private ExtraAvailabilityService extraAvailabilityService;
     private PublicAvailabilityService service;
@@ -42,11 +51,14 @@ class PublicAvailabilityServiceTest {
 
     @BeforeEach
     void setUp() {
+        tourTypeRepository = mock(TourTypeRepository.class);
+        accommodationTypeRepository = mock(AccommodationTypeRepository.class);
+        accommodationAvailabilityService = mock(AccommodationAvailabilityService.class);
         extraRepository = mock(ExtraRepository.class);
         extraAvailabilityService = mock(ExtraAvailabilityService.class);
         service = new PublicAvailabilityService(
-                mock(TourTypeRepository.class), mock(AccommodationTypeRepository.class),
-                mock(AccommodationAvailabilityService.class), extraRepository, extraAvailabilityService);
+                tourTypeRepository, accommodationTypeRepository,
+                accommodationAvailabilityService, extraRepository, extraAvailabilityService);
     }
 
     @Test
@@ -118,5 +130,61 @@ class PublicAvailabilityServiceTest {
         var result = service.forServiceOption("guide-with-vehicle", day);
         assertThat(result.status()).isEqualTo("UNAVAILABLE");
         assertThat(result.unitsAvailable()).isEqualTo(0);
+    }
+
+    @Test
+    void forActivityMonth_returnsOneEntryPerDayOfTheMonth() {
+        YearMonth month = YearMonth.of(2026, 11);
+        Extra activity = option("camel-trek", List.of());
+        when(extraRepository.findBySlugAndIsActiveTrue("camel-trek")).thenReturn(Optional.of(activity));
+        when(extraAvailabilityService.status(eq(activity), any(LocalDate.class)))
+                .thenReturn(new ExtraAvailabilityService.Availability(ExtraAvailabilityService.Status.AVAILABLE, 5));
+
+        var result = service.forActivityMonth("camel-trek", month);
+
+        assertThat(result).hasSize(month.lengthOfMonth());
+        assertThat(result.get(0).date()).isEqualTo(month.atDay(1));
+        assertThat(result.get(result.size() - 1).date()).isEqualTo(month.atEndOfMonth());
+        assertThat(result).allSatisfy(r -> assertThat(r.status()).isEqualTo("AVAILABLE"));
+    }
+
+    @Test
+    void forServiceOptionMonth_returnsOneEntryPerDayOfTheMonth() {
+        YearMonth month = YearMonth.of(2026, 2); // 28 days, non-leap
+        Extra option = option("guide-support", List.of());
+        when(extraRepository.findBySlugAndIsActiveTrue("guide-support")).thenReturn(Optional.of(option));
+        when(extraAvailabilityService.status(eq(option), any(LocalDate.class)))
+                .thenReturn(new ExtraAvailabilityService.Availability(ExtraAvailabilityService.Status.UNAVAILABLE, 0));
+
+        var result = service.forServiceOptionMonth("guide-support", month);
+
+        assertThat(result).hasSize(28);
+        assertThat(result).allSatisfy(r -> assertThat(r.status()).isEqualTo("UNAVAILABLE"));
+    }
+
+    @Test
+    void forStayMonth_perDayStatus_reflectsEachDaysOwnAvailability() {
+        YearMonth month = YearMonth.of(2026, 4); // 30 days
+        TourType stay = TourType.builder().tourTypeId(UUID.randomUUID()).build();
+        AccommodationType tier = AccommodationType.builder()
+                .id(UUID.randomUUID()).tourType(stay).slug("desert-tent").name("Desert Tent")
+                .capacity(2).maxUnits(1).active(true).adultPriceTtc(BigDecimal.TEN).build();
+        when(tourTypeRepository.findBySlugAndIsActiveTrue("nuitee-campement")).thenReturn(Optional.of(stay));
+        when(accommodationTypeRepository.findByTourType_TourTypeIdOrderByDisplayOrderAsc(stay.getTourTypeId()))
+                .thenReturn(List.of(tier));
+        LocalDate fullDay = month.atDay(10);
+        when(accommodationAvailabilityService.status(eq(tier), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new AccommodationAvailabilityService.Availability(AccommodationAvailabilityService.Status.AVAILABLE, 1));
+        when(accommodationAvailabilityService.status(tier, fullDay, fullDay.plusDays(1)))
+                .thenReturn(new AccommodationAvailabilityService.Availability(AccommodationAvailabilityService.Status.UNAVAILABLE, 0));
+
+        var result = service.forStayMonth("nuitee-campement", month, null);
+
+        assertThat(result).hasSize(month.lengthOfMonth());
+        var fullDayEntry = result.stream().filter(r -> r.date().equals(fullDay)).findFirst().orElseThrow();
+        assertThat(fullDayEntry.accommodations()).hasSize(1);
+        assertThat(fullDayEntry.accommodations().get(0).status()).isEqualTo("UNAVAILABLE");
+        var otherDayEntry = result.stream().filter(r -> !r.date().equals(fullDay)).findFirst().orElseThrow();
+        assertThat(otherDayEntry.accommodations().get(0).status()).isEqualTo("AVAILABLE");
     }
 }

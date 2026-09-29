@@ -25,6 +25,8 @@ export default function DateRangePicker({
   onChange,
   errorStart,
   errorEnd,
+  unavailable,
+  onMonthChange,
 }: {
   arrivalId?: string;
   departureId?: string;
@@ -37,6 +39,10 @@ export default function DateRangePicker({
   onChange: (start: string, end: string) => void;
   errorStart?: string;
   errorEnd?: string;
+  /** ISO dates known to be fully booked for the currently visible month - greyed out, not pickable. */
+  unavailable?: Set<string>;
+  /** Fired on open and on month navigation, so the parent can fetch that month's availability. */
+  onMonthChange?: (viewMonth: Date) => void;
 }) {
   const locale = useLocale();
   const t = useTranslations("datePicker");
@@ -48,6 +54,11 @@ export default function DateRangePicker({
   const open = openFrom !== null;
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(fromISO(start) ?? fromISO(min ?? "") ?? new Date()));
   const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) onMonthChange?.(viewMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, viewMonth]);
 
   useEffect(() => {
     if (!open) return;
@@ -163,7 +174,8 @@ export default function DateRangePicker({
               const outside = day.getMonth() !== viewMonth.getMonth();
               const beforeMin = !!min && iso < min;
               const beyondMax = !!start && !end && !!maxEnd && iso > maxEnd;
-              const disabled = beforeMin || beyondMax;
+              const full = !!unavailable?.has(iso);
+              const disabled = beforeMin || beyondMax || full;
               const isBoundary = iso === start || iso === end;
               const inRange = !!start && !!end && iso > start && iso < end;
               return (
@@ -176,6 +188,7 @@ export default function DateRangePicker({
                   data-selected={isBoundary || undefined}
                   data-in-range={inRange || undefined}
                   data-today={iso === todayIso || undefined}
+                  data-unavailable={full || undefined}
                 >
                   {day.getDate()}
                 </button>

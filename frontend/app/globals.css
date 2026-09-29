@@ -2630,6 +2630,10 @@ section.block {
   font-weight: 400;
   cursor: not-allowed;
 }
+.date-picker-grid button[data-unavailable] {
+  text-decoration: line-through;
+  text-decoration-color: rgba(20, 17, 16, 0.35);
+}
 .date-range-picker {
   position: relative;
 }

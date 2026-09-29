@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -92,5 +94,39 @@ public class PublicAvailabilityService {
         // configured), NPEing here every time. Keep both branches boxed.
         Integer unitsAvailable = unavailable ? Integer.valueOf(0) : availableSelections;
         return new PublicServiceOptionAvailabilityResponse(serviceOptionSlug, date, status, unitsAvailable);
+    }
+
+    /**
+     * One entry per day of {@code month} - lets a date picker grey out full
+     * days up front instead of the guest discovering it only after picking a
+     * date. Same advisory guarantee as the single-date methods above; just
+     * calls them once per day rather than adding a bulk query, since a month
+     * is at most 31 trivial reads at this business's scale.
+     */
+    @Transactional(readOnly = true)
+    public List<PublicAvailabilityResponse> forStayMonth(String staySlug, YearMonth month, Integer nights) {
+        List<PublicAvailabilityResponse> days = new ArrayList<>();
+        for (LocalDate date = month.atDay(1); !date.isAfter(month.atEndOfMonth()); date = date.plusDays(1)) {
+            days.add(forStay(staySlug, date, nights));
+        }
+        return days;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicActivityAvailabilityResponse> forActivityMonth(String activitySlug, YearMonth month) {
+        List<PublicActivityAvailabilityResponse> days = new ArrayList<>();
+        for (LocalDate date = month.atDay(1); !date.isAfter(month.atEndOfMonth()); date = date.plusDays(1)) {
+            days.add(forActivity(activitySlug, date));
+        }
+        return days;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicServiceOptionAvailabilityResponse> forServiceOptionMonth(String serviceOptionSlug, YearMonth month) {
+        List<PublicServiceOptionAvailabilityResponse> days = new ArrayList<>();
+        for (LocalDate date = month.atDay(1); !date.isAfter(month.atEndOfMonth()); date = date.plusDays(1)) {
+            days.add(forServiceOption(serviceOptionSlug, date));
+        }
+        return days;
     }
 }

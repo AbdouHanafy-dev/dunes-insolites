@@ -14,6 +14,7 @@ import { optionTotal, returnCityOption } from "@/lib/tourOptions";
 import { DEPARTURE_CITY_LABELS, type Accommodation, type Activity, type DepartureCity, type Stay } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import DatePicker from "@/components/DatePicker";
+import { toYearMonth } from "@/lib/dateGrid";
 import ListSelect from "@/components/ListSelect";
 import { guestsPerTier, isPlaced, tierPerNight, unplaced, type Guests } from "@/lib/guestPricing";
 import { activityQuantity, activityTotal, baseMinutes, canExtend, durationsPayload } from "@/lib/activityPricing";
@@ -249,6 +250,28 @@ export default function StayReservationForm({
     return () => ctrl.abort();
   }, [date, guideOptions, transportOptions]);
 
+  const [activityAvailability, setActivityAvailability] = useState<{
+    forDate: string;
+    bySlug: Record<string, api.ActivityAvailability | null>;
+  }>();
+  useEffect(() => {
+    if (!date) return;
+    const ctrl = new AbortController();
+    Promise.all(
+      activities.map(async (a) => [a.slug, await api.getActivityAvailability(a.slug, date, ctrl.signal)] as const),
+    ).then((entries) => {
+      if (!ctrl.signal.aborted) {
+        setActivityAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
+      }
+    }).catch(() => {});
+    return () => ctrl.abort();
+  }, [date, activities]);
+
+  function activityUnavailable(activity: Activity): boolean {
+    if (activityAvailability?.forDate !== date) return false;
+    return activityAvailability.bySlug[activity.slug]?.status === "UNAVAILABLE";
+  }
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -310,6 +333,27 @@ export default function StayReservationForm({
       setAvail({ forDate, data, error: false }),
     ).catch(() => {});
   }
+
+  // Which days of the currently-open calendar month are fully booked across
+  // every tier - greys them out before the guest picks one, instead of only
+  // finding out after. Informational stays (bivouac) have no tier to be full.
+  const [viewMonth, setViewMonth] = useState("");
+  const [monthUnavailable, setMonthUnavailable] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!viewMonth || informationalAccommodation) return;
+    const ctrl = new AbortController();
+    api.getStayAvailabilityRange(stay.slug, viewMonth, nights, ctrl.signal)
+      .then((days) => {
+        if (ctrl.signal.aborted) return;
+        setMonthUnavailable(new Set(
+          days
+            .filter((d) => d.accommodations.length > 0 && d.accommodations.every((a) => a.status === "UNAVAILABLE"))
+            .map((d) => d.date),
+        ));
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [viewMonth, nights, stay.slug, informationalAccommodation]);
 
   const min = todayISO();
   const partySize = adults + children;
@@ -657,6 +701,8 @@ export default function StayReservationForm({
                 }}
                 errorStart={errors.date}
                 errorEnd={errors.departureDate}
+                unavailable={monthUnavailable}
+                onMonthChange={(vm) => setViewMonth(toYearMonth(vm))}
               />
               {date && departureDate && <p className="hint">{t("nightsComputedHint", { nights })}</p>}
               {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
@@ -669,7 +715,15 @@ export default function StayReservationForm({
           ) : (
             <div className="field" data-invalid={!!errors.date}>
               <label htmlFor="s-date">{t("arrivalDateLabel")}</label>
-              <DatePicker id="s-date" min={min} value={date} onChange={setDate} invalid={!!errors.date} />
+              <DatePicker
+                id="s-date"
+                min={min}
+                value={date}
+                onChange={setDate}
+                invalid={!!errors.date}
+                unavailable={monthUnavailable}
+                onMonthChange={(vm) => setViewMonth(toYearMonth(vm))}
+              />
               {availabilityLoading && <p className="hint">{t("checkingAvailability")}</p>}
               {!informationalAccommodation && availabilityFor &&
                 availabilityFor.accommodations.length > 0 &&
@@ -969,22 +1023,30 @@ export default function StayReservationForm({
           </div>
         ) : (
           <div className="ride-options">
-            {activities.map((a) => (
+            {activities.map((a) => {
+              const unavailable = activityUnavailable(a);
+              return (
               <Fragment key={a.slug}>
-<label className="ride-option">
+<label className="ride-option" data-disabled={unavailable || undefined}>
                 <input
                   type="checkbox"
                   checked={rideSlugs.includes(a.slug)}
+                  disabled={unavailable}
                   onChange={() => toggleRide(a.slug)}
                 />
                 <span>{a.title}</span>
-                <span className="ride-price">{<PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}</span>
+                <span className="ride-price">
+                  {unavailable
+                    ? t("unavailable")
+                    : <PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}
+                </span>
               </label>
 {rideSlugs.includes(a.slug) && canExtend(a) && (
 <ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
 )}
 </Fragment>
-            ))}
+              );
+            })}
           </div>
         )}
         <p className="hint">{t("confirmOnSite")}</p>
