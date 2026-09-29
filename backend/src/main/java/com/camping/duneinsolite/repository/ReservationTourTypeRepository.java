@@ -46,26 +46,36 @@ public interface ReservationTourTypeRepository extends JpaRepository<Reservation
      * <p>check-in inclusive, check-out exclusive: overlap is
      * {@code existing.checkIn < requested.checkOut AND existing.checkOut > requested.checkIn}.
      */
-    @Query("""
-            SELECT COALESCE(SUM(acc.accommodationUnits), 0)
-            FROM ReservationTourType rtt
-            JOIN rtt.reservation r
-            JOIN rtt.accommodations acc
-            WHERE acc.accommodationTypeId = :accommodationTypeId
-              AND acc.accommodationUnits IS NOT NULL
-              AND r.checkInDate < :checkOut
-              AND r.checkOutDate > :checkIn
-              AND (:excludeReservationId IS NULL OR r.reservationId <> :excludeReservationId)
+    @Query(value = """
+            SELECT COALESCE(SUM(ra.accommodation_units), 0)
+            FROM reservation_accommodations ra
+            LEFT JOIN reservation_tour_types rtt
+                   ON rtt.reservation_tour_type_id = ra.reservation_tour_type_id
+            LEFT JOIN reservation_tour_hebergements rth
+                   ON rth.hebergement_id = ra.reservation_tour_hebergement_id
+            LEFT JOIN reservation_tours rt
+                   ON rt.reservation_tour_id = rth.reservation_tour_id
+            JOIN reservations r
+              ON r.reservation_id = COALESCE(rtt.reservation_id, rt.reservation_id)
+            WHERE ra.accommodation_type_id = :accommodationTypeId
+              AND ra.accommodation_units IS NOT NULL
               AND (
-                    r.status IN (com.camping.duneinsolite.model.enums.ReservationStatus.CONFIRMED,
-                                 com.camping.duneinsolite.model.enums.ReservationStatus.CHECKED_IN)
-                 OR (r.status = com.camping.duneinsolite.model.enums.ReservationStatus.PENDING
-                     AND (r.holdExpiresAt IS NULL OR r.holdExpiresAt > :now))
+                    (rtt.reservation_tour_type_id IS NOT NULL
+                     AND r.check_in_date <= :night AND r.check_out_date > :night)
+                 OR (rth.hebergement_id IS NOT NULL
+                     AND rth.activity_date <= :night
+                     AND rth.activity_date + COALESCE(rth.number_of_nights, 1) > :night)
               )
-            """)
-    long sumConsumingUnits(@Param("accommodationTypeId") UUID accommodationTypeId,
-                           @Param("checkIn") LocalDate checkIn,
-                           @Param("checkOut") LocalDate checkOut,
-                           @Param("now") LocalDateTime now,
-                           @Param("excludeReservationId") UUID excludeReservationId);
+              AND r.deleted_at IS NULL
+              AND (:excludeReservationId IS NULL OR r.reservation_id <> :excludeReservationId)
+              AND (
+                    r.status IN ('CONFIRMED', 'CHECKED_IN')
+                 OR (r.status = 'PENDING'
+                     AND (r.hold_expires_at IS NULL OR r.hold_expires_at > :now))
+              )
+            """, nativeQuery = true)
+    long sumConsumingUnitsOnNight(@Param("accommodationTypeId") UUID accommodationTypeId,
+                                  @Param("night") LocalDate night,
+                                  @Param("now") LocalDateTime now,
+                                  @Param("excludeReservationId") UUID excludeReservationId);
 }

@@ -3,7 +3,7 @@
 import { PriceText } from "@/components/Price";
 import { priceToken } from "@/lib/currency";
 import { useCurrency } from "@/components/CurrencyProvider";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import * as api from "@/lib/api";
@@ -147,7 +147,7 @@ export default function TourBookingFlow({
   }, [locale]);
 
   const party = adults + children;
-  const upgrades = upgradeOptions(tourOptions, nights);
+  const upgrades = useMemo(() => upgradeOptions(tourOptions, nights), [tourOptions, nights]);
   const otherReturnOption = returnCityOption(tourOptions);
 
   // A tent/suite upgrade is a priced Extra (TOUR_OPTION), same mechanism as
@@ -165,7 +165,11 @@ export default function TourBookingFlow({
     Promise.all(
       upgrades.map(async (o) => [o.slug, await api.getServiceOptionAvailability(o.slug, date, ctrl.signal)] as const),
     ).then((entries) => {
-      if (!ctrl.signal.aborted) setUpgradeAvailability({ forDate: date, bySlug: Object.fromEntries(entries) });
+      if (!ctrl.signal.aborted) {
+        const bySlug = Object.fromEntries(entries);
+        setUpgradeAvailability({ forDate: date, bySlug });
+        setUpgradeSlugs((current) => current.filter((slug) => bySlug[slug]?.status !== "UNAVAILABLE"));
+      }
     }).catch(() => {});
     return () => ctrl.abort();
   }, [date, upgrades]);
@@ -173,6 +177,33 @@ export default function TourBookingFlow({
   function upgradeUnavailable(option: ServiceOptionCatalogItem): boolean {
     if (upgradeAvailability?.forDate !== date) return false;
     return upgradeAvailability.bySlug[option.slug]?.status === "UNAVAILABLE";
+  }
+
+  const [activityAvailability, setActivityAvailability] = useState<{
+    forDate: string;
+    bySlug: Record<string, api.ActivityAvailability | null>;
+  }>();
+  useEffect(() => {
+    if (!date || activities.length === 0) return;
+    const ctrl = new AbortController();
+    Promise.all(
+      activities.map(async (activity) => [
+        activity.slug,
+        await api.getActivityAvailability(activity.slug, date, ctrl.signal),
+      ] as const),
+    ).then((entries) => {
+      if (!ctrl.signal.aborted) {
+        const bySlug = Object.fromEntries(entries);
+        setActivityAvailability({ forDate: date, bySlug });
+        setRideSlugs((current) => current.filter((slug) => bySlug[slug]?.status !== "UNAVAILABLE"));
+      }
+    }).catch(() => {});
+    return () => ctrl.abort();
+  }, [date, activities]);
+
+  function activityUnavailable(activity: Activity): boolean {
+    return activityAvailability?.forDate === date
+      && activityAvailability.bySlug[activity.slug]?.status === "UNAVAILABLE";
   }
 
   const visibleSteps = [
@@ -187,10 +218,11 @@ export default function TourBookingFlow({
   const activeStep = visibleSteps[activeStepPosition] ?? visibleSteps[0];
 
   const extrasTotal = activities
-    .filter((activity) => rideSlugs.includes(activity.slug))
+    .filter((activity) => rideSlugs.includes(activity.slug) && !activityUnavailable(activity))
     .reduce((sum, activity) => sum + activityTotal(activity, adults + children, 1, minutesFor(activity)), 0);
   // An upgrade the party no longer qualifies for (it shrank below the minimum) is dropped, not kept in the total.
-  const chosenUpgrades = upgrades.filter((option) => upgradeSlugs.includes(option.slug) && isUpgradeAvailable(option, party));
+  const chosenUpgrades = upgrades.filter((option) =>
+    upgradeSlugs.includes(option.slug) && isUpgradeAvailable(option, party) && !upgradeUnavailable(option));
   const upgradesTotal = chosenUpgrades.reduce((sum, option) => sum + optionTotal(option, party, nights), 0);
   const returnOtherTotal = otherReturn && returnCityOther.trim() && otherReturnOption ? optionTotal(otherReturnOption, party, nights) : 0;
   const optionsTotal = upgradesTotal + returnOtherTotal;
@@ -546,22 +578,26 @@ export default function TourBookingFlow({
             </div>
           ) : (
             <div className="ride-options">
-              {activities.map((a) => (
+              {activities.map((a) => {
+                const unavailable = activityUnavailable(a);
+                return (
                 <Fragment key={a.slug}>
-<label className="ride-option">
+<label className="ride-option" data-disabled={unavailable || undefined}>
                   <input
                     type="checkbox"
-                    checked={rideSlugs.includes(a.slug)}
+                    checked={!unavailable && rideSlugs.includes(a.slug)}
+                    disabled={unavailable}
                     onChange={() => toggleRide(a.slug)}
                   />
                   <span>{a.title}</span>
-                  <span className="ride-price">{<PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}</span>
+                  <span className="ride-price">{unavailable ? t("unavailable") : <PriceText text={t("fromPrice", { price: priceToken(a.priceFrom)})} />}</span>
                 </label>
-{rideSlugs.includes(a.slug) && canExtend(a) && (
+{!unavailable && rideSlugs.includes(a.slug) && canExtend(a) && (
 <ActivityDurationStepper activity={a} minutes={minutesFor(a)} onChange={(m) => setDurations((cur) => ({ ...cur, [a.slug]: m }))} />
 )}
 </Fragment>
-              ))}
+                );
+              })}
             </div>
           )}
           <p className="hint">{t("confirmOnSite")}</p>

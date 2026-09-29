@@ -518,6 +518,30 @@ export type AvailabilityDay = {
   children: number;
   blockId: string | null;
   blockNote: string | null;
+  accommodations: AccommodationInventory[];
+};
+
+export type ExternalAccommodationBooking = {
+  id: string;
+  accommodationTypeId: string;
+  accommodationName: string;
+  checkIn: string;
+  checkOut: string;
+  units: number;
+  source: "GETYOURGUIDE" | "BOOKING_COM" | "EXPEDIA" | "PHONE" | "WALK_IN" | "OTHER";
+  externalReference: string | null;
+  note: string | null;
+};
+
+export type AccommodationInventory = {
+  accommodationTypeId: string;
+  name: string;
+  maxUnits: number | null;
+  internalUnits: number;
+  externalUnits: number;
+  availableUnits: number | null;
+  status: "AVAILABLE" | "LOW" | "FULL" | "UNKNOWN";
+  externalBookings: ExternalAccommodationBooking[];
 };
 
 // month is "yyyy-MM" (e.g. "2026-09") — matches the backend's

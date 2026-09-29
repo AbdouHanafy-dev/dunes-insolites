@@ -3,6 +3,8 @@ package com.camping.duneinsolite.dto.response;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,4 +22,5 @@ public class AvailabilityDayResponse {
     private int children;
     private UUID blockId; // null when not manually blocked
     private String blockNote;
+    private List<AccommodationInventoryResponse> accommodations = new ArrayList<>();
 }

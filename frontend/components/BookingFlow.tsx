@@ -251,18 +251,24 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   // Which days of the currently-open calendar month are fully booked across
   // every tier - greys them out before the guest picks one.
   const [viewMonth, setViewMonth] = useState("");
-  const [monthUnavailable, setMonthUnavailable] = useState<Set<string>>(new Set());
+  const [monthAvailability, setMonthAvailability] = useState<{ key: string; dates: Set<string> }>({ key: "", dates: new Set() });
+  const monthAvailabilityKey = selectedStay && viewMonth
+    ? `${selectedStay.slug}:${viewMonth}:${nights}`
+    : "";
+  const monthUnavailable = monthAvailability.key === monthAvailabilityKey
+    ? monthAvailability.dates
+    : new Set<string>();
   useEffect(() => {
     if (category !== "accommodation" || !selectedStay || !viewMonth || informationalAccommodation) return;
     const ctrl = new AbortController();
     api.getStayAvailabilityRange(selectedStay.slug, viewMonth, nights, ctrl.signal)
       .then((days) => {
         if (ctrl.signal.aborted) return;
-        setMonthUnavailable(new Set(
+        setMonthAvailability({ key: `${selectedStay.slug}:${viewMonth}:${nights}`, dates: new Set(
           days
             .filter((d) => d.accommodations.length > 0 && d.accommodations.every((a) => a.status === "UNAVAILABLE"))
             .map((d) => d.date),
-        ));
+        ) });
       })
       .catch(() => {});
     return () => ctrl.abort();

@@ -23,10 +23,12 @@ const RULE_FIELDS = [
 export default function PricingRulesPanel({
   resourceApiPath,
   resourceId,
+  basePrice,
 }: {
   /** e.g. "extras" or "accommodation-types" */
   resourceApiPath: string;
   resourceId: string;
+  basePrice?: number;
 }) {
   const toast = useToast();
   const fi = useFormIssues(RULE_FIELDS);
@@ -37,6 +39,7 @@ export default function PricingRulesPanel({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [priceTtc, setPriceTtc] = useState("");
+  const [priceAction, setPriceAction] = useState<"FINAL" | "PROMOTION" | "INCREASE">("FINAL");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -63,14 +66,19 @@ export default function PricingRulesPanel({
         problems.push(fi.issue("endDate", `doit être le même jour ou après le début (début ${startDate}, fin ${endDate}).`));
       }
     }
-    const price = Number(priceTtc);
+    const entered = Number(priceTtc);
+    const price = priceAction === "FINAL"
+      ? entered
+      : basePrice == null
+        ? Number.NaN
+        : basePrice * (priceAction === "PROMOTION" ? 1 - entered / 100 : 1 + entered / 100);
     if (priceTtc.trim() === "") problems.push(fi.issue("priceTtc", "prix obligatoire — il est vide."));
-    else if (!Number.isFinite(price) || price < 0) {
+    else if (!Number.isFinite(price) || price < 0 || (priceAction === "PROMOTION" && entered > 100)) {
       problems.push(fi.issue("priceTtc", `doit être un nombre positif ou nul (saisi : ${priceTtc}).`));
     }
     if (ruleType === "DATE" && startDate) {
       const same = (rules ?? []).find((r) => r.ruleType === "DATE" && r.startDate === startDate);
-      if (same) problems.push(fi.issue("startDate", `une règle « Date » existe déjà pour le ${startDate} (${same.priceTtc} €) — supprimez-la d'abord.`));
+      if (same) problems.push(fi.issue("startDate", `une règle « Date » existe déjà pour le ${startDate} (${same.priceTtc} TND) — supprimez-la d'abord.`));
     }
     if (problems.length > 0) {
       toast.error(fi.local(problems));
@@ -84,7 +92,7 @@ export default function PricingRulesPanel({
         ruleType,
         startDate,
         endDate: ruleType === "DATE" ? startDate : endDate,
-        priceTtc: Number(priceTtc),
+        priceTtc: Number(price.toFixed(3)),
         active: true,
       }),
     });
@@ -144,7 +152,16 @@ export default function PricingRulesPanel({
                   <td className="px-4 py-2">{r.ruleType === "DATE" ? "Date" : "Période"}</td>
                   <td className="px-4 py-2">{r.startDate}</td>
                   <td className="px-4 py-2">{r.endDate}</td>
-                  <td className="px-4 py-2">{r.priceTtc} €</td>
+                  <td className="px-4 py-2">
+                    {r.priceTtc} TND
+                    {basePrice != null && basePrice > 0 && r.priceTtc !== basePrice && (
+                      <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${r.priceTtc < basePrice ? "bg-emerald/10 text-emerald" : "bg-amber-100 text-amber-800"}`}>
+                        {r.priceTtc < basePrice
+                          ? `Promotion −${Math.round((1 - r.priceTtc / basePrice) * 100)} %`
+                          : `Augmentation +${Math.round((r.priceTtc / basePrice - 1) * 100)} %`}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-right">
                     <button type="button" className="text-rose hover:underline" onClick={() => remove(r.id)}>
                       Supprimer
@@ -157,7 +174,7 @@ export default function PricingRulesPanel({
         </div>
       )}
 
-      <form onSubmit={create} noValidate className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <form onSubmit={create} noValidate className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-6">
         <div className="flex flex-col gap-1">
           <label className={labelClass}>Type</label>
           <select
@@ -196,7 +213,19 @@ export default function PricingRulesPanel({
           </div>
         )}
         <div className="flex flex-col gap-1">
-          <label className={labelClass}>Prix (TTC)</label>
+          <label className={labelClass}>Action tarifaire</label>
+          <select
+            className={inputClass}
+            value={priceAction}
+            onChange={(e) => setPriceAction(e.target.value as "FINAL" | "PROMOTION" | "INCREASE")}
+          >
+            <option value="FINAL">Prix final</option>
+            <option value="PROMOTION" disabled={basePrice == null}>Promotion (%)</option>
+            <option value="INCREASE" disabled={basePrice == null}>Augmentation (%)</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className={labelClass}>{priceAction === "FINAL" ? "Prix final (TTC)" : "Pourcentage (%)"}</label>
           <input
             id="priceTtc"
             type="number"
@@ -206,6 +235,11 @@ export default function PricingRulesPanel({
             value={priceTtc}
             onChange={(e) => setPriceTtc(e.target.value)}
           />
+          {priceAction !== "FINAL" && basePrice != null && priceTtc !== "" && Number.isFinite(Number(priceTtc)) && (
+            <p className="text-[11px] text-navy-700/50">
+              Prix appliqué : {(basePrice * (priceAction === "PROMOTION" ? 1 - Number(priceTtc) / 100 : 1 + Number(priceTtc) / 100)).toFixed(3)} TND
+            </p>
+          )}
           {fi.errs("priceTtc")}
         </div>
         <div className="flex items-end">

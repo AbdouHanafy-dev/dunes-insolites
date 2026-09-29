@@ -5,6 +5,9 @@ import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.AccommodationType;
 import com.camping.duneinsolite.observability.AvailabilityMetrics;
 import com.camping.duneinsolite.repository.AccommodationTypeRepository;
+import com.camping.duneinsolite.repository.AvailabilityBlockRepository;
+import com.camping.duneinsolite.repository.ExternalAccommodationBookingRepository;
+import com.camping.duneinsolite.repository.InventoryRuleRepository;
 import com.camping.duneinsolite.repository.ReservationTourTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,9 @@ public class AccommodationAvailabilityService {
 
     private final AccommodationTypeRepository accommodationTypeRepository;
     private final ReservationTourTypeRepository reservationTourTypeRepository;
+    private final ExternalAccommodationBookingRepository externalBookingRepository;
+    private final AvailabilityBlockRepository availabilityBlockRepository;
+    private final InventoryRuleRepository inventoryRuleRepository;
     private final AvailabilityMetrics metrics;
     private final Clock clock;
 
@@ -55,13 +61,11 @@ public class AccommodationAvailabilityService {
         if (!acc.isBookable()) {
             return new Availability(Status.UNAVAILABLE, 0);
         }
-        if (acc.getMaxUnits() == null) {
+        Integer free = minimumFreeUnits(acc, checkIn, checkOut, null);
+        if (free == null) {
             metrics.checkUnknown();
             return new Availability(Status.UNKNOWN, null);
         }
-        long consuming = reservationTourTypeRepository.sumConsumingUnits(
-                acc.getId(), checkIn, checkOut, now(), null);
-        int free = (int) Math.max(0, acc.getMaxUnits() - consuming);
         if (free > 0) {
             metrics.checkAvailable();
             return new Availability(Status.AVAILABLE, free);
@@ -90,20 +94,41 @@ public class AccommodationAvailabilityService {
         AccommodationType acc = accommodationTypeRepository.lockById(accommodationTypeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Accommodation not found: " + accommodationTypeId));
 
-        if (acc.getMaxUnits() == null) {
-            return; // inventory not configured — no ceiling to enforce
-        }
+        Integer free = minimumFreeUnits(acc, checkIn, checkOut, excludeReservationId);
+        if (free == null) return;
 
-        long consuming = reservationTourTypeRepository.sumConsumingUnits(
-                acc.getId(), checkIn, checkOut, now(), excludeReservationId);
-
-        if (consuming + units > acc.getMaxUnits()) {
+        if (units > free) {
             metrics.allocationRejected();
-            long free = Math.max(0, acc.getMaxUnits() - consuming);
             throw new AccommodationUnavailableException(free == 0
                     ? "\"" + acc.getName() + "\" is fully booked for those nights."
                     : "Only " + free + " × \"" + acc.getName() + "\" left for those nights.");
         }
+    }
+
+    /** Lowest free stock across every occupied night in [checkIn, checkOut). */
+    private Integer minimumFreeUnits(AccommodationType accommodation, LocalDate checkIn,
+                                 LocalDate checkOut, UUID excludeReservationId) {
+        if (checkIn == null || checkOut == null || !checkOut.isAfter(checkIn)) {
+            throw new IllegalArgumentException("Check-out must be after check-in.");
+        }
+        Integer minimum = null;
+        LocalDateTime currentTime = now();
+        for (LocalDate night = checkIn; night.isBefore(checkOut); night = night.plusDays(1)) {
+            if (availabilityBlockRepository.findByTourTypeTourTypeIdAndDate(
+                    accommodation.getTourType().getTourTypeId(), night).isPresent()) {
+                return 0;
+            }
+            Integer capacity = inventoryRuleRepository.findCoveringAccommodation(accommodation.getId(), night)
+                    .stream().findFirst().map(com.camping.duneinsolite.model.InventoryRule::getMaxUnits)
+                    .orElse(accommodation.getMaxUnits());
+            if (capacity == null) return null;
+            long internal = reservationTourTypeRepository.sumConsumingUnitsOnNight(
+                    accommodation.getId(), night, currentTime, excludeReservationId);
+            long external = externalBookingRepository.sumUnitsOnNight(accommodation.getId(), night, null);
+            int free = (int) Math.max(0, capacity - internal - external);
+            minimum = minimum == null ? free : Math.min(minimum, free);
+        }
+        return minimum;
     }
 
     private LocalDateTime now() {

@@ -8,6 +8,8 @@ import { useToast } from "@/components/Toast";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import type { AdminAccommodationType, AdminAccommodationTypeInput } from "@/lib/api";
+import PricingRulesPanel from "@/components/payload/PricingRulesPanel";
+import InventoryRulesPanel from "@/components/availability/InventoryRulesPanel";
 
 const TIER_FIELDS: FieldLike[] = [
   { key: "name", label: "Nom", type: "text", required: true },
@@ -82,6 +84,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
   const [editing, setEditing] = useState<AdminAccommodationTypeInput | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminAccommodationType | null>(null);
+  const [pricingTarget, setPricingTarget] = useState<AdminAccommodationType | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [attempted, setAttempted] = useState(false);
@@ -267,6 +270,9 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right">
+                    <button type="button" onClick={() => setPricingTarget(t)} className="btn btn-secondary btn-sm mr-2">
+                      Stock & tarifs
+                    </button>
                     <button type="button" onClick={() => openEdit(t)} className="btn btn-secondary btn-sm">
                       Modifier
                     </button>
@@ -464,6 +470,21 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
               {busy ? "Enregistrement…" : "Enregistrer"}
             </button>
           </div>
+        </Modal>
+      )}
+
+      {pricingTarget && (
+        <Modal title={`Tarifs variables · ${pricingTarget.name}`} onClose={() => setPricingTarget(null)} wide>
+          <InventoryRulesPanel
+            resourceApiPath="accommodation-types"
+            resourceId={pricingTarget.id}
+            baseCapacity={pricingTarget.maxUnits}
+          />
+          <PricingRulesPanel
+            resourceApiPath="accommodation-types"
+            resourceId={pricingTarget.id}
+            basePrice={pricingTarget.adultPriceTtc ?? undefined}
+          />
         </Modal>
       )}
 

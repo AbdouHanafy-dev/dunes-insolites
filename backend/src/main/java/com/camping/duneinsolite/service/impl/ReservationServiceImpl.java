@@ -471,9 +471,11 @@ public class ReservationServiceImpl implements ReservationService {
         for (ReservationTour tour : reservation.getTours()) {
             for (ReservationTourHebergement heb : tour.getHebergements()) {
                 for (ReservationAccommodation acc : heb.getAccommodations()) {
+                    int nights = heb.getNumberOfNights() != null && heb.getNumberOfNights() > 0
+                            ? heb.getNumberOfNights() : 1;
                     accommodationAvailabilityService.allocate(
                             acc.getAccommodationTypeId(), acc.getAccommodationUnits(),
-                            reservation.getCheckInDate(), reservation.getCheckOutDate(),
+                            heb.getActivityDate(), heb.getActivityDate().plusDays(nights),
                             excludeReservationId);
                 }
             }

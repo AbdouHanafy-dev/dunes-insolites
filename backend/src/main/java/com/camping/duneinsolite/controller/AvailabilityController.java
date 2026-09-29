@@ -1,8 +1,10 @@
 package com.camping.duneinsolite.controller;
 
 import com.camping.duneinsolite.dto.request.AvailabilityBlockRequest;
+import com.camping.duneinsolite.dto.request.ExternalAccommodationBookingRequest;
 import com.camping.duneinsolite.dto.response.AvailabilityBlockResponse;
 import com.camping.duneinsolite.dto.response.AvailabilityDayResponse;
+import com.camping.duneinsolite.dto.response.ExternalAccommodationBookingResponse;
 import com.camping.duneinsolite.service.AvailabilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Ops-only visibility, not a booking control - see AvailabilityBlock and
- * AvailabilityServiceImpl's own doc comments. Was a single class-level
+ * Operations calendar and accommodation inventory controls. Was a single class-level
  * hasRole('ADMIN') - moved to per-method @perm checks (see PageController's
  * comment for why) so this can be handed to CAMPING later if ever needed,
  * but seeds at NONE for CAMPING/PARTENAIRE, matching the ADMIN-only intent
@@ -49,6 +50,20 @@ public class AvailabilityController {
     @PreAuthorize("@perm.can('AVAILABILITY', 'FULL')")
     public ResponseEntity<Void> deleteBlock(@PathVariable UUID blockId) {
         availabilityService.deleteBlock(blockId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/external-bookings")
+    @PreAuthorize("@perm.can('AVAILABILITY', 'FULL')")
+    public ResponseEntity<ExternalAccommodationBookingResponse> createExternalBooking(
+            @Valid @RequestBody ExternalAccommodationBookingRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(availabilityService.createExternalBooking(request));
+    }
+
+    @DeleteMapping("/external-bookings/{bookingId}")
+    @PreAuthorize("@perm.can('AVAILABILITY', 'FULL')")
+    public ResponseEntity<Void> deleteExternalBooking(@PathVariable UUID bookingId) {
+        availabilityService.deleteExternalBooking(bookingId);
         return ResponseEntity.noContent().build();
     }
 }

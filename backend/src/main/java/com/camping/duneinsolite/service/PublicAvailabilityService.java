@@ -63,7 +63,7 @@ public class PublicAvailabilityService {
         Extra extra = extraRepository.findBySlugAndIsActiveTrue(activitySlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Activity not found: " + activitySlug));
         var a = extraAvailabilityService.status(extra, date);
-        return new PublicActivityAvailabilityResponse(activitySlug, date, a.status().name(), a.unitsAvailable());
+        return new PublicActivityAvailabilityResponse(activitySlug, date, a.status().name(), a.unitsAvailable(), a.maxUnits());
     }
 
     @Transactional(readOnly = true)

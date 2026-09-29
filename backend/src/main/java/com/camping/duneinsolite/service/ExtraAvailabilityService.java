@@ -5,6 +5,7 @@ import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.Extra;
 import com.camping.duneinsolite.observability.AvailabilityMetrics;
 import com.camping.duneinsolite.repository.ExtraRepository;
+import com.camping.duneinsolite.repository.InventoryRuleRepository;
 import com.camping.duneinsolite.repository.ReservationExtraRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,32 +54,38 @@ public class ExtraAvailabilityService {
 
     private final ExtraRepository extraRepository;
     private final ReservationExtraRepository reservationExtraRepository;
+    private final InventoryRuleRepository inventoryRuleRepository;
     private final AvailabilityMetrics metrics;
     private final Clock clock;
 
     public enum Status { AVAILABLE, UNAVAILABLE, UNKNOWN }
 
-    public record Availability(Status status, Integer unitsAvailable) {}
+    public record Availability(Status status, Integer unitsAvailable, Integer maxUnits) {
+        public Availability(Status status, Integer unitsAvailable) {
+            this(status, unitsAvailable, null);
+        }
+    }
 
     /** Advisory only — no lock, may be stale. */
     @Transactional(readOnly = true)
     public Availability status(Extra extra, LocalDate date) {
         if (!Boolean.TRUE.equals(extra.getIsActive())) {
-            return new Availability(Status.UNAVAILABLE, 0);
+            return new Availability(Status.UNAVAILABLE, 0, 0);
         }
-        if (extra.getMaxUnitsPerDay() == null) {
+        Integer capacity = capacity(extra, date);
+        if (capacity == null) {
             metrics.checkUnknown();
-            return new Availability(Status.UNKNOWN, null);
+            return new Availability(Status.UNKNOWN, null, null);
         }
         long consuming = reservationExtraRepository.sumConsumingQuantity(
                 extra.getExtraId(), date, now(), null);
-        int free = (int) Math.max(0, extra.getMaxUnitsPerDay() - consuming);
+        int free = (int) Math.max(0, capacity - consuming);
         if (free > 0) {
             metrics.checkAvailable();
-            return new Availability(Status.AVAILABLE, free);
+            return new Availability(Status.AVAILABLE, free, capacity);
         }
         metrics.checkUnavailable();
-        return new Availability(Status.UNAVAILABLE, 0);
+        return new Availability(Status.UNAVAILABLE, 0, capacity);
     }
 
     public Availability statusById(UUID extraId, LocalDate date) {
@@ -106,16 +113,17 @@ public class ExtraAvailabilityService {
             throw new ActivityUnavailableException(
                     "\"" + extra.getName() + "\" is no longer available.");
         }
-        if (extra.getMaxUnitsPerDay() == null) {
+        Integer capacity = capacity(extra, date);
+        if (capacity == null) {
             return; // inventory not configured — no ceiling to enforce
         }
 
         long consuming = reservationExtraRepository.sumConsumingQuantity(
                 extra.getExtraId(), date, now(), excludeReservationId);
 
-        if (consuming + quantity > extra.getMaxUnitsPerDay()) {
+        if (consuming + quantity > capacity) {
             metrics.allocationRejected();
-            long free = Math.max(0, extra.getMaxUnitsPerDay() - consuming);
+            long free = Math.max(0, capacity - consuming);
             throw new ActivityUnavailableException(free == 0
                     ? "\"" + extra.getName() + "\" is fully booked for that date."
                     : "Only " + free + " × \"" + extra.getName() + "\" left for that date.");
@@ -124,5 +132,11 @@ public class ExtraAvailabilityService {
 
     private LocalDateTime now() {
         return LocalDateTime.now(clock);
+    }
+
+    private Integer capacity(Extra extra, LocalDate date) {
+        return inventoryRuleRepository.findCoveringExtra(extra.getExtraId(), date).stream()
+                .findFirst().map(com.camping.duneinsolite.model.InventoryRule::getMaxUnits)
+                .orElse(extra.getMaxUnitsPerDay());
     }
 }

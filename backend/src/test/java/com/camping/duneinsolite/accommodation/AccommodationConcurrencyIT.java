@@ -139,8 +139,8 @@ class AccommodationConcurrencyIT {
         assertThat(conflict.get()).as("exactly one is rejected with a capacity conflict").isEqualTo(1);
         assertThat(other.get()).as("no unexpected failures").isZero();
 
-        long allocated = reservationTourTypeRepository.sumConsumingUnits(
-                suiteId, date, date.plusDays(1), java.time.LocalDateTime.now(), null);
+        long allocated = reservationTourTypeRepository.sumConsumingUnitsOnNight(
+                suiteId, date, java.time.LocalDateTime.now(), null);
         assertThat(allocated).as("exactly one unit allocated in the database for this tier").isEqualTo(1L);
     }
 

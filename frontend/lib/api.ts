@@ -569,6 +569,7 @@ export type ActivityAvailability = {
   date: string;
   status: "AVAILABLE" | "UNAVAILABLE" | "UNKNOWN";
   unitsAvailable: number | null;
+  maxUnits: number | null;
 };
 
 /**

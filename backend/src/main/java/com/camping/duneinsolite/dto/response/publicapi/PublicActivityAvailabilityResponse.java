@@ -12,5 +12,6 @@ public record PublicActivityAvailabilityResponse(
         String activitySlug,
         LocalDate date,
         String status,
-        Integer unitsAvailable
+        Integer unitsAvailable,
+        Integer maxUnits
 ) {}

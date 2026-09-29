@@ -175,7 +175,13 @@ export default function DateRangePicker({
               const beforeMin = !!min && iso < min;
               const beyondMax = !!start && !end && !!maxEnd && iso > maxEnd;
               const full = !!unavailable?.has(iso);
-              const disabled = beforeMin || beyondMax || full;
+              // Check-out is exclusive: a full day may be selected as the
+              // departure boundary, but no full night may sit inside the stay.
+              const selectingDeparture = !!start && !end && iso > start;
+              const rangeContainsFull = selectingDeparture && !!unavailable
+                && [...unavailable].some((date) => date >= start && date < iso);
+              const unavailableForChoice = selectingDeparture ? rangeContainsFull : full;
+              const disabled = beforeMin || beyondMax || unavailableForChoice;
               const isBoundary = iso === start || iso === end;
               const inRange = !!start && !!end && iso > start && iso < end;
               return (
@@ -188,7 +194,7 @@ export default function DateRangePicker({
                   data-selected={isBoundary || undefined}
                   data-in-range={inRange || undefined}
                   data-today={iso === todayIso || undefined}
-                  data-unavailable={full || undefined}
+                  data-unavailable={unavailableForChoice || undefined}
                 >
                   {day.getDate()}
                 </button>

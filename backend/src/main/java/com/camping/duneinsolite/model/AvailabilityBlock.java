@@ -9,19 +9,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * A staff-entered "this TourType isn't taking bookings on this date" marker
- * — purely operational visibility, not enforced anywhere in the booking
- * flow. Deliberately scoped to TourType (the real, already-CRUD'd backend
- * entity), not "accommodation" (Desert Tent / Desert Room / Dune Suite):
- * that model only exists in the frontend's seed data today (DI-012, not
- * yet migrated to a real backend entity) - building availability against
- * it here would mean inventing a second, competing definition of the same
- * not-yet-decided thing. See docs/cms.md.
- *
- * No relation to ReservationServiceImpl at all - this never touches
- * reservation creation, pricing, or status. It exists purely so the
- * calendar (AvailabilityServiceImpl.getCalendar) can show a manually
- * marked closure next to the real, already-booked count for that day.
+ * A staff-entered closure for one stay and one night. Every accommodation
+ * tier belonging to that stay is unavailable; public availability and the
+ * authoritative booking allocation both enforce the closure.
  */
 @Entity
 @Table(name = "availability_blocks", uniqueConstraints = @UniqueConstraint(columnNames = {"tour_type_id", "date"}))

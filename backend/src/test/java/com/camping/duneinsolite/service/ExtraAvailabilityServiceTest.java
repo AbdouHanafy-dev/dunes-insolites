@@ -2,8 +2,10 @@ package com.camping.duneinsolite.service;
 
 import com.camping.duneinsolite.exception.ActivityUnavailableException;
 import com.camping.duneinsolite.model.Extra;
+import com.camping.duneinsolite.model.InventoryRule;
 import com.camping.duneinsolite.observability.AvailabilityMetrics;
 import com.camping.duneinsolite.repository.ExtraRepository;
+import com.camping.duneinsolite.repository.InventoryRuleRepository;
 import com.camping.duneinsolite.repository.ReservationExtraRepository;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +33,7 @@ class ExtraAvailabilityServiceTest {
 
     private ExtraRepository extraRepo;
     private ReservationExtraRepository reRepo;
+    private InventoryRuleRepository inventoryRuleRepo;
     private ExtraAvailabilityService service;
 
     private final UUID id = UUID.randomUUID();
@@ -47,7 +50,9 @@ class ExtraAvailabilityServiceTest {
     void setUp() {
         extraRepo = mock(ExtraRepository.class);
         reRepo = mock(ReservationExtraRepository.class);
-        service = new ExtraAvailabilityService(extraRepo, reRepo,
+        inventoryRuleRepo = mock(InventoryRuleRepository.class);
+        when(inventoryRuleRepo.findCoveringExtra(any(), any())).thenReturn(java.util.List.of());
+        service = new ExtraAvailabilityService(extraRepo, reRepo, inventoryRuleRepo,
                 new AvailabilityMetrics(new SimpleMeterRegistry()), Clock.systemUTC());
     }
 
@@ -144,5 +149,17 @@ class ExtraAvailabilityServiceTest {
         when(extraRepo.lockById(id)).thenReturn(Optional.of(activity(2, true)));
         when(reRepo.sumConsumingQuantity(eq(id), eq(day), any(LocalDateTime.class), eq(resId))).thenReturn(0L);
         assertThatCode(() -> service.allocate(id, 2, day, resId)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void dateRuleOverridesStandardDailyCapacity() {
+        when(inventoryRuleRepo.findCoveringExtra(id, day)).thenReturn(java.util.List.of(
+                InventoryRule.builder().maxUnits(3).build()));
+        when(reRepo.sumConsumingQuantity(eq(id), eq(day), any(LocalDateTime.class), isNull())).thenReturn(2L);
+
+        var availability = service.status(activity(20, true), day);
+
+        assertThat(availability.maxUnits()).isEqualTo(3);
+        assertThat(availability.unitsAvailable()).isEqualTo(1);
     }
 }
