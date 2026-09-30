@@ -1923,6 +1923,17 @@
       "text": "Vågn op omgivet af klitter, stilhed og ørkenlys.",
       "included": "Dinner and breakfast included."
     },
+    "amenities": {
+      "bathroomPrivateShort": "Eget badeværelse med toilet",
+      "bathroomSharedShort": "Varme brusere og fælles toiletter i nærheden",
+      "acShort": "Aircondition (aften og nat)",
+      "bathroomPrivateText": "Eget badeværelse med bruser og toilet.",
+      "bathroomSharedText": "Varme brusere og fælles toiletter i nærheden.",
+      "compareBathroomPrivate": "Privat, med toilet",
+      "compareBathroomShared": "Fælles, varme brusere",
+      "compareAcYes": "Ja (aften og nat)",
+      "compareAcNone": "—"
+    },
     "types": {
       "desert-tent": {
         "eyebrow": "Autentisk ørkentelt",

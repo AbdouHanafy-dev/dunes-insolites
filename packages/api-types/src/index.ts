@@ -334,6 +334,11 @@ export type Accommodation = {
   /** Guests one unit sleeps (infants not counted). */
   capacity?: number;
   sleeps: string;
+  /** The two amenity facts that actually differ per tier; everything else on
+   *  the detail page (Wi-Fi, meal plan, electricity) is the same for every
+   *  tier and lives in the app's own copy, not here. */
+  airConditioned: boolean;
+  privateBathroom: boolean;
   features: string[];
   // Max bookable units of this tier for a given stay, when configured.
   // Absent/undefined means inventory isn't configured - no ceiling to enforce.

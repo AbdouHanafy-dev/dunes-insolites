@@ -1923,6 +1923,17 @@
       "text": "استيقظ محاطًا بالكثبان والسكون وضوء الصحراء.",
       "included": "Dinner and breakfast included."
     },
+    "amenities": {
+      "bathroomPrivateShort": "حمام خاص مع مرحاض",
+      "bathroomSharedShort": "دشات ساخنة ومراحيض مشتركة قريبة",
+      "acShort": "تكييف الهواء (مساءً وليلاً)",
+      "bathroomPrivateText": "حمام خاص مع دش ومرحاض.",
+      "bathroomSharedText": "دشات ساخنة ومراحيض مشتركة قريبة.",
+      "compareBathroomPrivate": "خاص، مع مرحاض",
+      "compareBathroomShared": "مشترك، دشات ساخنة",
+      "compareAcYes": "نعم (مساءً وليلاً)",
+      "compareAcNone": "—"
+    },
     "types": {
       "desert-tent": {
         "eyebrow": "خيمة صحراوية أصيلة",

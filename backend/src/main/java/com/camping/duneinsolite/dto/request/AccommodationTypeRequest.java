@@ -55,5 +55,9 @@ public class AccommodationTypeRequest {
 
     private Boolean active;
 
+    private Boolean airConditioned;
+
+    private Boolean privateBathroom;
+
     private List<String> features;
 }

@@ -625,6 +625,11 @@ export type AdminAccommodationType = {
   displayOrder: number;
   active: boolean;
   bookable: boolean;
+  /** The two amenity facts that actually differ per tier; everything else on
+   *  the public detail page (Wi-Fi, meal plan, electricity) is the same for
+   *  every tier and lives in the vitrine's own copy. */
+  airConditioned: boolean;
+  privateBathroom: boolean;
   features: string[];
 };
 
@@ -646,6 +651,8 @@ export type AdminAccommodationTypeInput = {
   currency?: string;
   displayOrder?: number;
   active?: boolean;
+  airConditioned?: boolean;
+  privateBathroom?: boolean;
   features?: string[];
 };
 

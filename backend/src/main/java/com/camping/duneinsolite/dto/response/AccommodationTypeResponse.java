@@ -26,6 +26,8 @@ public record AccommodationTypeResponse(
         int displayOrder,
         boolean active,
         boolean bookable,
+        boolean airConditioned,
+        boolean privateBathroom,
         List<String> features
 ) {
     public static AccommodationTypeResponse from(AccommodationType a) {
@@ -48,6 +50,8 @@ public record AccommodationTypeResponse(
                 a.getDisplayOrder(),
                 a.isActive(),
                 a.isBookable(),
+                a.isAirConditioned(),
+                a.isPrivateBathroom(),
                 List.copyOf(a.getFeatures()));
     }
 }

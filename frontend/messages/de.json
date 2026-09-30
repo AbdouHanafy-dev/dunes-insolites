@@ -1923,6 +1923,17 @@
       "text": "Wachen Sie umgeben von Dünen, Stille und Wüstenlicht auf.",
       "included": "Dinner and breakfast included."
     },
+    "amenities": {
+      "bathroomPrivateShort": "Eigenes Bad mit WC",
+      "bathroomSharedShort": "Warme Duschen und Gemeinschaftstoiletten in der Nähe",
+      "acShort": "Klimaanlage (abends und nachts)",
+      "bathroomPrivateText": "Eigenes Bad mit Dusche und WC.",
+      "bathroomSharedText": "Warme Duschen und Gemeinschaftstoiletten in der Nähe.",
+      "compareBathroomPrivate": "Privat, mit WC",
+      "compareBathroomShared": "Gemeinschaft, warme Duschen",
+      "compareAcYes": "Ja (abends und nachts)",
+      "compareAcNone": "—"
+    },
     "types": {
       "desert-tent": {
         "eyebrow": "Authentisches Wüstenzelt",

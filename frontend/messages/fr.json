@@ -1326,14 +1326,25 @@
       "text": "Réveillez-vous entouré de dunes, de silence et de lumière du désert.",
       "included": "Dîner et petit-déjeuner inclus."
     },
+    "amenities": {
+      "bathroomPrivateShort": "Salle de bain et toilettes privées",
+      "bathroomSharedShort": "Douches chaudes et toilettes communes à proximité",
+      "acShort": "Climatisation (soir et nuit)",
+      "bathroomPrivateText": "Salle de bain privative avec douche et toilettes.",
+      "bathroomSharedText": "Douches chaudes et toilettes communes à proximité.",
+      "compareBathroomPrivate": "Privée, avec toilettes",
+      "compareBathroomShared": "Commune, douches chaudes",
+      "compareAcYes": "Oui (soir et nuit)",
+      "compareAcNone": "—"
+    },
     "types": {
       "desert-tent": {
-        "eyebrow": "Tente du désert authentique",
-        "tagline": "Dormez dans le silence et la beauté du Sahara tunisien.",
+        "eyebrow": "Tente Authentique",
+        "tagline": "L’expérience saharienne traditionnelle, simple et chaleureuse.",
         "highlights": [
-          "Dîner et petit-déjeuner inclus",
-          "Douches chaudes",
-          "Activités dans le désert",
+          "Dîner et petit-déjeuner en demi-pension",
+          "Douches chaudes et toilettes communes",
+          "Occupation double, triple ou quadruple",
           "Expérience de camp traditionnelle"
         ],
         "quick": [
@@ -1343,11 +1354,11 @@
           },
           {
             "icon": "bed",
-            "label": "Lits confortables"
+            "label": "Literie avec draps et couvertures"
           },
           {
             "icon": "shower",
-            "label": "Douches chaudes partagées"
+            "label": "Douches chaudes et toilettes communes à proximité"
           },
           {
             "icon": "meal",
@@ -1363,16 +1374,17 @@
           }
         ],
         "about": [
-          "Pensée pour les voyageurs qui cherchent une expérience authentique du Sahara, la tente authentique associe l’ambiance traditionnelle du désert aux conforts essentiels pour une nuit reposante sous les étoiles.",
-          "Vous disposez de sanitaires partagés propres avec douches chaudes, et de toutes les installations du camp Dunes Insolites."
+          "La Tente Authentique est destinée aux voyageurs qui recherchent avant tout l’ambiance du désert et le charme d’un hébergement traditionnel. Elle offre l’essentiel pour une nuit confortable, à proximité des sanitaires et des principaux espaces communs du campement.",
+          "Literie préparée avec draps et couvertures, éclairage intérieur et accès à l’électricité, et accès au café, restaurant, salon et espaces extérieurs du camp."
         ],
-        "bathroomText": "Sanitaires partagés avec toilettes et douches chaudes.",
+        "bathroomText": "Douches chaudes et toilettes communes à proximité.",
         "comfort": [
-          "Literie confortable",
+          "Literie avec draps et couvertures",
+          "Éclairage intérieur",
           "Électricité",
           "Linge de lit",
           "Serviettes",
-          "Éclairage"
+          "Sanitaires communs entretenus à proximité"
         ],
         "forWhom": [
           {
@@ -1380,39 +1392,43 @@
             "text": "Pour vivre le désert simplement."
           },
           {
-            "title": "Couples",
-            "text": "Une nuit calme sous les étoiles."
-          },
-          {
             "title": "Amis",
             "text": "Une ambiance conviviale autour du feu."
           },
           {
-            "title": "Voyageurs aventuriers",
-            "text": "Pour profiter des dunes et des activités."
+            "title": "Familles",
+            "text": "Occupation double, triple ou quadruple selon disponibilité."
+          },
+          {
+            "title": "Petits groupes",
+            "text": "Pour privilégier l’expérience du désert avant tout."
           }
         ],
         "faq": [
           {
             "q": "Les sanitaires sont-ils privés ?",
-            "a": "Non. Les tentes authentiques utilisent des sanitaires partagés propres, avec toilettes et douches chaudes."
+            "a": "Non. Les tentes authentiques utilisent des sanitaires communs, avec toilettes et douches chaudes à proximité."
+          },
+          {
+            "q": "Le dîner et le petit-déjeuner sont-ils inclus ?",
+            "a": "Oui, en formule demi-pension : dîner et petit-déjeuner."
           }
         ],
         "compare": {
           "experience": "Authentique, ambiance traditionnelle",
-          "bathroom": "Partagée, douches chaudes",
+          "bathroom": "Commune, douches chaudes",
           "ac": "—",
-          "privacy": "Tente privée",
-          "recommended": "Voyageurs en quête d’authenticité, couples, amis"
+          "privacy": "Tente privée, occupation double, triple ou quadruple",
+          "recommended": "Voyageurs en quête d’authenticité, amis, familles, petits groupes"
         }
       },
       "desert-room": {
-        "eyebrow": "Chambre du désert",
-        "tagline": "L’ambiance du camp avec un intérieur plus structuré.",
+        "eyebrow": "Tente Chambre",
+        "tagline": "Un confort renforcé tout en conservant l’esprit du désert.",
         "highlights": [
-          "Dîner et petit-déjeuner inclus",
-          "Chambre fermée",
-          "Espace de couchage privé",
+          "Dîner et petit-déjeuner en demi-pension",
+          "Douches chaudes et toilettes communes",
+          "Aménagement intérieur plus soigné",
           "Toutes les installations du camp"
         ],
         "quick": [
@@ -1422,11 +1438,11 @@
           },
           {
             "icon": "bed",
-            "label": "Espace de couchage privé"
+            "label": "Literie confortable préparée avant l’arrivée"
           },
           {
             "icon": "shower",
-            "label": "Sanitaires précisés à la réservation"
+            "label": "Douches chaudes et toilettes communes à proximité"
           },
           {
             "icon": "meal",
@@ -1442,17 +1458,18 @@
           }
         ],
         "about": [
-          "Une option plus confortable pour les voyageurs qui veulent l’atmosphère de notre camp du désert avec un intérieur plus structuré, de type chambre.",
+          "La Tente Chambre est une formule intermédiaire entre la Tente Authentique et la Suite Luxe. Elle conserve l’identité saharienne du campement avec une présentation plus soignée et un niveau de confort supérieur, tout en utilisant les sanitaires communs du campement.",
           "Idéale pour les couples, les amis et les familles qui souhaitent un peu plus de confort pendant leur séjour au Sahara."
         ],
-        "bathroomText": "Nous vous précisons la configuration des sanitaires au moment de la réservation.",
+        "bathroomText": "Douches chaudes et toilettes communes à proximité, comme à la Tente Authentique.",
         "comfort": [
-          "Chambre fermée",
-          "Literie confortable",
+          "Literie confortable préparée avant l’arrivée",
+          "Aménagement intérieur plus soigné",
+          "Éclairage intérieur",
           "Électricité",
           "Linge de lit",
           "Serviettes",
-          "Éclairage"
+          "Sanitaires communs accessibles à proximité"
         ],
         "forWhom": [
           {
@@ -1475,20 +1492,24 @@
         "faq": [
           {
             "q": "Les sanitaires sont-ils privés ?",
-            "a": "Nous précisons la configuration des sanitaires de la chambre au moment de la réservation."
+            "a": "Non. Comme la Tente Authentique, la Tente Chambre utilise des sanitaires communs — douches chaudes et toilettes à proximité."
+          },
+          {
+            "q": "Le dîner et le petit-déjeuner sont-ils inclus ?",
+            "a": "Oui, en formule demi-pension : dîner et petit-déjeuner."
           }
         ],
         "compare": {
-          "experience": "Ambiance du camp, intérieur type chambre",
-          "bathroom": "Précisée à la réservation",
+          "experience": "Confort intermédiaire, intérieur plus soigné",
+          "bathroom": "Commune, douches chaudes",
           "ac": "—",
           "privacy": "Chambre fermée",
           "recommended": "Couples, amis, familles"
         }
       },
       "dune-suite": {
-        "eyebrow": "Suite des dunes",
-        "tagline": "Notre hébergement le plus confortable, avec plus d’intimité.",
+        "eyebrow": "Suite Luxe / Tente Royale",
+        "tagline": "Le Sahara avec intimité, espace et confort premium.",
         "highlights": [
           "Salle de bain privée",
           "Climatisation",
@@ -1522,10 +1543,10 @@
           }
         ],
         "about": [
-          "Notre hébergement le plus confortable du désert : l’atmosphère du Sahara, avec plus d’intimité et de commodité.",
-          "La suite comprend une salle de bain privée et une climatisation disponible principalement le soir et pendant la nuit. Idéale pour les couples, les familles et les voyageurs qui veulent une expérience plus haut de gamme."
+          "La Suite Luxe, également appelée Tente Royale, est la catégorie la plus confortable de Dunes Insolites. Elle permet de vivre l’expérience du désert tout en bénéficiant d’une salle de bain privative, de davantage d’intimité et de la climatisation pendant les périodes d’utilisation prévues au campement.",
+          "Décoration inspirée de l’univers saharien, avec un chauffage d’appoint possible en hiver selon disponibilité. Idéale pour les couples, les familles et les voyageurs qui veulent une expérience plus haut de gamme."
         ],
-        "bathroomText": "Salle de bain et toilettes privées.",
+        "bathroomText": "Salle de bain privative avec douche et toilettes.",
         "comfort": [
           "Literie haut de gamme",
           "Espace salon supplémentaire",
@@ -1533,7 +1554,9 @@
           "Linge de lit",
           "Serviettes",
           "Éclairage",
-          "Climatisation (principalement le soir et la nuit)"
+          "Décoration inspirée de l’univers saharien",
+          "Climatisation (principalement le soir et la nuit)",
+          "Chauffage d’appoint possible en hiver selon disponibilité"
         ],
         "forWhom": [
           {

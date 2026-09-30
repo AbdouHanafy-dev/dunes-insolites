@@ -100,6 +100,17 @@ public class AccommodationType {
     @Builder.Default
     private boolean active = true;
 
+    /** The two facts that actually differ per tier on the public detail page
+     *  (Wi-Fi, meal plan, electricity and the camp-wide experience are the
+     *  same for every tier and stay in code) - see V64__accommodation_amenities. */
+    @Column(name = "air_conditioned", nullable = false)
+    @Builder.Default
+    private boolean airConditioned = false;
+
+    @Column(name = "private_bathroom", nullable = false)
+    @Builder.Default
+    private boolean privateBathroom = false;
+
     @ElementCollection
     @CollectionTable(name = "accommodation_type_features",
             joinColumns = @JoinColumn(name = "accommodation_type_id"))

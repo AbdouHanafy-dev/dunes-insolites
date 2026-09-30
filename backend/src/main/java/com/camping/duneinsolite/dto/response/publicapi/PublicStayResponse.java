@@ -73,6 +73,10 @@ public class PublicStayResponse {
         private java.math.BigDecimal infantPrice;
         private Integer capacity;
         private String sleeps;
+        // The two amenity facts that actually differ per tier - see
+        // AccommodationType.airConditioned/privateBathroom.
+        private boolean airConditioned;
+        private boolean privateBathroom;
         private List<String> features;
         // AccommodationType.maxUnits - null means inventory isn't configured
         // (no ceiling to enforce, same UNKNOWN semantics as availability).

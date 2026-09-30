@@ -74,6 +74,26 @@ export default async function AccommodationView({
   const trust = t.raw("trust") as string[];
   const locationPoints = t.raw("location.points") as string[];
   const rowLabels = t.raw("compare.rows") as Record<string, string>;
+  const amenities = t.raw("amenities") as {
+    bathroomPrivateShort: string;
+    bathroomSharedShort: string;
+    acShort: string;
+    bathroomPrivateText: string;
+    bathroomSharedText: string;
+    compareBathroomPrivate: string;
+    compareBathroomShared: string;
+    compareAcYes: string;
+    compareAcNone: string;
+  };
+  // Bathroom and AC are the two facts that actually differ per tier
+  // (AccommodationType.privateBathroom/airConditioned, set in the back
+  // office) - everything else on this page (Wi-Fi, meal plan, electricity)
+  // is the same for every tier and comes from the static copy above.
+  const bathroomShort = accommodation.privateBathroom ? amenities.bathroomPrivateShort : amenities.bathroomSharedShort;
+  const bathroomText = accommodation.privateBathroom ? amenities.bathroomPrivateText : amenities.bathroomSharedText;
+  const compareBathroom = (a: { privateBathroom: boolean }) =>
+    a.privateBathroom ? amenities.compareBathroomPrivate : amenities.compareBathroomShared;
+  const compareAc = (a: { airConditioned: boolean }) => (a.airConditioned ? amenities.compareAcYes : amenities.compareAcNone);
 
   const bookHref = `/camp/${stay.slug}?accommodation=${accommodation.slug}#reserve`;
   const waDigits = whatsapp.replace(/[^\d]/g, "");
@@ -84,7 +104,17 @@ export default async function AccommodationView({
   const own = [...new Set([accommodation.image, ...(accommodation.gallery ?? [])].filter(isDisplayableImageSrc))];
   const photos = own.length > 0 ? own : FILLER.slice(0, 5);
 
-  const quick = copy.quick.map((q) => (q.icon === "users" ? { ...q, label: accommodation.sleeps } : q));
+  // Bathroom and AC icons are computed here, not taken from the static copy
+  // below, so a tier's real back-office setting always drives what's shown -
+  // no "Climatisation" icon at all for a tier that doesn't have one.
+  const dynamicQuick = [{ icon: "shower", label: bathroomShort }];
+  if (accommodation.airConditioned) dynamicQuick.push({ icon: "snow", label: amenities.acShort });
+  const quick = [
+    ...copy.quick
+      .filter((q) => q.icon !== "shower" && q.icon !== "snow")
+      .map((q) => (q.icon === "users" ? { ...q, label: accommodation.sleeps } : q)),
+    ...dynamicQuick,
+  ];
   const topReviews = [...reviews].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
 
   const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${site.coords.lng - 0.35}%2C${
@@ -207,7 +237,7 @@ export default async function AccommodationView({
             </Reveal>
             <Reveal className="acc-feature" delay={80}>
               <h3>{t("ui.bathroom")}</h3>
-              <p>{copy.bathroomText}</p>
+              <p>{bathroomText}</p>
             </Reveal>
             <Reveal className="acc-feature" delay={160}>
               <h3>{t("ui.campFacilities")}</h3>
@@ -330,7 +360,9 @@ export default async function AccommodationView({
                       <tr key={row}>
                         <th scope="row">{rowLabels[row]}</th>
                         {others.map((o) => {
-                          const c = (t.raw(`types.${typeKey(o.slug)}.compare`) as TypeCopy["compare"])[row];
+                          const c = row === "bathroom" ? compareBathroom(o)
+                            : row === "ac" ? compareAc(o)
+                            : (t.raw(`types.${typeKey(o.slug)}.compare`) as TypeCopy["compare"])[row];
                           return <td key={o.slug} className={o.slug === accommodation.slug ? "is-current" : undefined}>{c}</td>;
                         })}
                       </tr>

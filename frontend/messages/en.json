@@ -1326,6 +1326,17 @@
       "text": "Wake up surrounded by dunes, silence and desert light.",
       "included": "Dinner and breakfast included."
     },
+    "amenities": {
+      "bathroomPrivateShort": "Private bathroom and toilet",
+      "bathroomSharedShort": "Hot showers and shared toilets nearby",
+      "acShort": "Air conditioning (evening and night)",
+      "bathroomPrivateText": "Private en-suite bathroom with shower and toilet.",
+      "bathroomSharedText": "Hot showers and shared toilets nearby.",
+      "compareBathroomPrivate": "Private, with toilet",
+      "compareBathroomShared": "Shared, hot showers",
+      "compareAcYes": "Yes (evening and night)",
+      "compareAcNone": "—"
+    },
     "types": {
       "desert-tent": {
         "eyebrow": "Authentic desert tent",

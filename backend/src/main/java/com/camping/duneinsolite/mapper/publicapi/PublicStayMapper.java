@@ -111,6 +111,8 @@ public class PublicStayMapper {
                     dto.setCapacity(a.getCapacity());
                     dto.setSleeps("Jusqu'à " + a.getCapacity()
                             + (a.getCapacity() > 1 ? " personnes" : " personne"));
+                    dto.setAirConditioned(a.isAirConditioned());
+                    dto.setPrivateBathroom(a.isPrivateBathroom());
                     dto.setFeatures(List.copyOf(a.getFeatures()));
                     dto.setMaxUnits(a.getMaxUnits());
                     return dto;

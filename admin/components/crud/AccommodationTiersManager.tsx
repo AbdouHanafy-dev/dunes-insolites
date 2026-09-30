@@ -21,6 +21,8 @@ const TIER_FIELDS: FieldLike[] = [
   { key: "childPriceTtc", label: "Prix enfant", type: "number" },
   { key: "infantPriceTtc", label: "Prix bébé", type: "number" },
   { key: "tvaRate", label: "TVA (%)", type: "number" },
+  { key: "airConditioned", label: "Climatisation", type: "text" },
+  { key: "privateBathroom", label: "Salle de bain privée", type: "text" },
   { key: "features", label: "Caractéristiques", type: "textarea" },
   { key: "imageUrl", label: "Photo de couverture", type: "photo" },
   { key: "gallery", label: "Photos", type: "photo" },
@@ -65,6 +67,8 @@ const emptyTier = (tourTypeId: string): AdminAccommodationTypeInput => ({
   currency: "EUR",
   displayOrder: 0,
   active: true,
+  airConditioned: false,
+  privateBathroom: false,
   features: [],
 });
 
@@ -142,6 +146,8 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
       currency: t.currency,
       displayOrder: t.displayOrder,
       active: t.active,
+      airConditioned: t.airConditioned,
+      privateBathroom: t.privateBathroom,
       features: t.features,
     });
     setError("");
@@ -425,7 +431,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
                 onChange={(e) => patch({ features: e.target.value.split("\n").filter((s) => s.trim()) })}
               />
             </div>
-            <label className="flex items-center gap-2 sm:col-span-2">
+            <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={editing.active ?? true}
@@ -434,6 +440,30 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
               />
               <span className={labelClass}>Actif</span>
             </label>
+            <div />
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={editing.airConditioned ?? false}
+                onChange={(e) => patch({ airConditioned: e.target.checked })}
+                className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+              />
+              <span className={labelClass}>Climatisation</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={editing.privateBathroom ?? false}
+                onChange={(e) => patch({ privateBathroom: e.target.checked })}
+                className="h-4 w-4 rounded border-navy-700/25 text-gold focus:ring-gold/30"
+              />
+              <span className={labelClass}>Salle de bain privée</span>
+            </label>
+            <p className="text-[12px] text-gray-500 sm:col-span-2">
+              Ces deux faits sont affichés dynamiquement sur la page détail du site (icônes, texte sanitaires,
+              tableau comparatif). Tout le reste (Wi-Fi, demi-pension, électricité…) est identique pour tous les
+              hébergements et géré dans le code de la vitrine.
+            </p>
           </div>
 
           {issues.length > 0 ? (

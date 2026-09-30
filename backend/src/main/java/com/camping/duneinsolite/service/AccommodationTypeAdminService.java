@@ -61,6 +61,8 @@ public class AccommodationTypeAdminService {
                 .currency(req.getCurrency() != null ? req.getCurrency() : Currency.EUR)
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .active(req.getActive() == null || req.getActive())
+                .airConditioned(Boolean.TRUE.equals(req.getAirConditioned()))
+                .privateBathroom(Boolean.TRUE.equals(req.getPrivateBathroom()))
                 .features(req.getFeatures() != null ? new ArrayList<>(req.getFeatures()) : new ArrayList<>())
                 .build();
         return AccommodationTypeResponse.from(repository.save(a));
@@ -90,6 +92,8 @@ public class AccommodationTypeAdminService {
         if (req.getCurrency() != null) a.setCurrency(req.getCurrency());
         if (req.getDisplayOrder() != null) a.setDisplayOrder(req.getDisplayOrder());
         if (req.getActive() != null) a.setActive(req.getActive());
+        if (req.getAirConditioned() != null) a.setAirConditioned(req.getAirConditioned());
+        if (req.getPrivateBathroom() != null) a.setPrivateBathroom(req.getPrivateBathroom());
         if (req.getFeatures() != null) {
             a.getFeatures().clear();
             a.getFeatures().addAll(req.getFeatures());

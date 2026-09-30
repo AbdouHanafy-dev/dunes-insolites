@@ -1923,6 +1923,17 @@
       "text": "Svegliati circondato da dune, silenzio e luce del deserto.",
       "included": "Dinner and breakfast included."
     },
+    "amenities": {
+      "bathroomPrivateShort": "Bagno privato con doccia e WC",
+      "bathroomSharedShort": "Docce calde e servizi comuni nelle vicinanze",
+      "acShort": "Aria condizionata (sera e notte)",
+      "bathroomPrivateText": "Bagno privato con doccia e WC.",
+      "bathroomSharedText": "Docce calde e servizi comuni nelle vicinanze.",
+      "compareBathroomPrivate": "Privato, con WC",
+      "compareBathroomShared": "Comune, docce calde",
+      "compareAcYes": "Sì (sera e notte)",
+      "compareAcNone": "—"
+    },
     "types": {
       "desert-tent": {
         "eyebrow": "Autentica tenda del deserto",
