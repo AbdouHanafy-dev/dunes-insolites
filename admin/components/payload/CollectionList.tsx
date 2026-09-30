@@ -5,11 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useToast } from "@/components/Toast";
 import type { ColumnDef } from "./fields";
 import TableFilters from "@/components/TableFilters";
 import { useTableFilters } from "@/components/useTableFilters";
 import type { FilterDef } from "@/lib/tableFilters";
+import type { SortValue } from "@/lib/tableSort";
+
+/** A column sorts by its own `sort`, else by the raw field when that is text, a number or a flag. */
+function rawSort<T extends Record<string, unknown>>(key: string) {
+  return (item: T): SortValue => {
+    const v = item[key];
+    return typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? v : null;
+  };
+}
 
 /**
  * Payload's collection list view: a plain page (not a modal), a search
@@ -66,6 +77,18 @@ export default function CollectionList<T extends Record<string, unknown>>({
     }),
   ]);
 
+  const listColumns: ListColumn<T>[] = columns.map((c) => ({
+    key: c.key,
+    label: c.label,
+    sort: c.sort ?? rawSort<T>(c.key),
+    render: (item) => (c.render ? c.render(item) : String(item[c.key] ?? "—")),
+  }));
+  const deleteButton = (item: T) => (
+    <button type="button" onClick={() => setDeleteTarget(item)} className="btn btn-danger-outline btn-sm">
+      Supprimer
+    </button>
+  );
+
   async function onDelete() {
     if (!deleteTarget) return;
     setBusy(true);
@@ -99,43 +122,38 @@ export default function CollectionList<T extends Record<string, unknown>>({
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun élément pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-                  {columns.map((c) => (
-                    <th key={c.key} className="px-6 py-3 font-semibold">
-                      {c.label}
-                    </th>
+          <RecordList
+            rows={filtered}
+            rowKey={(item) => String(item[idKey])}
+            columns={listColumns}
+            onRowClick={(item) => router.push(`${basePath}/${item[idKey]}`)}
+            renderActions={deleteButton}
+            renderCard={(item) => (
+              <PersonCard
+                name={String(item[titleKey] ?? item[idKey])}
+                headline={listColumns
+                  .filter((c) => c.key !== titleKey)
+                  .slice(0, 3)
+                  .map((c) => (
+                    <span key={c.key} className="flex items-baseline justify-between gap-3">
+                      <span className="text-[11px] uppercase tracking-wide text-navy-700/45">{c.label}</span>
+                      <span className="truncate text-right font-medium">{c.render?.(item)}</span>
+                    </span>
                   ))}
-                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((item) => (
-                  <tr
-                    key={String(item[idKey])}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => router.push(`${basePath}/${item[idKey]}`)}
-                  >
-                    {columns.map((c) => (
-                      <td key={c.key} className="px-6 py-3 text-gray-700">
-                        {c.render ? c.render(item) : String(item[c.key] ?? "—")}
-                      </td>
-                    ))}
-                    <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => setDeleteTarget(item)}
-                        className="btn btn-danger-outline btn-sm"
-                      >
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                actions={
+                  <>
+                    <Link href={`${basePath}/${item[idKey]}`} className="text-xs font-semibold text-navy-700 hover:underline">
+                      Modifier
+                    </Link>
+                    <button type="button" className="text-xs font-semibold text-rose hover:underline" onClick={() => setDeleteTarget(item)}>
+                      Supprimer
+                    </button>
+                  </>
+                }
+                facts={listColumns.map((c) => ({ label: c.label, value: c.render?.(item) }))}
+              />
+            )}
+          />
         )}
       </div>
 

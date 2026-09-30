@@ -8,7 +8,8 @@ import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminGuideProfile, AdminSpokenLanguage } from "@/lib/api";
 import TableFilters from "@/components/TableFilters";
-import PersonCard, { CARD_GRID, pillActive, pillInactive } from "@/components/PersonCard";
+import PersonCard, { pillActive, pillInactive } from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useTableFilters } from "@/components/useTableFilters";
 
 const GUIDE_FIELDS = [
@@ -17,6 +18,17 @@ const GUIDE_FIELDS = [
   { key: "email", label: "Email", type: "text" },
   { key: "phoneNumber", label: "Téléphone", type: "text" },
   { key: "languageIds", label: "Langues parlées", type: "text" },
+];
+
+const guideName = (g: AdminGuideProfile) => `${g.firstName} ${g.lastName}`;
+const guideLanguages = (g: AdminGuideProfile) => g.languages.map((language) => language.name).join(", ");
+
+const guideColumns: ListColumn<AdminGuideProfile>[] = [
+  { key: "name", label: "Nom", sort: guideName, render: (g) => <span className="font-medium text-gray-800">{guideName(g)}</span> },
+  { key: "phone", label: "Téléphone", sort: (g) => g.phoneNumber, render: (g) => g.phoneNumber ?? "—" },
+  { key: "email", label: "E-mail", sort: (g) => g.email, render: (g) => g.email ?? "—" },
+  { key: "languages", label: "Langues", sort: guideLanguages, render: (g) => guideLanguages(g) || "—" },
+  { key: "active", label: "Statut", sort: (g) => g.active, render: (g) => <span className={g.active ? pillActive : pillInactive}>{g.active ? "Actif" : "Inactif"}</span> },
 ];
 
 export default function GuideDirectory({ initialGuides, languages }: { initialGuides: AdminGuideProfile[]; languages: AdminSpokenLanguage[] }) {
@@ -101,6 +113,13 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
     toast.success("Guide supprimé");
   }
 
+  const guideActions = (guide: AdminGuideProfile) => (
+    <>
+      <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(guide, !guide.active)}>{guide.active ? "Désactiver" : "Réactiver"}</button>
+      <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(guide)}>Supprimer</button>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={createGuide} noValidate className="card rounded-2xl p-5">
@@ -132,11 +151,14 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
       <div className="card overflow-hidden rounded-2xl">
         <TableFilters {...bar} placeholder="Nom, e-mail, téléphone, langue…" />
         {guides.length === 0 ? <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun guide dans l’annuaire.</p> : (
-          <div className={CARD_GRID}>
-            {filtered.map((guide) => (
+          <RecordList
+            rows={filtered}
+            rowKey={(guide) => guide.guideProfileId}
+            columns={guideColumns}
+            renderActions={(guide) => <div className="flex justify-end gap-3">{guideActions(guide)}</div>}
+            renderCard={(guide) => (
               <PersonCard
-                key={guide.guideProfileId}
-                name={`${guide.firstName} ${guide.lastName}`}
+                name={guideName(guide)}
                 subtitle={guide.languages.length ? guide.languages.map((language) => language.name).join(" · ") : "Aucune langue renseignée"}
                 badge={<span className={guide.active ? pillActive : pillInactive}>{guide.active ? "Actif" : "Inactif"}</span>}
                 headline={
@@ -145,12 +167,7 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
                     <span className="truncate text-navy-700/60">{guide.email ?? "E-mail non renseigné"}</span>
                   </>
                 }
-                actions={
-                  <>
-                    <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(guide, !guide.active)}>{guide.active ? "Désactiver" : "Réactiver"}</button>
-                    <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(guide)}>Supprimer</button>
-                  </>
-                }
+                actions={guideActions(guide)}
                 facts={[
                   { label: "E-mail", value: guide.email ?? "—" },
                   { label: "Téléphone", value: guide.phoneNumber ?? "—" },
@@ -158,8 +175,8 @@ export default function GuideDirectory({ initialGuides, languages }: { initialGu
                   { label: "Statut", value: guide.active ? "Actif : peut être affecté aux réservations" : "Inactif : n’est plus proposé pour les affectations" },
                 ]}
               />
-            ))}
-          </div>
+            )}
+          />
         )}
       </div>
 
