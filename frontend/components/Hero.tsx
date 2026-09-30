@@ -33,7 +33,7 @@ export default async function Hero({ stats }: { stats: Stats }) {
         <div className="static-gate-copy">
           <p>{t("tagline")}</p>
           <div className="static-gate-actions">
-            <Link href="/activities" className="static-gate-primary">
+            <Link href="/camp" className="static-gate-primary">
               {t("exploreExperiences")} <span aria-hidden="true">↗</span>
             </Link>
             <Link href="/about" className="static-gate-secondary">

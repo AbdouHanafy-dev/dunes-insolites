@@ -4,6 +4,8 @@ import { readApiError } from "@/lib/apiError";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useToast } from "@/components/Toast";
 import type { AdminReview } from "@/lib/api";
 import TableFilters from "@/components/TableFilters";
@@ -14,6 +16,14 @@ const PRODUCT_LABEL: Record<AdminReview["productType"], string> = {
   TOUR: "Circuit",
   EXTRA: "Extra",
 };
+
+const reviewColumns: ListColumn<AdminReview>[] = [
+  { key: "client", label: "Client", sort: (r) => r.userName, render: (r) => r.userName },
+  { key: "product", label: "Produit", sort: (r) => PRODUCT_LABEL[r.productType], render: (r) => PRODUCT_LABEL[r.productType] },
+  { key: "rating", label: "Note", sort: (r) => r.rating, render: (r) => "★".repeat(r.rating) },
+  { key: "comment", label: "Commentaire", sort: (r) => r.comment, render: (r) => <span className="block max-w-xs truncate">{r.comment || "—"}</span> },
+  { key: "date", label: "Date", sort: (r) => r.createdAt, render: (r) => <span className="text-gray-500">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</span> },
+];
 
 /**
  * Read + delete (moderation) only — there is no admin-facing "create" here.
@@ -74,38 +84,36 @@ export function ReviewsList({ initialItems }: { initialItems: AdminReview[] }) {
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun avis pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-                  <th className="px-6 py-3 font-semibold">Client</th>
-                  <th className="px-6 py-3 font-semibold">Produit</th>
-                  <th className="px-6 py-3 font-semibold">Note</th>
-                  <th className="px-6 py-3 font-semibold">Commentaire</th>
-                  <th className="px-6 py-3 font-semibold">Date</th>
-                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((r) => (
-                  <tr key={r.reviewId} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 text-gray-700">{r.userName}</td>
-                    <td className="px-6 py-3 text-gray-700">{PRODUCT_LABEL[r.productType]}</td>
-                    <td className="px-6 py-3 text-gray-700">{"★".repeat(r.rating)}</td>
-                    <td className="max-w-xs truncate px-6 py-3 text-gray-700">{r.comment || "—"}</td>
-                    <td className="px-6 py-3 text-gray-500">
-                      {new Date(r.createdAt).toLocaleDateString("fr-FR")}
-                    </td>
-                    <td className="px-6 py-3 text-right">
-                      <button onClick={() => setDeleteTarget(r)} className="btn btn-danger-outline btn-sm">
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RecordList
+            rows={filtered}
+            rowKey={(r) => r.reviewId}
+            columns={reviewColumns}
+            defaultSort={{ key: "date", dir: "desc" }}
+            renderActions={(r) => (
+              <button onClick={() => setDeleteTarget(r)} className="btn btn-danger-outline btn-sm">
+                Supprimer
+              </button>
+            )}
+            renderCard={(r) => (
+              <PersonCard
+                name={r.userName}
+                subtitle={PRODUCT_LABEL[r.productType]}
+                badge={<span className="whitespace-nowrap text-[14px] text-gold">{"★".repeat(r.rating)}</span>}
+                headline={<span className="line-clamp-3 text-navy-700/80">{r.comment || "—"}</span>}
+                actions={
+                  <button type="button" className="text-xs font-semibold text-rose hover:underline" onClick={() => setDeleteTarget(r)}>
+                    Supprimer
+                  </button>
+                }
+                facts={[
+                  { label: "Produit", value: PRODUCT_LABEL[r.productType] },
+                  { label: "Note", value: `${r.rating} / 5` },
+                  { label: "Date", value: new Date(r.createdAt).toLocaleDateString("fr-FR") },
+                  { label: "Commentaire", value: r.comment || "—" },
+                ]}
+              />
+            )}
+          />
         )}
       </div>
 

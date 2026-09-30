@@ -1,9 +1,12 @@
 "use client";
 
 import { readApiError } from "@/lib/apiError";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useToast } from "@/components/Toast";
 import Breadcrumb from "@/components/payload/Breadcrumb";
 import type { AdminInvoice } from "@/lib/api";
@@ -25,6 +28,18 @@ const PAYMENT_STATUS_LABEL: Record<string, string> = {
   OVERDUE: "En retard",
   REFUNDED: "Remboursée",
 };
+
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString("fr-FR");
+
+const invoiceColumns: ListColumn<AdminInvoice>[] = [
+  { key: "number", label: "N°", sort: (i) => i.invoiceNumber, render: (i) => <span className="font-medium text-gray-800">{i.invoiceNumber}</span> },
+  { key: "client", label: "Client", sort: (i) => i.userName, render: (i) => i.userName ?? "—" },
+  { key: "amount", label: "Montant TTC", sort: (i) => i.totalAmount, render: (i) => `${i.totalAmount.toFixed(3)} ${sym(i.currency)}` },
+  { key: "status", label: "Statut", sort: (i) => STATUS_LABEL[i.status] ?? i.status, render: (i) => STATUS_LABEL[i.status] ?? i.status },
+  { key: "payment", label: "Paiement", sort: (i) => PAYMENT_STATUS_LABEL[i.paymentStatus] ?? i.paymentStatus, render: (i) => PAYMENT_STATUS_LABEL[i.paymentStatus] ?? i.paymentStatus },
+  { key: "date", label: "Date", sort: (i) => i.invoiceDate, render: (i) => <span className="whitespace-nowrap text-gray-500">{fmtDate(i.invoiceDate)}</span> },
+  { key: "due", label: "Échéance", sort: (i) => i.dueDate, render: (i) => <span className="whitespace-nowrap text-gray-500">{fmtDate(i.dueDate)}</span> },
+];
 
 // No "create" here, deliberately — a real fiscal document (7% TVA, timbre
 // fiscal, a numbered sequence) needs its line items built correctly from a
@@ -70,46 +85,37 @@ export function InvoicesList({
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun document pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-                  <th className="px-6 py-3 font-semibold">N°</th>
-                  <th className="px-6 py-3 font-semibold">Client</th>
-                  <th className="px-6 py-3 font-semibold">Montant TTC</th>
-                  <th className="px-6 py-3 font-semibold">Statut</th>
-                  <th className="px-6 py-3 font-semibold">Paiement</th>
-                  <th className="px-6 py-3 font-semibold">Date</th>
-                  <th className="px-6 py-3 font-semibold">Échéance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((inv) => (
-                  <tr
-                    key={inv.invoiceId}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => router.push(`${basePath}/${inv.invoiceId}`)}
-                  >
-                    <td className="px-6 py-3 font-medium text-gray-800">{inv.invoiceNumber}</td>
-                    <td className="px-6 py-3 text-gray-700">{inv.userName ?? "—"}</td>
-                    <td className="px-6 py-3 text-gray-700">
-                      {inv.totalAmount.toFixed(3)} {sym(inv.currency)}
-                    </td>
-                    <td className="px-6 py-3 text-gray-700">{STATUS_LABEL[inv.status] ?? inv.status}</td>
-                    <td className="px-6 py-3 text-gray-700">
-                      {PAYMENT_STATUS_LABEL[inv.paymentStatus] ?? inv.paymentStatus}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-500">
-                      {new Date(inv.invoiceDate).toLocaleDateString("fr-FR")}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-500">
-                      {new Date(inv.dueDate).toLocaleDateString("fr-FR")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RecordList
+            rows={filtered}
+            rowKey={(inv) => inv.invoiceId}
+            columns={invoiceColumns}
+            defaultSort={{ key: "date", dir: "desc" }}
+            onRowClick={(inv) => router.push(`${basePath}/${inv.invoiceId}`)}
+            renderCard={(inv) => (
+              <PersonCard
+                name={inv.invoiceNumber}
+                subtitle={inv.userName ?? "—"}
+                badge={<span className="whitespace-nowrap text-[16px] font-bold tabular-nums text-navy-800">{inv.totalAmount.toFixed(3)} {sym(inv.currency)}</span>}
+                headline={
+                  <>
+                    <span>{STATUS_LABEL[inv.status] ?? inv.status}</span>
+                    <span className="text-navy-700/60">{PAYMENT_STATUS_LABEL[inv.paymentStatus] ?? inv.paymentStatus}</span>
+                  </>
+                }
+                actions={
+                  <Link href={`${basePath}/${inv.invoiceId}`} className="text-xs font-semibold text-navy-700 hover:underline">
+                    Ouvrir
+                  </Link>
+                }
+                facts={[
+                  { label: "Date", value: fmtDate(inv.invoiceDate) },
+                  { label: "Échéance", value: fmtDate(inv.dueDate) },
+                  { label: "Type", value: inv.invoiceType },
+                  { label: "Société", value: inv.companyType },
+                ]}
+              />
+            )}
+          />
         )}
       </div>
     </div>

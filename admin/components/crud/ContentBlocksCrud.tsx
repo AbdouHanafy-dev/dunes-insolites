@@ -4,8 +4,13 @@ import { readApiError } from "@/lib/apiError";
 import { useFormIssues } from "@/components/useFormIssues";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Modal from "@/components/Modal";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
+import TableFilters from "@/components/TableFilters";
+import { useTableFilters } from "@/components/useTableFilters";
+import { optionsFrom } from "@/lib/tableFilters";
 import { useToast } from "@/components/Toast";
 import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
@@ -20,19 +25,30 @@ const API_PATH = "content-blocks";
 // the public API resolves it — not offered as a choice here.
 const REUSABLE_TYPES = BLOCK_TYPES.filter((bt) => bt.type !== "blockReference");
 
+const typeLabel = (type: string) => blockTypeDef(type)?.label ?? type;
+
+const blockColumns: ListColumn<AdminContentBlock>[] = [
+  { key: "label", label: "Libellé", sort: (b) => b.label, render: (b) => <span className="font-medium text-gray-800">{b.label}</span> },
+  { key: "type", label: "Type", sort: (b) => typeLabel(b.type), render: (b) => `${blockTypeDef(b.type)?.icon ?? ""} ${typeLabel(b.type)}` },
+  { key: "preview", label: "Aperçu", render: (b) => <span className="block max-w-xs truncate text-gray-500">{blockPreviewLabel(b.type, b.dataJson)}</span> },
+  { key: "locale", label: "Langue", sort: (b) => b.locale, render: (b) => b.locale },
+];
+
 export function ContentBlocksList({ initialItems }: { initialItems: AdminContentBlock[] }) {
   const router = useRouter();
   const toast = useToast();
-  const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminContentBlock | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const filtered = useMemo(() => {
-    if (!query.trim()) return initialItems;
-    const q = query.toLowerCase();
-    return initialItems.filter((b) => b.label.toLowerCase().includes(q));
-  }, [initialItems, query]);
+  const { filtered, bar } = useTableFilters(
+    initialItems,
+    [
+      { id: "type", label: "Type", kind: "select", options: optionsFrom(initialItems, (b) => b.type, typeLabel), get: (b) => b.type },
+      { id: "locale", label: "Langue", kind: "select", options: optionsFrom(initialItems, (b) => b.locale), get: (b) => b.locale },
+    ],
+    (b) => [b.label, typeLabel(b.type), b.locale, blockPreviewLabel(b.type, b.dataJson)],
+  );
 
   async function onDelete() {
     if (!deleteTarget) return;
@@ -65,54 +81,45 @@ export function ContentBlocksList({ initialItems }: { initialItems: AdminContent
         </Link>
       </div>
 
-      <input
-        type="text"
-        placeholder="Rechercher…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full max-w-sm rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none transition placeholder:text-navy-700/30 focus:border-gold/60 focus:ring-3 focus:ring-gold/15"
-      />
-
       <div className="card overflow-hidden rounded-2xl">
+        <TableFilters {...bar} placeholder="Libellé, type, langue…" />
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun bloc pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                  <th className="px-6 py-3 font-medium">Libellé</th>
-                  <th className="px-6 py-3 font-medium">Type</th>
-                  <th className="px-6 py-3 font-medium">Aperçu</th>
-                  <th className="px-6 py-3 font-medium">Langue</th>
-                  <th className="px-6 py-3 text-right font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((b) => (
-                  <tr
-                    key={b.blockId}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => router.push(`${BASE_PATH}/${b.blockId}`)}
-                  >
-                    <td className="px-6 py-3 font-medium text-gray-800">{b.label}</td>
-                    <td className="px-6 py-3 text-gray-700">
-                      {blockTypeDef(b.type)?.icon} {blockTypeDef(b.type)?.label ?? b.type}
-                    </td>
-                    <td className="max-w-xs truncate px-6 py-3 text-gray-500">
-                      {blockPreviewLabel(b.type, b.dataJson)}
-                    </td>
-                    <td className="px-6 py-3 text-gray-700">{b.locale}</td>
-                    <td className="px-6 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => setDeleteTarget(b)} className="btn btn-danger-outline btn-sm">
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RecordList
+            rows={filtered}
+            rowKey={(b) => b.blockId}
+            columns={blockColumns}
+            onRowClick={(b) => router.push(`${BASE_PATH}/${b.blockId}`)}
+            renderActions={(b) => (
+              <button onClick={() => setDeleteTarget(b)} className="btn btn-danger-outline btn-sm">
+                Supprimer
+              </button>
+            )}
+            renderCard={(b) => (
+              <PersonCard
+                name={b.label}
+                subtitle={`${blockTypeDef(b.type)?.icon ?? ""} ${typeLabel(b.type)}`}
+                badge={<span className="rounded-full bg-navy-700/8 px-2.5 py-0.5 text-[12px] font-semibold text-navy-800">{b.locale}</span>}
+                headline={<span className="line-clamp-2 text-navy-700/70">{blockPreviewLabel(b.type, b.dataJson)}</span>}
+                actions={
+                  <>
+                    <Link href={`${BASE_PATH}/${b.blockId}`} className="text-xs font-semibold text-navy-700 hover:underline">
+                      Modifier
+                    </Link>
+                    <button type="button" className="text-xs font-semibold text-rose hover:underline" onClick={() => setDeleteTarget(b)}>
+                      Supprimer
+                    </button>
+                  </>
+                }
+                facts={[
+                  { label: "Type", value: typeLabel(b.type) },
+                  { label: "Langue", value: b.locale },
+                  { label: "Aperçu", value: blockPreviewLabel(b.type, b.dataJson) },
+                ]}
+              />
+            )}
+          />
         )}
       </div>
 

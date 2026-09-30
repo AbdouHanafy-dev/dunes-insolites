@@ -16,6 +16,8 @@ export type ColumnDef<T> = {
   key: string;
   label: string;
   render?: (item: T) => React.ReactNode;
+  /** What the column sorts by; by default the raw field, when it is text, a number or a flag. */
+  sort?: (item: T) => string | number | boolean | null | undefined;
 };
 
 export const inputClass =
