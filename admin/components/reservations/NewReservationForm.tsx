@@ -185,9 +185,18 @@ export default function NewReservationForm({
   const [issues, setIssues] = useState<FormIssue[]>([]);
   const [result, setResult] = useState<{ reservationId: string; totalAmount: number; currency: string } | null>(null);
 
+  // The bivouac's own rate already includes a camel trek out to the camp - don't
+  // offer it again as a paid extra when booking that stay on a client's behalf.
+  const availableExtras = useMemo(
+    () => (selectedTourType?.slug === "bivouac-desert-tunisie"
+      ? extras.filter((e) => e.slug !== "camel-trek")
+      : extras),
+    [extras, selectedTourType?.slug],
+  );
+
   function addExtraLine() {
-    if (extras.length === 0) return;
-    setExtraLines((lines) => [...lines, { extraId: extras[0].extraId, quantity: 1, activityDate: checkInDate }]);
+    if (availableExtras.length === 0) return;
+    setExtraLines((lines) => [...lines, { extraId: availableExtras[0].extraId, quantity: 1, activityDate: checkInDate }]);
   }
   function updateExtraLine(index: number, patch: Partial<ExtraLine>) {
     setExtraLines((lines) => lines.map((l, i) => (i === index ? { ...l, ...patch } : l)));
@@ -783,7 +792,7 @@ export default function NewReservationForm({
                   onChange={(e) => updateExtraLine(i, { extraId: e.target.value })}
                   className="rounded-[9px] border border-navy-700/15 bg-white px-3 py-2 text-[13px] text-navy-800 outline-none focus:border-gold/60"
                 >
-                  {extras.map((ex) => (
+                  {availableExtras.map((ex) => (
                     <option key={ex.extraId} value={ex.extraId}>
                       {ex.name} ({ex.unitPrice} €)
                     </option>

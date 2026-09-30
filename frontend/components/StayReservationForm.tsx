@@ -27,7 +27,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { composePhone } from "@/lib/phone";
-import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
+import { hasInformationalAccommodation, isActivityIncludedInStay } from "@/lib/stayAccommodation";
 
 type ServiceAvailabilityState = {
   forDate: string;
@@ -122,6 +122,10 @@ export default function StayReservationForm({
   }
   const initialDraft = typeof window !== "undefined" ? readDraft() : null;
   const informationalAccommodation = hasInformationalAccommodation(stay);
+  // The bivouac's own rate already includes a camel trek out to the camp - don't
+  // offer it again as a paid extra, and never total or submit it as one even if a
+  // restored draft (sessionStorage) had it checked from an earlier stay.
+  const visibleActivities = activities.filter((a) => !isActivityIncludedInStay(stay, a.slug));
 
   const [date, setDate] = useState(initialDraft?.date ?? "");
   // Only used when the back office lets this stay run several nights
@@ -147,6 +151,7 @@ export default function StayReservationForm({
     return saved[0] ? { [saved[0][0]]: saved[0][1] } : {};
   });
   const [rideSlugs, setRideSlugs] = useState<string[]>(initialDraft?.rideSlugs ?? []);
+  const effectiveRideSlugs = rideSlugs.filter((s) => !isActivityIncludedInStay(stay, s));
   // Minutes picked per timed activity (absent = its base duration).
   const [durations, setDurations] = useState<Record<string, number>>({});
   const sessionLabel = useSessionLabel();
@@ -416,7 +421,7 @@ export default function StayReservationForm({
     0,
   );
   const extrasTotal = activities
-    .filter((activity) => rideSlugs.includes(activity.slug))
+    .filter((activity) => effectiveRideSlugs.includes(activity.slug))
     .reduce((sum, activity) => sum + activityTotal(activity, partySize, nights, minutesFor(activity)), 0);
   const otherReturnOption = returnCityOption(tourOptions);
   const returnOtherTotal = hasOwnVehicle === false && otherReturn && returnCityOther.trim() && otherReturnOption ? optionTotal(otherReturnOption, partySize, nights) : 0;
@@ -577,8 +582,8 @@ export default function StayReservationForm({
       partySize,
       children: children > 0 ? children : undefined,
       infants: infants > 0 ? infants : undefined,
-      rideSlugs,
-      activityDurations: durationsPayload(activities, rideSlugs, durations),
+      rideSlugs: effectiveRideSlugs,
+      activityDurations: durationsPayload(activities, effectiveRideSlugs, durations),
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: hasOwnVehicle === false ? departureCity || undefined : undefined,
       // Either a city from the list or one the guest typed, never both.
@@ -618,7 +623,7 @@ export default function StayReservationForm({
 
   if (booking) {
     const rideNames = activities
-      .filter((a) => rideSlugs.includes(a.slug))
+      .filter((a) => effectiveRideSlugs.includes(a.slug))
       .map((a) => a.title);
     return (
       <div className="tour-booking-success" role="status">
@@ -1016,14 +1021,14 @@ export default function StayReservationForm({
       {step === 3 && (
       <div className="field" data-invalid={!!errors.rideSlugs}>
         <label>{t("addRide")}</label>
-        {activities.length === 0 ? (
+        {visibleActivities.length === 0 ? (
           <div className="booking-empty-state">
             <span aria-hidden="true">+</span>
             <div><strong>{t("extrasUnavailable")}</strong></div>
           </div>
         ) : (
           <div className="ride-options">
-            {activities.map((a) => {
+            {visibleActivities.map((a) => {
               const unavailable = activityUnavailable(a);
               return (
               <Fragment key={a.slug}>
@@ -1130,12 +1135,12 @@ export default function StayReservationForm({
                 <span>{[pickupHotelName, pickupAirport, pickupFlightNumber, pickupAddress, pickupArrivalTime, pickupInstructions].filter((v) => v.trim()).join(" · ")}</span>
               </div>
             )}
-            {rideSlugs.length > 0 && (
+            {effectiveRideSlugs.length > 0 && (
               <div className="row">
                 <span className="k">{t("reviewExtrasLabel")}</span>
                 <span>
                   {activities
-                    .filter((a) => rideSlugs.includes(a.slug))
+                    .filter((a) => effectiveRideSlugs.includes(a.slug))
                     .map((a) => `${a.title}${durationNote(a)} — ${money(activityTotal(a, partySize, nights, minutesFor(a)))}`)
                     .join(", ")}
                 </span>
@@ -1189,7 +1194,7 @@ export default function StayReservationForm({
                 <span>{money(returnOtherTotal)}</span>
               </div>
             )}
-            {activities.filter((activity) => rideSlugs.includes(activity.slug)).map((activity) => (
+            {activities.filter((activity) => effectiveRideSlugs.includes(activity.slug)).map((activity) => (
               <div className="row" key={activity.slug}>
                 <span>
                   {activity.title}
