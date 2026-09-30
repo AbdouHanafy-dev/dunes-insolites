@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import Breadcrumb from "@/components/payload/Breadcrumb";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminReservation, AdminTransaction } from "@/lib/api";
@@ -29,6 +31,15 @@ const METHOD_LABEL: Record<string, string> = {
   ONLINE: "En ligne",
   CHEQUE: "Chèque",
 };
+
+const transactionColumns: ListColumn<AdminTransaction>[] = [
+  { key: "number", label: "N° transaction", sort: (t) => t.transactionNumber, render: (t) => <span className="font-medium text-gray-800">{t.transactionNumber}</span> },
+  { key: "amount", label: "Montant", sort: (t) => t.amount, render: (t) => `${t.amount.toFixed(3)} ${sym(t.currency)}` },
+  { key: "method", label: "Méthode", sort: (t) => METHOD_LABEL[t.paymentMethod] ?? t.paymentMethod, render: (t) => METHOD_LABEL[t.paymentMethod] ?? t.paymentMethod },
+  { key: "status", label: "Statut", sort: (t) => STATUS_LABEL[t.status] ?? t.status, render: (t) => STATUS_LABEL[t.status] ?? t.status },
+  { key: "reservation", label: "Réservation", sort: (t) => t.reservationId, render: (t) => <span className="font-mono text-xs text-gray-500">{t.reservationId.slice(0, 8)}…</span> },
+  { key: "date", label: "Date", sort: (t) => t.transactionDate, render: (t) => <span className="text-gray-500">{new Date(t.transactionDate).toLocaleString("fr-FR")}</span> },
+];
 
 // Transactions are immutable financial records once created — the backend
 // exposes no PUT/DELETE for them, deliberately (see ARCHITECTURE.md §9 on
@@ -63,38 +74,35 @@ export function TransactionsList({ initialItems }: { initialItems: AdminTransact
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun paiement pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-                  <th className="px-6 py-3 font-semibold">N° transaction</th>
-                  <th className="px-6 py-3 font-semibold">Montant</th>
-                  <th className="px-6 py-3 font-semibold">Méthode</th>
-                  <th className="px-6 py-3 font-semibold">Statut</th>
-                  <th className="px-6 py-3 font-semibold">Réservation</th>
-                  <th className="px-6 py-3 font-semibold">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((t) => (
-                  <tr key={t.transactionId} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 font-medium text-gray-800">{t.transactionNumber}</td>
-                    <td className="px-6 py-3 text-gray-700">
-                      {t.amount.toFixed(3)} {sym(t.currency)}
-                    </td>
-                    <td className="px-6 py-3 text-gray-700">{METHOD_LABEL[t.paymentMethod] ?? t.paymentMethod}</td>
-                    <td className="px-6 py-3 text-gray-700">{STATUS_LABEL[t.status] ?? t.status}</td>
-                    <td className="px-6 py-3 font-mono text-xs text-gray-500">
-                      {t.reservationId.slice(0, 8)}…
-                    </td>
-                    <td className="px-6 py-3 text-gray-500">
-                      {new Date(t.transactionDate).toLocaleString("fr-FR")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RecordList
+            rows={filtered}
+            rowKey={(t) => t.transactionId}
+            columns={transactionColumns}
+            defaultSort={{ key: "date", dir: "desc" }}
+            renderCard={(t) => (
+              <PersonCard
+                name={t.transactionNumber}
+                subtitle={new Date(t.transactionDate).toLocaleString("fr-FR")}
+                badge={<span className="whitespace-nowrap text-[16px] font-bold tabular-nums text-navy-800">{t.amount.toFixed(3)} {sym(t.currency)}</span>}
+                headline={
+                  <>
+                    <span>{METHOD_LABEL[t.paymentMethod] ?? t.paymentMethod}</span>
+                    <span className="text-navy-700/60">{STATUS_LABEL[t.status] ?? t.status}</span>
+                  </>
+                }
+                actions={
+                  <Link href={`/reservations/${t.reservationId}`} className="text-xs font-semibold text-navy-700 hover:underline">
+                    Voir la réservation
+                  </Link>
+                }
+                facts={[
+                  { label: "Réservation", value: t.reservationId },
+                  { label: "Date", value: new Date(t.transactionDate).toLocaleString("fr-FR") },
+                  { label: "Devise", value: t.currency },
+                ]}
+              />
+            )}
+          />
         )}
       </div>
     </div>

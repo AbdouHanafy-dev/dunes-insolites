@@ -5,12 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
-import PersonCard, { CARD_GRID } from "@/components/PersonCard";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import TableFilters from "@/components/TableFilters";
 import { useTableFilters } from "@/components/useTableFilters";
 import { useToast } from "@/components/Toast";
 import type { AdminUser } from "@/lib/api";
 import { optionsFrom, type FilterDef } from "@/lib/tableFilters";
+
+function userColumns(roleLabel: (user: AdminUser) => string): ListColumn<AdminUser>[] {
+  return [
+    { key: "name", label: "Nom", sort: (u) => u.name, render: (u) => <span className="font-medium text-gray-800">{u.name}</span> },
+    { key: "role", label: "Type", sort: roleLabel, render: roleLabel },
+    { key: "email", label: "E-mail", sort: (u) => u.email, render: (u) => u.email },
+    { key: "phone", label: "Téléphone", sort: (u) => u.phone, render: (u) => u.phone ?? "—" },
+    { key: "loyalty", label: "Fidélité", sort: (u) => u.loyaltyPoints, render: (u) => (u.loyaltyTier ? `${u.loyaltyTier}${u.loyaltyPoints != null ? ` · ${u.loyaltyPoints} pts` : ""}` : "—") },
+  ];
+}
 
 /**
  * Accounts as two-sided cards (clients, partners, staff): identity, role and contact on the front
@@ -62,6 +73,17 @@ export default function UserCards({
     router.refresh();
   }
 
+  const userActions = (user: AdminUser) => (
+    <>
+      <Link href={`${basePath}/${user.userId}`} className="text-xs font-semibold text-navy-700 hover:underline">
+        Modifier
+      </Link>
+      <button type="button" className="text-xs font-semibold text-rose hover:underline" onClick={() => setDeleteTarget(user)}>
+        Supprimer
+      </button>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -79,10 +101,14 @@ export default function UserCards({
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun compte ne correspond.</p>
         ) : (
-          <div className={CARD_GRID}>
-            {filtered.map((user) => (
+          <RecordList
+            rows={filtered}
+            rowKey={(user) => user.userId}
+            columns={userColumns(roleLabel)}
+            onRowClick={(user) => router.push(`${basePath}/${user.userId}`)}
+            renderActions={(user) => <div className="flex justify-end gap-3">{userActions(user)}</div>}
+            renderCard={(user) => (
               <PersonCard
-                key={user.userId}
                 name={user.name}
                 subtitle={roleLabel(user)}
                 badge={
@@ -96,16 +122,7 @@ export default function UserCards({
                     <span className="truncate text-navy-700/60">{user.email}</span>
                   </>
                 }
-                actions={
-                  <>
-                    <Link href={`${basePath}/${user.userId}`} className="text-xs font-semibold text-navy-700 hover:underline">
-                      Modifier
-                    </Link>
-                    <button type="button" className="text-xs font-semibold text-rose hover:underline" onClick={() => setDeleteTarget(user)}>
-                      Supprimer
-                    </button>
-                  </>
-                }
+                actions={userActions(user)}
                 facts={[
                   { label: "E-mail", value: user.email },
                   { label: "Téléphone", value: user.phone ?? "—" },
@@ -117,8 +134,8 @@ export default function UserCards({
                   { label: "CGU acceptées", value: user.termsAcceptedAt ? new Date(user.termsAcceptedAt).toLocaleDateString("fr-FR") : "—" },
                 ]}
               />
-            ))}
-          </div>
+            )}
+          />
         )}
       </div>
 

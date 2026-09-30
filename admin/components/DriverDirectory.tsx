@@ -8,7 +8,8 @@ import Modal from "@/components/Modal";
 import { inputClass, labelClass } from "@/components/payload/fields";
 import type { AdminDriverProfile } from "@/lib/api";
 import TableFilters from "@/components/TableFilters";
-import PersonCard, { CARD_GRID, pillActive, pillInactive } from "@/components/PersonCard";
+import PersonCard, { pillActive, pillInactive } from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useTableFilters } from "@/components/useTableFilters";
 
 const DRIVER_FIELDS = [
@@ -18,6 +19,17 @@ const DRIVER_FIELDS = [
   { key: "phoneNumber", label: "Téléphone", type: "text" },
   { key: "vehicleModel", label: "Véhicule", type: "text" },
   { key: "numberOfSeats", label: "Nombre de places", type: "number" },
+];
+
+const driverName = (d: AdminDriverProfile) => `${d.firstName} ${d.lastName}`;
+
+const driverColumns: ListColumn<AdminDriverProfile>[] = [
+  { key: "name", label: "Nom", sort: driverName, render: (d) => <span className="font-medium text-gray-800">{driverName(d)}</span> },
+  { key: "phone", label: "Téléphone", sort: (d) => d.phoneNumber, render: (d) => d.phoneNumber ?? "—" },
+  { key: "email", label: "E-mail", sort: (d) => d.email, render: (d) => d.email },
+  { key: "vehicle", label: "Véhicule", sort: (d) => d.vehicleModel, render: (d) => d.vehicleModel ?? "—" },
+  { key: "seats", label: "Places", sort: (d) => d.numberOfSeats, render: (d) => (d.numberOfSeats ? String(d.numberOfSeats) : "—") },
+  { key: "active", label: "Statut", sort: (d) => d.active, render: (d) => <span className={d.active ? pillActive : pillInactive}>{d.active ? "Actif" : "Inactif"}</span> },
 ];
 
 export default function DriverDirectory({ initialDrivers }: { initialDrivers: AdminDriverProfile[] }) {
@@ -117,6 +129,14 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
     toast.success("Nouvelle invitation envoyée");
   }
 
+  const driverActions = (driver: AdminDriverProfile) => (
+    <>
+      {driver.active && <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => resendInvitation(driver)}>Renvoyer l’invitation</button>}
+      <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(driver, !driver.active)}>{driver.active ? "Désactiver" : "Réactiver"}</button>
+      <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(driver)}>Supprimer</button>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={createDriver} noValidate className="card rounded-2xl p-5">
@@ -143,11 +163,14 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
         {drivers.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun chauffeur dans l’annuaire.</p>
         ) : (
-          <div className={CARD_GRID}>
-            {filtered.map((driver) => (
+          <RecordList
+            rows={filtered}
+            rowKey={(driver) => driver.driverProfileId}
+            columns={driverColumns}
+            renderActions={(driver) => <div className="flex flex-wrap justify-end gap-3">{driverActions(driver)}</div>}
+            renderCard={(driver) => (
               <PersonCard
-                key={driver.driverProfileId}
-                name={`${driver.firstName} ${driver.lastName}`}
+                name={driverName(driver)}
                 subtitle={`${driver.vehicleModel ?? "Véhicule non renseigné"}${driver.numberOfSeats ? ` · ${driver.numberOfSeats} places` : ""}`}
                 badge={<span className={driver.active ? pillActive : pillInactive}>{driver.active ? "Actif" : "Inactif"}</span>}
                 headline={
@@ -156,13 +179,7 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
                     <span className="truncate text-navy-700/60">{driver.email}</span>
                   </>
                 }
-                actions={
-                  <>
-                    {driver.active && <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => resendInvitation(driver)}>Renvoyer l’invitation</button>}
-                    <button type="button" disabled={busy} className="text-xs font-semibold text-navy-700 hover:underline disabled:opacity-40" onClick={() => setActive(driver, !driver.active)}>{driver.active ? "Désactiver" : "Réactiver"}</button>
-                    <button type="button" disabled={busy} className="text-xs font-semibold text-rose hover:underline disabled:opacity-40" onClick={() => setDeleteTarget(driver)}>Supprimer</button>
-                  </>
-                }
+                actions={driverActions(driver)}
                 facts={[
                   { label: "E-mail", value: driver.email },
                   { label: "Téléphone", value: driver.phoneNumber ?? "—" },
@@ -171,8 +188,8 @@ export default function DriverDirectory({ initialDrivers }: { initialDrivers: Ad
                   { label: "Statut", value: driver.active ? "Actif : peut être affecté aux réservations" : "Inactif : n’est plus proposé pour les affectations" },
                 ]}
               />
-            ))}
-          </div>
+            )}
+          />
         )}
       </div>
 

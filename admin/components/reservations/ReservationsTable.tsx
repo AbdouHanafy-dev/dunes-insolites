@@ -13,6 +13,8 @@ import { accommodationSummary, guestBreakdown, guestCounts, nightsOf } from "@/l
 import { activityLines, activitySummary, lineLabel, optionLines, serviceLines } from "@/lib/reservationLines";
 import { CITY_OPTIONS } from "@/lib/cities";
 import TableFilters from "@/components/TableFilters";
+import SortHeader from "@/components/SortHeader";
+import ViewToggle, { type ListView } from "@/components/ViewToggle";
 import ReservationCard from "./ReservationCard";
 import {
   applyFilters, matchesSearch, optionsFrom,
@@ -112,7 +114,7 @@ export default function ReservationsTable({
   const [busy, setBusy] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   // Cards by default; the compact dashboard table (a row limit) stays a list.
-  const [view, setView] = useState<"cards" | "list">(limit ? "list" : "cards");
+  const [view, setView] = useState<ListView>(limit ? "list" : "cards");
   const [page, setPage] = useState(0);
 
   const filterDefs = useMemo<FilterDef<AdminReservation>[]>(
@@ -203,22 +205,7 @@ export default function ReservationsTable({
         <div className="flex items-center justify-between gap-3 px-6 pt-4">
           {title ? <h2 className="text-sm font-semibold text-navy-800">{title}</h2> : <span />}
           {!limit && (
-            <div className="inline-flex rounded-lg border border-navy-700/15 p-0.5" role="group" aria-label="Affichage">
-              {(["cards", "list"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={view === mode}
-                  onClick={() => { setView(mode); setPage(0); }}
-                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition ${
-                    view === mode ? "bg-navy-800 text-white" : "text-navy-700/60 hover:text-navy-800"
-                  }`}
-                >
-                  <i className={`bi ${mode === "cards" ? "bi-grid-3x2-gap" : "bi-list-ul"}`} aria-hidden />
-                  {mode === "cards" ? "Cartes" : "Liste"}
-                </button>
-              ))}
-            </div>
+            <ViewToggle view={view} onView={(mode) => { setView(mode); setPage(0); }} />
           )}
         </div>
         <TableFilters
@@ -257,30 +244,17 @@ export default function ReservationsTable({
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/50">
-                    {columns.map((c) => {
-                      const active = sort.key === c.key;
-                      return (
-                        <th
-                          key={c.key}
-                          aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
-                          className={`px-3 py-3 font-semibold ${c.key === "client" ? "pl-6" : ""} ${c.right ? "text-right" : ""}`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => toggleSort(c.key)}
-                            className={`inline-flex items-center gap-1 uppercase tracking-wide transition hover:text-navy-800 ${active ? "text-navy-800" : ""}`}
-                          >
-                            {c.label}
-                            <i
-                              className={`bi ${
-                                active ? (sort.dir === "asc" ? "bi-caret-up-fill" : "bi-caret-down-fill") : "bi-chevron-expand"
-                              } text-[10px] ${active ? "" : "opacity-40"}`}
-                              aria-hidden
-                            />
-                          </button>
-                        </th>
-                      );
-                    })}
+                    {columns.map((c) => (
+                      <SortHeader
+                        key={c.key}
+                        label={c.label}
+                        sortKey={c.key}
+                        sort={sort}
+                        onSort={() => toggleSort(c.key)}
+                        className={`px-3 py-3 ${c.key === "client" ? "pl-6" : ""}`}
+                        right={c.right}
+                      />
+                    ))}
                     <th className="px-3 py-3 pr-6 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>

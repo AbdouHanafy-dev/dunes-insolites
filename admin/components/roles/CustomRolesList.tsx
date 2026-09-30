@@ -6,6 +6,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useToast } from "@/components/Toast";
 import type { CustomRole } from "@/lib/api";
 
@@ -13,6 +15,12 @@ const ROLE_FIELDS = [
   { key: "name", label: "Nom (identifiant technique)", type: "text", required: true },
   { key: "label", label: "Libellé affiché", type: "text", required: true },
 ];
+const roleColumns: ListColumn<CustomRole>[] = [
+  { key: "name", label: "Nom", sort: (r) => r.name, render: (r) => <span className="font-mono text-[13px] text-navy-800">{r.name}</span> },
+  { key: "label", label: "Libellé", sort: (r) => r.label, render: (r) => r.label },
+  { key: "users", label: "Comptes", sort: (r) => r.userCount, render: (r) => String(r.userCount) },
+];
+
 const MODAL_INPUT = "mt-1 w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60";
 
 /**
@@ -87,6 +95,25 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
     router.refresh();
   }
 
+  const roleActions = (role: CustomRole) => (
+    <>
+      <Link href={`/administration/roles-personnalises/${role.name}`} className="btn btn-secondary btn-sm">
+        Permissions
+      </Link>
+      <button
+        onClick={() => {
+          setError("");
+          setDeleteTarget(role);
+        }}
+        disabled={role.userCount > 0}
+        title={role.userCount > 0 ? "Retirez ce rôle des comptes concernés d'abord" : undefined}
+        className="btn btn-danger-outline btn-sm"
+      >
+        Supprimer
+      </button>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -108,48 +135,25 @@ export default function CustomRolesList({ initialItems }: { initialItems: Custom
         {initialItems.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun rôle personnalisé pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wide text-gray-400">
-                  <th className="px-6 py-3 font-medium">Nom</th>
-                  <th className="px-6 py-3 font-medium">Libellé</th>
-                  <th className="px-6 py-3 font-medium">Comptes</th>
-                  <th className="px-6 py-3 text-right font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {initialItems.map((role) => (
-                  <tr key={role.name} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 font-mono text-[13px] text-navy-800">{role.name}</td>
-                    <td className="px-6 py-3 text-gray-700">{role.label}</td>
-                    <td className="px-6 py-3 text-gray-700">{role.userCount}</td>
-                    <td className="px-6 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link
-                          href={`/administration/roles-personnalises/${role.name}`}
-                          className="btn btn-secondary btn-sm"
-                        >
-                          Permissions
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setError("");
-                            setDeleteTarget(role);
-                          }}
-                          disabled={role.userCount > 0}
-                          title={role.userCount > 0 ? "Retirez ce rôle des comptes concernés d'abord" : undefined}
-                          className="btn btn-danger-outline btn-sm"
-                        >
-                          Supprimer
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RecordList
+            rows={initialItems}
+            rowKey={(role) => role.name}
+            columns={roleColumns}
+            renderActions={(role) => <div className="flex justify-end gap-2">{roleActions(role)}</div>}
+            renderCard={(role) => (
+              <PersonCard
+                name={role.label}
+                subtitle={<span className="font-mono">{role.name}</span>}
+                badge={<span className="rounded-full bg-navy-700/8 px-2.5 py-0.5 text-[12px] font-semibold text-navy-800">{role.userCount} compte(s)</span>}
+                actions={roleActions(role)}
+                facts={[
+                  { label: "Nom", value: role.name },
+                  { label: "Libellé", value: role.label },
+                  { label: "Comptes", value: String(role.userCount) },
+                ]}
+              />
+            )}
+          />
         )}
       </div>
 

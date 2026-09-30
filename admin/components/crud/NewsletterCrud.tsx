@@ -4,10 +4,35 @@ import { readApiError } from "@/lib/apiError";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/Modal";
+import PersonCard from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { useToast } from "@/components/Toast";
 import type { AdminNewsletterSubscriber } from "@/lib/api";
 import TableFilters from "@/components/TableFilters";
 import { useTableFilters } from "@/components/useTableFilters";
+
+const fmtSubscribed = (iso: string) => new Date(iso).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" });
+
+/** The launch e-mail state as a pill; shared by the table and the cards. */
+function LaunchStatus({ item }: { item: AdminNewsletterSubscriber }) {
+  return item.launchEmailSentAt ? (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald/12 px-2.5 py-1 text-[12px] font-semibold text-emerald">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald" />
+      Envoyé le {new Date(item.launchEmailSentAt).toLocaleDateString("fr-FR")}
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-700/8 px-2.5 py-1 text-[12px] font-semibold text-navy-700/60">
+      <span className="h-1.5 w-1.5 rounded-full bg-navy-700/40" />
+      En attente
+    </span>
+  );
+}
+
+const subscriberColumns: ListColumn<AdminNewsletterSubscriber>[] = [
+  { key: "email", label: "Email", sort: (i) => i.email, render: (i) => i.email },
+  { key: "subscribed", label: "Inscrit le", sort: (i) => i.subscribedAt, render: (i) => fmtSubscribed(i.subscribedAt) },
+  { key: "launch", label: "Email de lancement", sort: (i) => i.launchEmailSentAt, render: (i) => <LaunchStatus item={i} /> },
+];
 
 /**
  * Read/delete (no create/edit — subscribers sign up from the launch
@@ -115,6 +140,28 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
     router.refresh();
   }
 
+  const subscriberActions = (item: AdminNewsletterSubscriber) => (
+    <>
+      <button
+        onClick={() => onResend(item)}
+        disabled={resendingId === item.id}
+        className="btn btn-secondary btn-sm"
+        title={item.launchEmailSentAt ? "Renvoyer, même déjà envoyé" : "Envoyer à cette seule adresse"}
+      >
+        {resendingId === item.id ? "…" : "Renvoyer"}
+      </button>
+      <button
+        onClick={() => {
+          setError("");
+          setDeleteTarget(item);
+        }}
+        className="btn btn-danger-outline btn-sm"
+      >
+        Supprimer
+      </button>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -154,62 +201,28 @@ export function NewsletterList({ initialItems }: { initialItems: AdminNewsletter
         {filtered.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-gray-400">Aucun abonné pour le moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-navy-700/8 bg-navy-700/[0.025] text-left text-[11px] uppercase tracking-wide text-navy-700/55">
-                  <th className="px-6 py-3 font-semibold">Email</th>
-                  <th className="px-6 py-3 font-semibold">Inscrit le</th>
-                  <th className="px-6 py-3 font-semibold">Email de lancement</th>
-                  <th className="px-6 py-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-6 py-3 text-gray-700">{item.email}</td>
-                    <td className="px-6 py-3 text-gray-700">
-                      {new Date(item.subscribedAt).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}
-                    </td>
-                    <td className="px-6 py-3">
-                      {item.launchEmailSentAt ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald/12 px-2.5 py-1 text-[12px] font-semibold text-emerald">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald" />
-                          Envoyé le {new Date(item.launchEmailSentAt).toLocaleDateString("fr-FR")}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-navy-700/8 px-2.5 py-1 text-[12px] font-semibold text-navy-700/60">
-                          <span className="h-1.5 w-1.5 rounded-full bg-navy-700/40" />
-                          En attente
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => onResend(item)}
-                          disabled={resendingId === item.id}
-                          className="btn btn-secondary btn-sm"
-                          title={item.launchEmailSentAt ? "Renvoyer, même déjà envoyé" : "Envoyer à cette seule adresse"}
-                        >
-                          {resendingId === item.id ? "…" : "Renvoyer"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setError("");
-                            setDeleteTarget(item);
-                          }}
-                          className="btn btn-danger-outline btn-sm"
-                        >
-                          Supprimer
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <RecordList
+            rows={filtered}
+            rowKey={(item) => item.id}
+            columns={subscriberColumns}
+            defaultSort={{ key: "subscribed", dir: "desc" }}
+            renderActions={(item) => (
+              <div className="flex justify-end gap-2">{subscriberActions(item)}</div>
+            )}
+            renderCard={(item) => (
+              <PersonCard
+                name={item.email}
+                subtitle={`Inscrit le ${fmtSubscribed(item.subscribedAt)}`}
+                headline={<span><LaunchStatus item={item} /></span>}
+                actions={<>{subscriberActions(item)}</>}
+                facts={[
+                  { label: "Email", value: item.email },
+                  { label: "Inscrit le", value: fmtSubscribed(item.subscribedAt) },
+                  { label: "Email de lancement", value: <LaunchStatus item={item} /> },
+                ]}
+              />
+            )}
+          />
         )}
       </div>
 

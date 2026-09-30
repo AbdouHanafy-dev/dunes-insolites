@@ -173,7 +173,7 @@ function NextTripHero({ reservation, t }: { reservation: MyReservation; t: T }) 
 function NoTripCta({ t }: { t: T }) {
   return (
     <div className="next-trip-empty">
-      <Link href="/activities" className="btn-accent">
+      <Link href="/camp" className="btn-accent">
         {t("exploreExperiencesCta")} →
       </Link>
     </div>

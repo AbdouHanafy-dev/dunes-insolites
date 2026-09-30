@@ -9,11 +9,16 @@ import TableFilters from "@/components/TableFilters";
 import { useTableFilters } from "@/components/useTableFilters";
 import { useToast } from "@/components/Toast";
 import { labelClass } from "@/components/payload/fields";
-import { CARD_GRID } from "@/components/PersonCard";
+import RecordList, { type ListColumn } from "@/components/RecordList";
 import { parsePercent, percentLabel, promoTotals, validityOf, type AdminPromoCode } from "@/lib/promoCodes";
 
 const control =
   "w-full rounded-[9px] border border-navy-700/15 bg-white px-3.5 py-2.5 text-[14px] text-navy-800 outline-none focus:border-gold/60";
+
+const STATE_PILL: Record<string, string> = {
+  live: "bg-emerald-100 text-emerald-800",
+  soon: "bg-sky-100 text-sky-800",
+};
 
 const money = (value: number) => `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 3 }).format(value)} €`;
 
@@ -63,6 +68,30 @@ export default function PromoCodesManager({ initialItems }: { initialItems: Admi
     (c) => [c.code, c.partnerName],
   );
   const totals = promoTotals(initialItems);
+
+  const columns: ListColumn<AdminPromoCode>[] = [
+    { key: "partner", label: "Hôtel", sort: (c) => c.partnerName, render: (c) => <span className="font-medium text-gray-800">{c.partnerName}</span> },
+    { key: "code", label: "Code", sort: (c) => c.code, render: (c) => <span className="font-mono text-[13px] font-semibold">{c.code}</span> },
+    {
+      key: "state", label: "Statut", sort: (c) => validityOf(c, today).label,
+      render: (c) => {
+        const state = validityOf(c, today);
+        return <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${STATE_PILL[state.key] ?? "bg-gray-100 text-gray-600"}`}>{state.label}</span>;
+      },
+    },
+    { key: "discount", label: "Remise", sort: (c) => c.discountPercent, render: (c) => percentLabel(c.discountPercent) },
+    { key: "commission", label: "Commission", sort: (c) => c.commissionPercent, render: (c) => (c.commissionPercent == null ? "à définir" : percentLabel(c.commissionPercent)) },
+    { key: "reservations", label: "Réservations", sort: (c) => c.reservations, render: (c) => String(c.reservations) },
+    { key: "revenue", label: "CA circuits", sort: (c) => c.circuitRevenue, render: (c) => money(c.circuitRevenue) },
+    { key: "due", label: "Commission à payer", sort: (c) => c.commissionDue, render: (c) => (c.commissionDue == null ? "—" : money(c.commissionDue)) },
+  ];
+  const promoActions = (c: AdminPromoCode) => (
+    <span className="flex justify-end gap-3 text-xs font-semibold">
+      <button type="button" className="text-navy-700 hover:underline" onClick={() => setEditing({ id: c.promoCodeId, draft: draftOf(c) })}>Modifier</button>
+      <button type="button" disabled={busy} className="text-navy-700 hover:underline disabled:opacity-40" onClick={() => toggle(c)}>{c.active ? "Désactiver" : "Réactiver"}</button>
+      <button type="button" className="text-rose hover:underline" onClick={() => setDeleting(c)}>Supprimer</button>
+    </span>
+  );
 
   async function save() {
     if (!editing) return;
@@ -174,11 +203,15 @@ export default function PromoCodesManager({ initialItems }: { initialItems: Admi
             {initialItems.length === 0 ? "Aucun code promo pour le moment." : "Aucun code ne correspond."}
           </p>
         ) : (
-          <div className={CARD_GRID}>
-            {filtered.map((c) => {
+          <RecordList
+            rows={filtered}
+            rowKey={(c) => c.promoCodeId}
+            columns={columns}
+            renderActions={promoActions}
+            renderCard={(c) => {
               const state = validityOf(c, today);
               return (
-                <article key={c.promoCodeId} className="card flex flex-col gap-3 rounded-2xl p-4">
+                <article className="card flex h-full flex-col gap-3 rounded-2xl p-4">
                   <header className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <h3 className="truncate text-[16px] font-bold text-navy-800">{c.partnerName}</h3>
@@ -186,11 +219,7 @@ export default function PromoCodesManager({ initialItems }: { initialItems: Admi
                         {c.code}
                       </p>
                     </div>
-                    <span
-                      className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${
-                        state.key === "live" ? "bg-emerald-100 text-emerald-800" : state.key === "soon" ? "bg-sky-100 text-sky-800" : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
+                    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${STATE_PILL[state.key] ?? "bg-gray-100 text-gray-600"}`}>
                       {state.label}
                     </span>
                   </header>
@@ -211,16 +240,12 @@ export default function PromoCodesManager({ initialItems }: { initialItems: Admi
                     <Link href={`/reservations/circuits?q=${encodeURIComponent(c.code)}`} className="text-navy-800 hover:underline">
                       Voir les réservations →
                     </Link>
-                    <span className="flex gap-3">
-                      <button type="button" className="text-navy-700 hover:underline" onClick={() => setEditing({ id: c.promoCodeId, draft: draftOf(c) })}>Modifier</button>
-                      <button type="button" disabled={busy} className="text-navy-700 hover:underline disabled:opacity-40" onClick={() => toggle(c)}>{c.active ? "Désactiver" : "Réactiver"}</button>
-                      <button type="button" className="text-rose hover:underline" onClick={() => setDeleting(c)}>Supprimer</button>
-                    </span>
+                    {promoActions(c)}
                   </footer>
                 </article>
               );
-            })}
-          </div>
+            }}
+          />
         )}
       </div>
 
