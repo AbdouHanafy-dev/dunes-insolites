@@ -74,7 +74,7 @@ class StaffBookingNotifierTest {
 
         ArgumentCaptor<List<String>> to = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<StaffBookingMailer.Customer> customer = ArgumentCaptor.forClass(StaffBookingMailer.Customer.class);
-        verify(mailer).send(to.capture(), eq(StaffBookingMailer.Kind.NEW), any(), customer.capture(),
+        verify(mailer).send(to.capture(), eq(StaffBookingMailer.Kind.NEW), any(), any(), customer.capture(),
                 eq("https://admin.dunesinsolites.com/reservations/" + reservationId));
         assertThat(to.getValue()).containsExactly("owner@example.com", "second@example.com");
         assertThat(customer.getValue().language()).isEqualTo("Français");
@@ -86,11 +86,11 @@ class StaffBookingNotifierTest {
     void confirmedAndCancelledUseTheirOwnEmailTypeAndKind() {
         notifier.notifyConfirmed(reservationId, null);
         verify(dispatch).claim(eq(reservationId), eq(EmailType.STAFF_RESERVATION_CONFIRMED), anyString(), any());
-        verify(mailer).send(anyList(), eq(StaffBookingMailer.Kind.CONFIRMED), any(), any(), anyString());
+        verify(mailer).send(anyList(), eq(StaffBookingMailer.Kind.CONFIRMED), any(), any(), any(), anyString());
 
         notifier.notifyCancelled(reservationId, null);
         verify(dispatch).claim(eq(reservationId), eq(EmailType.STAFF_RESERVATION_CANCELLED), anyString(), any());
-        verify(mailer).send(anyList(), eq(StaffBookingMailer.Kind.CANCELLED), any(), any(), anyString());
+        verify(mailer).send(anyList(), eq(StaffBookingMailer.Kind.CANCELLED), any(), any(), any(), anyString());
     }
 
     @Test
@@ -102,13 +102,13 @@ class StaffBookingNotifierTest {
         stubFacts("Site web", ReservationType.HEBERGEMENT);
         notifier.notifyNewBooking(reservationId, null);
         ArgumentCaptor<List<String>> stayTo = ArgumentCaptor.forClass(List.class);
-        verify(mailer).send(stayTo.capture(), eq(StaffBookingMailer.Kind.NEW), any(), any(), anyString());
+        verify(mailer).send(stayTo.capture(), eq(StaffBookingMailer.Kind.NEW), any(), any(), any(), anyString());
         assertThat(stayTo.getValue()).containsExactly("dunes@example.com");
 
         stubFacts("Site web", ReservationType.TOURS);
         notifier.notifyConfirmed(reservationId, null);
         ArgumentCaptor<List<String>> circuitTo = ArgumentCaptor.forClass(List.class);
-        verify(mailer).send(circuitTo.capture(), eq(StaffBookingMailer.Kind.CONFIRMED), any(), any(), anyString());
+        verify(mailer).send(circuitTo.capture(), eq(StaffBookingMailer.Kind.CONFIRMED), any(), any(), any(), anyString());
         assertThat(circuitTo.getValue()).containsExactly("route@example.com");
     }
 
@@ -129,7 +129,7 @@ class StaffBookingNotifierTest {
         notifier.notifyNewBooking(reservationId, null);
 
         ArgumentCaptor<List<String>> to = ArgumentCaptor.forClass(List.class);
-        verify(mailer).send(to.capture(), any(), any(), any(), anyString());
+        verify(mailer).send(to.capture(), any(), any(), any(), any(), anyString());
         assertThat(to.getValue()).containsExactly("me@example.com", "camp@example.com");
     }
 
@@ -165,7 +165,7 @@ class StaffBookingNotifierTest {
 
     @Test
     void aMailFailureIsRecordedButNeverThrown() {
-        doThrow(new IllegalStateException("smtp down")).when(mailer).send(anyList(), any(), any(), any(), anyString());
+        doThrow(new IllegalStateException("smtp down")).when(mailer).send(anyList(), any(), any(), any(), any(), anyString());
 
         notifier.notifyNewBooking(reservationId, null); // must not throw
 

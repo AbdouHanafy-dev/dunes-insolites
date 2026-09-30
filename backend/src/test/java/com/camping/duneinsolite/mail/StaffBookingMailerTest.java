@@ -1,5 +1,6 @@
 package com.camping.duneinsolite.mail;
 
+import com.camping.duneinsolite.model.enums.ReservationType;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
@@ -33,11 +34,12 @@ class StaffBookingMailerTest {
 
     @Test
     void theNewBookingEmailCarriesWhatTheTeamNeedsToActOnTheBooking() {
-        String html = mailer.html(StaffBookingMailer.Kind.NEW, overview(), CUSTOMER, "https://admin.example.com/reservations/abc");
+        String html = mailer.html(StaffBookingMailer.Kind.NEW, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/reservations/abc");
 
         assertThat(html).contains("Vous avez reçu une réservation")
                 .contains("Tunisie : escapade de 2 jours")
                 .contains("DI-4650DE2C")
+                .contains("Date d’arrivée")
                 .contains("5 octobre 2026")
                 .contains("2 adultes · 1 enfant")
                 .contains("Clément Masserot")
@@ -52,26 +54,38 @@ class StaffBookingMailerTest {
 
     @Test
     void confirmedAndCancelledCarryTheirOwnWording() {
-        String confirmed = mailer.html(StaffBookingMailer.Kind.CONFIRMED, overview(), CUSTOMER, "https://admin.example.com/r/abc");
-        String cancelled = mailer.html(StaffBookingMailer.Kind.CANCELLED, overview(), CUSTOMER, "https://admin.example.com/r/abc");
+        String confirmed = mailer.html(StaffBookingMailer.Kind.CONFIRMED, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/abc");
+        String cancelled = mailer.html(StaffBookingMailer.Kind.CANCELLED, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/abc");
 
         assertThat(confirmed).contains("Réservation confirmée").contains("a été confirmée");
         assertThat(cancelled).contains("Réservation annulée").contains("a été annulée");
     }
 
     @Test
+    void theDateLabelNamesWhatKindOfDateItIsSoSupportIsNeverGuessing() {
+        String stay = mailer.html(StaffBookingMailer.Kind.NEW, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/abc");
+        String tour = mailer.html(StaffBookingMailer.Kind.NEW, ReservationType.TOURS, overview(), CUSTOMER, "https://admin.example.com/r/abc");
+        String extra = mailer.html(StaffBookingMailer.Kind.NEW, ReservationType.EXTRAS, overview(), CUSTOMER, "https://admin.example.com/r/abc");
+
+        assertThat(stay).contains("Date d’arrivée");
+        assertThat(tour).contains("Date de départ du circuit");
+        assertThat(extra).contains("Date de l’activité");
+    }
+
+    @Test
     void whatTheGuestTypedIsEscapedInTheHtml() {
         var evil = new StaffBookingMailer.Customer("<script>alert(1)</script>", "a@b.c", null, null);
-        String html = mailer.html(StaffBookingMailer.Kind.NEW, overview(), evil, "https://admin.example.com/reservations/abc");
+        String html = mailer.html(StaffBookingMailer.Kind.NEW, ReservationType.HEBERGEMENT, overview(), evil, "https://admin.example.com/reservations/abc");
 
         assertThat(html).doesNotContain("<script>alert(1)</script>").contains("&lt;script&gt;");
     }
 
     @Test
     void thePlainTextPartHasTheSameFacts() {
-        String text = mailer.text(StaffBookingMailer.Kind.NEW, overview(), CUSTOMER, "https://admin.example.com/reservations/abc");
+        String text = mailer.text(StaffBookingMailer.Kind.NEW, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/reservations/abc");
 
-        assertThat(text).contains("DI-4650DE2C").contains("Clément Masserot <client@example.com>")
+        assertThat(text).contains("DI-4650DE2C").contains("Date d’arrivée : 5 octobre 2026")
+                .contains("Clément Masserot <client@example.com>")
                 .contains("https://admin.example.com/reservations/abc");
     }
 
@@ -80,7 +94,7 @@ class StaffBookingMailerTest {
         MimeMessage message = new MimeMessage(Session.getInstance(new Properties()));
         when(sender.createMimeMessage()).thenReturn(message);
 
-        mailer.send(List.of("owner@example.com", "camp@example.com"), StaffBookingMailer.Kind.NEW, overview(), CUSTOMER, "https://admin.example.com/r/1");
+        mailer.send(List.of("owner@example.com", "camp@example.com"), StaffBookingMailer.Kind.NEW, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/1");
 
         verify(sender).send(any(MimeMessage.class));
         assertThat(message.getAllRecipients()).hasSize(2);
@@ -92,16 +106,16 @@ class StaffBookingMailerTest {
     void confirmedAndCancelledSubjectsReplyToTheSameThreadAsTheNewBookingMail() throws Exception {
         MimeMessage newMessage = new MimeMessage(Session.getInstance(new Properties()));
         when(sender.createMimeMessage()).thenReturn(newMessage);
-        mailer.send(List.of("owner@example.com"), StaffBookingMailer.Kind.NEW, overview(), CUSTOMER, "https://admin.example.com/r/1");
+        mailer.send(List.of("owner@example.com"), StaffBookingMailer.Kind.NEW, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/1");
         String newSubject = newMessage.getSubject();
 
         MimeMessage confirmedMessage = new MimeMessage(Session.getInstance(new Properties()));
         when(sender.createMimeMessage()).thenReturn(confirmedMessage);
-        mailer.send(List.of("owner@example.com"), StaffBookingMailer.Kind.CONFIRMED, overview(), CUSTOMER, "https://admin.example.com/r/1");
+        mailer.send(List.of("owner@example.com"), StaffBookingMailer.Kind.CONFIRMED, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/1");
 
         MimeMessage cancelledMessage = new MimeMessage(Session.getInstance(new Properties()));
         when(sender.createMimeMessage()).thenReturn(cancelledMessage);
-        mailer.send(List.of("owner@example.com"), StaffBookingMailer.Kind.CANCELLED, overview(), CUSTOMER, "https://admin.example.com/r/1");
+        mailer.send(List.of("owner@example.com"), StaffBookingMailer.Kind.CANCELLED, ReservationType.HEBERGEMENT, overview(), CUSTOMER, "https://admin.example.com/r/1");
 
         // Same core subject, only prefixed with "Re: " - the piece Gmail (and other clients) thread on.
         assertThat(confirmedMessage.getSubject()).isEqualTo("Re: " + newSubject);

@@ -2,6 +2,7 @@ package com.camping.duneinsolite.mail;
 
 import com.camping.duneinsolite.exception.TransactionalEmailException;
 import com.camping.duneinsolite.mail.MailLayout.Frame;
+import com.camping.duneinsolite.model.enums.ReservationType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +73,7 @@ public class StaffBookingMailer {
         }
     }
 
-    public void send(List<String> to, Kind kind, ReservationOverview o, Customer customer, String reservationUrl) {
+    public void send(List<String> to, Kind kind, ReservationType type, ReservationOverview o, Customer customer, String reservationUrl) {
         // The subject's core (product/date/reference) never changes across the three mails - only
         // NEW carries no "Re:" - so they thread as one conversation about this one reservation.
         String core = "Nouvelle réservation : " + product(o) + " · " + (o.arrival() == null ? "—" : longDate(o.arrival())) + " · " + o.reference();
@@ -83,7 +84,7 @@ public class StaffBookingMailer {
             helper.setFrom(fromAddress);
             helper.setTo(to.toArray(String[]::new));
             helper.setSubject(subject);
-            helper.setText(text(kind, o, customer, reservationUrl), html(kind, o, customer, reservationUrl));
+            helper.setText(text(kind, type, o, customer, reservationUrl), html(kind, type, o, customer, reservationUrl));
             mailSender.send(message);
             log.info("staff {} email sent to {} team address(es) for {}", kind, to.size(), o.reference());
         } catch (MessagingException | MailException e) {
@@ -93,12 +94,28 @@ public class StaffBookingMailer {
 
     // ── content ───────────────────────────────────────────────────
 
-    String html(Kind kind, ReservationOverview o, Customer c, String reservationUrl) {
+    /**
+     * The label for {@code o.arrival()}: a stay's arrival day, a circuit's departure day, or an
+     * activity's own day - never just "Date", which support read as ambiguous on a circuit e-mail
+     * (is it when the circuit leaves, or something else?).
+     */
+    private static String arrivalLabel(ReservationType type) {
+        return switch (type) {
+            case HEBERGEMENT -> "Date d’arrivée";
+            case TOURS -> "Date de départ du circuit";
+            case EXTRAS -> "Date de l’activité";
+        };
+    }
+
+    String html(Kind kind, ReservationType type, ReservationOverview o, Customer c, String reservationUrl) {
         StringBuilder rows = new StringBuilder();
         rows.append(row("Produit", strong(product(o))));
         rows.append(row("Référence", strong(o.reference())));
-        rows.append(row("Date", strong(o.arrival() == null ? "—" : longDate(o.arrival()))));
-        if (o.departure() != null) rows.append(row("Départ", esc(longDate(o.departure()))));
+        rows.append(row(arrivalLabel(type), strong(o.arrival() == null ? "—" : longDate(o.arrival()))));
+        // Only a stay carries a checkout date (see ReservationOverviewFactory.build); a circuit never does.
+        // Spelled out ("fin du séjour") rather than bare "Date de départ" so support never has to infer
+        // it from context - it reads the same whether or not the arrival row above is in view.
+        if (o.departure() != null) rows.append(row("Date fin du séjour", esc(longDate(o.departure()))));
         rows.append(row("Participants", esc(participants(o))));
 
         StringBuilder who = new StringBuilder(strong(blank(c.name()) ? "—" : c.name()));
@@ -124,12 +141,12 @@ public class StaffBookingMailer {
                 kind.heading, body, "Message automatique destiné à l’équipe."));
     }
 
-    String text(Kind kind, ReservationOverview o, Customer c, String reservationUrl) {
+    String text(Kind kind, ReservationType type, ReservationOverview o, Customer c, String reservationUrl) {
         StringBuilder t = new StringBuilder(kind.intro).append("\n\n");
         t.append("Produit : ").append(product(o)).append('\n');
         t.append("Référence : ").append(o.reference()).append('\n');
-        t.append("Date : ").append(o.arrival() == null ? "—" : longDate(o.arrival())).append('\n');
-        if (o.departure() != null) t.append("Départ : ").append(longDate(o.departure())).append('\n');
+        t.append(arrivalLabel(type)).append(" : ").append(o.arrival() == null ? "—" : longDate(o.arrival())).append('\n');
+        if (o.departure() != null) t.append("Date fin du séjour : ").append(longDate(o.departure())).append('\n');
         t.append("Participants : ").append(participants(o)).append('\n');
         t.append("Client : ").append(blank(c.name()) ? "—" : c.name());
         if (!blank(c.email())) t.append(" <").append(c.email()).append('>');

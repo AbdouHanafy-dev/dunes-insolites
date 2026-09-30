@@ -92,7 +92,7 @@ public class StaffBookingNotifier {
             if (claim.alreadySent()) return false;
 
             try {
-                mailer.send(to, kind, facts.overview(),
+                mailer.send(to, kind, facts.reservationType(), facts.overview(),
                         new StaffBookingMailer.Customer(facts.customerName(), facts.customerEmail(),
                                 facts.customerPhone(), languageName(facts.locale())),
                         adminUrl.replaceAll("/+$", "") + "/reservations/" + reservationId);
