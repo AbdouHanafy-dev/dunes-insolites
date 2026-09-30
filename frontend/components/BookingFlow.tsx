@@ -28,7 +28,7 @@ import PhoneInput from "@/components/PhoneInput";
 import { getCountryCallingCode, type Country } from "react-phone-number-input";
 import { DEFAULT_COUNTRY_BY_LOCALE } from "@/lib/countryDialCodes";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
-import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
+import { hasInformationalAccommodation, isActivityIncludedInStay } from "@/lib/stayAccommodation";
 import {
   DEPARTURE_CITY_LABELS,
   type Activity,
@@ -222,6 +222,11 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
   }, [category, selectedStay, date, departureDate, multiNight, nights, transportOptions]);
 
   const otherActivities = activities;
+  // The bivouac's own rate already includes a camel trek out to the camp - don't
+  // offer it again as a paid add-on, and never total or submit it as one even if
+  // it was checked before the guest switched from the fixed camp to the bivouac.
+  const visibleActivities = otherActivities.filter((a) => !isActivityIncludedInStay(selectedStay, a.slug));
+  const effectiveRideSlugs = rideSlugs.filter((s) => !isActivityIncludedInStay(selectedStay, s));
 
   const [activityAvailability, setActivityAvailability] = useState<{
     forDate: string;
@@ -318,7 +323,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
     return selectedStay?.priceFrom ?? 0;
   })();
 
-  const extrasTotal = otherActivities.filter((a) => rideSlugs.includes(a.slug)).reduce((s, a) => s + activityTotal(a, partySize, nights, minutesFor(a)), 0);
+  const extrasTotal = otherActivities.filter((a) => effectiveRideSlugs.includes(a.slug)).reduce((s, a) => s + activityTotal(a, partySize, nights, minutesFor(a)), 0);
 
   // No tier chosen (stay without accommodation types): the stay's own adult and
   // child rates from the back office, per person, per night.
@@ -470,8 +475,8 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
       partySize,
       children: children > 0 ? children : undefined,
       infants: infants > 0 ? infants : undefined,
-      rideSlugs,
-      activityDurations: durationsPayload(otherActivities, rideSlugs, durations),
+      rideSlugs: effectiveRideSlugs,
+      activityDurations: durationsPayload(otherActivities, effectiveRideSlugs, durations),
       arrivalMode: hasOwnVehicle ? "OWN_VEHICLE" : "TRANSPORT",
       departureCity: hasOwnVehicle === false ? departureCity || undefined : undefined,
       returnCity: hasOwnVehicle === false ? returnCity || undefined : undefined,
@@ -937,7 +942,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
         <div className="field">
           <label>{ts("addRide")}</label>
           <div className="ride-options">
-            {otherActivities.map((a) => {
+            {visibleActivities.map((a) => {
               const unavailable = activityUnavailable(a);
               return (
               <Fragment key={a.slug}>
@@ -1050,7 +1055,7 @@ export default function BookingFlow({ activities }: { activities: Activity[] }) 
             {selectedTransport && (
               <div className="row"><span>{selectedTransport.name}</span><span>{optionPrice(selectedTransport) == null ? ts("onRequest") : `${money(optionPrice(selectedTransport))}`}</span></div>
             )}
-            {otherActivities.filter((a) => rideSlugs.includes(a.slug)).map((a) => (
+            {otherActivities.filter((a) => effectiveRideSlugs.includes(a.slug)).map((a) => (
               <div className="row" key={a.slug}><span>{a.title}{durationNote(a)}{activityQuantity(a, partySize, nights) > 1 ? ` × ${activityQuantity(a, partySize, nights)}` : ""}</span><span>{money(activityTotal(a, partySize, nights, minutesFor(a)))}</span></div>
             ))}
             <div className="row total"><span>{ts("grandTotal")}</span><span>{money(stayTotal + extrasTotal + serviceTotal)}</span></div>
