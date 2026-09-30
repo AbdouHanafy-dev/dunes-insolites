@@ -153,10 +153,6 @@ public class TourServiceImpl implements TourService {
         if (tour.getDescription() == null || tour.getDescription().isBlank()) missing.add("description");
         if (tour.getKeywords() == null || tour.getKeywords().isEmpty()) missing.add("at least one keyword");
         if (tour.getProgramSteps() == null || tour.getProgramSteps().isEmpty()) missing.add("at least one itinerary step");
-        int photoCount = (tour.getPhotos() == null ? 0 : tour.getPhotos().size())
-                + (tour.getCoverPhotoUrl() != null && !tour.getCoverPhotoUrl().isBlank() ? 1 : 0);
-        if (photoCount < 4) missing.add("at least 4 photos (cover + gallery)");
-        if (!Boolean.TRUE.equals(tour.getCopyrightConfirmed())) missing.add("copyright confirmation");
         if (!Boolean.TRUE.equals(tour.getInsuranceConfirmed())) missing.add("insurance confirmation");
         if (!Boolean.TRUE.equals(tour.getComplianceConfirmed())) missing.add("compliance confirmation");
         if (!missing.isEmpty()) {

@@ -62,8 +62,6 @@ const PRICE_FIELDS: [keyof TourIssueInput, string][] = [
   ["tva", "TVA (%)"],
 ];
 
-const MIN_PHOTOS = 4;
-
 export function localIssues(f: TourIssueInput): Issue[] {
   const out: Issue[] = [];
   const add = (step: number, field: string, label: string, message: string, blocking = false) =>
@@ -102,19 +100,6 @@ export function localIssues(f: TourIssueInput): Issue[] {
       `doit être inférieur au prix adulte (promo ${f.salePriceAdult} ≥ prix adulte ${f.passengerAdultPrice}).`,
       true,
     );
-  }
-
-  const photoCount = f.photos.length + (f.coverPhotoUrl ? 1 : 0);
-  if (photoCount < MIN_PHOTOS) {
-    add(
-      STEP_PHOTOS,
-      "photos",
-      "Photos",
-      `${photoCount} photo(s) sur ${MIN_PHOTOS} minimum (couverture + galerie) — il en manque ${MIN_PHOTOS - photoCount}.`,
-    );
-  }
-  if (!f.copyrightConfirmed) {
-    add(STEP_PHOTOS, "copyrightConfirmed", "Droits des photos", "à confirmer — cochez que vous détenez les droits.");
   }
 
   if (f.programSteps.length === 0) {
@@ -231,8 +216,6 @@ const INCOMPLETE_ITEMS: Record<string, { field: string; message: string }> = {
   "description": { field: "description", message: "requise — la description courte est vide." },
   "at least one keyword": { field: "keywords", message: "ajoutez au moins un mot-clé." },
   "at least one itinerary step": { field: "programSteps", message: "ajoutez au moins une étape d'itinéraire." },
-  "at least 4 photos (cover + gallery)": { field: "photos", message: "il faut au moins 4 photos (couverture + galerie)." },
-  "copyright confirmation": { field: "copyrightConfirmed", message: "confirmez que vous détenez les droits des photos." },
   "insurance confirmation": { field: "insuranceConfirmed", message: "cochez l'attestation de responsabilité civile." },
   "compliance confirmation": { field: "complianceConfirmed", message: "cochez l'attestation de conformité réglementaire." },
 };

@@ -58,10 +58,10 @@ describe("localIssues", () => {
     expect(localIssues({ ...valid, departureCities: [] }).some((i) => i.field === "departureCities")).toBe(true);
   });
 
-  it("counts the cover photo and says how many are missing", () => {
-    const issues = localIssues({ ...valid, photos: [1], coverPhotoUrl: null });
-    expect(issues.find((i) => i.field === "photos")?.message).toContain("1 photo(s) sur 4");
-    expect(issues.find((i) => i.field === "photos")?.message).toContain("manque 3");
+  it("never blocks on photo count or copyright confirmation — there is no restriction on photos", () => {
+    const issues = localIssues({ ...valid, photos: [], coverPhotoUrl: null, copyrightConfirmed: false });
+    expect(issues.some((i) => i.field === "photos")).toBe(false);
+    expect(issues.some((i) => i.field === "copyrightConfirmed")).toBe(false);
   });
 
   it("only blocks a plain save on basics and pricing", () => {
@@ -124,12 +124,11 @@ describe("plain-sentence refusals from the tour service", () => {
   it("splits Tour is not complete into one problem per field and step", () => {
     const issues = serverIssues(
       {},
-      "Action refusée — Tour is not complete: description, at least one keyword, at least 4 photos (cover + gallery), insurance confirmation — (HTTP 400)",
+      "Action refusée — Tour is not complete: description, at least one keyword, insurance confirmation — (HTTP 400)",
     );
     expect(issues.map((i) => [i.field, i.step])).toEqual([
       ["description", 0],
       ["keywords", 3],
-      ["photos", 1],
       ["insuranceConfirmed", 10],
     ]);
   });
