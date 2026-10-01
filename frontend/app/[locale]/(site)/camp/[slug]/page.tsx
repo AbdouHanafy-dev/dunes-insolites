@@ -25,6 +25,7 @@ import AccGallery from "@/components/AccGallery";
 import { sortByPrice } from "@/lib/guestPricing";
 import { site } from "@/lib/site";
 import { hasInformationalAccommodation } from "@/lib/stayAccommodation";
+import { groupSizeKey } from "@/lib/catalogLabels";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -49,6 +50,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: stay.tagline,
       images: [{ url: stay.image, width: 1200, height: 630, alt: stay.title }],
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${stay.title} — ${site.name}`,
+      description: stay.tagline,
+      images: stay.image ? [stay.image] : undefined,
+    },
   };
 }
 
@@ -58,7 +65,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
   const stay = await getStay(slug, locale);
   if (!stay) notFound();
 
-  const [related, activities, stayReviews, t, tLinks, tNav, tTour, tGallery] = await Promise.all([
+  const [related, activities, stayReviews, t, tLinks, tNav, tTour, tGallery, tCatalog] = await Promise.all([
     getRelatedStays(slug, locale).then((r) => r.slice(0, 2)),
     getActivities(locale),
     getReviews({ staySlug: slug }),
@@ -67,7 +74,11 @@ export default async function StayDetail({ params, searchParams }: Props) {
     getTranslations("nav"),
     getTranslations("tourDetail"),
     getTranslations("galleryGrid"),
+    getTranslations("catalogLabels"),
   ]);
+  const localizedGroupSize = groupSizeKey(stay.groupSize)
+    ? tCatalog(groupSizeKey(stay.groupSize)!)
+    : stay.groupSize;
 
   // Price shown follows how the stay is sold: with accommodation types the guest
   // pays per tier (so "from" the cheapest one); without, the stay's own
@@ -87,7 +98,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
     "@type": "Product",
     name: stay.title,
     description: stay.tagline,
-    image: `${site.url}${stay.image}`,
+    image: new URL(stay.image, site.url).toString(),
     offers: {
       "@type": "Offer",
       price: hasTiers ? lowestTierPrice : adultRate,
@@ -155,7 +166,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
 
             {(() => {
               const essentials = [
-                { label: t("groupSize"), value: stay.groupSize },
+                { label: t("groupSize"), value: localizedGroupSize },
                 { label: t("checkInLabel"), value: stay.arrivalTime },
                 { label: t("checkOutLabel"), value: stay.departureTime },
               ].filter((item) => item.value && item.value.trim());
@@ -309,7 +320,7 @@ export default async function StayDetail({ params, searchParams }: Props) {
             <ul className="tour-booking-promises">
               {[
                 !hasTiers && !sameRate ? `${priceToken(childRate)} ${t("perChildPerNight")}` : "",
-                stay.groupSize,
+                localizedGroupSize,
                 t("sabriaCamp"),
                 maxNights > 1 ? t("upToNights", { max: maxNights }) : t("oneNight"),
               ]

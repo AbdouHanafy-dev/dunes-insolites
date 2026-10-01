@@ -1,6 +1,28 @@
 {
   "site": {
+    "title": "Dunes Insolites — Sabria Desert Adventures",
     "description": "Camel treks, quad safaris, and sandboarding across the Sahara at sunset. Book your Sabria desert adventure."
+  },
+  "catalogLabels": {
+    "groupSmall": "Small group",
+    "groupMedium": "Medium group",
+    "groupAny": "Any group size",
+    "groupPrivate": "Private group",
+    "guideNone": "Self-guided",
+    "guideTour": "Tour guide",
+    "guideReception": "Reception staff",
+    "guideInstructor": "Instructor",
+    "guideDriver": "Driver",
+    "mealBreakfast": "Breakfast",
+    "mealLunch": "Lunch",
+    "mealDinner": "Dinner",
+    "mealSnack": "Snack",
+    "formatBuffet": "buffet",
+    "formatSetMenu": "set menu",
+    "formatAlaCarte": "à la carte",
+    "formatPicnic": "picnic",
+    "mealLine": "{meal} ({format})",
+    "mealLineDay": "{meal} day {day} ({format})"
   },
   "nav": {
     "home": "Home",
@@ -168,6 +190,8 @@
     "seeAllOnGoogle": "See all reviews on Google",
     "previous": "Previous review",
     "next": "Next review"
+    ,"verifiedBooking": "Verified booking"
+    ,"otherSource": "Other"
   },
   "galleryStrip": {
     "eyebrow": "From the sand",
@@ -527,6 +551,8 @@
     "status": "Status",
     "date": "Date",
     "departure": "Departure",
+    "slotMorning": "Morning · 08:00",
+    "slotGoldenHour": "Golden hour · 16:30",
     "party": "Party",
     "personSingular": "person",
     "peoplePlural": "people",
@@ -761,6 +787,7 @@
     "photoOf": "Photo {n} of {total}",
     "allPhotos": "All photos",
     "breadcrumbCircuits": "Circuits",
+    "breadcrumbAria": "Breadcrumb",
     "fromPrice": "From {price}",
     "ratingFact": "{rating} ★ ({count} reviews)",
     "theTrip": "The circuit",
@@ -773,6 +800,8 @@
     "openInMaps": "Open in Maps",
     "meetingPointHeading": "Meeting point",
     "goodToKnow": "Good to know",
+    "languagesLabel": "Languages",
+    "cancellationLabel": "Cancellation",
     "languagesSpoken": "Languages spoken: {languages}",
     "freeCancellationNote": "Free cancellation",
     "perAdultLabel": "per adult",
@@ -821,7 +850,9 @@
     "veryGoodRating": "Very good rating",
     "ratingReviewCount": "{count, plural, one {# review} other {# reviews}}",
     "organizerLabel": "Activity organiser: {name}",
-    "viewAllPhotos": "See all ({count})"
+    "viewAllPhotos": "See all ({count})",
+    "previousCircuit": "Previous circuit",
+    "nextCircuit": "Next circuit"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Date and travelers",
@@ -2895,5 +2926,6 @@
     "prevReview": "Previous review",
     "nextReview": "Next review",
     "ctaGateAlt": "Desert gate at dusk"
+    ,"loading": "Loading"
   }
 }

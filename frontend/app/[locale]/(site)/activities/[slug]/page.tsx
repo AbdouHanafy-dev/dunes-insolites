@@ -33,6 +33,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ? [{ url: activity.heroImage, width: 1200, height: 630, alt: activity.title }]
         : undefined,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${activity.title} — ${site.name}`,
+      description: activity.tagline,
+      images: isDisplayableImageSrc(activity.heroImage) ? [activity.heroImage] : undefined,
+    },
   };
 }
 

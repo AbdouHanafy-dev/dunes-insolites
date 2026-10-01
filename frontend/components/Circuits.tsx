@@ -7,6 +7,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { formatTourDuration } from "@/lib/tourDuration";
 import Reveal from "@/components/Reveal";
 import { getSiteImages } from "@/lib/api";
+import { groupSizeKey } from "@/lib/catalogLabels";
 
 /**
  * Homepage teaser for Route Insolite's multi-day circuits — published on
@@ -26,10 +27,11 @@ import { getSiteImages } from "@/lib/api";
 const MAX_HOME_CIRCUITS = 4;
 
 export default async function Circuits() {
-  const [tours, t, tDuration, images] = await Promise.all([
+  const [tours, t, tDuration, tCatalog, images] = await Promise.all([
     getTours(await getLocale()),
     getTranslations("circuitsSection"),
     getTranslations("tourDuration"),
+    getTranslations("catalogLabels"),
     getSiteImages(),
   ]);
   if (!tours.length) return null;
@@ -69,7 +71,7 @@ export default async function Circuits() {
                       <span>{tour.location}</span>
                     )}
                     {tour.groupSize && (
-                      <span>{tour.groupSize}</span>
+                      <span>{groupSizeKey(tour.groupSize) ? tCatalog(groupSizeKey(tour.groupSize)!) : tour.groupSize}</span>
                     )}
                     <span>{<PriceText text={t("fromPrice", { price: priceToken(tour.priceFrom)})} />}</span>
                   </span>

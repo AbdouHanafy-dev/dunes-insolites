@@ -1,6 +1,28 @@
 {
   "site": {
+    "title": "Dunes Insolites — مغامرات الصحراء في سابرية",
     "description": "رحلات على ظهر الجمال، ورحلات السفاري بالدراجات الرباعية، والتزلج على الرمال عبر الصحراء الكبرى عند الغروب. احجز مغامرتك الصحراوية في سابرية."
+  },
+  "catalogLabels": {
+    "groupSmall": "مجموعة صغيرة",
+    "groupMedium": "مجموعة متوسطة",
+    "groupAny": "جميع أحجام المجموعات",
+    "groupPrivate": "مجموعة خاصة",
+    "guideNone": "من دون مرشد",
+    "guideTour": "مرشد سياحي",
+    "guideReception": "موظفو الاستقبال",
+    "guideInstructor": "مدرب",
+    "guideDriver": "سائق",
+    "mealBreakfast": "فطور",
+    "mealLunch": "غداء",
+    "mealDinner": "عشاء",
+    "mealSnack": "وجبة خفيفة",
+    "formatBuffet": "بوفيه",
+    "formatSetMenu": "قائمة ثابتة",
+    "formatAlaCarte": "حسب الطلب",
+    "formatPicnic": "نزهة",
+    "mealLine": "{meal} ({format})",
+    "mealLineDay": "{meal} اليوم {day} ({format})"
   },
   "nav": {
     "home": "الرئيسية",
@@ -168,6 +190,8 @@
     "seeAllOnGoogle": "عرض جميع التقييمات على Google",
     "previous": "التقييم السابق",
     "next": "التقييم التالي"
+    ,"verifiedBooking": "حجز موثق"
+    ,"otherSource": "مصدر آخر"
   },
   "galleryStrip": {
     "eyebrow": "من الرمال",
@@ -320,6 +344,8 @@
     "status": "الحالة",
     "date": "التاريخ",
     "departure": "وقت الانطلاق",
+    "slotMorning": "صباحًا · 08:00",
+    "slotGoldenHour": "الساعة الذهبية · 16:30",
     "party": "المجموعة",
     "personSingular": "شخص",
     "peoplePlural": "أشخاص",
@@ -554,6 +580,7 @@
     "photoOf": "صورة {n} من {total}",
     "allPhotos": "كل الصور",
     "breadcrumbCircuits": "الرحلات",
+    "breadcrumbAria": "مسار التنقل",
     "fromPrice": "ابتداءً من {price}",
     "ratingFact": "{rating} ★ ({count} تقييمًا)",
     "theTrip": "الرحلة",
@@ -566,6 +593,8 @@
     "openInMaps": "فتح في الخرائط",
     "meetingPointHeading": "نقطة اللقاء",
     "goodToKnow": "معلومات مفيدة",
+    "languagesLabel": "اللغات",
+    "cancellationLabel": "الإلغاء",
     "languagesSpoken": "اللغات المتحدثة: {languages}",
     "freeCancellationNote": "إلغاء مجاني",
     "perAdultLabel": "للشخص البالغ",
@@ -614,7 +643,9 @@
     "veryGoodRating": "تقييم ممتاز",
     "ratingReviewCount": "{count, plural, one {تقييم واحد} other {# تقييم}}",
     "organizerLabel": "منظم النشاط: {name}",
-    "viewAllPhotos": "عرض الكل ({count})"
+    "viewAllPhotos": "عرض الكل ({count})",
+    "previousCircuit": "الرحلة السابقة",
+    "nextCircuit": "الرحلة التالية"
   },
   "tourBookingForm": {
     "stepDateTravelers": "التاريخ والمسافرون",
@@ -1501,6 +1532,7 @@
     "prevReview": "التقييم السابق",
     "nextReview": "التقييم التالي",
     "ctaGateAlt": "بوابة الصحراء عند الغسق"
+    ,"loading": "جارٍ التحميل"
   },
   "aboutPage": {
     "hero": {

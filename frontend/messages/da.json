@@ -1,6 +1,28 @@
 {
   "site": {
+    "title": "Dunes Insolites — Ørkeneventyr i Sabria",
     "description": "Kameltrekking, quadsafari og sandboarding i Sahara ved solnedgang. Book dit ørkeneventyr i Sabria."
+  },
+  "catalogLabels": {
+    "groupSmall": "Lille gruppe",
+    "groupMedium": "Mellemstor gruppe",
+    "groupAny": "Alle gruppestørrelser",
+    "groupPrivate": "Privat gruppe",
+    "guideNone": "Uden guide",
+    "guideTour": "Turguide",
+    "guideReception": "Receptionspersonale",
+    "guideInstructor": "Instruktør",
+    "guideDriver": "Chauffør",
+    "mealBreakfast": "Morgenmad",
+    "mealLunch": "Frokost",
+    "mealDinner": "Middag",
+    "mealSnack": "Snack",
+    "formatBuffet": "buffet",
+    "formatSetMenu": "fast menu",
+    "formatAlaCarte": "à la carte",
+    "formatPicnic": "picnic",
+    "mealLine": "{meal} ({format})",
+    "mealLineDay": "{meal} dag {day} ({format})"
   },
   "nav": {
     "home": "Forside",
@@ -168,6 +190,8 @@
     "seeAllOnGoogle": "Se alle anmeldelser på Google",
     "previous": "Forrige anmeldelse",
     "next": "Næste anmeldelse"
+    ,"verifiedBooking": "Verificeret booking"
+    ,"otherSource": "Anden"
   },
   "galleryStrip": {
     "eyebrow": "Fra sandet",
@@ -320,6 +344,8 @@
     "status": "Status",
     "date": "Dato",
     "departure": "Afgang",
+    "slotMorning": "Morgen · 08:00",
+    "slotGoldenHour": "Gylden time · 16:30",
     "party": "Gruppe",
     "personSingular": "person",
     "peoplePlural": "personer",
@@ -554,6 +580,7 @@
     "photoOf": "Foto {n} af {total}",
     "allPhotos": "Alle fotos",
     "breadcrumbCircuits": "Ture",
+    "breadcrumbAria": "Brødkrummenavigation",
     "fromPrice": "Fra {price}",
     "ratingFact": "{rating} ★ ({count} anmeldelser)",
     "theTrip": "Turen",
@@ -566,6 +593,8 @@
     "openInMaps": "Åbn i Maps",
     "meetingPointHeading": "Mødested",
     "goodToKnow": "Godt at vide",
+    "languagesLabel": "Sprog",
+    "cancellationLabel": "Afbestilling",
     "languagesSpoken": "Talte sprog: {languages}",
     "freeCancellationNote": "Gratis afbestilling",
     "perAdultLabel": "pr. voksen",
@@ -614,7 +643,9 @@
     "veryGoodRating": "Meget god bedømmelse",
     "ratingReviewCount": "{count, plural, one {# anmeldelse} other {# anmeldelser}}",
     "organizerLabel": "Aktivitetsarrangør: {name}",
-    "viewAllPhotos": "Se alle ({count})"
+    "viewAllPhotos": "Se alle ({count})",
+    "previousCircuit": "Forrige tur",
+    "nextCircuit": "Næste tur"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Dato og rejsende",
@@ -1501,6 +1532,7 @@
     "prevReview": "Forrige anmeldelse",
     "nextReview": "Næste anmeldelse",
     "ctaGateAlt": "Ørkenporten i tusmørket"
+    ,"loading": "Indlæser"
   },
   "aboutPage": {
     "hero": {

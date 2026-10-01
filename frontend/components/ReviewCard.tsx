@@ -1,7 +1,16 @@
 import Stars from "@/components/Stars";
 import ReviewFold from "@/components/ReviewFold";
-import { REVIEW_SOURCE_LABELS } from "@/lib/types";
 import type { Review } from "@/lib/types";
+import { useTranslations } from "next-intl";
+
+const PLATFORM_NAMES: Partial<Record<Review["source"], string>> = {
+  airbnb: "Airbnb",
+  booking: "Booking.com",
+  wetravel: "WeTravel",
+  tripadvisor: "TripAdvisor",
+  getyourguide: "GetYourGuide",
+  google: "Google",
+};
 
 /** Warm, on-palette avatar fills — one is picked from the author's name so
  *  the same person always gets the same colour. */
@@ -47,7 +56,10 @@ export default function ReviewCard({
   moreLabel: string;
   lessLabel: string;
 }) {
-  const platformName = review.platformName ?? REVIEW_SOURCE_LABELS[review.source];
+  const t = useTranslations("reviewsShowcase");
+  const platformName = review.platformName
+    ?? PLATFORM_NAMES[review.source]
+    ?? (review.source === "direct" ? t("verifiedBooking") : t("otherSource"));
   const replyDate = review.ownerReplyDate ? formatMonth(review.ownerReplyDate, locale) : "";
   const foldable = review.body.length > FOLD_BODY_CHARS || (review.ownerReply?.length ?? 0) > FOLD_REPLY_CHARS;
   const meta = [review.country, formatMonth(review.date, locale)].filter(Boolean).join(" · ");

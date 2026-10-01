@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
 import { useReducedMotion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import type { Activity } from "@/lib/types";
 
 const ROTATE_MS = 5500;
@@ -15,6 +16,7 @@ const FADE_MS = 380;
  * reads from — rather than repeating the SABRIA wordmark a second time.
  */
 export default function HeroExperienceCard({ activities }: { activities: Activity[] }) {
+  const t = useTranslations("nav");
   const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -38,7 +40,7 @@ export default function HeroExperienceCard({ activities }: { activities: Activit
     <Link
       href={`/activities/${activity.slug}`}
       className="hero-card"
-      aria-label={`Explore ${activity.title} — ${activity.tagline}`}
+      aria-label={`${t("explore")} ${activity.title} — ${activity.tagline}`}
     >
       {/* Nested so the rotation crossfade (this element) and the scroll-driven
           fade-out (the `.hero-card` anchor, via --hud-opacity) don't fight
@@ -58,7 +60,7 @@ export default function HeroExperienceCard({ activities }: { activities: Activit
           <span className="t">{activity.title}</span>
           <span className="sub">{activity.tagline}</span>
         </span>
-        <span className="go">Explore →</span>
+        <span className="go">{t("explore")} →</span>
       </span>
       {activities.length > 1 && (
         <span className="dots" aria-hidden="true">

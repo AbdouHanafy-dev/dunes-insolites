@@ -1,6 +1,28 @@
 {
   "site": {
+    "title": "Dunes Insolites — Wüstenabenteuer in Sabria",
     "description": "Kamelritte, Quad-Safaris und Sandboarding in der Sahara bei Sonnenuntergang. Buchen Sie Ihr Wüstenabenteuer in Sabria."
+  },
+  "catalogLabels": {
+    "groupSmall": "Kleine Gruppe",
+    "groupMedium": "Mittlere Gruppe",
+    "groupAny": "Jede Gruppengröße",
+    "groupPrivate": "Private Gruppe",
+    "guideNone": "Ohne Reiseleitung",
+    "guideTour": "Reiseleitung",
+    "guideReception": "Empfangspersonal",
+    "guideInstructor": "Kursleitung",
+    "guideDriver": "Fahrer",
+    "mealBreakfast": "Frühstück",
+    "mealLunch": "Mittagessen",
+    "mealDinner": "Abendessen",
+    "mealSnack": "Snack",
+    "formatBuffet": "Buffet",
+    "formatSetMenu": "festes Menü",
+    "formatAlaCarte": "à la carte",
+    "formatPicnic": "Picknick",
+    "mealLine": "{meal} ({format})",
+    "mealLineDay": "{meal} Tag {day} ({format})"
   },
   "nav": {
     "home": "Startseite",
@@ -168,6 +190,8 @@
     "seeAllOnGoogle": "Alle Bewertungen auf Google ansehen",
     "previous": "Vorherige Bewertung",
     "next": "Nächste Bewertung"
+    ,"verifiedBooking": "Verifizierte Buchung"
+    ,"otherSource": "Andere"
   },
   "galleryStrip": {
     "eyebrow": "Aus dem Sand",
@@ -320,6 +344,8 @@
     "status": "Status",
     "date": "Datum",
     "departure": "Abfahrt",
+    "slotMorning": "Morgens · 08:00",
+    "slotGoldenHour": "Goldene Stunde · 16:30",
     "party": "Gruppe",
     "personSingular": "Person",
     "peoplePlural": "Personen",
@@ -554,6 +580,7 @@
     "photoOf": "Foto {n} von {total}",
     "allPhotos": "Alle Fotos",
     "breadcrumbCircuits": "Rundreisen",
+    "breadcrumbAria": "Brotkrümelnavigation",
     "fromPrice": "Ab {price}",
     "ratingFact": "{rating} ★ ({count} Bewertungen)",
     "theTrip": "Die Rundreise",
@@ -566,6 +593,8 @@
     "openInMaps": "In Maps öffnen",
     "meetingPointHeading": "Treffpunkt",
     "goodToKnow": "Gut zu wissen",
+    "languagesLabel": "Sprachen",
+    "cancellationLabel": "Stornierung",
     "languagesSpoken": "Gesprochene Sprachen: {languages}",
     "freeCancellationNote": "Kostenlose Stornierung",
     "perAdultLabel": "pro Erwachsenem",
@@ -614,7 +643,9 @@
     "veryGoodRating": "Sehr gute Bewertung",
     "ratingReviewCount": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
     "organizerLabel": "Veranstalter: {name}",
-    "viewAllPhotos": "Alle ansehen ({count})"
+    "viewAllPhotos": "Alle ansehen ({count})",
+    "previousCircuit": "Vorherige Rundreise",
+    "nextCircuit": "Nächste Rundreise"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Datum und Reisende",
@@ -1501,6 +1532,7 @@
     "prevReview": "Vorherige Bewertung",
     "nextReview": "Nächste Bewertung",
     "ctaGateAlt": "Wüstentor in der Dämmerung"
+    ,"loading": "Wird geladen"
   },
   "aboutPage": {
     "hero": {

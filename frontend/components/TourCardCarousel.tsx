@@ -9,7 +9,15 @@ import { useEffect, useRef, useState } from "react";
  * Component cannot import and render itself. The caller (a Server Component)
  * renders the TourCards and passes them in as children instead.
  */
-export default function TourCardCarousel({ children }: { children: React.ReactNode }) {
+export default function TourCardCarousel({
+  children,
+  previousLabel,
+  nextLabel,
+}: {
+  children: React.ReactNode;
+  previousLabel: string;
+  nextLabel: string;
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState(false);
   const [atStart, setAtStart] = useState(true);
@@ -56,10 +64,10 @@ export default function TourCardCarousel({ children }: { children: React.ReactNo
       </div>
       {canScroll && (
         <div className="carousel-nav">
-          <button type="button" onClick={() => scroll(-1)} disabled={atStart} aria-label="Previous">
+          <button type="button" onClick={() => scroll(-1)} disabled={atStart} aria-label={previousLabel}>
             ‹
           </button>
-          <button type="button" onClick={() => scroll(1)} disabled={atEnd} aria-label="Next">
+          <button type="button" onClick={() => scroll(1)} disabled={atEnd} aria-label={nextLabel}>
             ›
           </button>
         </div>

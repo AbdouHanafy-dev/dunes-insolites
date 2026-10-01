@@ -1,6 +1,28 @@
 {
   "site": {
+    "title": "Dunes Insolites — Aventures dans le désert à Sabria",
     "description": "Randonnées à dos de chameau, safaris en quad et surf des dunes dans le Sahara au coucher du soleil. Réservez votre aventure désertique à Sabria."
+  },
+  "catalogLabels": {
+    "groupSmall": "Petit groupe",
+    "groupMedium": "Groupe moyen",
+    "groupAny": "Toutes tailles de groupe",
+    "groupPrivate": "Groupe privé",
+    "guideNone": "Sans guide",
+    "guideTour": "Guide accompagnateur",
+    "guideReception": "Personnel d’accueil",
+    "guideInstructor": "Instructeur",
+    "guideDriver": "Chauffeur",
+    "mealBreakfast": "Petit-déjeuner",
+    "mealLunch": "Déjeuner",
+    "mealDinner": "Dîner",
+    "mealSnack": "Collation",
+    "formatBuffet": "buffet",
+    "formatSetMenu": "menu fixe",
+    "formatAlaCarte": "à la carte",
+    "formatPicnic": "pique-nique",
+    "mealLine": "{meal} ({format})",
+    "mealLineDay": "{meal} jour {day} ({format})"
   },
   "nav": {
     "home": "Accueil",
@@ -168,6 +190,8 @@
     "seeAllOnGoogle": "Voir tous les avis sur Google",
     "previous": "Avis précédent",
     "next": "Avis suivant"
+    ,"verifiedBooking": "Réservation vérifiée"
+    ,"otherSource": "Autre"
   },
   "galleryStrip": {
     "eyebrow": "Depuis le sable",
@@ -527,6 +551,8 @@
     "status": "Statut",
     "date": "Date",
     "departure": "Départ",
+    "slotMorning": "Matin · 08:00",
+    "slotGoldenHour": "Heure dorée · 16:30",
     "party": "Groupe",
     "personSingular": "personne",
     "peoplePlural": "personnes",
@@ -761,6 +787,7 @@
     "photoOf": "Photo {n} sur {total}",
     "allPhotos": "Toutes les photos",
     "breadcrumbCircuits": "Circuits",
+    "breadcrumbAria": "Fil d’Ariane",
     "fromPrice": "À partir de {price}",
     "ratingFact": "{rating} ★ ({count} avis)",
     "theTrip": "Le circuit",
@@ -773,6 +800,8 @@
     "openInMaps": "Ouvrir dans Maps",
     "meetingPointHeading": "Point de rendez-vous",
     "goodToKnow": "Bon à savoir",
+    "languagesLabel": "Langues",
+    "cancellationLabel": "Annulation",
     "languagesSpoken": "Langues parlées : {languages}",
     "freeCancellationNote": "Annulation gratuite",
     "perAdultLabel": "par adulte",
@@ -821,7 +850,9 @@
     "veryGoodRating": "Très bien noté",
     "ratingReviewCount": "{count, plural, one {# avis} other {# avis}}",
     "organizerLabel": "Organisateur de l'activité : {name}",
-    "viewAllPhotos": "Voir tout ({count})"
+    "viewAllPhotos": "Voir tout ({count})",
+    "previousCircuit": "Circuit précédent",
+    "nextCircuit": "Circuit suivant"
   },
   "tourBookingForm": {
     "stepDateTravelers": "Date et voyageurs",
@@ -2907,5 +2938,6 @@
     "prevReview": "Avis précédent",
     "nextReview": "Avis suivant",
     "ctaGateAlt": "Porte du désert au crépuscule"
+    ,"loading": "Chargement"
   }
 }

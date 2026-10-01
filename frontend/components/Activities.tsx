@@ -9,6 +9,7 @@ import Reveal from "@/components/Reveal";
 import { isDisplayableImageSrc } from "@/lib/imageSrc";
 import { getSiteImages } from "@/lib/api";
 import { activityCardFallback } from "@/lib/siteImages";
+import { groupSizeKey } from "@/lib/catalogLabels";
 
 /**
  * Redesigned (visual identity pass, 14 Sep 2026 — see
@@ -28,10 +29,11 @@ import { activityCardFallback } from "@/lib/siteImages";
  * enum value "Easy"/"Moderate"/"Adventurous").
  */
 export default async function Activities() {
-  const [activities, t, tPage, images] = await Promise.all([
+  const [activities, t, tPage, tCatalog, images] = await Promise.all([
     getActivities(await getLocale()),
     getTranslations("activitiesSection"),
     getTranslations("activitiesPage"),
+    getTranslations("catalogLabels"),
     getSiteImages(),
   ]);
   const difficultyLabel: Record<string, string> = {
@@ -83,7 +85,7 @@ export default async function Activities() {
                     )}
                     <span>{difficultyLabel[activity.difficulty] ?? activity.difficulty}</span>
                     <span aria-hidden="true">·</span>
-                    <span>{activity.groupSize}</span>
+                    <span>{groupSizeKey(activity.groupSize) ? tCatalog(groupSizeKey(activity.groupSize)!) : activity.groupSize}</span>
                   </span>
                 </span>
                 <span className="field-row-price">

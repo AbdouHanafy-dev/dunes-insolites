@@ -25,7 +25,7 @@ import TourPhotoGallery from "@/components/TourPhotoGallery";
 import TourMobileBookingBar from "@/components/TourMobileBookingBar";
 import { site } from "@/lib/site";
 import { localizedLanguageName } from "@/lib/languageFlags";
-import { GUIDE_TYPE_LABELS, MEAL_TYPE_LABELS, MEAL_FORMAT_LABELS } from "@/lib/types";
+import { GUIDE_TYPE_KEYS, MEAL_TYPE_KEYS, MEAL_FORMAT_KEYS, groupSizeKey } from "@/lib/catalogLabels";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -52,6 +52,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         ? [{ url: tour.coverImage, width: 1200, height: 630, alt: tour.title }]
         : undefined,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${tour.title} — ${site.name}`,
+      description: tour.description,
+      images: tour.coverImage ? [tour.coverImage] : undefined,
+    },
   };
 }
 
@@ -77,13 +83,14 @@ export default async function TourDetail({ params }: Props) {
     mustBring: rawTour.mustBring ?? [],
   };
 
-  const [related, tourReviews, t, tLinks, tNav, tDuration] = await Promise.all([
+  const [related, tourReviews, t, tLinks, tNav, tDuration, tCatalog] = await Promise.all([
     getRelatedTours(slug, locale).then((items) => items.slice(0, 3)),
     getReviews({ tourSlug: slug }),
     getTranslations("tourDetail"),
     getTranslations("contentLinks"),
     getTranslations("nav"),
     getTranslations("tourDuration"),
+    getTranslations("catalogLabels"),
   ]);
 
   const rating = tourReviews.length
@@ -94,12 +101,38 @@ export default async function TourDetail({ params }: Props) {
     new Set([tour.coverImage, ...tour.gallery].filter((source): source is string => !!source)),
   );
 
-  const guideLabel = tour.guideType && tour.guideType !== "NONE" ? GUIDE_TYPE_LABELS[tour.guideType] : null;
-  const mealLines = (tour.meals ?? [])
+  const guideLabel = tour.guideType && tour.guideType !== "NONE"
+    ? tCatalog(GUIDE_TYPE_KEYS[tour.guideType])
+    : null;
+  const validMeals = (tour.meals ?? [])
     .filter((m): m is { mealType: NonNullable<typeof m.mealType>; format: NonNullable<typeof m.format> } =>
       !!m.mealType && !!m.format,
-    )
-    .map((m) => `${MEAL_TYPE_LABELS[m.mealType]} (${MEAL_FORMAT_LABELS[m.format]})`);
+    );
+  const mealTotals = validMeals.reduce<Record<string, number>>((totals, meal) => {
+    const key = `${meal.mealType}:${meal.format}`;
+    totals[key] = (totals[key] ?? 0) + 1;
+    return totals;
+  }, {});
+  const mealOccurrences: Record<string, number> = {};
+  const mealLines = validMeals.map((meal) => {
+    const key = `${meal.mealType}:${meal.format}`;
+    mealOccurrences[key] = (mealOccurrences[key] ?? 0) + 1;
+    const values = {
+      meal: tCatalog(MEAL_TYPE_KEYS[meal.mealType]),
+      format: tCatalog(MEAL_FORMAT_KEYS[meal.format]),
+    };
+    return meal.mealType === "LUNCH" && mealTotals[key] > 1
+      ? tCatalog("mealLineDay", { ...values, day: mealOccurrences[key] })
+      : tCatalog("mealLine", values);
+  });
+  const localizedGroupSize = tour.groupSize
+    ? (groupSizeKey(tour.groupSize) ? tCatalog(groupSizeKey(tour.groupSize)!) : tour.groupSize)
+    : null;
+  const hasIncludedItems = tour.included.length > 0
+    || !!guideLabel
+    || mealLines.length > 0
+    || !!tour.drinksIncluded
+    || tour.transportModes.length > 0;
   const hasDiscount = tour.originalPriceFrom != null && tour.originalPriceFrom > tour.priceFrom;
   // The map beside the itinerary: a route through the pickup, attraction and drop-off names
   // the editor filled in on the steps (or the departure location when there are none).
@@ -117,7 +150,7 @@ export default async function TourDetail({ params }: Props) {
     "@type": "Product",
     name: tour.title,
     description: tour.description,
-    ...(tour.coverImage ? { image: `${site.url}${tour.coverImage}` } : {}),
+    ...(tour.coverImage ? { image: new URL(tour.coverImage, site.url).toString() } : {}),
     offers: {
       "@type": "Offer",
       price: tour.priceFrom,
@@ -153,6 +186,13 @@ export default async function TourDetail({ params }: Props) {
         <div className="wrap tour-product-grid">
           <div className="tour-product-main">
             <div className="tour-hero-head">
+              <nav className="tour-breadcrumb" aria-label={t("breadcrumbAria")}>
+                <Link href="/">{tNav("home")}</Link>
+                <span aria-hidden="true">›</span>
+                <Link href="/circuits">{t("breadcrumbCircuits")}</Link>
+                <span aria-hidden="true">›</span>
+                <span aria-current="page">{tour.title}</span>
+              </nav>
               {tour.location && <p className="tour-location">{tour.location}</p>}
               <h1>{tour.title}</h1>
               <div className="tour-header-actions">
@@ -194,23 +234,24 @@ export default async function TourDetail({ params }: Props) {
               <a href="#overview">{t("theTrip")}</a>
               <a href="#how-it-works">{t("howItWorks")}</a>
               {tour.itinerary.length > 0 && <a href="#itinerary">{t("itineraryHeading")}</a>}
-              {(tour.included.length > 0 || tour.notIncluded.length > 0) && (
+              {hasIncludedItems && (
                 <a href="#included">{t("whatsIncluded")}</a>
               )}
+              {tour.notIncluded.length > 0 && <a href="#not-included">{t("notIncluded")}</a>}
               {tour.meetingPoint && <a href="#meeting">{t("meetingPointHeading")}</a>}
             </nav>
 
             <div className="tour-essentials" aria-label={t("goodToKnow")}>
               <div><small>{t("duration")}</small><strong>{formatTourDuration(tDuration, tour)}</strong></div>
-              {tour.groupSize && <div><small>{t("groupSize")}</small><strong>{tour.groupSize}</strong></div>}
+              {localizedGroupSize && <div><small>{t("groupSize")}</small><strong>{localizedGroupSize}</strong></div>}
               {guideLabel && (
                 <div><small>{t("guideLabel")}</small><strong>{guideLabel}</strong></div>
               )}
               {tour.languages.length > 0 && (
-                <div><small>{t("goodToKnow")}</small><strong>{tour.languages.map((l) => localizedLanguageName(locale, l)).join(" · ")}</strong></div>
+                <div><small>{t("languagesLabel")}</small><strong>{tour.languages.map((l) => localizedLanguageName(locale, l)).join(" · ")}</strong></div>
               )}
               {tour.cancellationPolicy?.freeCancellation && (
-                <div><small>{t("goodToKnow")}</small><strong>{t("freeCancellationNote")}</strong></div>
+                <div><small>{t("cancellationLabel")}</small><strong>{t("freeCancellationNote")}</strong></div>
               )}
             </div>
 
@@ -257,18 +298,28 @@ export default async function TourDetail({ params }: Props) {
               </div>
             </section>
 
-            {(tour.included.length > 0 || tour.notIncluded.length > 0 || guideLabel || mealLines.length > 0 || tour.transportModes.length > 0) && (
+            {hasIncludedItems && (
               <section className="tour-row" id="included">
                 <h2>{t("whatsIncluded")}</h2>
                 <div className="tour-row-body">
                   <ul className="tour-checks">
                     {guideLabel && <li data-kind="yes">{t("guideLabel")}: {guideLabel}</li>}
-                    {mealLines.map((line) => <li key={line} data-kind="yes">{line}</li>)}
+                    {mealLines.map((line, index) => <li key={`${line}-${index}`} data-kind="yes">{line}</li>)}
                     {tour.drinksIncluded && <li data-kind="yes">{t("drinksIncludedLabel")}</li>}
                     {tour.transportModes.map((mode) => (
                       <li key={mode} data-kind="yes">{t("transportDuringLabel")}: {mode}</li>
                     ))}
                     {tour.included.map((item) => <li key={item} data-kind="yes">{item}</li>)}
+                  </ul>
+                </div>
+              </section>
+            )}
+
+            {tour.notIncluded.length > 0 && (
+              <section className="tour-row" id="not-included">
+                <h2>{t("notIncluded")}</h2>
+                <div className="tour-row-body">
+                  <ul className="tour-checks">
                     {tour.notIncluded.map((item) => <li key={item} data-kind="no">{item}</li>)}
                   </ul>
                 </div>
@@ -325,7 +376,7 @@ export default async function TourDetail({ params }: Props) {
                 )}
                 <p className="tour-row-links">
                   <Link href="/faq">{tLinks("faq")}</Link>
-                  <Link href="/contact">{tLinks("planTrip")}</Link>
+                  <Link href="/guides/desert-sabria-tunisie">{tLinks("planTrip")}</Link>
                 </p>
               </div>
             </section>
@@ -455,7 +506,7 @@ export default async function TourDetail({ params }: Props) {
           <div className="wrap">
             <p className="tour-section-kicker">{t("alsoWorthALook")}</p>
             <h2>{t("otherCircuits")}</h2>
-            <TourCardCarousel>
+            <TourCardCarousel previousLabel={t("previousCircuit")} nextLabel={t("nextCircuit")}>
               {related.map((item) => <TourCard key={item.slug} tour={item} />)}
             </TourCardCarousel>
           </div>

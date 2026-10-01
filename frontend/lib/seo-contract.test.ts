@@ -62,6 +62,22 @@ describe("hreflang alternates (i18n/routing.ts)", () => {
   });
 });
 
+describe("product social metadata", () => {
+  const tourPage = read("/frontend/app/[locale]/(site)/circuits/[slug]/page.tsx");
+  const localeLayout = read("/frontend/app/[locale]/layout.tsx");
+
+  it("uses the circuit's own Twitter title, description and image", () => {
+    expect(tourPage).toMatch(/twitter:\s*\{/);
+    expect(tourPage).toContain("title: `${tour.title} — ${site.name}`");
+    expect(tourPage).toContain("description: tour.description");
+    expect(tourPage).toContain("images: tour.coverImage ? [tour.coverImage] : undefined");
+  });
+
+  it("does not emit the obsolete inherited meta keywords tag", () => {
+    expect(localeLayout).not.toMatch(/\bkeywords\s*:/);
+  });
+});
+
 describe("withTrailingSlash matches next.config.ts trailingSlash:true", () => {
   it("adds exactly one slash, idempotently, and keeps the homepage as '/'", () => {
     expect(withTrailingSlash("")).toBe("/");

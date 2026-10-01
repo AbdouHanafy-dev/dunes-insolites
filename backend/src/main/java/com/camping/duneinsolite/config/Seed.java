@@ -243,7 +243,7 @@ public class Seed implements CommandLineRunner {
     }
 
     private void seedTourTypes() {
-        String name = "Une Nuitee En Bivouac a Sabria Tunisie";
+        String name = "Une nuitée en bivouac à Sabria, Tunisie";
         if (tourTypeRepository.existsByName(name)
                 || tourTypeRepository.existsBySlug("bivouac-desert-tunisie")) return;
 
@@ -251,9 +251,9 @@ public class Seed implements CommandLineRunner {
                 .name(name)
                 // Legacy WordPress slug - keep verbatim, it carries the ranking (docs/SEO_PLAN.pdf).
                 .slug("bivouac-desert-tunisie")
-                .description("Decouvrez une experience inoubliable lors de notre excursion d'une nuitee " +
-                        "en bivouac dans le desert, au depart du campement Dunes Insolites a Sabria Kebili Tunisie.")
-                .duration("1 Nuitee")
+                .description("Découvrez une expérience inoubliable lors de notre excursion d'une nuitée " +
+                        "en bivouac dans le désert, au départ du campement Dunes Insolites à Sabria, Kébili, Tunisie.")
+                .duration("1 nuitée")
                 .passengerAdultPrice(new java.math.BigDecimal("95.0"))
                 .passengerChildPrice(new java.math.BigDecimal("50.0"))
                 // Partner (wholesale) pricing wasn't available to seed accurately - defaulted to
@@ -297,8 +297,8 @@ public class Seed implements CommandLineRunner {
     }
 
     private void seedExcursionTataouineChenini() {
-        String name = "Excursion d'une Journee : Djerba Vers Tataouine et Chenini a la Decouverte " +
-                "du Desert Tunisien et des Lieux de Star Wars";
+        String name = "Excursion d'une journée : Djerba vers Tataouine et Chenini à la découverte " +
+                "du désert tunisien et des lieux de Star Wars";
         if (tourRepository.existsByName(name)
                 || tourRepository.existsBySlug("excursion-tataouine-chenini-desert-tunisien-star-wars")) return;
 
@@ -309,10 +309,10 @@ public class Seed implements CommandLineRunner {
                 // dunes-insolites.com/circuits — see docs/OPEN-QUESTIONS.md
                 // Q6's 18 Sep 2026 addendum for why that changed.
                 .slug("excursion-tataouine-chenini-desert-tunisien-star-wars")
-                .description("Decouvrez le charme authentique du sud tunisien avec cette excursion " +
-                        "exceptionnelle de Djerba vers Tataouine et Chenini. Entre paysages desertiques " +
-                        "fascinants, villages berberes perches, et sites iconiques de tournage de Star Wars, " +
-                        "cette journee vous transporte dans un univers ou histoire et cinema se croisent.")
+                .description("Découvrez le charme authentique du sud tunisien avec cette excursion " +
+                        "exceptionnelle de Djerba vers Tataouine et Chenini. Entre paysages désertiques " +
+                        "fascinants, villages berbères perchés et sites iconiques de tournage de Star Wars, " +
+                        "cette journée vous transporte dans un univers où histoire et cinéma se croisent.")
                 .durationHours(24)
                 .passengerAdultPrice(new BigDecimal("85.0"))
                 .passengerChildPrice(new BigDecimal("45.0"))
@@ -333,7 +333,7 @@ public class Seed implements CommandLineRunner {
     // frontend/public/images/{folder name} into
     // frontend/public/images/tours/{slug}/ with clean numbered filenames.
     private void seedTunisieOasisMontagneSahara() {
-        String name = "Tunisie : 2 jours entre oasis de montagne et camp dans le desert du Sahara";
+        String name = "Tunisie : 2 jours entre oasis de montagne et camp dans le désert du Sahara";
         if (tourRepository.existsByName(name)
                 || tourRepository.existsBySlug("tunisie-2-jours-oasis-montagne-sahara")) return;
 
@@ -352,50 +352,50 @@ public class Seed implements CommandLineRunner {
         List<ProgramStep> steps = List.of(
                 new ProgramStep("Prise en charge", "Tunis Clock Tower, Tunis ou Bab al-Bhar",
                         "3 points de prise en charge possibles - retour identique en fin de circuit."),
-                new ProgramStep("Bus ou car - 2h", "Amphitheatre d'El Jem",
-                        "Pause photos, visite guidee, temps libre. Site classe au patrimoine mondial de " +
-                                "l'UNESCO, l'une des plus grandes arenes romaines au monde."),
+                new ProgramStep("Bus ou car - 2h", "Amphithéâtre d'El Jem",
+                        "Pause photos, visite guidée, temps libre. Site classé au patrimoine mondial de " +
+                                "l'UNESCO, l'une des plus grandes arènes romaines au monde."),
                 new ProgramStep("Bus ou car - 2h", "Matmata",
-                        "Visite d'une maison berbere troglodyte (lieu de tournage Star Wars), dejeuner " +
+                        "Visite d'une maison berbère troglodyte (lieu de tournage Star Wars), déjeuner " +
                                 "dans un restaurant local."),
                 new ProgramStep("Bus ou car - 2h", "Camp Dunes Insolites",
-                        "Installation en tente berbere privee, the a la menthe au coucher du soleil, " +
-                                "demonstration du pain Mella cuit sous le sable, diner tunisien, " +
-                                "divertissement folklorique et nuit sous les etoiles du Sahara. Activites " +
-                                "optionnelles : balade a dos de chameau, quad, 4x4, sandboard."),
+                        "Installation en tente berbère privée, thé à la menthe au coucher du soleil, " +
+                                "démonstration du pain Mella cuit sous le sable, dîner tunisien, " +
+                                "divertissement folklorique et nuit sous les étoiles du Sahara. Activités " +
+                                "optionnelles : balade à dos de chameau, quad, 4x4, sandboard."),
                 new ProgramStep("Bus ou car - 2h", "Chott el Djerid",
-                        "Visite et temps libre - le plus grand lac sale d'Afrique du Nord."),
+                        "Visite et temps libre - le plus grand lac salé d'Afrique du Nord."),
                 new ProgramStep("Bus ou car - 1h", "Oasis de Chebika",
-                        "Visite et dejeuner - palmeraies, sources naturelles et canyons de l'oasis de " +
+                        "Visite et déjeuner - palmeraies, sources naturelles et canyons de l'oasis de " +
                                 "montagne."),
                 new ProgramStep("Bus ou car - 2h", "Kairouan",
-                        "Visite - l'une des villes les plus sacrees de l'islam, site classe au patrimoine " +
+                        "Visite - l'une des villes les plus sacrées de l'islam, site classé au patrimoine " +
                                 "mondial de l'UNESCO."),
                 new ProgramStep("Retour", "Tunis, Hammamet ou Sousse",
-                        "Arrivee en debut de soiree, avec des souvenirs inoubliables de l'aventure dans " +
-                                "le desert du Sahara.")
+                        "Arrivée en début de soirée, avec des souvenirs inoubliables de l'aventure dans " +
+                                "le désert du Sahara.")
         );
 
         tourRepository.save(Tour.builder()
                 .name(name)
                 .slug("tunisie-2-jours-oasis-montagne-sahara")
-                .description("Decouvrez le Sahara tunisien en 2 jours : El Jem, Matmata, le camp Dunes " +
+                .description("Découvrez le Sahara tunisien en 2 jours : El Jem, Matmata, le camp Dunes " +
                         "Insolites Desert Camp, le Chott el-Jerid, l'oasis de Chebika et Kairouan, avec " +
-                        "une nuit inoubliable dans le desert.")
-                .aboutText("Evadez-vous au coeur du sud de la Tunisie lors de cette inoubliable excursion " +
-                        "de 2 jours dans le desert du Sahara, qui combine l'histoire romaine, la culture " +
-                        "berbere, des paysages a couper le souffle et une nuit au Dunes Insolites Desert " +
+                        "une nuit inoubliable dans le désert.")
+                .aboutText("Évadez-vous au cœur du sud de la Tunisie lors de cette inoubliable excursion " +
+                        "de 2 jours dans le désert du Sahara, qui combine l'histoire romaine, la culture " +
+                        "berbère, des paysages à couper le souffle et une nuit au Dunes Insolites Desert " +
                         "Camp, l'un des camps sahariens les plus authentiques de Tunisie.\n\n" +
-                        "Jour 1 : El Jem, Matmata, camp dans le desert Dunes Insolites. Apres une prise " +
-                        "en charge tot le matin a votre hotel de Tunis, Hammamet ou Sousse, partez vers " +
-                        "le sud jusqu'au spectaculaire amphitheatre d'El Jem. Poursuivez jusqu'a Matmata, " +
-                        "celebre pour ses maisons berberes troglodytes, avant de dejeuner dans un " +
+                        "Jour 1 : El Jem, Matmata, camp dans le désert Dunes Insolites. Après une prise " +
+                        "en charge tôt le matin à votre hôtel de Tunis, Hammamet ou Sousse, partez vers " +
+                        "le sud jusqu'au spectaculaire amphithéâtre d'El Jem. Poursuivez jusqu'à Matmata, " +
+                        "célèbre pour ses maisons berbères troglodytes, avant de déjeuner dans un " +
                         "restaurant local. Rejoignez ensuite le Dunes Insolites Desert Camp pour une " +
-                        "soiree traditionnelle et une nuit sous les etoiles du Sahara.\n\n" +
-                        "Jour 2 : Chott El Jerid, Chebika, Kairouan. Apres le petit-dejeuner, traversez " +
+                        "soirée traditionnelle et une nuit sous les étoiles du Sahara.\n\n" +
+                        "Jour 2 : Chott El Jerid, Chebika, Kairouan. Après le petit-déjeuner, traversez " +
                         "le Chott el-Jerid puis l'oasis de montagne de Chebika, avant de rejoindre " +
-                        "Kairouan, ville sainte classee au patrimoine mondial de l'UNESCO, puis le retour " +
-                        "vers Tunis, Hammamet ou Sousse en debut de soiree.")
+                        "Kairouan, ville sainte classée au patrimoine mondial de l'UNESCO, puis le retour " +
+                        "vers Tunis, Hammamet ou Sousse en début de soirée.")
                 .durationHours(48)
                 .location("Tunis")
                 .meetingPoint("3 points de prise en charge : Tunis Clock Tower, Tunis, ou Bab al-Bhar - " +
@@ -411,25 +411,25 @@ public class Seed implements CommandLineRunner {
                 .coverPhotoUrl(photos.get(0).getUrl())
                 .photos(photos)
                 .highlights(List.of(
-                        "Ressentez le frisson de l'aventure avec des balades a dos de chameau et du quad " +
+                        "Ressentez le frisson de l'aventure avec des balades à dos de chameau et du quad " +
                                 "en option",
-                        "Explorez les oasis epoustouflantes de Chebika",
-                        "Savourez un diner traditionnel dans le desert sous les etoiles dans un camp du " +
+                        "Explorez les oasis époustouflantes de Chebika",
+                        "Savourez un dîner traditionnel dans le désert sous les étoiles dans un camp du " +
                                 "Sahara",
-                        "Visitez l'impressionnant amphitheatre romain d'El Jem, classe au patrimoine " +
+                        "Visitez l'impressionnant amphithéâtre romain d'El Jem, classé au patrimoine " +
                                 "mondial de l'UNESCO",
-                        "Decouvrez la magie du Sahara avec une vue sur le coucher de soleil depuis les " +
+                        "Découvrez la magie du Sahara avec une vue sur le coucher de soleil depuis les " +
                                 "dunes"
                 ))
                 .includedItems(List.of(
-                        "Transport climatise",
+                        "Transport climatisé",
                         "Nuit au camp Dunes Insolites",
-                        "2 dejeuners",
-                        "Diner et petit-dejeuner au camp",
+                        "2 déjeuners",
+                        "Dîner et petit-déjeuner au camp",
                         "Assistance locale au camp"
                 ))
                 .notIncludedItems(List.of(
-                        "Activites supplementaires en option",
+                        "Activités supplémentaires en option",
                         "Pourboires"
                 ))
                 .programSteps(steps)
@@ -455,22 +455,22 @@ public class Seed implements CommandLineRunner {
 
         List<ProgramStep> steps = List.of(
                 new ProgramStep("Jour 1", "Nord de la Tunisie, El Jem, Matmata, Douz, camp dans le Sahara",
-                        "Prise en charge a l'hotel, route vers le sud avec arrets, arrivee et nuit au " +
+                        "Prise en charge à l'hôtel, route vers le sud avec arrêts, arrivée et nuit au " +
                                 "camp Dunes Insolites."),
                 new ProgramStep("Jour 2", "Sabria, Kebili, Chott Jerid, Chebika, Kairouan, retour",
-                        "Depart du camp, traversee du Chott Jerid et de l'oasis de Chebika, halte a " +
-                                "Kairouan, puis retour a l'hotel.")
+                        "Départ du camp, traversée du Chott Jerid et de l'oasis de Chebika, halte à " +
+                                "Kairouan, puis retour à l'hôtel.")
         );
 
         tourRepository.save(Tour.builder()
                 .name(name)
                 .slug("depuis-tunis-2-jours-camp-sahara")
-                .description("Decouvrez le desert du Sahara lors d'une aventure de 2 jours au depart de " +
-                        "Sabria. Passez la nuit dans une tente traditionnelle, profitez d'une balade a " +
+                .description("Découvrez le désert du Sahara lors d'une aventure de 2 jours au départ de " +
+                        "Sabria. Passez la nuit dans une tente traditionnelle, profitez d'une balade à " +
                         "dos de chameau et d'une aventure en quad, et savourez des repas locaux.")
                 .durationHours(48)
                 .location("Tunis")
-                .meetingPoint("Prise en charge et retour directement a votre hotel (Tunis, Hammamet, " +
+                .meetingPoint("Prise en charge et retour directement à votre hôtel (Tunis, Hammamet, " +
                         "Sousse)")
                 .passengerAdultPrice(adultPrice)
                 .passengerChildPrice(adultPrice)
@@ -483,35 +483,35 @@ public class Seed implements CommandLineRunner {
                 .coverPhotoUrl(photos.get(0).getUrl())
                 .photos(photos)
                 .highlights(List.of(
-                        "Decouvrez le desert du Sahara lors d'une aventure de 2 jours au depart de Sabria",
-                        "Profitez d'une balade a dos de chameau et d'une aventure en quad dans les dunes " +
+                        "Découvrez le désert du Sahara lors d'une aventure de 2 jours au départ de Sabria",
+                        "Profitez d'une balade à dos de chameau et d'une aventure en quad dans les dunes " +
                                 "du Sahara",
                         "Passez la nuit dans une tente traditionnelle du Sahara et profitez de " +
-                                "l'hospitalite locale",
-                        "Savourez un diner traditionnel et un petit-dejeuner dans le camp du desert"
+                                "l'hospitalité locale",
+                        "Savourez un dîner traditionnel et un petit-déjeuner dans le camp du désert"
                 ))
                 .includedItems(List.of(
-                        "Prise en charge et retour directement a votre hotel",
-                        "Transport en vehicule confortable et climatise pendant les 2 jours",
+                        "Prise en charge et retour directement à votre hôtel",
+                        "Transport en véhicule confortable et climatisé pendant les 2 jours",
                         "Chauffeur / accompagnement pendant le circuit",
                         "1 nuit dans une tente authentique au Camp Dunes Insolites",
-                        "Balade de 30 minutes a dos de chameau",
+                        "Balade de 30 minutes à dos de chameau",
                         "Balade de 30 minutes en quad",
                         "Sandboard",
                         "Divertissement folklorique traditionnel",
-                        "Spectacle equestre",
-                        "Demonstration de pain de sable",
-                        "Dejeuner le 1er jour",
-                        "Diner traditionnel au camp",
-                        "Petit-dejeuner et dejeuner le jour 2",
-                        "Visites mentionnees dans l'itineraire",
-                        "Organisation complete et assistance pendant toute l'excursion"
+                        "Spectacle équestre",
+                        "Démonstration de pain de sable",
+                        "Déjeuner le 1er jour",
+                        "Dîner traditionnel au camp",
+                        "Petit-déjeuner et déjeuner le jour 2",
+                        "Visites mentionnées dans l'itinéraire",
+                        "Organisation complète et assistance pendant toute l'excursion"
                 ))
                 .notIncludedItems(List.of(
                         "Boissons en dehors des repas inclus",
-                        "Depenses personnelles",
+                        "Dépenses personnelles",
                         "Pourboires",
-                        "Toute activite supplementaire non mentionnee dans les services inclus"
+                        "Toute activité supplémentaire non mentionnée dans les services inclus"
                 ))
                 .programSteps(steps)
                 .build());
@@ -519,14 +519,14 @@ public class Seed implements CommandLineRunner {
     }
 
     private void seedExtras() {
-        String name = "30 min Quad";
+        String name = "Quad";
         if (extraRepository.existsByName(name) || extraRepository.existsBySlug("quad-desert")) return;
 
         Extra extra = extraRepository.save(Extra.builder()
                 .name(name)
                 // Legacy WordPress slug - keep verbatim, it carries the ranking (docs/SEO_PLAN.pdf).
                 .slug("quad-desert")
-                .description("Session de quad de 30 minutes dans le desert autour du campement.")
+                .description("Session de quad de 30 minutes dans le désert autour du campement.")
                 .duration("30 minute")
                 // Best-effort placeholder - verify/adjust the real unit price via Catalogue.
                 .unitPrice(new java.math.BigDecimal("35.0"))

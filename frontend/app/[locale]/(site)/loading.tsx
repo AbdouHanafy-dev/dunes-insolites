@@ -11,7 +11,10 @@
  * would need getTranslations per request - not worth it for a state with no
  * copy to translate).
  */
-export default function Loading() {
+import { getTranslations } from "next-intl/server";
+
+export default async function Loading() {
+  const t = await getTranslations("a11y");
   return (
     <div
       style={{
@@ -43,7 +46,7 @@ export default function Loading() {
             clip: "rect(0,0,0,0)",
           }}
         >
-          Loading
+          {t("loading")}
         </span>
       </span>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

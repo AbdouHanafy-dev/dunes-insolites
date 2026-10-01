@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { getBooking as fetchBooking } from "@/lib/api";
 import { getActivity } from "@/lib/data/activities";
 import { site } from "@/lib/site";
-import { SLOT_LABELS, type Booking } from "@/lib/types";
+import type { Booking } from "@/lib/types";
 
 type State = { status: "loading" } | { status: "found"; booking: Booking } | { status: "missing" };
 
@@ -73,7 +73,7 @@ export default function BookingConfirmation({ id }: { id: string }) {
 
   const { booking } = state;
   const activity = getActivity(booking.activitySlug, locale);
-  const date = new Date(`${booking.date}T00:00:00`).toLocaleDateString("en-GB", {
+  const date = new Date(`${booking.date}T00:00:00`).toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -112,7 +112,7 @@ export default function BookingConfirmation({ id }: { id: string }) {
           </div>
           <div>
             <div className="k">{t("departure")}</div>
-            <div className="v">{SLOT_LABELS[booking.timeSlot]}</div>
+            <div className="v">{t(booking.timeSlot === "morning" ? "slotMorning" : "slotGoldenHour")}</div>
           </div>
           <div>
             <div className="k">{t("party")}</div>

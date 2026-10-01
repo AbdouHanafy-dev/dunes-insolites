@@ -1,4 +1,5 @@
 import type { Review } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 /**
  * Brand-colored wordmarks, not logo marks — enough to recognize the source
@@ -11,8 +12,8 @@ const PLATFORM: Record<Review["source"], { label: string; color: string }> = {
   tripadvisor: { label: "Tripadvisor", color: "#34E0A1" },
   getyourguide: { label: "GetYourGuide", color: "#FF5533" },
   wetravel: { label: "WeTravel", color: "#0F8B8D" },
-  direct: { label: "Verified booking", color: "var(--accent)" },
-  other: { label: "Other", color: "#6B7280" },
+  direct: { label: "", color: "var(--accent)" },
+  other: { label: "", color: "#6B7280" },
 };
 
 /**
@@ -29,10 +30,12 @@ export default function PlatformBadge({
   name?: string;
   color?: string;
 }) {
+  const t = useTranslations("reviewsShowcase");
   const p = PLATFORM[source];
+  const fallbackLabel = source === "direct" ? t("verifiedBooking") : source === "other" ? t("otherSource") : p.label;
   return (
     <span className="platform-badge" style={{ color: color ?? p.color }}>
-      {name ?? p.label}
+      {name ?? fallbackLabel}
     </span>
   );
 }

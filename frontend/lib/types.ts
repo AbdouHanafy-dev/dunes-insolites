@@ -37,19 +37,7 @@ export type {
 
 export { DEPARTURE_CITIES, MAX_INFANTS, MAX_PARTY_SIZE } from "@dunes/api-types";
 
-import type { DepartureCity, Review, TimeSlot, Tour } from "@dunes/api-types";
-
-/* --------------------------------------------------------- presentation */
-
-/**
- * Slot times shown to the guest. The contract carries the slot identifier
- * (`morning`); the hour attached to it is operational copy that the camp can
- * change without an API version bump.
- */
-export const SLOT_LABELS: Record<TimeSlot, string> = {
-  morning: "Morning · 08:00",
-  "golden-hour": "Golden hour · 16:30",
-};
+import type { DepartureCity } from "@dunes/api-types";
 
 /** Display form of each DEPARTURE_CITIES value — same city names in every
  *  locale this site serves, so this isn't translated per-locale like other
@@ -62,39 +50,4 @@ export const DEPARTURE_CITY_LABELS: Record<DepartureCity, string> = {
   MAHDIA: "Mahdia",
   MONASTIR: "Monastir",
   TOZEUR: "Tozeur",
-};
-
-/** How each review platform is credited in the UI. */
-export const REVIEW_SOURCE_LABELS: Record<Review["source"], string> = {
-  direct: "Verified booking",
-  airbnb: "Airbnb",
-  booking: "Booking.com",
-  wetravel: "WeTravel",
-  tripadvisor: "TripAdvisor",
-  getyourguide: "GetYourGuide",
-  google: "Google",
-  other: "Other",
-};
-
-/** Who guides a Tour's customers — Tour["guideType"], never null when present. */
-export const GUIDE_TYPE_LABELS: Record<NonNullable<Tour["guideType"]>, string> = {
-  NONE: "Self-guided",
-  TOUR_GUIDE: "Tour guide",
-  RECEPTION_STAFF: "Reception staff",
-  INSTRUCTOR: "Instructor",
-  DRIVER: "Driver",
-};
-
-export const MEAL_TYPE_LABELS: Record<NonNullable<Tour["meals"][number]["mealType"]>, string> = {
-  BREAKFAST: "Breakfast",
-  LUNCH: "Lunch",
-  DINNER: "Dinner",
-  SNACK: "Snack",
-};
-
-export const MEAL_FORMAT_LABELS: Record<NonNullable<Tour["meals"][number]["format"]>, string> = {
-  BUFFET: "Buffet",
-  SET_MENU: "Set menu",
-  ALA_CARTE: "À la carte",
-  PICNIC: "Picnic",
 };
