@@ -114,6 +114,15 @@ function translationsSection(form: Record<string, unknown>, patch: (fields: Reco
     <TranslationsField
       translations={(form.translations as Record<string, CatalogTranslationForm>) ?? {}}
       onChange={(translations) => patch({ translations })}
+      source={{
+        name: String(form.name ?? ""),
+        description: String(form.description ?? ""),
+        aboutText: "",
+        highlights: [],
+        includedItems: [],
+        notIncludedItems: [],
+        programSteps: [],
+      }}
     />
   );
 }

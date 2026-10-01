@@ -26,6 +26,14 @@ export type CatalogTranslationForm = {
   programSteps: TranslationProgramStep[];
 };
 
+export type CatalogTranslationSource = Omit<CatalogTranslationForm, "locale">;
+
+export type TranslationProgress = {
+  completed: number;
+  total: number;
+  percent: number;
+};
+
 const LOCALES = [
   { value: "EN", label: "Anglais" },
   { value: "AR", label: "Arabe" },
@@ -36,6 +44,83 @@ const LOCALES = [
 
 export function emptyTranslation(locale: string): CatalogTranslationForm {
   return { locale, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [] };
+}
+
+function filled(value: string | null | undefined) {
+  return Boolean(value?.trim());
+}
+
+function listComplete(source: string[], translation: string[]) {
+  return source.every((item, index) => !filled(item) || filled(translation[index]));
+}
+
+function mergeList(source: string[], current: string[]) {
+  return Array.from({ length: Math.max(source.length, current.length) }, (_, index) =>
+    filled(current[index]) ? current[index] : (source[index] ?? ""),
+  );
+}
+
+function stepsComplete(source: TranslationProgramStep[], translation: TranslationProgramStep[]) {
+  if (source.length === 0) return true;
+  return source.every((sourceStep, index) => {
+    const translatedStep = translation[index];
+    if (!translatedStep) return false;
+    return (["label", "title", "description", "pickupPoint", "dropoffPoint", "attraction"] as const).every(
+      (key) => !filled(sourceStep[key]) || filled(translatedStep[key]),
+    );
+  });
+}
+
+/** Measures filled translated sections against fields that exist in the French source. */
+export function translationProgress(
+  source: CatalogTranslationSource,
+  translation: CatalogTranslationForm | undefined,
+): TranslationProgress {
+  const active = translation ?? emptyTranslation("");
+  const checks = [
+    [filled(source.name), filled(active.name)],
+    [filled(source.description), filled(active.description)],
+    [filled(source.aboutText), filled(active.aboutText)],
+    [source.highlights.some(filled), listComplete(source.highlights, active.highlights)],
+    [source.includedItems.some(filled), listComplete(source.includedItems, active.includedItems)],
+    [source.notIncludedItems.some(filled), listComplete(source.notIncludedItems, active.notIncludedItems)],
+    [source.programSteps.length > 0, stepsComplete(source.programSteps, active.programSteps)],
+  ].filter(([required]) => required);
+  const completed = checks.filter(([, complete]) => complete).length;
+  const total = checks.length;
+  return { completed, total, percent: total === 0 ? 0 : Math.round((completed / total) * 100) };
+}
+
+function mergeStep(source: TranslationProgramStep, current?: TranslationProgramStep): TranslationProgramStep {
+  return {
+    label: current?.label || source.label || "",
+    title: current?.title || source.title || "",
+    description: current?.description || source.description || "",
+    pickupPoint: current?.pickupPoint || source.pickupPoint || "",
+    dropoffPoint: current?.dropoffPoint || source.dropoffPoint || "",
+    attraction: current?.attraction || source.attraction || "",
+  };
+}
+
+/** Prefills only empty translated fields, without overwriting work already entered. */
+export function prefillFromFrench(
+  locale: string,
+  source: CatalogTranslationSource,
+  current?: CatalogTranslationForm,
+): CatalogTranslationForm {
+  const active = current ?? emptyTranslation(locale);
+  return {
+    locale,
+    name: filled(active.name) ? active.name : source.name,
+    description: filled(active.description) ? active.description : source.description,
+    aboutText: filled(active.aboutText) ? active.aboutText : source.aboutText,
+    highlights: mergeList(source.highlights, active.highlights),
+    includedItems: mergeList(source.includedItems, active.includedItems),
+    notIncludedItems: mergeList(source.notIncludedItems, active.notIncludedItems),
+    programSteps: source.programSteps.length
+      ? source.programSteps.map((step, index) => mergeStep(step, active.programSteps[index]))
+      : active.programSteps,
+  };
 }
 
 // Shared conversions between the wire shape (CatalogTranslationDto[] - see
@@ -189,6 +274,48 @@ function PositionalStepsEditor({
   );
 }
 
+function FrenchSourcePreview({ source }: { source: CatalogTranslationSource }) {
+  const lists = [
+    ["Points forts", source.highlights],
+    ["Inclus", source.includedItems],
+    ["Non inclus", source.notIncludedItems],
+  ] as const;
+
+  return (
+    <details className="rounded-lg border border-navy-700/10 bg-white px-3 py-2" dir="ltr">
+      <summary className="cursor-pointer text-[12px] font-semibold text-navy-800">
+        Voir la version française de référence
+      </summary>
+      <div className="mt-3 grid gap-3 text-[12px] text-navy-700/70 sm:grid-cols-2">
+        {filled(source.name) && <SourceBlock label="Nom" value={source.name} />}
+        {filled(source.description) && <SourceBlock label="Description courte" value={source.description} />}
+        {filled(source.aboutText) && <SourceBlock label="Présentation détaillée" value={source.aboutText} />}
+        {lists.map(([label, items]) =>
+          items.some(filled) ? <SourceBlock key={label} label={label} value={items.filter(filled).join(" · ")} /> : null,
+        )}
+        {source.programSteps.length > 0 && (
+          <SourceBlock
+            label="Itinéraire"
+            value={source.programSteps
+              .map((step) => [step.label, step.title, step.description].filter(filled).join(" — "))
+              .filter(filled)
+              .join("\n")}
+          />
+        )}
+      </div>
+    </details>
+  );
+}
+
+function SourceBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-navy-700/40">{label}</p>
+      <p className="whitespace-pre-line">{value}</p>
+    </div>
+  );
+}
+
 /**
  * Per-locale marketing copy for a Tour/TourType/Extra - shared shape with
  * the backend's CatalogTranslationDto (see PublicCatalogTranslation), so
@@ -201,10 +328,13 @@ function PositionalStepsEditor({
 export default function TranslationsField({
   translations,
   onChange,
+  source,
   positionalSteps = false,
 }: {
   translations: Record<string, CatalogTranslationForm>;
   onChange: (translations: Record<string, CatalogTranslationForm>) => void;
+  /** Current French fields, used as a visible source and for safe draft prefilling. */
+  source: CatalogTranslationSource;
   /** Circuits: also translate the pickup (first step), drop-off (last) and attraction (between). */
   positionalSteps?: boolean;
 }) {
@@ -218,32 +348,91 @@ export default function TranslationsField({
   const hasContent = (t: CatalogTranslationForm | undefined) =>
     !!t && (t.name.trim() || t.description.trim() || t.aboutText.trim() || t.highlights.length || t.includedItems.length || t.notIncludedItems.length || t.programSteps.length);
 
+  const activeProgress = translationProgress(source, translations[activeLocale]);
+  const completedLocales = LOCALES.filter((locale) => translationProgress(source, translations[locale.value]).percent === 100).length;
+
+  function prefillActive() {
+    onChange({
+      ...translations,
+      [activeLocale]: prefillFromFrench(activeLocale, source, translations[activeLocale]),
+    });
+  }
+
+  function clearActive() {
+    if (!window.confirm("Vider tous les champs de cette langue ?")) return;
+    const next = { ...translations };
+    delete next[activeLocale];
+    onChange(next);
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-[13px] text-navy-700/55">
-        Contenu traduit. Le français reste la version de référence — une langue sans contenu ici affichera
-        simplement le français en attendant.
-      </p>
+      <div className="rounded-xl border border-navy-700/10 bg-navy-700/[0.025] p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[13px] font-semibold text-navy-800">Suivi des traductions</p>
+            <p className="mt-0.5 text-[12px] text-navy-700/55">
+              Le français est la référence. Une langue vide reprend automatiquement le français sur le site.
+            </p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-navy-700/65 shadow-sm">
+            {completedLocales}/{LOCALES.length} langues remplies
+          </span>
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2">
-        {LOCALES.map((l) => (
-          <button
-            key={l.value}
-            type="button"
-            onClick={() => setActiveLocale(l.value)}
-            className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
-              activeLocale === l.value
-                ? "bg-gold text-navy-900"
-                : hasContent(translations[l.value])
-                  ? "bg-emerald/12 text-emerald"
-                  : "bg-navy-700/8 text-navy-700/60 hover:bg-navy-700/12"
-            }`}
-          >
-            {l.label}
-          </button>
-        ))}
+        {LOCALES.map((l) => {
+          const progress = translationProgress(source, translations[l.value]);
+          return (
+            <button
+              key={l.value}
+              type="button"
+              onClick={() => setActiveLocale(l.value)}
+              className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${
+                activeLocale === l.value
+                  ? "bg-gold text-navy-900"
+                  : progress.percent === 100
+                    ? "bg-emerald/12 text-emerald"
+                    : hasContent(translations[l.value])
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-navy-700/8 text-navy-700/60 hover:bg-navy-700/12"
+              }`}
+            >
+              {l.label}
+              <span className="text-[10px] opacity-70">{progress.percent}%</span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" dir={activeLocale === "AR" ? "rtl" : "ltr"}>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2" dir="ltr">
+          <p className="text-[12px] text-navy-700/65">
+            {activeProgress.completed}/{activeProgress.total} sections remplies · à relire par une personne maîtrisant la langue
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={prefillActive}
+              className="rounded-md bg-navy-800 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-navy-700"
+            >
+              Préremplir depuis le français
+            </button>
+            {hasContent(translations[activeLocale]) && (
+              <button
+                type="button"
+                onClick={clearActive}
+                className="rounded-md border border-rose/25 px-3 py-1.5 text-[12px] font-semibold text-rose hover:bg-rose/8"
+              >
+                Vider cette langue
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="-mt-2 text-[11px] text-navy-700/45" dir="ltr">
+          Le préremplissage copie uniquement les champs français manquants et ne remplace jamais une traduction déjà saisie.
+        </p>
+        <FrenchSourcePreview source={source} />
         <div className="flex flex-col gap-1.5">
           <label className={labelClass}>Nom</label>
           <input className={inputClass} value={active.name} onChange={(e) => patchActive({ name: e.target.value })} />

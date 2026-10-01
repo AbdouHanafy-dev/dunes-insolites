@@ -1050,6 +1050,22 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             positionalSteps
             translations={form.translations}
             onChange={(translations) => patch({ translations })}
+            source={{
+              name: form.name,
+              description: form.description,
+              aboutText: form.aboutText,
+              highlights: form.highlights,
+              includedItems: form.includedItems,
+              notIncludedItems: form.notIncludedItems,
+              programSteps: form.programSteps.map((step) => ({
+                label: step.label,
+                title: step.title,
+                description: step.description,
+                pickupPoint: step.pickupPoint,
+                dropoffPoint: step.dropoffPoint,
+                attraction: step.attraction,
+              })),
+            }}
           />
         )}
 
