@@ -1274,51 +1274,92 @@ body:has(.drawer[data-open="true"]) .tour-mobile-booking-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 18px;
   width: 100%;
-  margin-top: 40px;
+  margin-top: 48px;
 }
 
-.listing-pagination a,
-.listing-pagination button,
-.listing-pagination span {
-  min-width: 42px;
-  min-height: 42px;
+.listing-pagination > a,
+.listing-pagination > button,
+.listing-pagination > span[aria-disabled="true"] {
+  min-width: 132px;
+  min-height: 46px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 9px 14px;
-  border: 1px solid rgba(75, 53, 37, 0.22);
-  border-radius: 999px;
-  background: #fff;
-  color: var(--ink, #2b241f);
-  font: inherit;
+  gap: 10px;
+  padding: 11px 18px;
+  border: 1px solid var(--journal-rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--journal-ink);
+  font-family: var(--font-display), sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   line-height: 1;
   text-decoration: none;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-.listing-pagination a:hover,
-.listing-pagination button:hover:not(:disabled) {
-  border-color: var(--terracotta, #a75035);
-  color: var(--terracotta, #a75035);
+.listing-pagination > a:hover,
+.listing-pagination > button:hover:not(:disabled) {
+  border-color: var(--journal-ink);
+  background: var(--journal-ink);
+  color: var(--journal-paper);
 }
 
-.listing-pagination [aria-current="page"],
-.listing-pagination strong {
-  border-color: var(--terracotta, #a75035);
-  background: var(--terracotta, #a75035);
-  color: #fff;
+.listing-pagination > strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  min-height: 46px;
+  color: var(--journal-rust);
+  font-family: var(--font-display), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
-.listing-pagination button:disabled,
-.listing-pagination [aria-disabled="true"] {
+.listing-pagination > button:disabled,
+.listing-pagination > span[aria-disabled="true"] {
   cursor: default;
-  opacity: 0.42;
+  opacity: 0.35;
+}
+
+.listing-pagination [aria-hidden="true"] {
+  font-size: 16px;
+  line-height: 0;
 }
 
 @media (max-width: 560px) {
+  .listing-pagination {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
+    margin-top: 34px;
+  }
+
+  .listing-pagination > a,
+  .listing-pagination > button,
+  .listing-pagination > span[aria-disabled="true"] {
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+
+  .listing-pagination > strong {
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: 4px;
+    font-size: 10px;
+  }
+
   .field-hero-media { min-height: 52svh; }
   .field-hero-caption span:nth-child(2) { display: none; }
 
