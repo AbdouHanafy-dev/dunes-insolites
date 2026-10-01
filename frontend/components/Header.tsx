@@ -154,7 +154,7 @@ export default function Header({
     {
       label: t("circuits"),
       href: "/circuits",
-      items: tours.map((tour) => ({
+      items: tours.slice(0, 6).map((tour) => ({
         label: tour.title,
         detail: formatTourDuration(tDuration, tour),
         blurb: (tour.description?.trim() || tour.aboutText?.trim() || "") || undefined,

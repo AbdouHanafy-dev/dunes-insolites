@@ -106,6 +106,10 @@ BASE_URL=https://www.dunes-insolites.com SEO_PROFILE=wordpress npm run verify:se
 curl -fsS https://www.dunes-insolites.com/nuitee-campement-desert/ | grep -q canonical
 ```
 
+When DNS, TLS or nginx changes, also run the hostname checks in
+[`domain-routing.md`](domain-routing.md). In particular, the two spellings
+without the hyphen must return a direct 301 rather than a duplicate site.
+
 ## 8. Booking + email test
 
 - Create a real test reservation through the public site (a throwaway email you control).

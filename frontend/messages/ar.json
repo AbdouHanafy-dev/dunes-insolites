@@ -1488,6 +1488,12 @@
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} ساعة} other {{rest, plural, =0 {{days, plural, one {يوم واحد} two {يومان} few {# أيام} many {# يومًا} other {# يوم}} ({hours} ساعة)} other {{days, plural, one {يوم واحد} two {يومان} few {# أيام} many {# يومًا} other {# يوم}} و{rest} ساعة ({hours} ساعة)}}}}"
   },
+  "pagination": {
+    "ariaLabel": "ترقيم الصفحات",
+    "previous": "السابق",
+    "next": "التالي",
+    "status": "الصفحة {current} من {total}"
+  },
   "a11y": {
     "navPrimary": "التنقل الرئيسي",
     "navMobile": "التنقل على الجوال",

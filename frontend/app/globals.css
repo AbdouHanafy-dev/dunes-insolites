@@ -6779,10 +6779,38 @@ body:has(.auth-page) footer.site-footer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 46px;
+  border: 1px solid transparent;
+  color: var(--color-ink);
+  box-shadow: none;
+}
+.header-cta.cookie-btn-primary,
+.header-cta.cookie-btn-primary:hover {
+  background: var(--color-amber);
+  border-color: var(--color-amber);
+  color: var(--color-ink);
+}
+.header-cta.cookie-btn-primary:hover {
+  filter: brightness(1.08);
+}
+.header-cta.cookie-btn-essential,
+.header-cta.cookie-btn-essential:hover {
+  background: transparent;
+  border-color: rgba(253, 241, 225, 0.55);
+  color: var(--paper);
+}
+.header-cta.cookie-btn-essential:hover {
+  background: rgba(253, 241, 225, 0.1);
+  border-color: var(--paper);
+}
+.header-cta.cookie-btn:focus-visible {
+  outline: 3px solid var(--paper);
+  outline-offset: 3px;
 }
 @media (max-width: 520px) {
   .header-cta.cookie-btn {
     flex: 1 1 100%;
+    width: 100%;
   }
 }
 

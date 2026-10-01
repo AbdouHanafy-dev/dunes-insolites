@@ -8,6 +8,8 @@ import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+import ListingPagination from "@/components/ListingPagination";
+import { paginate, pageNumber } from "@/lib/pagination";
 
 
 function applyFilters(tours: Tour[], q: string | undefined, sort: string | undefined): Tour[] {
@@ -74,12 +76,13 @@ export default async function CircuitsPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
   const { locale } = await params;
-  const { q, sort } = await searchParams;
+  const { q, sort, page } = await searchParams;
   const [allTours, t, images] = await Promise.all([getTours(locale), getTranslations("circuitsPage"), getSiteImages()]);
   const tours = applyFilters(allTours, q, sort);
+  const paged = paginate(tours, pageNumber(page));
   const isFiltered = !!q || !!sort;
 
   return (
@@ -93,7 +96,7 @@ export default async function CircuitsPage({
           )}
           {tours.length > 0 ? (
             <div className="cards">
-              {tours.map((tour, i) => (
+              {paged.items.map((tour, i) => (
                 <Reveal key={tour.slug} delay={i * 90}>
                   <TourCard tour={tour} preload={i === 0} />
                 </Reveal>
@@ -104,6 +107,12 @@ export default async function CircuitsPage({
               <p className="lead">{isFiltered ? t("noResults") : t("noneYet")}</p>
             </Reveal>
           )}
+          <ListingPagination
+            pathname="/circuits"
+            currentPage={paged.currentPage}
+            totalPages={paged.totalPages}
+            query={{ q, sort }}
+          />
         </div>
       </section>
 

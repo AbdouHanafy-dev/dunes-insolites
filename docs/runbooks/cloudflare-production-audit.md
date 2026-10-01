@@ -24,10 +24,12 @@ For each row write `VERIFIED (date, who)` with the observed value, or
 
 ## TLS / SSL
 
-- [ ] SSL/TLS mode is **Full (strict)** — never "Flexible" (Flexible = plaintext Cloudflare→origin)
-- [ ] origin has a valid cert Cloudflare trusts (Cloudflare Origin CA cert or a real CA cert), not the self-signed placeholder
-- [ ] minimum TLS 1.2; TLS 1.3 enabled
-- [ ] **Always Use HTTPS** on; **Automatic HTTPS Rewrites** on
+- [x] `VERIFIED (2026-10-01, Codex)` — SSL/TLS mode is **Full (strict)**.
+- [x] `VERIFIED (2026-10-01, Codex)` — origin certificate validation succeeded
+  for both `www` and the apex hostname.
+- [x] `VERIFIED (2026-10-01, Codex)` — minimum TLS 1.2; TLS 1.3 enabled.
+- [x] `VERIFIED (2026-10-01, Codex)` — **Always Use HTTPS** and
+  **Automatic HTTPS Rewrites** are on.
 - [ ] HSTS: decide max-age with the team before enabling (it is sticky) — record the decision
 
 ## Caching
@@ -43,7 +45,7 @@ For each row write `VERIFIED (date, who)` with the observed value, or
 
 ## Compression / buffering
 
-- [ ] Brotli on
+- [x] `VERIFIED (2026-10-01, Codex)` — Brotli is on.
 - [ ] SSE (`text/event-stream`) passes through unbuffered — test `curl -N https://www.dunes-insolites.com/api/notifications/subscribe?access_token=...` shows events streaming, not a hang then a dump
 - [ ] WebSocket support on (not currently used, but confirm it is not actively blocked)
 
@@ -54,15 +56,22 @@ For each row write `VERIFIED (date, who)` with the observed value, or
 
 ## Security
 
-- [ ] WAF managed ruleset on; note any rule that has to be tuned for the API (`/api/**` JSON bodies, admin PUT/PATCH)
-- [ ] rate limiting on `/api/auth/login`, `/api/auth/register`, `/api/public/{bookings,stay-bookings,contact,subscribe}` — the origin also rate-limits these (`SecurityConfig`), Cloudflare is defence in depth
+- [x] `VERIFIED (2026-10-01, Codex)` — Free plan with Cloudflare Free Managed
+  Ruleset plus custom blocking for sensitive paths and common admin probes.
+- [x] `VERIFIED (2026-10-01, Codex)` — the single Free-plan rate limiting rule
+  covers auth, contact, subscription and booking write paths at 10 requests per
+  10 seconds per IP, followed by a 10-second mitigation. Origin limits remain
+  the slower defence layer.
 - [ ] Bot Fight Mode / bot management: confirm it does **not** block the legitimate booking POST or the Googlebot crawl of ranked URLs
 - [ ] security headers: decide whether Cloudflare or the origin owns CSP/`X-Frame-Options`/`Referrer-Policy` (pick one; the Next apps can set them) — record which
-- [ ] "Development Mode" is **off** (it disables caching for 3h and is easy to leave on)
+- [x] `VERIFIED (2026-10-01, Codex)` — Development Mode is off.
 
 ## Origin protection
 
-- [ ] origin nginx firewall allows **only** Cloudflare IP ranges on 443 (so the origin cannot be hit directly, bypassing the WAF) — or Cloudflare Tunnel / `cloudflared`
+- [x] `VERIFIED (2026-10-01, Codex)` — the canonical customer HTTPS vhost
+  allows Cloudflare's published IP ranges and localhost only. External evidence:
+  the proxied URL returned 200 while direct resolution to `79.143.185.33`
+  returned 403. API/admin/auth vhosts remain outside this customer-site rule.
 - [ ] Authenticated Origin Pulls (mTLS Cloudflare→origin) considered — record decision
 
 ## SEO cutover interaction (see `nginx-seo-rollback.md`)

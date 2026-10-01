@@ -8,6 +8,8 @@ import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+import ListingPagination from "@/components/ListingPagination";
+import { paginate, pageNumber } from "@/lib/pagination";
 
 function applyFilters(items: Stay[], q: string | undefined, sort: string | undefined): Stay[] {
   let result = items;
@@ -50,10 +52,10 @@ export default async function CampPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
   const { locale } = await params;
-  const { q, sort } = await searchParams;
+  const { q, sort, page } = await searchParams;
   const [allStays, t, tCta, images] = await Promise.all([
     getStays(locale),
     getTranslations("campPage"),
@@ -61,6 +63,7 @@ export default async function CampPage({
     getSiteImages(),
   ]);
   const stays = applyFilters(allStays, q, sort);
+  const paged = paginate(stays, pageNumber(page));
   const isFiltered = !!q || !!sort;
 
   return (
@@ -85,7 +88,7 @@ export default async function CampPage({
           )}
           {stays.length > 0 ? (
             <div className="cards cols-2">
-              {stays.map((stay, i) => (
+              {paged.items.map((stay, i) => (
                 <Reveal key={stay.slug} delay={i * 90}>
                   <StayCard stay={stay} />
                 </Reveal>
@@ -96,6 +99,12 @@ export default async function CampPage({
               <p className="lead">{isFiltered ? t("noResults") : ""}</p>
             </Reveal>
           )}
+          <ListingPagination
+            pathname="/camp"
+            currentPage={paged.currentPage}
+            totalPages={paged.totalPages}
+            query={{ q, sort }}
+          />
         </div>
       </section>
 

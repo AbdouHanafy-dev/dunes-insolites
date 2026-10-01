@@ -1488,6 +1488,12 @@
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} h} other {{rest, plural, =0 {{days, plural, one {# giorno} other {# giorni}} ({hours} h)} other {{days, plural, one {# giorno} other {# giorni}} e {rest} h ({hours} h)}}}}"
   },
+  "pagination": {
+    "ariaLabel": "Paginazione",
+    "previous": "Precedente",
+    "next": "Successiva",
+    "status": "Pagina {current} di {total}"
+  },
   "a11y": {
     "navPrimary": "Navigazione principale",
     "navMobile": "Navigazione mobile",

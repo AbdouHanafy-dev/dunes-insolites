@@ -41,6 +41,7 @@ export default function CircuitsFilterBar({
 
   function pushParams(next: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
     for (const [key, value] of Object.entries(next)) {
       if (value) params.set(key, value);
       else params.delete(key);

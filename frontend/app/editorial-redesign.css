@@ -1269,6 +1269,55 @@ body:has(.drawer[data-open="true"]) .tour-mobile-booking-bar {
   .static-gate-copy { top: 58%; }
 }
 
+.listing-pagination {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  margin-top: 40px;
+}
+
+.listing-pagination a,
+.listing-pagination button,
+.listing-pagination span {
+  min-width: 42px;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border: 1px solid rgba(75, 53, 37, 0.22);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink, #2b241f);
+  font: inherit;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.listing-pagination a:hover,
+.listing-pagination button:hover:not(:disabled) {
+  border-color: var(--terracotta, #a75035);
+  color: var(--terracotta, #a75035);
+}
+
+.listing-pagination [aria-current="page"],
+.listing-pagination strong {
+  border-color: var(--terracotta, #a75035);
+  background: var(--terracotta, #a75035);
+  color: #fff;
+}
+
+.listing-pagination button:disabled,
+.listing-pagination [aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.42;
+}
+
 @media (max-width: 560px) {
   .field-hero-media { min-height: 52svh; }
   .field-hero-caption span:nth-child(2) { display: none; }

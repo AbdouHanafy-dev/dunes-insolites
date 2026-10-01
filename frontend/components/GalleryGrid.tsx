@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GalleryItem } from "@/lib/types";
+import { PUBLIC_PAGE_SIZE } from "@/lib/pagination";
 
 // Tag values are stable English identifiers used for filtering (matched
 // against GalleryItem.tag) — only the on-screen label is translated, via
@@ -25,7 +26,9 @@ export default function GalleryGrid({
   tags: string[];
 }) {
   const t = useTranslations("galleryGrid");
+  const tPagination = useTranslations("pagination");
   const [tag, setTag] = useState("All");
+  const [page, setPage] = useState(1);
   const tagLabel = (raw: string) =>
     TAG_I18N_KEYS[raw] ? t(`tags.${TAG_I18N_KEYS[raw]}`) : raw;
   // alt is keyed by the original English string in messages/*.json; falls
@@ -40,6 +43,10 @@ export default function GalleryGrid({
     () => (tag === "All" ? items : items.filter((i) => i.tag === tag)),
     [items, tag],
   );
+  const pageCount = Math.max(1, Math.ceil(shown.length / PUBLIC_PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageStart = (currentPage - 1) * PUBLIC_PAGE_SIZE;
+  const pageItems = shown.slice(pageStart, pageStart + PUBLIC_PAGE_SIZE);
 
   const setOpen = useCallback(
     (index: number | null) => setOpened(index === null ? null : { tag, index }),
@@ -75,20 +82,20 @@ export default function GalleryGrid({
     <>
       <div className="filters">
         {tags.map((raw) => (
-          <button key={raw} type="button" aria-pressed={tag === raw} onClick={() => setTag(raw)}>
+          <button key={raw} type="button" aria-pressed={tag === raw} onClick={() => { setTag(raw); setPage(1); }}>
             {tagLabel(raw)}
           </button>
         ))}
       </div>
 
       <div className="masonry">
-        {shown.map((item, i) => (
+        {pageItems.map((item, i) => (
           <button
             key={`${item.src}-${i}`}
             type="button"
             className={`g${item.tall ? " tall" : ""}`}
             style={{ border: 0, padding: 0, cursor: "zoom-in" }}
-            onClick={() => setOpen(i)}
+            onClick={() => setOpen(pageStart + i)}
             aria-label={`${t("openAria")} ${altText(item.alt)}`}
           >
             <Image
@@ -100,6 +107,18 @@ export default function GalleryGrid({
           </button>
         ))}
       </div>
+
+      {pageCount > 1 && (
+        <nav className="listing-pagination" aria-label={tPagination("ariaLabel")}>
+          <button type="button" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
+            <span aria-hidden="true">←</span> {tPagination("previous")}
+          </button>
+          <strong>{tPagination("status", { current: currentPage, total: pageCount })}</strong>
+          <button type="button" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>
+            {tPagination("next")} <span aria-hidden="true">→</span>
+          </button>
+        </nav>
+      )}
 
       {current && (
         <div

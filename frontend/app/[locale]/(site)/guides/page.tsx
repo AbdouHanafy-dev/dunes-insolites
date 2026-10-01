@@ -6,6 +6,8 @@ import { routing, localeHref, localeAlternates } from "@/i18n/routing";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { getGuidePages } from "@/lib/api";
 import { GUIDE_SLUGS } from "@/lib/guides";
+import ListingPagination from "@/components/ListingPagination";
+import { paginate, pageNumber } from "@/lib/pagination";
 
 // Now translated into all 6 locales - was FR/EN-only when this page first shipped.
 export function generateStaticParams() {
@@ -26,8 +28,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function GuidesIndexPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function GuidesIndexPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { locale } = await params;
+  const { page } = await searchParams;
 
   const availableSeedGuides = GUIDE_SLUGS.filter(
     (guide) => !("locales" in guide) || guide.locales.includes(locale as "fr" | "en"),
@@ -68,6 +77,7 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ lo
     })),
     ...seedGuides,
   ];
+  const paged = paginate(allGuides, pageNumber(page));
 
   return (
     <main className="articles-index-page">
@@ -86,19 +96,20 @@ export default async function GuidesIndexPage({ params }: { params: Promise<{ lo
       </header>
 
       <section className="articles-index-list wrap" aria-label={t("title")}>
-        {allGuides.map((guide, index) => (
-          <article className={`article-card${index === 0 ? " article-card-featured" : ""}`} key={guide.slug}>
+        {paged.items.map((guide, index) => (
+          <article className={`article-card${paged.start + index === 0 ? " article-card-featured" : ""}`} key={guide.slug}>
             <Link className="article-card-media" href={`/guides/${guide.slug}`} tabIndex={-1} aria-hidden="true">
               <Image src={guide.image} alt="" fill sizes={index === 0 ? "(max-width: 800px) 100vw, 65vw" : "(max-width: 800px) 100vw, 42vw"} />
             </Link>
             <div className="article-card-copy">
-              <p><span>{String(index + 1).padStart(2, "0")}</span>{t("fieldNotes")}</p>
+              <p><span>{String(paged.start + index + 1).padStart(2, "0")}</span>{t("fieldNotes")}</p>
               <h2><Link href={`/guides/${guide.slug}`}>{guide.title}</Link></h2>
               <p>{guide.lead}</p>
               <Link className="article-card-read" href={`/guides/${guide.slug}`}>{t("readArticle")} <span aria-hidden="true">→</span></Link>
             </div>
           </article>
         ))}
+        <ListingPagination pathname="/guides" currentPage={paged.currentPage} totalPages={paged.totalPages} />
       </section>
 
       <section className="articles-index-bottom">

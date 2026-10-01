@@ -51,17 +51,12 @@ export default function CookieConsent() {
         .
       </p>
       <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-        <button className="header-cta cookie-btn" onClick={() => choose("all")}>
+        <button className="header-cta cookie-btn cookie-btn-primary" onClick={() => choose("all")}>
           {t("acceptAll")}
         </button>
         <button
-          className="header-cta cookie-btn"
+          className="header-cta cookie-btn cookie-btn-essential"
           onClick={() => choose("essential")}
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(253,241,225,.42)",
-            boxShadow: "none",
-          }}
         >
           {t("essentialOnly")}
         </button>

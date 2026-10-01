@@ -8,6 +8,8 @@ import PageHead from "@/components/PageHead";
 import Reveal from "@/components/Reveal";
 import CTA from "@/components/CTA";
 import { localeAlternates, localeHref } from "@/i18n/routing";
+import ListingPagination from "@/components/ListingPagination";
+import { paginate, pageNumber } from "@/lib/pagination";
 
 function applyFilters(items: Activity[], q: string | undefined, sort: string | undefined): Activity[] {
   let result = items;
@@ -56,16 +58,17 @@ export default async function ActivitiesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
   const { locale } = await params;
-  const { q, sort } = await searchParams;
+  const { q, sort, page } = await searchParams;
   const [allActivities, t, images] = await Promise.all([
     getActivities(locale),
     getTranslations("activitiesPage"),
     getSiteImages(),
   ]);
   const activities = applyFilters(allActivities, q, sort);
+  const paged = paginate(activities, pageNumber(page));
   const isFiltered = !!q || !!sort;
 
   return (
@@ -90,7 +93,7 @@ export default async function ActivitiesPage({
           )}
           {activities.length > 0 ? (
             <div className="cards">
-              {activities.map((activity, i) => (
+              {paged.items.map((activity, i) => (
                 <Reveal key={activity.slug} delay={i * 90}>
                   <ActivityCard activity={activity} preload={i === 0} />
                 </Reveal>
@@ -101,6 +104,12 @@ export default async function ActivitiesPage({
               <p className="lead">{isFiltered ? t("noResults") : ""}</p>
             </Reveal>
           )}
+          <ListingPagination
+            pathname="/activities"
+            currentPage={paged.currentPage}
+            totalPages={paged.totalPages}
+            query={{ q, sort }}
+          />
         </div>
       </section>
 

@@ -98,6 +98,72 @@ if (existsSync(join(root, migDir))) {
   check("migrations: no version gaps", gaps.length === 0, `gap before V${gaps.join(", V")}`);
 }
 
+// 6. Hostname contract: legacy public/admin aliases redirect and never serve
+// duplicate applications. This protects SEO, cookies and OIDC callback routing.
+const canonicalPublic = "https://www.dunes-insolites.com$request_uri";
+const legacyPublic = read("nginx/vps/sites-available/www.dunesinsolites.com");
+if (legacyPublic != null) {
+  check("canonical public host: exactly one frontend proxy",
+    (legacyPublic.match(/proxy_pass\s+http:\/\/127\.0\.0\.1:3010/g) ?? []).length === 1,
+    "only www.dunes-insolites.com may serve the public frontend");
+  check("legacy public hosts: HTTP and HTTPS redirect to canonical",
+    (legacyPublic.match(new RegExp(canonicalPublic.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []).length === 2,
+    "the clear-text and legacy HTTPS vhosts must redirect directly to the canonical host");
+  check("legacy public hosts: all names are explicit",
+    ["dunes-insolites.com", "www.dunesinsolites.com", "dunesinsolites.com"]
+      .every((host) => legacyPublic.includes(host)),
+    "a public spelling is missing from the redirect contract");
+  check("canonical public host: Cloudflare-only origin include",
+    legacyPublic.includes("include /etc/nginx/snippets/cloudflare-only.conf;"),
+    "the public origin can be reached directly and bypass the Cloudflare WAF");
+}
+
+const cloudflareOnly = read("nginx/vps/snippets/cloudflare-only.conf");
+if (cloudflareOnly != null) {
+  check("Cloudflare origin allowlist: fail closed", /\ndeny all;\s*$/.test(cloudflareOnly),
+    "the Cloudflare allowlist must end with deny all");
+  check("Cloudflare origin allowlist: localhost health checks",
+    cloudflareOnly.includes("allow 127.0.0.1;") && cloudflareOnly.includes("allow ::1;"),
+    "local deployment health checks must remain possible");
+  check("Cloudflare origin allowlist: official IPv4 ranges",
+    (cloudflareOnly.match(/^allow (?:\d{1,3}\.){3}\d{1,3}\/\d+;$/gm) ?? []).length === 15,
+    "expected all 15 published Cloudflare IPv4 ranges");
+  check("Cloudflare origin allowlist: official IPv6 ranges",
+    (cloudflareOnly.match(/^allow [0-9a-f:]+\/\d+;$/gm) ?? []).length === 7,
+    "expected all 7 published Cloudflare IPv6 ranges");
+}
+
+for (const alias of ["partner", "camping"]) {
+  const conf = read(`nginx/vps/sites-available/${alias}.dunesinsolites.com`);
+  if (conf == null) continue;
+  check(`${alias} alias: no admin proxy`, !conf.includes("proxy_pass"),
+    `${alias} is retired and must not expose another copy of the backoffice`);
+  check(`${alias} alias: redirects to admin`,
+    (conf.match(/https:\/\/admin\.dunesinsolites\.com\$request_uri/g) ?? []).length === 2,
+    "both HTTP and HTTPS vhosts must redirect to the canonical admin host");
+}
+
+const monitorVhost = read("nginx/vps/sites-available/mon.dunesinsolites.com");
+if (monitorVhost != null) {
+  check("monitoring host: explicit HTTPS vhost", /listen\s+443\s+ssl/.test(monitorVhost),
+    "mon.dunesinsolites.com would otherwise receive an unrelated default certificate");
+}
+
+const cors = read("backend/src/main/java/com/camping/duneinsolite/config/CorsConfig.java");
+if (cors != null) {
+  for (const retiredOrigin of [
+    "https://partner.dunesinsolites.com",
+    "https://camping.dunesinsolites.com",
+    "https://www.dunesinsolites.com",
+    "https://dunesinsolites.com",
+  ]) {
+    check(`CORS excludes redirect-only origin ${retiredOrigin}`, !cors.includes(`\"${retiredOrigin}\"`),
+      "redirect-only hosts must not remain trusted browser origins");
+  }
+  check("CORS includes canonical customer origin", cors.includes('"https://www.dunes-insolites.com"'),
+    "the canonical customer frontend must be allowed");
+}
+
 console.log(`validate-prod-config: ${ok.length} checks passed`);
 if (problems.length) {
   console.error(`\nvalidate-prod-config: ${problems.length} FAILED:`);

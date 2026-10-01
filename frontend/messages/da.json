@@ -1488,6 +1488,12 @@
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} t} other {{rest, plural, =0 {{days, plural, one {# dag} other {# dage}} ({hours} t)} other {{days, plural, one {# dag} other {# dage}} og {rest} t ({hours} t)}}}}"
   },
+  "pagination": {
+    "ariaLabel": "Sidenavigation",
+    "previous": "Forrige",
+    "next": "Næste",
+    "status": "Side {current} af {total}"
+  },
   "a11y": {
     "navPrimary": "Hovednavigation",
     "navMobile": "Mobilnavigation",

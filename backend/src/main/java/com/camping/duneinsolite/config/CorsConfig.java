@@ -26,12 +26,7 @@ public class CorsConfig {
 
         List<String> origins = new ArrayList<>(List.of(
                 "https://admin.dunesinsolites.com",
-                "https://partner.dunesinsolites.com",
-                "https://camping.dunesinsolites.com",
-                "https://www.dunesinsolites.com",
-                "https://dunesinsolites.com",
-                "https://www.dunes-insolites.com",  // separate, already-deployed platform
-                "https://dunes-insolites.com"
+                "https://www.dunes-insolites.com"
         ));
         if (!extraOrigins.isBlank()) {
             origins.addAll(Arrays.stream(extraOrigins.split(",")).map(String::trim).toList());

@@ -1488,6 +1488,12 @@
   "tourDuration": {
     "format": "{days, plural, =0 {{hours} Std.} other {{rest, plural, =0 {{days, plural, one {# Tag} other {# Tage}} ({hours} Std.)} other {{days, plural, one {# Tag} other {# Tage}} und {rest} Std. ({hours} Std.)}}}}"
   },
+  "pagination": {
+    "ariaLabel": "Seitennavigation",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "status": "Seite {current} von {total}"
+  },
   "a11y": {
     "navPrimary": "Hauptnavigation",
     "navMobile": "Mobile Navigation",
