@@ -166,7 +166,7 @@ export default function Header({
     {
       label: t("accommodation"),
       href: "/camp",
-      items: stays.map((stay) => ({
+      items: stays.slice(0, 6).map((stay) => ({
         label: stay.title,
         detail: stay.tagline,
         href: `/camp/${stay.slug}`,
@@ -184,7 +184,7 @@ export default function Header({
     {
       label: t("activities"),
       href: "/activities",
-      items: activities.map((activity) => ({
+      items: activities.slice(0, 6).map((activity) => ({
         label: activity.title,
         detail: activity.tagline,
         href: `/activities/${activity.slug}`,
