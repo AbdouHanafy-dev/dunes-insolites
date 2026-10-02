@@ -74,7 +74,8 @@ function StayBlock({
   nights: number | null;
   currency: string;
 }) {
-  const stayNights = line.numberOfNights ?? nights;
+  // The dates win over the line's count: older bookings stored every stay line as one night.
+  const stayNights = nights ?? line.numberOfNights;
   const party = guestBreakdown(line.numberOfAdults != null ? line : r);
   const arrival = longDate(r.checkInDate ?? line.activityDate);
   const departure = longDate(r.checkOutDate);

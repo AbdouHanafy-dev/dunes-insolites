@@ -426,7 +426,9 @@ public class ReservationServiceImpl implements ReservationService {
                 .numberOfAdults(adults)
                 .numberOfChildren(children)
                 .numberOfInfants(infants)
-                .numberOfNights(1)
+                // The stay's real length (check-out minus check-in), so the line is stored and priced
+                // for the nights the guest is actually there.
+                .numberOfNights(Math.toIntExact(nights))
                 .activityDate(selection.getActivityDate())
                 .tva(tourType.getTva());
 
@@ -438,7 +440,7 @@ public class ReservationServiceImpl implements ReservationService {
         // not per person, summed across every tier (2 Suites + 3 Tentes is
         // two rows here).
         for (PricedAccommodation priced : priceAccommodations(selection.resolvedAccommodationSelections(),
-                new Guests(adults, children, infants), 1, selection.getActivityDate())) {
+                new Guests(adults, children, infants), nights, selection.getActivityDate())) {
             tourTypeSnapshot.getAccommodations().add(tierSnapshot(priced).reservationTourType(tourTypeSnapshot).build());
         }
 
@@ -1246,7 +1248,15 @@ public class ReservationServiceImpl implements ReservationService {
             // re-read the current catalogue price. Repricing only happens when
             // the request explicitly carries a new accommodationTypeId.
             Map<UUID, ReservationTourType> priorAccommodation = new LinkedHashMap<>();
+            // Nights each existing line was booked (and priced) for. An edit that does not touch the dates
+            // keeps them: re-deriving from the dates would silently reprice a booking made before lines
+            // carried their real length.
+            Map<UUID, Integer> priorNights = new LinkedHashMap<>();
+            boolean datesEdited = request.getCheckInDate() != null || request.getCheckOutDate() != null;
             for (ReservationTourType old : reservation.getTourTypes()) {
+                if (old.getCatalogTourTypeId() != null && old.getNumberOfNights() != null && old.getNumberOfNights() > 0) {
+                    priorNights.put(old.getCatalogTourTypeId(), old.getNumberOfNights());
+                }
                 if (old.isAccommodationPriced() && old.getCatalogTourTypeId() != null) {
                     priorAccommodation.put(old.getCatalogTourTypeId(), old);
                 }
@@ -1277,6 +1287,9 @@ public class ReservationServiceImpl implements ReservationService {
                     childPrice = applyRemise(childPrice, remise.getChildRemise());
                 }
 
+                int lineNights = !datesEdited && priorNights.containsKey(tourType.getTourTypeId())
+                        ? priorNights.get(tourType.getTourTypeId())
+                        : Math.toIntExact(nights);
                 var snapshotBuilder = ReservationTourType.builder()
                         .catalogTourTypeId(tourType.getTourTypeId())
                         .name(tourType.getName())
@@ -1288,7 +1301,7 @@ public class ReservationServiceImpl implements ReservationService {
                         .numberOfAdults(adults)
                         .numberOfChildren(children)
                         .numberOfInfants(infants)
-                        .numberOfNights(1)
+                        .numberOfNights(lineNights)
                         .activityDate(selection.getActivityDate())
                         .tva(tourType.getTva());
 
@@ -1298,7 +1311,7 @@ public class ReservationServiceImpl implements ReservationService {
                 if (!explicitSelections.isEmpty()) {
                     // Explicit re-selection in the request → reprice (deliberate).
                     for (PricedAccommodation priced : priceAccommodations(explicitSelections,
-                            new Guests(adults, children, infants), 1, selection.getActivityDate())) {
+                            new Guests(adults, children, infants), lineNights, selection.getActivityDate())) {
                         snapshot.getAccommodations().add(tierSnapshot(priced).reservationTourType(snapshot).build());
                     }
                 } else {

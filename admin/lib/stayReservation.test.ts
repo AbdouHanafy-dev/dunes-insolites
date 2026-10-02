@@ -39,11 +39,16 @@ describe("accommodationSummary", () => {
 });
 
 describe("nightsOf", () => {
-  it("uses the stay line's own count first", () => {
-    expect(nightsOf({ tourTypes: [{ name: "x", totalPrice: 1, numberOfNights: 3 }], checkInDate: null, checkOutDate: null })).toBe(3);
-  });
-  it("falls back to the gap between arrival and departure", () => {
+  it("uses the gap between arrival and departure first", () => {
     expect(nightsOf({ tourTypes: [], checkInDate: "2026-10-05", checkOutDate: "2026-10-07" })).toBe(2);
+  });
+  it("shows two nights for a stay whose line was stored as one night but whose dates span two", () => {
+    expect(
+      nightsOf({ tourTypes: [{ name: "x", totalPrice: 260, numberOfNights: 1 }], checkInDate: "2026-10-28", checkOutDate: "2026-10-30" }),
+    ).toBe(2);
+  });
+  it("falls back to the stay line's own count when there are no dates", () => {
+    expect(nightsOf({ tourTypes: [{ name: "x", totalPrice: 1, numberOfNights: 3 }], checkInDate: null, checkOutDate: null })).toBe(3);
   });
   it("is null when it cannot be known", () => {
     expect(nightsOf({ tourTypes: [], checkInDate: null, checkOutDate: null })).toBeNull();

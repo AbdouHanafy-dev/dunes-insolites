@@ -281,6 +281,78 @@ class AccommodationBookingIT {
         assertThat(r.getTotalAmount()).as("historical reservation stays financially stable").isEqualByComparingTo("165.000");
     }
 
+    private void allowNights(int max) {
+        tx.executeWithoutResult(t -> {
+            TourType stay = tourTypeRepository.findBySlugAndIsActiveTrue(staySlug).orElseThrow();
+            stay.setMaxNights(max);
+            tourTypeRepository.save(stay);
+        });
+    }
+
+    @Test
+    void aTwoNightStayIsStoredAndChargedForTwoNights() {
+        allowNights(2);
+        var r = req("dune-suite", 1, 2);
+        r.setNights(2);
+        Reservation res = load(UUID.fromString(publicBookingService.createStayBooking(r).getId()));
+
+        assertThat(res.getCheckOutDate()).isEqualTo(res.getCheckInDate().plusDays(2));
+        assertThat(res.getTourTypes().get(0).getNumberOfNights()).as("the line says what the dates say").isEqualTo(2);
+        assertThat(res.getTotalAmount()).as("2 adults x 82.5 x 2 nights").isEqualByComparingTo("330.000");
+    }
+
+    @Test
+    void editingATwoNightStayWithoutTouchingItsDatesKeepsTwoNightsAndTheTotal() {
+        allowNights(2);
+        var r = req("dune-suite", 1, 2);
+        r.setNights(2);
+        UUID resId = UUID.fromString(publicBookingService.createStayBooking(r).getId());
+        asAdmin();
+
+        // the admin form sends the tourTypes array back, without dates
+        var sel = new com.camping.duneinsolite.dto.request.TourTypeSelectionRequest();
+        Reservation before = load(resId);
+        sel.setTourTypeId(before.getTourTypes().get(0).getCatalogTourTypeId());
+        sel.setNumberOfAdults(2);
+        sel.setActivityDate(before.getCheckInDate());
+        var upd = new com.camping.duneinsolite.dto.request.ReservationUpdateRequest();
+        upd.setTourTypes(java.util.List.of(sel));
+        reservationService.updateReservation(resId, upd);
+
+        Reservation after = load(resId);
+        assertThat(after.getTourTypes().get(0).getNumberOfNights()).isEqualTo(2);
+        assertThat(after.getTotalAmount()).isEqualByComparingTo("330.000");
+    }
+
+    @Test
+    void aStayBookedBeforeTheFixKeepsItsStoredNightsWhenEditedWithoutDates() {
+        allowNights(2);
+        var r = req("dune-suite", 1, 2);
+        r.setNights(2);
+        UUID resId = UUID.fromString(publicBookingService.createStayBooking(r).getId());
+        // Reproduce the legacy shape: 2 nights of dates, but a line stored (and priced) as 1 night.
+        tx.executeWithoutResult(t -> {
+            Reservation res = reservationRepository.findByIdWithTourTypes(resId).orElseThrow();
+            res.getTourTypes().get(0).setNumberOfNights(1);
+            res.setTotalAmount(new BigDecimal("165.000"));
+            reservationRepository.save(res);
+        });
+        asAdmin();
+
+        var sel = new com.camping.duneinsolite.dto.request.TourTypeSelectionRequest();
+        Reservation before = load(resId);
+        sel.setTourTypeId(before.getTourTypes().get(0).getCatalogTourTypeId());
+        sel.setNumberOfAdults(2);
+        sel.setActivityDate(before.getCheckInDate());
+        var upd = new com.camping.duneinsolite.dto.request.ReservationUpdateRequest();
+        upd.setTourTypes(java.util.List.of(sel));
+        reservationService.updateReservation(resId, upd);
+
+        Reservation after = load(resId);
+        assertThat(after.getTourTypes().get(0).getNumberOfNights()).as("an unrelated edit must not reprice history").isEqualTo(1);
+        assertThat(after.getTotalAmount()).isEqualByComparingTo("165.000");
+    }
+
     @Test
     void anInactiveTierIsAlsoHiddenAndUnbookable() {
         AccommodationType tent = accommodationTypeRepository.findById(tentId).orElseThrow();

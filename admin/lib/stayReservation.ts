@@ -38,13 +38,15 @@ export function accommodationSummary(r: Pick<AdminReservation, "tourTypes">): st
   return [...totals].map(([name, units]) => `${name} × ${units}`).join(" · ");
 }
 
-/** Nights of the stay: the line's own count, else the gap between arrival and departure; null when unknown. */
+/**
+ * Nights of the stay: the gap between arrival and departure, which is what the camp actually blocks;
+ * else the line's own count. The dates come first because older bookings stored every stay line as one
+ * night whatever the dates were. Null when unknown.
+ */
 export function nightsOf(r: Pick<StayFacts, "tourTypes" | "checkInDate" | "checkOutDate">): number | null {
-  const fromLine = r.tourTypes.map((line) => line.numberOfNights).find((v) => v != null && v > 0);
-  if (fromLine != null) return fromLine;
   if (r.checkInDate && r.checkOutDate) {
     const days = Math.round((Date.parse(r.checkOutDate) - Date.parse(r.checkInDate)) / 86_400_000);
     if (Number.isFinite(days) && days > 0) return days;
   }
-  return null;
+  return r.tourTypes.map((line) => line.numberOfNights).find((v) => v != null && v > 0) ?? null;
 }
