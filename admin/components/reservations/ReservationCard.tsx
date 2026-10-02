@@ -5,7 +5,7 @@ import FlipCard, { FlipHint } from "@/components/FlipCard";
 import { CITY_OPTIONS } from "@/lib/cities";
 import { sym } from "@/lib/currency";
 import type { AdminReservation } from "@/lib/api";
-import { activityLines, lineLabel, optionLines, serviceLines } from "@/lib/reservationLines";
+import { activityLines, activitySummary, lineLabel, optionLines, serviceLines } from "@/lib/reservationLines";
 import { accommodationSummary, guestBreakdown, guestCounts, nightsOf } from "@/lib/stayReservation";
 import { isEditable, paymentStatusOf, statusOf } from "./reservationStatus";
 import { StaffPair } from "./StaffPair";
@@ -42,6 +42,8 @@ export default function ReservationCard({
   const currency = sym(r.currency);
   const coming = guestCounts(r).coming;
   const arrival = r.checkInDate ?? r.serviceDate;
+  const frontNights = nightsOf(r);
+  const frontActivities = activitySummary(r);
 
   const front = (
     <div className="flex h-full flex-col gap-2.5">
@@ -74,6 +76,18 @@ export default function ReservationCard({
             <span className="ml-1 text-[12px] font-normal text-navy-700/55">{guestBreakdown(r)}</span>
           </dd>
         </div>
+        {frontNights != null && (
+          <div>
+            <dt className="text-[11px] uppercase tracking-wide text-navy-700/45">Durée</dt>
+            <dd className="font-medium text-navy-800">{frontNights} nuit{frontNights > 1 ? "s" : ""}</dd>
+          </div>
+        )}
+        {frontActivities && (
+          <div className="col-span-2">
+            <dt className="text-[11px] uppercase tracking-wide text-navy-700/45">Activités</dt>
+            <dd className="line-clamp-2 font-medium text-navy-800" title={frontActivities}>{frontActivities}</dd>
+          </div>
+        )}
       </dl>
 
       <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-navy-700/8 pt-3">
