@@ -68,14 +68,14 @@ public class PublicStayMapper {
         response.setItinerary(List.of());
         response.setDepartureCities(com.camping.duneinsolite.service.PickupCities.names(tourType.getDepartureCities()));
         response.setReturnCities(com.camping.duneinsolite.service.PickupCities.names(tourType.getReturnCities()));
-        response.setAccommodations(publicAccommodations(tourType));
+        response.setAccommodations(publicAccommodations(tourType, contentLocale));
         response.setGuideRequired(Boolean.TRUE.equals(tourType.getGuideRequired()));
         response.setMaxNights(tourType.getMaxNights() == null ? 1 : tourType.getMaxNights());
         return response;
     }
 
     /** Only active + priced tiers reach the vitrine — never an option we can't quote. */
-    private List<PublicStayResponse.Accommodation> publicAccommodations(TourType tourType) {
+    private List<PublicStayResponse.Accommodation> publicAccommodations(TourType tourType, Optional<ContentLocale> locale) {
         // The bivouac tent is descriptive content, not a selectable tier. It
         // therefore remains public even when it has no independent price.
         boolean informational = "bivouac-desert-tunisie".equals(tourType.getSlug());
@@ -97,9 +97,7 @@ public class PublicStayMapper {
                                     : adultPrice;
                     PublicStayResponse.Accommodation dto = new PublicStayResponse.Accommodation();
                     dto.setSlug(a.getSlug());
-                    dto.setTitle(a.getName());
                     dto.setTagline("");
-                    dto.setDescription(a.getDescription());
                     dto.setImage(a.getImageUrl());
                     dto.setGallery(List.copyOf(a.getGallery()));
                     // These fallback rates only keep the shared public DTO
@@ -109,12 +107,11 @@ public class PublicStayMapper {
                     dto.setChildPrice(childPrice);
                     dto.setInfantPrice(a.getInfantPriceTtc() != null ? a.getInfantPriceTtc() : java.math.BigDecimal.ZERO);
                     dto.setCapacity(a.getCapacity());
-                    dto.setSleeps("Jusqu'à " + a.getCapacity()
-                            + (a.getCapacity() > 1 ? " personnes" : " personne"));
                     dto.setAirConditioned(a.isAirConditioned());
                     dto.setPrivateBathroom(a.isPrivateBathroom());
-                    dto.setFeatures(List.copyOf(a.getFeatures()));
                     dto.setMaxUnits(a.getMaxUnits());
+                    // Title, description, features and the "sleeps" line, in the visitor's language.
+                    PublicAccommodationTranslation.apply(dto, a, locale);
                     return dto;
                 })
                 .toList();

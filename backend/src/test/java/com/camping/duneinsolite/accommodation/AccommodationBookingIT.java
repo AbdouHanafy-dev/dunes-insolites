@@ -73,6 +73,7 @@ class AccommodationBookingIT {
     @Autowired PublicStayMapper publicStayMapper;
     @Autowired com.camping.duneinsolite.service.ReservationService reservationService;
     @Autowired TransactionTemplate tx;
+    @Autowired com.camping.duneinsolite.service.AccommodationTypeAdminService tierAdmin;
 
     private String staySlug;
     private UUID tentId, suiteId;
@@ -351,6 +352,89 @@ class AccommodationBookingIT {
         Reservation after = load(resId);
         assertThat(after.getTourTypes().get(0).getNumberOfNights()).as("an unrelated edit must not reprice history").isEqualTo(1);
         assertThat(after.getTotalAmount()).isEqualByComparingTo("165.000");
+    }
+
+    private com.camping.duneinsolite.dto.request.AccommodationTypeRequest tierRequest(
+            java.util.List<com.camping.duneinsolite.dto.CatalogTranslationDto> translations) {
+        var r = new com.camping.duneinsolite.dto.request.AccommodationTypeRequest();
+        r.setTourTypeId(tourTypeRepository.findBySlugAndIsActiveTrue(staySlug).orElseThrow().getTourTypeId());
+        r.setSlug("dune-suite");
+        r.setName("Dune Suite");
+        r.setDescription("Suite en dur");
+        r.setCapacity(4);
+        r.setAdultPriceTtc(new BigDecimal("82.500"));
+        r.setFeatures(java.util.List.of("Climatisation"));
+        r.setTranslations(translations);
+        return r;
+    }
+
+    private com.camping.duneinsolite.dto.CatalogTranslationDto german() {
+        var t = new com.camping.duneinsolite.dto.CatalogTranslationDto();
+        t.setLocale(ContentLocale.DE);
+        t.setName("Dünen-Suite");
+        t.setDescription("Suite aus Stein");
+        t.setHighlights(java.util.List.of("Klimaanlage")); // the feature list travels as highlights
+        return t;
+    }
+
+    private PublicStayResponse.Accommodation publicTier(String locale) {
+        return tx.execute(t -> publicStayMapper.toResponse(tourTypeRepository.findBySlugAndIsActiveTrue(staySlug).orElseThrow(), locale))
+                .getAccommodations().stream().filter(a -> a.getSlug().equals("dune-suite")).findFirst().orElseThrow();
+    }
+
+    @Test
+    void aTiersTranslationIsStoredAndServedInTheVisitorsLanguage() {
+        tierAdmin.update(suiteId, tierRequest(java.util.List.of(german())));
+
+        var de = publicTier("de");
+        assertThat(de.getTitle()).isEqualTo("Dünen-Suite");
+        assertThat(de.getDescription()).isEqualTo("Suite aus Stein");
+        assertThat(de.getFeatures()).containsExactly("Klimaanlage");
+        assertThat(de.getSleeps()).isEqualTo("Bis zu 4 Gäste");
+
+        // No Italian copy: French original for the texts, but the "sleeps" line still follows the language.
+        var it = publicTier("it");
+        assertThat(it.getTitle()).isEqualTo("Dune Suite");
+        assertThat(it.getDescription()).isEqualTo("Suite en dur");
+        assertThat(it.getSleeps()).isEqualTo("Fino a 4 ospiti");
+
+        var fr = publicTier("fr");
+        assertThat(fr.getTitle()).isEqualTo("Dune Suite");
+        assertThat(fr.getSleeps()).isEqualTo("Jusqu'à 4 personnes");
+
+        // The admin read returns what was saved.
+        var saved = tierAdmin.get(suiteId).translations();
+        assertThat(saved).hasSize(1);
+        assertThat(saved.get(0).getName()).isEqualTo("Dünen-Suite");
+    }
+
+    @Test
+    void savingATierWithoutTranslationsNeverWipesTheOnesAlreadySaved() {
+        tierAdmin.update(suiteId, tierRequest(java.util.List.of(german())));
+
+        tierAdmin.update(suiteId, tierRequest(null)); // a client that does not know about translations
+
+        assertThat(publicTier("de").getTitle()).isEqualTo("Dünen-Suite");
+        // Only an explicit list changes them: an empty list removes them all.
+        tierAdmin.update(suiteId, tierRequest(java.util.List.of()));
+        assertThat(publicTier("de").getTitle()).isEqualTo("Dune Suite");
+    }
+
+    @Test
+    void replacingATiersTranslationUpdatesItInPlace() {
+        tierAdmin.update(suiteId, tierRequest(java.util.List.of(german())));
+        var again = german();
+        again.setName("Dünen-Suite Deluxe");
+        tierAdmin.update(suiteId, tierRequest(java.util.List.of(again))); // same language again: no unique-key clash
+
+        assertThat(publicTier("de").getTitle()).isEqualTo("Dünen-Suite Deluxe");
+    }
+
+    @Test
+    void deletingATierAlsoRemovesItsTranslations() {
+        tierAdmin.update(suiteId, tierRequest(java.util.List.of(german())));
+        tierAdmin.delete(suiteId);
+        assertThat(accommodationTypeRepository.findById(suiteId)).isEmpty();
     }
 
     @Test

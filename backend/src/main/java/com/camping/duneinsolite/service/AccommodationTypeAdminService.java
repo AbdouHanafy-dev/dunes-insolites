@@ -1,10 +1,12 @@
 package com.camping.duneinsolite.service;
 
+import com.camping.duneinsolite.dto.CatalogTranslationDto;
 import com.camping.duneinsolite.dto.request.AccommodationTypeRequest;
 import com.camping.duneinsolite.dto.response.AccommodationTypeResponse;
 import com.camping.duneinsolite.exception.ConflictException;
 import com.camping.duneinsolite.exception.ResourceNotFoundException;
 import com.camping.duneinsolite.model.AccommodationType;
+import com.camping.duneinsolite.model.AccommodationTypeTranslation;
 import com.camping.duneinsolite.model.TourType;
 import com.camping.duneinsolite.model.enums.Currency;
 import com.camping.duneinsolite.money.Money;
@@ -65,6 +67,7 @@ public class AccommodationTypeAdminService {
                 .privateBathroom(Boolean.TRUE.equals(req.getPrivateBathroom()))
                 .features(req.getFeatures() != null ? new ArrayList<>(req.getFeatures()) : new ArrayList<>())
                 .build();
+        syncTranslations(a, req.getTranslations());
         return AccommodationTypeResponse.from(repository.save(a));
     }
 
@@ -98,7 +101,33 @@ public class AccommodationTypeAdminService {
             a.getFeatures().clear();
             a.getFeatures().addAll(req.getFeatures());
         }
+        syncTranslations(a, req.getTranslations());
         return AccommodationTypeResponse.from(a);
+    }
+
+    /**
+     * Brings the saved translations in line with the request, language by language: an existing
+     * language is updated in place, a new one is added, a language absent from the list is removed.
+     * A null list changes nothing. Updating in place (rather than delete-and-reinsert) also keeps
+     * the unique (tier, language) constraint out of Hibernate's insert-before-delete ordering.
+     */
+    private void syncTranslations(AccommodationType a, List<CatalogTranslationDto> dtos) {
+        if (dtos == null) return;
+        a.getTranslations().removeIf(t -> dtos.stream().noneMatch(d -> d.getLocale() == t.getLocale()));
+        for (CatalogTranslationDto dto : dtos) {
+            AccommodationTypeTranslation t = a.getTranslations().stream()
+                    .filter(x -> x.getLocale() == dto.getLocale()).findFirst().orElse(null);
+            if (t == null) {
+                t = new AccommodationTypeTranslation();
+                t.setAccommodationType(a);
+                t.setLocale(dto.getLocale());
+                a.getTranslations().add(t);
+            }
+            t.setName(dto.getName());
+            t.setDescription(dto.getDescription());
+            t.getFeatures().clear();
+            if (dto.getHighlights() != null) t.getFeatures().addAll(dto.getHighlights());
+        }
     }
 
     public void delete(UUID id) {

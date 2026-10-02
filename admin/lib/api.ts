@@ -665,6 +665,8 @@ export type AdminAccommodationType = {
   airConditioned: boolean;
   privateBathroom: boolean;
   features: string[];
+  /** Other-language copy; the feature list travels as `highlights`. */
+  translations?: AdminCatalogTranslation[] | null;
 };
 
 // The tier (Desert Tent / Room / Dune Suite) create/update payload -

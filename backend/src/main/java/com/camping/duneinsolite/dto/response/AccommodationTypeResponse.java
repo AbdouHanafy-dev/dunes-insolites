@@ -28,7 +28,8 @@ public record AccommodationTypeResponse(
         boolean bookable,
         boolean airConditioned,
         boolean privateBathroom,
-        List<String> features
+        List<String> features,
+        List<com.camping.duneinsolite.dto.CatalogTranslationDto> translations
 ) {
     public static AccommodationTypeResponse from(AccommodationType a) {
         return new AccommodationTypeResponse(
@@ -52,6 +53,18 @@ public record AccommodationTypeResponse(
                 a.isBookable(),
                 a.isAirConditioned(),
                 a.isPrivateBathroom(),
-                List.copyOf(a.getFeatures()));
+                List.copyOf(a.getFeatures()),
+                a.getTranslations().stream().map(AccommodationTypeResponse::translationDto).toList());
+    }
+
+    /** The feature list travels as {@code highlights}, the field the shared translation panel already edits. */
+    private static com.camping.duneinsolite.dto.CatalogTranslationDto translationDto(
+            com.camping.duneinsolite.model.AccommodationTypeTranslation t) {
+        var dto = new com.camping.duneinsolite.dto.CatalogTranslationDto();
+        dto.setLocale(t.getLocale());
+        dto.setName(t.getName());
+        dto.setDescription(t.getDescription());
+        dto.setHighlights(List.copyOf(t.getFeatures()));
+        return dto;
     }
 }

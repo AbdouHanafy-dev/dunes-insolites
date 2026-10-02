@@ -129,6 +129,11 @@ public class AccommodationType {
     @Builder.Default
     private List<String> gallery = new ArrayList<>();
 
+    /** Other-language copy of name / description / features; the columns above stay the French original. */
+    @OneToMany(mappedBy = "accommodationType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<AccommodationTypeTranslation> translations = new ArrayList<>();
+
     /** True when this tier has everything it needs to be booked. */
     @Transient
     public boolean isBookable() {

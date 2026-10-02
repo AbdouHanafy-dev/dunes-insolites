@@ -221,6 +221,25 @@ export function catalogSourceFromForm(form: Record<string, unknown>): CatalogTra
   };
 }
 
+/** The French copy of an accommodation tier: name, description and its feature list (carried as highlights). */
+export function tierTranslationSource(tier: { name: string; description?: string | null; features?: string[] }): CatalogTranslationSource {
+  return {
+    name: tier.name,
+    description: tier.description ?? "",
+    aboutText: "",
+    highlights: tier.features ?? [],
+    includedItems: [],
+    notIncludedItems: [],
+    programSteps: [],
+    goodToKnow: "",
+    petPolicyNote: "",
+    ticketInfo: "",
+    notSuitableFor: [],
+    notAllowed: [],
+    mustBring: [],
+  };
+}
+
 /** `CollectionEditor.prepareSave` for the editors that embed TranslationsField with a plain form. */
 export async function prepareCatalogSave(form: Record<string, unknown>): Promise<SavePreparation> {
   const translations = (form.translations ?? {}) as Record<string, CatalogTranslationForm>;

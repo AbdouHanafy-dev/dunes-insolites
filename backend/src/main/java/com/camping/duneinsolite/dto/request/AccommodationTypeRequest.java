@@ -60,4 +60,11 @@ public class AccommodationTypeRequest {
     private Boolean privateBathroom;
 
     private List<String> features;
+
+    /**
+     * Other-language copy (name, description, and the feature list carried in {@code highlights}).
+     * Absent (null) leaves the saved translations untouched, so a client that does not know about
+     * them can never wipe them; an empty list removes them all.
+     */
+    private List<com.camping.duneinsolite.dto.CatalogTranslationDto> translations;
 }

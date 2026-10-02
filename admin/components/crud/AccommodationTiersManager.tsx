@@ -9,6 +9,12 @@ import { inputClass, labelClass } from "@/components/payload/fields";
 import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import type { AdminAccommodationType, AdminAccommodationTypeInput } from "@/lib/api";
 import PricingRulesPanel from "@/components/payload/PricingRulesPanel";
+import TranslationsField, {
+  type CatalogTranslationForm,
+  translationsToArray,
+  translationsToRecord,
+} from "@/components/payload/TranslationsField";
+import { fillEmptyLocales, fillNotices, tierTranslationSource } from "@/components/payload/autoTranslate";
 import InventoryRulesPanel from "@/components/availability/InventoryRulesPanel";
 
 const TIER_FIELDS: FieldLike[] = [
@@ -87,6 +93,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
   const [loading, setLoading] = useState(!!tourTypeId);
   const [editing, setEditing] = useState<AdminAccommodationTypeInput | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [tierTranslations, setTierTranslations] = useState<Record<string, CatalogTranslationForm>>({});
   const [deleteTarget, setDeleteTarget] = useState<AdminAccommodationType | null>(null);
   const [pricingTarget, setPricingTarget] = useState<AdminAccommodationType | null>(null);
   const [busy, setBusy] = useState(false);
@@ -122,6 +129,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
 
   function openCreate() {
     setEditingId(null);
+    setTierTranslations({});
     setEditing(emptyTier(tourTypeId!));
     setError("");
     setAttempted(false);
@@ -130,6 +138,7 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
 
   function openEdit(t: AdminAccommodationType) {
     setEditingId(t.id);
+    setTierTranslations(translationsToRecord(t.translations));
     setEditing({
       tourTypeId: t.tourTypeId,
       slug: t.slug,
@@ -166,11 +175,16 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
     }
     setBusy(true);
     setError("");
+    // Languages left completely empty are machine-filled; typed text is never overwritten and a
+    // translation failure never blocks the save.
+    const fill = await fillEmptyLocales(tierTranslationSource(editing), tierTranslations);
+    if (fill.filled.length > 0) setTierTranslations(fill.translations);
+    for (const n of fillNotices(fill)) (n.error ? toast.error : toast.success)(n.text);
     const url = editingId ? `/api/proxy/accommodation-types/${editingId}` : "/api/proxy/accommodation-types";
     const res = await fetch(url, {
       method: editingId ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editing),
+      body: JSON.stringify({ ...editing, translations: translationsToArray(fill.translations) }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -464,6 +478,17 @@ export default function AccommodationTiersManager({ tourTypeId }: { tourTypeId?:
               tableau comparatif). Tout le reste (Wi-Fi, demi-pension, électricité…) est identique pour tous les
               hébergements et géré dans le code de la vitrine.
             </p>
+          </div>
+
+          <div className="mt-6 border-t border-navy-700/10 pt-5">
+            <h3 className="mb-3 text-[14px] font-bold text-navy-800">Traductions</h3>
+            <TranslationsField
+              translations={tierTranslations}
+              onChange={setTierTranslations}
+              source={tierTranslationSource(editing)}
+              fields={["name", "description", "highlights"]}
+              labels={{ highlights: "Caractéristiques" }}
+            />
           </div>
 
           {issues.length > 0 ? (

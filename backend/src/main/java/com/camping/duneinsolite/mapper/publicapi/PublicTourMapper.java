@@ -81,7 +81,7 @@ public class PublicTourMapper {
         response.setGroupSize(groupSize(tour.getGroupSizeType()));
         response.setOvernightsAtCamp(requiresCampAccommodation(tour));
         var camp = tourTypeRepository.findFirstByCircuitCampTrue();
-        response.setAccommodations(camp.map(this::bookableCampAccommodations).orElse(List.of()));
+        response.setAccommodations(camp.map(c -> bookableCampAccommodations(c, contentLocale)).orElse(List.of()));
         response.setCampStaySlug(camp.map(com.camping.duneinsolite.model.TourType::getSlug).orElse(null));
         response.setLanguages(tour.getLanguages() == null ? List.of()
                 : tour.getLanguages().stream().map(com.camping.duneinsolite.model.SpokenLanguage::getName).sorted().toList());
@@ -131,7 +131,7 @@ public class PublicTourMapper {
     // Tiers of the stay flagged circuit_camp - independent of that stay's own
     // hasAccommodationTypes, which only governs its own booking form.
     private List<PublicStayResponse.Accommodation> bookableCampAccommodations(
-            com.camping.duneinsolite.model.TourType camp) {
+            com.camping.duneinsolite.model.TourType camp, Optional<ContentLocale> locale) {
         return accommodationTypeRepository
                 .findByTourType_TourTypeIdOrderByDisplayOrderAsc(camp.getTourTypeId())
                 .stream()
@@ -139,9 +139,7 @@ public class PublicTourMapper {
                 .map(a -> {
                     PublicStayResponse.Accommodation dto = new PublicStayResponse.Accommodation();
                     dto.setSlug(a.getSlug());
-                    dto.setTitle(a.getName());
                     dto.setTagline("");
-                    dto.setDescription(a.getDescription());
                     dto.setImage(a.getImageUrl());
                     dto.setGallery(List.copyOf(a.getGallery()));
                     dto.setPriceFrom(a.getAdultPriceTtc());
@@ -149,10 +147,9 @@ public class PublicTourMapper {
                     dto.setChildPrice(a.getChildPriceTtc() != null ? a.getChildPriceTtc() : a.getAdultPriceTtc());
                     dto.setInfantPrice(a.getInfantPriceTtc() != null ? a.getInfantPriceTtc() : java.math.BigDecimal.ZERO);
                     dto.setCapacity(a.getCapacity());
-                    dto.setSleeps("Jusqu'\u00e0 " + a.getCapacity()
-                            + (a.getCapacity() > 1 ? " personnes" : " personne"));
-                    dto.setFeatures(List.copyOf(a.getFeatures()));
                     dto.setMaxUnits(a.getMaxUnits());
+                    // Title, description, features and the "sleeps" line, in the visitor's language.
+                    PublicAccommodationTranslation.apply(dto, a, locale);
                     return dto;
                 })
                 .toList();

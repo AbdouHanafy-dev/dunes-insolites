@@ -393,6 +393,7 @@ export default function TranslationsField({
   source,
   positionalSteps = false,
   fields = ALL_FIELDS,
+  labels = {},
 }: {
   translations: Record<string, CatalogTranslationForm>;
   onChange: (translations: Record<string, CatalogTranslationForm>) => void;
@@ -402,6 +403,8 @@ export default function TranslationsField({
   positionalSteps?: boolean;
   /** Which fields this item type really has and the site really shows; the rest are hidden. */
   fields?: TranslationFieldKey[];
+  /** Renames a field for item types that reuse it (an accommodation tier's features ride in "highlights"). */
+  labels?: Partial<Record<TranslationFieldKey, string>>;
 }) {
   const toast = useToast();
   const [translating, setTranslating] = useState(false);
@@ -567,7 +570,7 @@ export default function TranslationsField({
         )}
         {show("highlights") && (
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass}>Points forts</label>
+            <label className={labelClass}>{labels.highlights ?? "Points forts"}</label>
             <StringListField items={active.highlights} onChange={(highlights) => patchActive({ highlights })} />
           </div>
         )}
