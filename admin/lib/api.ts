@@ -737,6 +737,13 @@ export type AdminCatalogTranslation = {
   includedItems: string[] | null;
   notIncludedItems: string[] | null;
   programSteps: AdminTourProgramStep[] | null;
+  // Circuit-only practical texts (null for a nuitee or an activity).
+  goodToKnow?: string | null;
+  petPolicyNote?: string | null;
+  ticketInfo?: string | null;
+  notSuitableFor?: string[] | null;
+  notAllowed?: string[] | null;
+  mustBring?: string[] | null;
 };
 
 export type AdminTour = {

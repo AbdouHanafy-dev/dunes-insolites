@@ -12,7 +12,13 @@ export function hasFrenchText(source: CatalogTranslationSource): boolean {
     filled(source.name) ||
     filled(source.description) ||
     filled(source.aboutText) ||
-    [...source.highlights, ...source.includedItems, ...source.notIncludedItems].some(filled) ||
+    filled(source.goodToKnow) ||
+    filled(source.petPolicyNote) ||
+    filled(source.ticketInfo) ||
+    [
+      ...source.highlights, ...source.includedItems, ...source.notIncludedItems,
+      ...source.notSuitableFor, ...source.notAllowed, ...source.mustBring,
+    ].some(filled) ||
     source.programSteps.some((s) => [s.label, s.title, s.description, s.pickupPoint, s.dropoffPoint, s.attraction].some(filled))
   );
 }
@@ -23,9 +29,15 @@ export function localeHasContent(t: CatalogTranslationForm | undefined): boolean
     (filled(t.name) ||
       filled(t.description) ||
       filled(t.aboutText) ||
+      filled(t.goodToKnow) ||
+      filled(t.petPolicyNote) ||
+      filled(t.ticketInfo) ||
       t.highlights.length > 0 ||
       t.includedItems.length > 0 ||
       t.notIncludedItems.length > 0 ||
+      t.notSuitableFor.length > 0 ||
+      t.notAllowed.length > 0 ||
+      t.mustBring.length > 0 ||
       t.programSteps.length > 0)
   );
 }
@@ -56,7 +68,10 @@ export function mergeMachineTranslation(
   current: CatalogTranslationForm | undefined,
   machine: CatalogTranslationForm,
 ): CatalogTranslationForm {
-  const base = current ?? { ...machine, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [] };
+  const base = current ?? {
+    ...machine, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [],
+    goodToKnow: "", petPolicyNote: "", ticketInfo: "", notSuitableFor: [], notAllowed: [], mustBring: [],
+  };
   const stepCount = Math.max(base.programSteps.length, machine.programSteps.length);
   return {
     locale: machine.locale,
@@ -66,6 +81,12 @@ export function mergeMachineTranslation(
     highlights: mergeStrings(base.highlights, machine.highlights),
     includedItems: mergeStrings(base.includedItems, machine.includedItems),
     notIncludedItems: mergeStrings(base.notIncludedItems, machine.notIncludedItems),
+    goodToKnow: filled(base.goodToKnow) ? base.goodToKnow : machine.goodToKnow,
+    petPolicyNote: filled(base.petPolicyNote) ? base.petPolicyNote : machine.petPolicyNote,
+    ticketInfo: filled(base.ticketInfo) ? base.ticketInfo : machine.ticketInfo,
+    notSuitableFor: mergeStrings(base.notSuitableFor, machine.notSuitableFor),
+    notAllowed: mergeStrings(base.notAllowed, machine.notAllowed),
+    mustBring: mergeStrings(base.mustBring, machine.mustBring),
     programSteps: Array.from({ length: stepCount }, (_, i) => mergeStep(base.programSteps[i], machine.programSteps[i])),
   };
 }
@@ -78,6 +99,12 @@ type WireTranslation = {
   highlights: string[] | null;
   includedItems: string[] | null;
   notIncludedItems: string[] | null;
+  goodToKnow?: string | null;
+  petPolicyNote?: string | null;
+  ticketInfo?: string | null;
+  notSuitableFor?: string[] | null;
+  notAllowed?: string[] | null;
+  mustBring?: string[] | null;
   programSteps: Array<Partial<Record<keyof TranslationProgramStep, string | null>>> | null;
 };
 
@@ -90,6 +117,12 @@ function fromWire(t: WireTranslation): CatalogTranslationForm {
     highlights: t.highlights ?? [],
     includedItems: t.includedItems ?? [],
     notIncludedItems: t.notIncludedItems ?? [],
+    goodToKnow: t.goodToKnow ?? "",
+    petPolicyNote: t.petPolicyNote ?? "",
+    ticketInfo: t.ticketInfo ?? "",
+    notSuitableFor: t.notSuitableFor ?? [],
+    notAllowed: t.notAllowed ?? [],
+    mustBring: t.mustBring ?? [],
     programSteps: (t.programSteps ?? []).map((s) => ({
       label: s.label ?? "",
       title: s.title ?? "",
@@ -179,6 +212,12 @@ export function catalogSourceFromForm(form: Record<string, unknown>): CatalogTra
     includedItems: strs(form.includedItems),
     notIncludedItems: strs(form.notIncludedItems),
     programSteps: [],
+    goodToKnow: "",
+    petPolicyNote: "",
+    ticketInfo: "",
+    notSuitableFor: [],
+    notAllowed: [],
+    mustBring: [],
   };
 }
 

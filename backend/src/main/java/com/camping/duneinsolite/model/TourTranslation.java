@@ -65,6 +65,37 @@ public class TourTranslation implements CatalogTranslation {
     @Builder.Default
     private List<String> notIncludedItems = new ArrayList<>();
 
+    // Practical texts of a circuit (see V66). Tour only: TourType/Extra translations do not carry them.
+    @Column(name = "good_to_know", columnDefinition = "TEXT")
+    private String goodToKnow;
+
+    @Column(name = "pet_policy_note", columnDefinition = "TEXT")
+    private String petPolicyNote;
+
+    @Column(name = "ticket_info", columnDefinition = "TEXT")
+    private String ticketInfo;
+
+    @ElementCollection
+    @CollectionTable(name = "tour_translation_not_suitable_for", joinColumns = @JoinColumn(name = "tour_translation_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "item", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> notSuitableFor = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "tour_translation_not_allowed", joinColumns = @JoinColumn(name = "tour_translation_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "item", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> notAllowed = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "tour_translation_must_bring", joinColumns = @JoinColumn(name = "tour_translation_id"))
+    @OrderColumn(name = "display_order")
+    @Column(name = "item", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> mustBring = new ArrayList<>();
+
     @ElementCollection
     @CollectionTable(name = "tour_translation_program_steps", joinColumns = @JoinColumn(name = "tour_translation_id"))
     @OrderColumn(name = "step_order")

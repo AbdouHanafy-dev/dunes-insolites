@@ -85,6 +85,12 @@ public class AutoTranslationServiceImpl implements AutoTranslationService {
         dto.setIncludedItems(list(source.getIncludedItems(), lang));
         dto.setNotIncludedItems(list(source.getNotIncludedItems(), lang));
         dto.setProgramSteps(steps(source.getProgramSteps(), lang));
+        dto.setGoodToKnow(text(source.getGoodToKnow(), lang));
+        dto.setPetPolicyNote(text(source.getPetPolicyNote(), lang));
+        dto.setTicketInfo(text(source.getTicketInfo(), lang));
+        dto.setNotSuitableFor(list(source.getNotSuitableFor(), lang));
+        dto.setNotAllowed(list(source.getNotAllowed(), lang));
+        dto.setMustBring(list(source.getMustBring(), lang));
         return dto;
     }
 
@@ -155,8 +161,10 @@ public class AutoTranslationServiceImpl implements AutoTranslationService {
     }
 
     private static int sourceLength(AutoTranslateRequest r) {
-        int n = len(r.getName()) + len(r.getDescription()) + len(r.getAboutText());
-        for (List<String> l : java.util.Arrays.asList(r.getHighlights(), r.getIncludedItems(), r.getNotIncludedItems())) {
+        int n = len(r.getName()) + len(r.getDescription()) + len(r.getAboutText())
+                + len(r.getGoodToKnow()) + len(r.getPetPolicyNote()) + len(r.getTicketInfo());
+        for (List<String> l : java.util.Arrays.asList(r.getHighlights(), r.getIncludedItems(), r.getNotIncludedItems(),
+                r.getNotSuitableFor(), r.getNotAllowed(), r.getMustBring())) {
             if (l != null) for (String s : l) n += len(s);
         }
         if (r.getProgramSteps() != null) {

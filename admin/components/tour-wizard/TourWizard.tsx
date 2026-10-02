@@ -221,6 +221,12 @@ function translationSource(form: TourForm): CatalogTranslationSource {
     highlights: form.highlights,
     includedItems: form.includedItems,
     notIncludedItems: form.notIncludedItems,
+    goodToKnow: form.goodToKnow,
+    petPolicyNote: form.petPolicyNote,
+    ticketInfo: form.ticketInfo,
+    notSuitableFor: form.notSuitableFor,
+    notAllowed: form.notAllowed,
+    mustBring: form.mustBring,
     programSteps: form.programSteps.map((step) => ({
       label: step.label,
       title: step.title,

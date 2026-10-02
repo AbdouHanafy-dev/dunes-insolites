@@ -8,6 +8,12 @@ import {
 import { emptyTranslation, type CatalogTranslationForm } from "../components/payload/TranslationsField";
 
 const source = {
+  goodToKnow: "",
+  petPolicyNote: "",
+  ticketInfo: "",
+  notSuitableFor: [],
+  notAllowed: [],
+  mustBring: [],
   name: "Nuit au camp",
   description: "Une nuit.",
   aboutText: "",

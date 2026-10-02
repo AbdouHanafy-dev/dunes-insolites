@@ -31,6 +31,20 @@ public class AutoTranslateRequest {
     @Size(max = 30)
     private List<ProgramStep> programSteps;
 
+    // Circuit-only practical texts.
+    @Size(max = 10000)
+    private String goodToKnow;
+    @Size(max = 5000)
+    private String petPolicyNote;
+    @Size(max = 5000)
+    private String ticketInfo;
+    @Size(max = 50)
+    private List<String> notSuitableFor;
+    @Size(max = 50)
+    private List<String> notAllowed;
+    @Size(max = 50)
+    private List<String> mustBring;
+
     @NotEmpty(message = "At least one language is required")
     @Size(max = 5)
     private List<ContentLocale> locales;

@@ -7,6 +7,12 @@ import {
 } from "../components/payload/TranslationsField";
 
 const source: CatalogTranslationSource = {
+  goodToKnow: "",
+  petPolicyNote: "",
+  ticketInfo: "",
+  notSuitableFor: [],
+  notAllowed: [],
+  mustBring: [],
   name: "Circuit dans le Sahara",
   description: "Deux jours dans le désert.",
   aboutText: "Présentation complète.",
@@ -57,6 +63,12 @@ describe("catalog translation helpers", () => {
 
   it("does not mark an empty French source as translated", () => {
     const emptySource: CatalogTranslationSource = {
+      goodToKnow: "",
+      petPolicyNote: "",
+      ticketInfo: "",
+      notSuitableFor: [],
+      notAllowed: [],
+      mustBring: [],
       name: "",
       description: "",
       aboutText: "",

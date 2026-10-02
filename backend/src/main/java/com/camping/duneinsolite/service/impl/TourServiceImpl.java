@@ -127,6 +127,12 @@ public class TourServiceImpl implements TourService {
             translation.setIncludedItems(dto.getIncludedItems());
             translation.setNotIncludedItems(dto.getNotIncludedItems());
             translation.setProgramSteps(dto.getProgramSteps());
+            translation.setGoodToKnow(dto.getGoodToKnow());
+            translation.setPetPolicyNote(dto.getPetPolicyNote());
+            translation.setTicketInfo(dto.getTicketInfo());
+            translation.setNotSuitableFor(dto.getNotSuitableFor());
+            translation.setNotAllowed(dto.getNotAllowed());
+            translation.setMustBring(dto.getMustBring());
             tour.getTranslations().add(translation);
         }
     }

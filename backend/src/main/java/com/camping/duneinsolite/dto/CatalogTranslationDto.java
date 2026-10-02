@@ -25,4 +25,12 @@ public class CatalogTranslationDto {
     private List<String> includedItems;
     private List<String> notIncludedItems;
     private List<ProgramStep> programSteps;
+
+    // Circuit-only practical texts; null/empty for a TourType or Extra, which have no slot for them.
+    private String goodToKnow;
+    private String petPolicyNote;
+    private String ticketInfo;
+    private List<String> notSuitableFor;
+    private List<String> notAllowed;
+    private List<String> mustBring;
 }

@@ -2,6 +2,9 @@ package com.camping.duneinsolite.tour;
 
 import com.camping.duneinsolite.dto.request.TourRequest;
 import com.camping.duneinsolite.dto.response.TourResponse;
+import com.camping.duneinsolite.mapper.publicapi.PublicTourMapper;
+import com.camping.duneinsolite.model.Tour;
+import com.camping.duneinsolite.repository.TourRepository;
 import com.camping.duneinsolite.service.KeycloakUserSyncService;
 import com.camping.duneinsolite.service.TourService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.rabbitmq.RabbitMQContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +53,9 @@ class TourWizardCreateIT {
     @MockitoBean KeycloakUserSyncService keycloakUserSyncService;
 
     @Autowired TourService tourService;
+    @Autowired TourRepository tourRepository;
+    @Autowired PublicTourMapper publicTourMapper;
+    @Autowired TransactionTemplate tx;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -89,5 +96,43 @@ class TourWizardCreateIT {
         }
         assertThat(failure).isNull();
         assertThat(created.getName()).isEqualTo("nom de circuit 1");
+    }
+
+    @Test
+    void aCircuitsPracticalTextsAreStoredPerLanguageAndServedInTheVisitorsLanguage() throws Exception {
+        String body = WIZARD_BODY
+                .replace("\"name\":\"nom de circuit 1\"", "\"name\":\"circuit pratique " + System.nanoTime() + "\"")
+                .replace("\"petPolicyNote\":null", "\"petPolicyNote\":\"Chiens interdits\"")
+                .replace("\"mustBring\":[]", "\"mustBring\":[\"Chapeau\",\"Creme solaire\"]")
+                .replace("\"goodToKnow\":null", "\"goodToKnow\":\"Prevoir des vetements chauds\"")
+                .replace("\"meetingPoint\":null", "\"meetingPoint\":\"Place du marche\"")
+                .replace("{\"locale\":\"DE\",\"name\":\"Rundreise 1\",\"description\":\"Kurzbeschreibung 1\"}",
+                        "{\"locale\":\"DE\",\"name\":\"Rundreise 1\",\"description\":\"Kurzbeschreibung 1\","
+                                + "\"petPolicyNote\":\"Hunde verboten\","
+                                + "\"mustBring\":[\"Hut\",\"\"],\"notSuitableFor\":[\"Kleinkinder\"]}");
+        TourResponse created = tourService.createTour(objectMapper.readValue(body, TourRequest.class));
+
+        // Back office read: what was typed is what comes back.
+        var de = tourService.getTourById(created.getTourId()).getTranslations().stream()
+                .filter(t -> t.getLocale().name().equals("DE")).findFirst().orElseThrow();
+        assertThat(de.getPetPolicyNote()).isEqualTo("Hunde verboten");
+        assertThat(de.getMustBring()).containsExactly("Hut", "");
+
+        // Public read: German where translated, French where the translation has nothing.
+        // Read inside the transaction: untranslated lists are the entity's own lazy collections.
+        tx.executeWithoutResult(t -> {
+            Tour tour = tourRepository.findById(created.getTourId()).orElseThrow();
+            var german = publicTourMapper.toResponse(tour, "de", 0);
+            assertThat(german.getPetPolicyNote()).isEqualTo("Hunde verboten");
+            assertThat(german.getNotSuitableFor()).containsExactly("Kleinkinder");
+            assertThat(german.getGoodToKnow()).as("no German text: falls back to French").isEqualTo("Prevoir des vetements chauds");
+            assertThat(german.getMustBring()).containsExactly("Hut", "");
+            // No English translation at all: everything is the French original.
+            var english = publicTourMapper.toResponse(tour, "en", 0);
+            assertThat(english.getMustBring()).containsExactly("Chapeau", "Creme solaire");
+            // The meeting point is a place name: never translated, same in every language.
+            assertThat(german.getMeetingPoint()).isEqualTo("Place du marche");
+            assertThat(english.getMeetingPoint()).isEqualTo("Place du marche");
+        });
     }
 }

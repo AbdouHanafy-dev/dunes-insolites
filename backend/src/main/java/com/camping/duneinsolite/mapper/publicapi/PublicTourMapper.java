@@ -53,6 +53,20 @@ public class PublicTourMapper {
         List<ProgramStep> programSteps = t == null ? tour.getProgramSteps()
                 : PublicCatalogTranslation.steps(tour.getProgramSteps(), t.getProgramSteps());
 
+        // Practical texts: a translated value when the translation has one, else the French original.
+        String petPolicyNote = t == null ? tour.getPetPolicyNote()
+                : PublicCatalogTranslation.text(tour.getPetPolicyNote(), t.getPetPolicyNote());
+        String goodToKnow = t == null ? tour.getGoodToKnow()
+                : PublicCatalogTranslation.text(tour.getGoodToKnow(), t.getGoodToKnow());
+        String ticketInfo = t == null ? tour.getTicketInfo()
+                : PublicCatalogTranslation.text(tour.getTicketInfo(), t.getTicketInfo());
+        List<String> notSuitableFor = t == null ? tour.getNotSuitableFor()
+                : PublicCatalogTranslation.list(tour.getNotSuitableFor(), t.getNotSuitableFor());
+        List<String> notAllowed = t == null ? tour.getNotAllowed()
+                : PublicCatalogTranslation.list(tour.getNotAllowed(), t.getNotAllowed());
+        List<String> mustBring = t == null ? tour.getMustBring()
+                : PublicCatalogTranslation.list(tour.getMustBring(), t.getMustBring());
+
         PublicTourResponse response = new PublicTourResponse();
         response.setSlug(tour.getSlug());
         response.setTitle(name);
@@ -103,14 +117,14 @@ public class PublicTourMapper {
         response.setTransportIncluded(tour.getTransportIncluded());
         response.setTransportModes(orEmpty(tour.getTransportModes()));
 
-        response.setNotSuitableFor(orEmpty(tour.getNotSuitableFor()));
-        response.setNotAllowed(orEmpty(tour.getNotAllowed()));
+        response.setNotSuitableFor(orEmpty(notSuitableFor));
+        response.setNotAllowed(orEmpty(notAllowed));
         response.setAnimalsAccepted(tour.getAnimalsAccepted());
-        response.setPetPolicyNote(tour.getPetPolicyNote());
-        response.setMustBring(orEmpty(tour.getMustBring()));
-        response.setGoodToKnow(tour.getGoodToKnow());
+        response.setPetPolicyNote(petPolicyNote);
+        response.setMustBring(orEmpty(mustBring));
+        response.setGoodToKnow(goodToKnow);
         response.setEmergencyPhone(tour.getEmergencyPhone());
-        response.setTicketInfo(tour.getTicketInfo());
+        response.setTicketInfo(ticketInfo);
         return response;
     }
 

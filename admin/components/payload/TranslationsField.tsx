@@ -5,7 +5,7 @@ import { inputClass, labelClass } from "./fields";
 import RepeaterField from "./RepeaterField";
 import StringListField from "./StringListField";
 import { useToast } from "@/components/Toast";
-import { AUTO_LOCALES, fetchMachineTranslations, hasFrenchText, mergeMachineTranslation } from "./autoTranslate";
+import { AUTO_LOCALES, fetchMachineTranslations, hasFrenchText, localeHasContent, mergeMachineTranslation } from "./autoTranslate";
 
 export type TranslationProgramStep = {
   label: string;
@@ -26,6 +26,13 @@ export type CatalogTranslationForm = {
   includedItems: string[];
   notIncludedItems: string[];
   programSteps: TranslationProgramStep[];
+  // Circuit practical texts. Place names (meeting point) are deliberately absent: they are not translated.
+  goodToKnow: string;
+  petPolicyNote: string;
+  ticketInfo: string;
+  notSuitableFor: string[];
+  notAllowed: string[];
+  mustBring: string[];
 };
 
 export type CatalogTranslationSource = Omit<CatalogTranslationForm, "locale">;
@@ -43,10 +50,17 @@ export type TranslationFieldKey =
   | "highlights"
   | "includedItems"
   | "notIncludedItems"
-  | "programSteps";
+  | "programSteps"
+  | "goodToKnow"
+  | "petPolicyNote"
+  | "ticketInfo"
+  | "notSuitableFor"
+  | "notAllowed"
+  | "mustBring";
 
 const ALL_FIELDS: TranslationFieldKey[] = [
   "name", "description", "aboutText", "highlights", "includedItems", "notIncludedItems", "programSteps",
+  "goodToKnow", "petPolicyNote", "ticketInfo", "notSuitableFor", "notAllowed", "mustBring",
 ];
 
 const LOCALES = [
@@ -58,7 +72,10 @@ const LOCALES = [
 ];
 
 export function emptyTranslation(locale: string): CatalogTranslationForm {
-  return { locale, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [] };
+  return {
+    locale, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [],
+    goodToKnow: "", petPolicyNote: "", ticketInfo: "", notSuitableFor: [], notAllowed: [], mustBring: [],
+  };
 }
 
 function filled(value: string | null | undefined) {
@@ -100,6 +117,12 @@ export function translationProgress(
     [source.includedItems.some(filled), listComplete(source.includedItems, active.includedItems)],
     [source.notIncludedItems.some(filled), listComplete(source.notIncludedItems, active.notIncludedItems)],
     [source.programSteps.length > 0, stepsComplete(source.programSteps, active.programSteps)],
+    [filled(source.goodToKnow), filled(active.goodToKnow)],
+    [filled(source.petPolicyNote), filled(active.petPolicyNote)],
+    [filled(source.ticketInfo), filled(active.ticketInfo)],
+    [source.notSuitableFor.some(filled), listComplete(source.notSuitableFor, active.notSuitableFor)],
+    [source.notAllowed.some(filled), listComplete(source.notAllowed, active.notAllowed)],
+    [source.mustBring.some(filled), listComplete(source.mustBring, active.mustBring)],
   ].filter(([required]) => required);
   const completed = checks.filter(([, complete]) => complete).length;
   const total = checks.length;
@@ -135,6 +158,12 @@ export function prefillFromFrench(
     programSteps: source.programSteps.length
       ? source.programSteps.map((step, index) => mergeStep(step, active.programSteps[index]))
       : active.programSteps,
+    goodToKnow: filled(active.goodToKnow) ? active.goodToKnow : source.goodToKnow,
+    petPolicyNote: filled(active.petPolicyNote) ? active.petPolicyNote : source.petPolicyNote,
+    ticketInfo: filled(active.ticketInfo) ? active.ticketInfo : source.ticketInfo,
+    notSuitableFor: mergeList(source.notSuitableFor, active.notSuitableFor),
+    notAllowed: mergeList(source.notAllowed, active.notAllowed),
+    mustBring: mergeList(source.mustBring, active.mustBring),
   };
 }
 
@@ -150,6 +179,12 @@ export function translationsToRecord(
     highlights: string[] | null;
     includedItems: string[] | null;
     notIncludedItems: string[] | null;
+    goodToKnow?: string | null;
+    petPolicyNote?: string | null;
+    ticketInfo?: string | null;
+    notSuitableFor?: string[] | null;
+    notAllowed?: string[] | null;
+    mustBring?: string[] | null;
     programSteps: Array<{
       label: string | null;
       title: string | null;
@@ -171,6 +206,12 @@ export function translationsToRecord(
         highlights: t.highlights ?? [],
         includedItems: t.includedItems ?? [],
         notIncludedItems: t.notIncludedItems ?? [],
+        goodToKnow: t.goodToKnow ?? "",
+        petPolicyNote: t.petPolicyNote ?? "",
+        ticketInfo: t.ticketInfo ?? "",
+        notSuitableFor: t.notSuitableFor ?? [],
+        notAllowed: t.notAllowed ?? [],
+        mustBring: t.mustBring ?? [],
         programSteps: (t.programSteps ?? []).map((s) => ({
           label: s.label ?? "",
           title: s.title ?? "",
@@ -186,16 +227,7 @@ export function translationsToRecord(
 
 export function translationsToArray(record: Record<string, CatalogTranslationForm>) {
   return Object.values(record)
-    .filter(
-      (t) =>
-        t.name.trim() ||
-        t.description.trim() ||
-        t.aboutText.trim() ||
-        t.highlights.length ||
-        t.includedItems.length ||
-        t.notIncludedItems.length ||
-        t.programSteps.length,
-    )
+    .filter((t) => localeHasContent(t))
     .map((t) => ({
       locale: t.locale,
       name: t.name || null,
@@ -205,6 +237,12 @@ export function translationsToArray(record: Record<string, CatalogTranslationFor
       includedItems: t.includedItems,
       notIncludedItems: t.notIncludedItems,
       programSteps: t.programSteps,
+      goodToKnow: t.goodToKnow || null,
+      petPolicyNote: t.petPolicyNote || null,
+      ticketInfo: t.ticketInfo || null,
+      notSuitableFor: t.notSuitableFor,
+      notAllowed: t.notAllowed,
+      mustBring: t.mustBring,
     }));
 }
 
@@ -294,6 +332,9 @@ function FrenchSourcePreview({ source }: { source: CatalogTranslationSource }) {
     ["Points forts", source.highlights],
     ["Inclus", source.includedItems],
     ["Non inclus", source.notIncludedItems],
+    ["Non adapté à", source.notSuitableFor],
+    ["Interdit", source.notAllowed],
+    ["À apporter", source.mustBring],
   ] as const;
 
   return (
@@ -305,6 +346,9 @@ function FrenchSourcePreview({ source }: { source: CatalogTranslationSource }) {
         {filled(source.name) && <SourceBlock label="Nom" value={source.name} />}
         {filled(source.description) && <SourceBlock label="Description courte" value={source.description} />}
         {filled(source.aboutText) && <SourceBlock label="Présentation détaillée" value={source.aboutText} />}
+        {filled(source.goodToKnow) && <SourceBlock label="À savoir" value={source.goodToKnow} />}
+        {filled(source.petPolicyNote) && <SourceBlock label="Animaux" value={source.petPolicyNote} />}
+        {filled(source.ticketInfo) && <SourceBlock label="Billets" value={source.ticketInfo} />}
         {lists.map(([label, items]) =>
           items.some(filled) ? <SourceBlock key={label} label={label} value={items.filter(filled).join(" · ")} /> : null,
         )}
@@ -369,8 +413,7 @@ export default function TranslationsField({
     onChange({ ...translations, [activeLocale]: { ...active, ...fields } });
   }
 
-  const hasContent = (t: CatalogTranslationForm | undefined) =>
-    !!t && (t.name.trim() || t.description.trim() || t.aboutText.trim() || t.highlights.length || t.includedItems.length || t.notIncludedItems.length || t.programSteps.length);
+  const hasContent = localeHasContent;
 
   const activeProgress = translationProgress(source, translations[activeLocale]);
   const completedLocales = LOCALES.filter((locale) => translationProgress(source, translations[locale.value]).percent === 100).length;
@@ -541,6 +584,54 @@ export default function TranslationsField({
               items={active.notIncludedItems}
               onChange={(notIncludedItems) => patchActive({ notIncludedItems })}
             />
+          </div>
+        )}
+        {show("goodToKnow") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>À savoir</label>
+            <textarea
+              className={`${inputClass} min-h-24`}
+              value={active.goodToKnow}
+              onChange={(e) => patchActive({ goodToKnow: e.target.value })}
+            />
+          </div>
+        )}
+        {show("petPolicyNote") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Animaux (précision)</label>
+            <textarea
+              className={`${inputClass} min-h-20`}
+              value={active.petPolicyNote}
+              onChange={(e) => patchActive({ petPolicyNote: e.target.value })}
+            />
+          </div>
+        )}
+        {show("ticketInfo") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Billets</label>
+            <textarea
+              className={`${inputClass} min-h-20`}
+              value={active.ticketInfo}
+              onChange={(e) => patchActive({ ticketInfo: e.target.value })}
+            />
+          </div>
+        )}
+        {show("notSuitableFor") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Non adapté à</label>
+            <StringListField items={active.notSuitableFor} onChange={(notSuitableFor) => patchActive({ notSuitableFor })} />
+          </div>
+        )}
+        {show("notAllowed") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Interdit</label>
+            <StringListField items={active.notAllowed} onChange={(notAllowed) => patchActive({ notAllowed })} />
+          </div>
+        )}
+        {show("mustBring") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>À apporter</label>
+            <StringListField items={active.mustBring} onChange={(mustBring) => patchActive({ mustBring })} />
           </div>
         )}
         {show("programSteps") && (
