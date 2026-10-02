@@ -6,6 +6,7 @@ import { getAllExtras, getDriverProfiles, getGuideProfiles, getPaymentPolicy, ge
 import ReservationStaffPanel from "@/components/payload/ReservationStaffPanel";
 import ReservationStatusPanel from "@/components/payload/ReservationStatusPanel";
 import ReservationPaymentPanel from "@/components/reservations/ReservationPaymentPanel";
+import ReservationStayPanel from "@/components/reservations/ReservationStayPanel";
 import MeetUpPlacePanel from "@/components/reservations/MeetUpPlacePanel";
 import CircuitOptionsPanel from "@/components/reservations/CircuitOptionsPanel";
 import ReservationEditForm from "@/components/reservations/ReservationEditForm";
@@ -80,6 +81,8 @@ export default async function ReservationDetailPage({ params }: { params: Promis
           <Field label="Autre langue demandée" value={reservation.otherLanguageRequested} />
         )}
       </div>
+
+      <ReservationStayPanel reservation={reservation} />
 
       <div id="gestion" className="-mt-2 scroll-mt-20" />
 
