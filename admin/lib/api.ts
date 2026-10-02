@@ -739,6 +739,10 @@ export type AdminCatalogTranslation = {
   includedItems: string[] | null;
   notIncludedItems: string[] | null;
   programSteps: AdminTourProgramStep[] | null;
+  /** AUTO = machine-written, to review; REVIEWED = checked; null = written by hand. */
+  reviewStatus?: string | null;
+  /** Fingerprint of the French the translation was made from. */
+  sourceHash?: string | null;
   // Circuit-only practical texts (null for a nuitee or an activity).
   goodToKnow?: string | null;
   petPolicyNote?: string | null;

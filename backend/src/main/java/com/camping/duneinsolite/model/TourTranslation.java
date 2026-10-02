@@ -44,6 +44,15 @@ public class TourTranslation implements CatalogTranslation {
     @Column(name = "about_text", columnDefinition = "TEXT")
     private String aboutText;
 
+    /** Null = written by hand / saved before review tracking existed. See TranslationReviewStatus. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "review_status", length = 20)
+    private com.camping.duneinsolite.model.enums.TranslationReviewStatus reviewStatus;
+
+    /** Fingerprint of the French source this translation was made from; lets the back office flag a stale one. */
+    @Column(name = "source_hash", length = 64)
+    private String sourceHash;
+
     @ElementCollection
     @CollectionTable(name = "tour_translation_highlights", joinColumns = @JoinColumn(name = "tour_translation_id"))
     @OrderColumn(name = "display_order")

@@ -33,4 +33,8 @@ public class CatalogTranslationDto {
     private List<String> notSuitableFor;
     private List<String> notAllowed;
     private List<String> mustBring;
+
+    // Review tracking: set by the back office, stored as given.
+    private com.camping.duneinsolite.model.enums.TranslationReviewStatus reviewStatus;
+    private String sourceHash;
 }

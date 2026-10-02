@@ -125,6 +125,8 @@ public class AccommodationTypeAdminService {
             }
             t.setName(dto.getName());
             t.setDescription(dto.getDescription());
+            t.setReviewStatus(dto.getReviewStatus());
+            t.setSourceHash(dto.getSourceHash());
             t.getFeatures().clear();
             if (dto.getHighlights() != null) t.getFeatures().addAll(dto.getHighlights());
         }

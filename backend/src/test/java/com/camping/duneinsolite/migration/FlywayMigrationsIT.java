@@ -127,6 +127,89 @@ class FlywayMigrationsIT {
         }
     }
 
+    /**
+     * The promise behind the translation migrations (V66-V68): applying them to a database that already
+     * holds data removes and rewrites nothing. Fills a database built up to V65, applies the rest, then
+     * checks that no pre-existing table lost a row and that a saved translation is byte-for-byte intact.
+     */
+    @Test
+    void translationMigrationsLeaveExistingDataUntouched() throws Exception {
+        String db = "translation_test_" + System.nanoTime();
+        try (Connection admin = dataSource().getConnection()) {
+            admin.createStatement().execute("CREATE DATABASE " + db);
+        }
+        org.springframework.jdbc.datasource.DriverManagerDataSource ds =
+                new org.springframework.jdbc.datasource.DriverManagerDataSource();
+        ds.setUrl(POSTGRES.getJdbcUrl().replaceFirst("/[^/?]+(\\?|$)", "/" + db + "$1"));
+        ds.setUsername(POSTGRES.getUsername());
+        ds.setPassword(POSTGRES.getPassword());
+
+        Flyway toV65 = Flyway.configure().dataSource(ds)
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true).baselineVersion("1")
+                .target(org.flywaydb.core.api.MigrationVersion.fromVersion("65"))
+                .load();
+        toV65.migrate();
+
+        java.util.Map<String, Long> before;
+        try (Connection c = ds.getConnection()) {
+            c.createStatement().execute(
+                    "INSERT INTO extras (extra_id, name, unit_price, tva, is_active) " +
+                    "VALUES ('22222222-2222-2222-2222-222222222222', 'Quad', 40, 7, true)");
+            c.createStatement().execute(
+                    "INSERT INTO extra_translations (extra_translation_id, extra_id, locale, name, description, about_text) " +
+                    "VALUES ('33333333-3333-3333-3333-333333333333', '22222222-2222-2222-2222-222222222222', " +
+                    "'DE', 'Quad-Tour', 'Eine Fahrt', 'Ueber uns')");
+            c.createStatement().execute(
+                    "INSERT INTO extra_translation_highlights (extra_translation_id, highlight, display_order) " +
+                    "VALUES ('33333333-3333-3333-3333-333333333333', 'Sonnenuntergang', 0)");
+            before = rowCounts(c);
+        }
+
+        MigrateResult rest = flywayFor(ds).migrate();
+        assertThat(rest.success).isTrue();
+        assertThat(rest.migrations).extracting(m -> m.version).contains("66", "67", "68");
+
+        try (Connection c = ds.getConnection()) {
+            java.util.Map<String, Long> after = rowCounts(c);
+            before.forEach((table, rows) ->
+                    assertThat(after.get(table)).as("rows in " + table + " after the migrations").isEqualTo(rows));
+
+            ResultSet rs = c.createStatement().executeQuery(
+                    "SELECT name, description, about_text, review_status, source_hash FROM extra_translations " +
+                    "WHERE extra_translation_id = '33333333-3333-3333-3333-333333333333'");
+            assertThat(rs.next()).isTrue();
+            assertThat(rs.getString("name")).isEqualTo("Quad-Tour");
+            assertThat(rs.getString("description")).isEqualTo("Eine Fahrt");
+            assertThat(rs.getString("about_text")).isEqualTo("Ueber uns");
+            assertThat(rs.getString("review_status")).as("saved by hand before: no status").isNull();
+            assertThat(rs.getString("source_hash")).isNull();
+
+            ResultSet hl = c.createStatement().executeQuery(
+                    "SELECT highlight FROM extra_translation_highlights " +
+                    "WHERE extra_translation_id = '33333333-3333-3333-3333-333333333333'");
+            assertThat(hl.next()).isTrue();
+            assertThat(hl.getString("highlight")).isEqualTo("Sonnenuntergang");
+        }
+    }
+
+    /** Row count of every public table except Flyway's own bookkeeping. */
+    private java.util.Map<String, Long> rowCounts(Connection c) throws Exception {
+        java.util.Map<String, Long> counts = new java.util.TreeMap<>();
+        java.util.List<String> tables = new java.util.ArrayList<>();
+        try (ResultSet rs = c.getMetaData().getTables(null, "public", "%", new String[]{"TABLE"})) {
+            while (rs.next()) tables.add(rs.getString("TABLE_NAME"));
+        }
+        for (String table : tables) {
+            if (table.equals("flyway_schema_history")) continue;
+            try (ResultSet rs = c.createStatement().executeQuery("SELECT count(*) FROM \"" + table + "\"")) {
+                rs.next();
+                counts.put(table, rs.getLong(1));
+            }
+        }
+        return counts;
+    }
+
     private String columnType(Connection c, String table, String column) throws Exception {
         try (ResultSet rs = c.getMetaData().getColumns(null, "public", table, column)) {
             rs.next();

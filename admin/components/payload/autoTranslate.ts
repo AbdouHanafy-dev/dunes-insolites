@@ -7,6 +7,29 @@ export const AUTO_LOCALES = ["EN", "AR", "DE", "IT", "DA"] as const;
 
 const filled = (value: string | null | undefined) => Boolean(value?.trim());
 
+/**
+ * A short, stable fingerprint of the French copy (cyrb53). It only has to tell "the French changed"
+ * from "it did not", so a fast non-cryptographic hash is enough, and it stays synchronous.
+ */
+export function frenchFingerprint(source: CatalogTranslationSource): string {
+  const text = JSON.stringify(source);
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
+}
+
+/** True when the French has changed since this translation was made; false when unknown (hand-written or older). */
+export function isStale(t: CatalogTranslationForm | undefined, fingerprint: string): boolean {
+  return Boolean(t?.sourceHash) && t?.sourceHash !== fingerprint;
+}
+
 export function hasFrenchText(source: CatalogTranslationSource): boolean {
   return (
     filled(source.name) ||
@@ -67,6 +90,7 @@ function mergeStep(current: TranslationProgramStep | undefined, machine: Transla
 export function mergeMachineTranslation(
   current: CatalogTranslationForm | undefined,
   machine: CatalogTranslationForm,
+  fingerprint?: string,
 ): CatalogTranslationForm {
   const base = current ?? {
     ...machine, name: "", description: "", aboutText: "", highlights: [], includedItems: [], notIncludedItems: [], programSteps: [],
@@ -75,6 +99,9 @@ export function mergeMachineTranslation(
   const stepCount = Math.max(base.programSteps.length, machine.programSteps.length);
   return {
     locale: machine.locale,
+    // Machine text now sits in this language: flag it for review and remember the French it came from.
+    reviewStatus: "AUTO",
+    sourceHash: fingerprint ?? base.sourceHash ?? null,
     name: filled(base.name) ? base.name : machine.name,
     description: filled(base.description) ? base.description : machine.description,
     aboutText: filled(base.aboutText) ? base.aboutText : machine.aboutText,
@@ -169,7 +196,8 @@ export async function fillEmptyLocales(
   try {
     const result = await fetchMachineTranslations(source, empty);
     const next = { ...translations };
-    for (const t of result.translations) next[t.locale] = mergeMachineTranslation(next[t.locale], t);
+    const fingerprint = frenchFingerprint(source);
+    for (const t of result.translations) next[t.locale] = mergeMachineTranslation(next[t.locale], t, fingerprint);
     return { translations: next, filled: result.translations.map((t) => t.locale), failed: result.failed };
   } catch {
     return { translations, filled: [], failed: [...empty] };

@@ -3,6 +3,8 @@ import {
   catalogSourceFromForm,
   fillEmptyLocales,
   fillNotices,
+  frenchFingerprint,
+  isStale,
   mergeMachineTranslation,
 } from "../components/payload/autoTranslate";
 import { emptyTranslation, type CatalogTranslationForm } from "../components/payload/TranslationsField";
@@ -95,5 +97,34 @@ describe("fillEmptyLocales", () => {
 describe("catalogSourceFromForm", () => {
   it("reads the French copy that rides along in a nuitée form", () => {
     expect(catalogSourceFromForm({ name: "A", aboutText: "B", includedItems: ["x", 3] }).includedItems).toEqual(["x"]);
+  });
+});
+
+describe("review status and stale detection", () => {
+  it("flags machine-filled languages for review and remembers the French they came from", async () => {
+    stubBackend({ translations: [machine("DE")], failedLocales: [] });
+    const result = await fillEmptyLocales(source, {});
+    expect(result.translations.DE.reviewStatus).toBe("AUTO");
+    expect(result.translations.DE.sourceHash).toBe(frenchFingerprint(source));
+  });
+
+  it("does not flag a language that already had content as untouched: it now holds machine text", () => {
+    const typed = { ...emptyTranslation("DE"), name: "Handgeschrieben" };
+    expect(mergeMachineTranslation(typed, machine("DE"), "h1").reviewStatus).toBe("AUTO");
+  });
+
+  it("changes the fingerprint when, and only when, the French changes", () => {
+    expect(frenchFingerprint(source)).toBe(frenchFingerprint({ ...source }));
+    expect(frenchFingerprint(source)).not.toBe(frenchFingerprint({ ...source, name: "Nuit au camp Sabria" }));
+  });
+
+  it("calls a translation stale only when it carries a fingerprint that no longer matches", () => {
+    const fp = frenchFingerprint(source);
+    const made = { ...emptyTranslation("DE"), name: "x", sourceHash: fp };
+    expect(isStale(made, fp)).toBe(false);
+    expect(isStale(made, frenchFingerprint({ ...source, name: "changed" }))).toBe(true);
+    // Written by hand or saved before tracking: no fingerprint, never stale.
+    expect(isStale({ ...emptyTranslation("DE"), name: "x" }, fp)).toBe(false);
+    expect(isStale(undefined, fp)).toBe(false);
   });
 });

@@ -113,6 +113,8 @@ public class ExtraServiceImpl implements ExtraService {
             translation.setIncludedItems(dto.getIncludedItems());
             translation.setNotIncludedItems(dto.getNotIncludedItems());
             translation.setProgramSteps(dto.getProgramSteps());
+            translation.setReviewStatus(dto.getReviewStatus());
+            translation.setSourceHash(dto.getSourceHash());
             extra.getTranslations().add(translation);
         }
     }

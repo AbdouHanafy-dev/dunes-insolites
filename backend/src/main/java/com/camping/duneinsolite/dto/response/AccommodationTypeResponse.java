@@ -65,6 +65,8 @@ public record AccommodationTypeResponse(
         dto.setName(t.getName());
         dto.setDescription(t.getDescription());
         dto.setHighlights(List.copyOf(t.getFeatures()));
+        dto.setReviewStatus(t.getReviewStatus());
+        dto.setSourceHash(t.getSourceHash());
         return dto;
     }
 }

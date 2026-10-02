@@ -40,6 +40,15 @@ public class AccommodationTypeTranslation {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    /** Null = written by hand / saved before review tracking existed. See TranslationReviewStatus. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "review_status", length = 20)
+    private com.camping.duneinsolite.model.enums.TranslationReviewStatus reviewStatus;
+
+    /** Fingerprint of the French source this translation was made from; lets the back office flag a stale one. */
+    @Column(name = "source_hash", length = 64)
+    private String sourceHash;
+
     @ElementCollection
     @CollectionTable(name = "accommodation_type_translation_features",
             joinColumns = @JoinColumn(name = "accommodation_type_translation_id"))

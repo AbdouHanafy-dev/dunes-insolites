@@ -108,7 +108,7 @@ class TourWizardCreateIT {
                 .replace("\"meetingPoint\":null", "\"meetingPoint\":\"Place du marche\"")
                 .replace("{\"locale\":\"DE\",\"name\":\"Rundreise 1\",\"description\":\"Kurzbeschreibung 1\"}",
                         "{\"locale\":\"DE\",\"name\":\"Rundreise 1\",\"description\":\"Kurzbeschreibung 1\","
-                                + "\"petPolicyNote\":\"Hunde verboten\","
+                                + "\"reviewStatus\":\"AUTO\",\"sourceHash\":\"abc123\",\"petPolicyNote\":\"Hunde verboten\","
                                 + "\"mustBring\":[\"Hut\",\"\"],\"notSuitableFor\":[\"Kleinkinder\"]}");
         TourResponse created = tourService.createTour(objectMapper.readValue(body, TourRequest.class));
 
@@ -116,6 +116,12 @@ class TourWizardCreateIT {
         var de = tourService.getTourById(created.getTourId()).getTranslations().stream()
                 .filter(t -> t.getLocale().name().equals("DE")).findFirst().orElseThrow();
         assertThat(de.getPetPolicyNote()).isEqualTo("Hunde verboten");
+        assertThat(de.getReviewStatus()).as("machine-written, still to review").isEqualTo(com.camping.duneinsolite.model.enums.TranslationReviewStatus.AUTO);
+        assertThat(de.getSourceHash()).isEqualTo("abc123");
+        // The English translation was typed by hand: no status, no fingerprint, never flagged.
+        var en = tourService.getTourById(created.getTourId()).getTranslations().stream()
+                .filter(t -> t.getLocale().name().equals("EN")).findFirst().orElseThrow();
+        assertThat(en.getReviewStatus()).isNull();
         assertThat(de.getMustBring()).containsExactly("Hut", "");
 
         // Public read: German where translated, French where the translation has nothing.

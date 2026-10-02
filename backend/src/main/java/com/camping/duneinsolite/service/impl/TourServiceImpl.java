@@ -133,6 +133,8 @@ public class TourServiceImpl implements TourService {
             translation.setNotSuitableFor(dto.getNotSuitableFor());
             translation.setNotAllowed(dto.getNotAllowed());
             translation.setMustBring(dto.getMustBring());
+            translation.setReviewStatus(dto.getReviewStatus());
+            translation.setSourceHash(dto.getSourceHash());
             tour.getTranslations().add(translation);
         }
     }

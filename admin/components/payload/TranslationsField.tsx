@@ -5,7 +5,15 @@ import { inputClass, labelClass } from "./fields";
 import RepeaterField from "./RepeaterField";
 import StringListField from "./StringListField";
 import { useToast } from "@/components/Toast";
-import { AUTO_LOCALES, fetchMachineTranslations, hasFrenchText, localeHasContent, mergeMachineTranslation } from "./autoTranslate";
+import {
+  AUTO_LOCALES,
+  fetchMachineTranslations,
+  frenchFingerprint,
+  hasFrenchText,
+  isStale,
+  localeHasContent,
+  mergeMachineTranslation,
+} from "./autoTranslate";
 
 export type TranslationProgramStep = {
   label: string;
@@ -33,9 +41,13 @@ export type CatalogTranslationForm = {
   notSuitableFor: string[];
   notAllowed: string[];
   mustBring: string[];
+  /** AUTO = machine-written, to review; REVIEWED = checked; empty = written by hand / saved before tracking. */
+  reviewStatus?: "AUTO" | "REVIEWED" | null;
+  /** Fingerprint of the French this translation was made from; see frenchFingerprint. */
+  sourceHash?: string | null;
 };
 
-export type CatalogTranslationSource = Omit<CatalogTranslationForm, "locale">;
+export type CatalogTranslationSource = Omit<CatalogTranslationForm, "locale" | "reviewStatus" | "sourceHash">;
 
 export type TranslationProgress = {
   completed: number;
@@ -185,6 +197,8 @@ export function translationsToRecord(
     notSuitableFor?: string[] | null;
     notAllowed?: string[] | null;
     mustBring?: string[] | null;
+    reviewStatus?: string | null;
+    sourceHash?: string | null;
     programSteps: Array<{
       label: string | null;
       title: string | null;
@@ -212,6 +226,8 @@ export function translationsToRecord(
         notSuitableFor: t.notSuitableFor ?? [],
         notAllowed: t.notAllowed ?? [],
         mustBring: t.mustBring ?? [],
+        reviewStatus: t.reviewStatus === "AUTO" || t.reviewStatus === "REVIEWED" ? t.reviewStatus : null,
+        sourceHash: t.sourceHash ?? null,
         programSteps: (t.programSteps ?? []).map((s) => ({
           label: s.label ?? "",
           title: s.title ?? "",
@@ -243,6 +259,8 @@ export function translationsToArray(record: Record<string, CatalogTranslationFor
       notSuitableFor: t.notSuitableFor,
       notAllowed: t.notAllowed,
       mustBring: t.mustBring,
+      reviewStatus: t.reviewStatus ?? null,
+      sourceHash: t.sourceHash ?? null,
     }));
 }
 
@@ -419,6 +437,10 @@ export default function TranslationsField({
   const hasContent = localeHasContent;
 
   const activeProgress = translationProgress(source, translations[activeLocale]);
+  const fingerprint = frenchFingerprint(source);
+  const activeTranslation = translations[activeLocale];
+  const activeStale = isStale(activeTranslation, fingerprint);
+  const needsReview = (code: string) => translations[code]?.reviewStatus === "AUTO" && localeHasContent(translations[code]);
   const completedLocales = LOCALES.filter((locale) => translationProgress(source, translations[locale.value]).percent === 100).length;
 
   function prefillActive() {
@@ -437,7 +459,7 @@ export default function TranslationsField({
     try {
       const result = await fetchMachineTranslations(source, locales);
       const next = { ...translations };
-      for (const t of result.translations) next[t.locale] = mergeMachineTranslation(next[t.locale], t);
+      for (const t of result.translations) next[t.locale] = mergeMachineTranslation(next[t.locale], t, fingerprint);
       onChange(next);
       if (result.failed.length > 0) {
         toast.error(`Non traduit : ${result.failed.join(", ")}. Réessayez dans un instant.`);
@@ -446,6 +468,35 @@ export default function TranslationsField({
       }
     } catch {
       toast.error("Le service de traduction ne répond pas. Vous pouvez traduire à la main ou réessayer.");
+    } finally {
+      setTranslating(false);
+    }
+  }
+
+  /** A person has read this language: it stops being flagged and is pinned to the French as it is now. */
+  function markReviewed() {
+    patchActive({ reviewStatus: "REVIEWED", sourceHash: fingerprint });
+  }
+
+  /** Re-translates the active language from the current French, replacing what is there. */
+  async function retranslateActive() {
+    const reviewed = activeTranslation?.reviewStatus === "REVIEWED";
+    const warning = reviewed
+      ? "Cette traduction a été relue. La remplacer par une nouvelle traduction automatique ?"
+      : "Remplacer cette traduction par une nouvelle traduction automatique du français actuel ?";
+    if (!window.confirm(warning)) return;
+    setTranslating(true);
+    try {
+      const result = await fetchMachineTranslations(source, [activeLocale]);
+      const fresh = result.translations[0];
+      if (!fresh) {
+        toast.error("Non traduit. Réessayez dans un instant.");
+        return;
+      }
+      onChange({ ...translations, [activeLocale]: { ...fresh, reviewStatus: "AUTO", sourceHash: fingerprint } });
+      toast.success("Traduction mise à jour — à relire avant d’enregistrer");
+    } catch {
+      toast.error("Le service de traduction ne répond pas. Réessayez dans un instant.");
     } finally {
       setTranslating(false);
     }
@@ -493,6 +544,15 @@ export default function TranslationsField({
             >
               {l.label}
               <span className="text-[10px] opacity-70">{progress.percent}%</span>
+              {isStale(translations[l.value], fingerprint) ? (
+                <span className="rounded bg-rose/15 px-1 text-[10px] font-semibold text-rose" title="Le français a changé depuis cette traduction">
+                  FR modifié
+                </span>
+              ) : needsReview(l.value) ? (
+                <span className="rounded bg-amber-200/70 px-1 text-[10px] font-semibold text-amber-900" title="Traduction automatique à relire">
+                  à relire
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -538,6 +598,35 @@ export default function TranslationsField({
             )}
           </div>
         </div>
+        {activeStale && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose/25 bg-rose/8 px-3 py-2" dir="ltr">
+            <p className="text-[12px] font-medium text-rose">
+              Le français a changé depuis que cette langue a été traduite. Relisez-la, ou retraduisez-la.
+            </p>
+            <button
+              type="button"
+              disabled={translating}
+              onClick={retranslateActive}
+              className="rounded-md border border-rose/30 px-3 py-1.5 text-[12px] font-semibold text-rose hover:bg-rose/10 disabled:opacity-60"
+            >
+              Retraduire cette langue
+            </button>
+          </div>
+        )}
+        {needsReview(activeLocale) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2" dir="ltr">
+            <p className="text-[12px] font-medium text-amber-900">
+              Traduction automatique : relisez-la, corrigez ce qui doit l’être, puis marquez-la comme relue.
+            </p>
+            <button
+              type="button"
+              onClick={markReviewed}
+              className="rounded-md bg-amber-600 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-amber-700"
+            >
+              Marquer comme relu
+            </button>
+          </div>
+        )}
         <p className="-mt-2 text-[11px] text-navy-700/45" dir="ltr">
           Le préremplissage copie uniquement les champs français manquants et ne remplace jamais une traduction déjà saisie.
         </p>
