@@ -6,14 +6,19 @@ import type { ColumnDef } from "@/components/payload/fields";
 import type { FieldDef } from "@/components/payload/fields";
 import TranslationsField, {
   type CatalogTranslationForm,
+  type TranslationFieldKey,
   translationsToArray,
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
 import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
+import { catalogSourceFromForm, prepareCatalogSave } from "@/components/payload/autoTranslate";
 import type { AdminExtra } from "@/lib/api";
 import { optionsFrom } from "@/lib/tableFilters";
 
 const BASE_PATH = "/catalogue/extras";
+// What the site shows of a nuitée / activity: no highlights list, no itinerary.
+const CATALOG_FIELDS: TranslationFieldKey[] = ["name", "description", "aboutText", "includedItems", "notIncludedItems"];
+
 const API_PATH = "extras";
 
 const columns: ColumnDef<AdminExtra>[] = [
@@ -200,15 +205,8 @@ function translationsSection(form: Record<string, unknown>, patch: (fields: Reco
     <TranslationsField
       translations={(form.translations as Record<string, CatalogTranslationForm>) ?? {}}
       onChange={(translations) => patch({ translations })}
-      source={{
-        name: String(form.name ?? ""),
-        description: String(form.description ?? ""),
-        aboutText: "",
-        highlights: [],
-        includedItems: [],
-        notIncludedItems: [],
-        programSteps: [],
-      }}
+      fields={CATALOG_FIELDS}
+      source={catalogSourceFromForm(form)}
     />
   );
 }
@@ -240,6 +238,7 @@ export function ExtraEditor({ id, initialData }: { id?: string; initialData?: Ad
       initialData={extraForm(initialData)}
       fields={fields}
       toRequestBody={extraRequest}
+      prepareSave={prepareCatalogSave}
       extraSection={activityExtraSection}
     />
   );
@@ -255,6 +254,6 @@ export function ServiceExtrasList({ initialItems }: { initialItems: AdminExtra[]
 export function ServiceExtraEditor({ id, initialData }: { id?: string; initialData?: AdminExtra }) {
   return <CollectionEditor collectionLabel="Véhicules & transport"
     basePath="/catalogue/guides-transport" apiPath="extras" id={id}
-    initialData={serviceForm(initialData)} fields={serviceFields} toRequestBody={serviceRequest}
+    initialData={serviceForm(initialData)} fields={serviceFields} toRequestBody={serviceRequest} prepareSave={prepareCatalogSave}
     extraSection={translationsSection} />;
 }

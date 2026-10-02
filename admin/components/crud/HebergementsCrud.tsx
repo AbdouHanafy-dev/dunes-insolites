@@ -5,16 +5,21 @@ import CollectionEditor from "@/components/payload/CollectionEditor";
 import type { ColumnDef, FieldDef } from "@/components/payload/fields";
 import TranslationsField, {
   type CatalogTranslationForm,
+  type TranslationFieldKey,
   translationsToArray,
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
 import AccommodationTiersManager from "@/components/crud/AccommodationTiersManager";
 import PhotoGalleryField, { type TourPhoto } from "@/components/tour-wizard/PhotoGalleryField";
 import CityChecklist from "@/components/payload/CityChecklist";
+import { catalogSourceFromForm, prepareCatalogSave } from "@/components/payload/autoTranslate";
 import type { AdminTourType } from "@/lib/api";
 import { ALL_CITIES } from "@/lib/cities";
 
 const BASE_PATH = "/catalogue/hebergements";
+// What the site shows of a nuitée / activity: no highlights list, no itinerary.
+const CATALOG_FIELDS: TranslationFieldKey[] = ["name", "description", "aboutText", "includedItems", "notIncludedItems"];
+
 const API_PATH = "tour-types";
 
 const columns: ColumnDef<AdminTourType>[] = [
@@ -114,15 +119,8 @@ function translationsSection(form: Record<string, unknown>, patch: (fields: Reco
     <TranslationsField
       translations={(form.translations as Record<string, CatalogTranslationForm>) ?? {}}
       onChange={(translations) => patch({ translations })}
-      source={{
-        name: String(form.name ?? ""),
-        description: String(form.description ?? ""),
-        aboutText: "",
-        highlights: [],
-        includedItems: [],
-        notIncludedItems: [],
-        programSteps: [],
-      }}
+      fields={CATALOG_FIELDS}
+      source={catalogSourceFromForm(form)}
     />
   );
 }
@@ -196,6 +194,7 @@ export function HebergementEditor({ id, initialData }: { id?: string; initialDat
       initialData={tourTypeForm(initialData)}
       fields={fields}
       toRequestBody={tourTypeRequest}
+      prepareSave={prepareCatalogSave}
       extraSection={extraSection}
     />
   );

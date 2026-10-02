@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Modal from "@/components/Modal";
 import { useToast } from "@/components/Toast";
+import type { SavePreparation } from "./autoTranslate";
 import Breadcrumb from "./Breadcrumb";
 import { FieldInput, labelClass, type FieldDef } from "./fields";
 
@@ -27,6 +28,7 @@ export default function CollectionEditor({
   toRequestBody,
   titleKey = "name",
   extraSection,
+  prepareSave,
 }: {
   collectionLabel: string;
   basePath: string;
@@ -45,6 +47,9 @@ export default function CollectionEditor({
    *  access to the same form state (e.g. TranslationsField) - saved in the
    *  same submit as everything else, not a separate follow-up request. */
   extraSection?: (form: Record<string, unknown>, patch: (fields: Record<string, unknown>) => void) => React.ReactNode;
+  /** Runs after validation, before the request - may return an amended form (e.g. machine-filled
+   *  translations) and notices to show. Must not throw; a save never depends on it. */
+  prepareSave?: (form: Record<string, unknown>) => Promise<SavePreparation>;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -80,7 +85,15 @@ export default function CollectionEditor({
     }
     setBusy(true);
 
-    const body = toRequestBody ? toRequestBody(form) : form;
+    let current = form;
+    if (prepareSave) {
+      const prepared = await prepareSave(form);
+      current = prepared.form;
+      // Keep the filled values on screen so a refused save does not lose them.
+      if (current !== form) setForm(current);
+      for (const n of prepared.notices) (n.error ? toast.error : toast.success)(n.text);
+    }
+    const body = toRequestBody ? toRequestBody(current) : current;
     const url = isEdit ? `/api/proxy/${apiPath}/${id}` : `/api/proxy/${createPath ?? apiPath}`;
 
     const res = await fetch(url, {

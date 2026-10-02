@@ -20,8 +20,10 @@ import ItineraryStepsField, { stepForSave, type ItineraryStep } from "@/componen
 import { ALL_CITIES } from "@/lib/cities";
 import StringListField from "@/components/payload/StringListField";
 import PhotoGalleryField, { type TourPhoto } from "./PhotoGalleryField";
+import { fillEmptyLocales, fillNotices } from "@/components/payload/autoTranslate";
 import TranslationsField, {
   type CatalogTranslationForm,
+  type CatalogTranslationSource,
   translationsToArray,
   translationsToRecord,
 } from "@/components/payload/TranslationsField";
@@ -207,6 +209,26 @@ function fromInitialData(data?: AdminTour): TourForm {
     copyrightConfirmed: data.copyrightConfirmed ?? false,
     status: data.status ?? "DRAFT",
     rejectionReason: data.rejectionReason ?? null,
+  };
+}
+
+/** The French copy the translation panel and the auto-translation work from. */
+function translationSource(form: TourForm): CatalogTranslationSource {
+  return {
+    name: form.name,
+    description: form.description,
+    aboutText: form.aboutText,
+    highlights: form.highlights,
+    includedItems: form.includedItems,
+    notIncludedItems: form.notIncludedItems,
+    programSteps: form.programSteps.map((step) => ({
+      label: step.label,
+      title: step.title,
+      description: step.description,
+      pickupPoint: step.pickupPoint,
+      dropoffPoint: step.dropoffPoint,
+      attraction: step.attraction,
+    })),
   };
 }
 
@@ -415,11 +437,17 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
     }
     setBusy(true);
     setError("");
+    // Languages left completely empty are machine-filled so the site never shows French by accident.
+    // Never throws and never overwrites typed text; the save below proceeds either way.
+    const fill = await fillEmptyLocales(translationSource(form), form.translations);
+    const toSave = fill.filled.length > 0 ? { ...form, translations: fill.translations } : form;
+    if (toSave !== form) setForm(toSave);
+    for (const n of fillNotices(fill)) (n.error ? toast.error : toast.success)(n.text);
     const url = isEdit ? `/api/proxy/tours/${id}` : "/api/proxy/tours";
     const res = await fetch(url, {
       method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(toRequestBody(form)),
+      body: JSON.stringify(toRequestBody(toSave)),
     });
     setBusy(false);
     if (!res.ok) {
@@ -1050,22 +1078,7 @@ export default function TourWizard({ id, initialData }: { id?: string; initialDa
             positionalSteps
             translations={form.translations}
             onChange={(translations) => patch({ translations })}
-            source={{
-              name: form.name,
-              description: form.description,
-              aboutText: form.aboutText,
-              highlights: form.highlights,
-              includedItems: form.includedItems,
-              notIncludedItems: form.notIncludedItems,
-              programSteps: form.programSteps.map((step) => ({
-                label: step.label,
-                title: step.title,
-                description: step.description,
-                pickupPoint: step.pickupPoint,
-                dropoffPoint: step.dropoffPoint,
-                attraction: step.attraction,
-              })),
-            }}
+            source={translationSource(form)}
           />
         )}
 

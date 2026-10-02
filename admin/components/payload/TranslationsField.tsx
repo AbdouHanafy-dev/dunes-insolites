@@ -4,6 +4,8 @@ import { useState } from "react";
 import { inputClass, labelClass } from "./fields";
 import RepeaterField from "./RepeaterField";
 import StringListField from "./StringListField";
+import { useToast } from "@/components/Toast";
+import { AUTO_LOCALES, fetchMachineTranslations, hasFrenchText, mergeMachineTranslation } from "./autoTranslate";
 
 export type TranslationProgramStep = {
   label: string;
@@ -33,6 +35,19 @@ export type TranslationProgress = {
   total: number;
   percent: number;
 };
+
+export type TranslationFieldKey =
+  | "name"
+  | "description"
+  | "aboutText"
+  | "highlights"
+  | "includedItems"
+  | "notIncludedItems"
+  | "programSteps";
+
+const ALL_FIELDS: TranslationFieldKey[] = [
+  "name", "description", "aboutText", "highlights", "includedItems", "notIncludedItems", "programSteps",
+];
 
 const LOCALES = [
   { value: "EN", label: "Anglais" },
@@ -323,13 +338,17 @@ function SourceBlock({ label, value }: { label: string; value: string }) {
  * already reads TourType/Extra translations live with a French fallback
  * per field (PublicActivityController/PublicStayController's `locale`
  * param) - filling these in has an immediate effect on /en, /ar, etc.
- * Tour's own translations aren't consumed by any public endpoint yet.
+ * Tour translations are read the same way (PublicTourMapper).
+ *
+ * "Traduire" machine-translates the French source into blank fields only (never over
+ * text already typed), nothing is saved until the form is.
  */
 export default function TranslationsField({
   translations,
   onChange,
   source,
   positionalSteps = false,
+  fields = ALL_FIELDS,
 }: {
   translations: Record<string, CatalogTranslationForm>;
   onChange: (translations: Record<string, CatalogTranslationForm>) => void;
@@ -337,7 +356,12 @@ export default function TranslationsField({
   source: CatalogTranslationSource;
   /** Circuits: also translate the pickup (first step), drop-off (last) and attraction (between). */
   positionalSteps?: boolean;
+  /** Which fields this item type really has and the site really shows; the rest are hidden. */
+  fields?: TranslationFieldKey[];
 }) {
+  const toast = useToast();
+  const [translating, setTranslating] = useState(false);
+  const show = (key: TranslationFieldKey) => fields.includes(key);
   const [activeLocale, setActiveLocale] = useState("EN");
   const active = translations[activeLocale] ?? emptyTranslation(activeLocale);
 
@@ -356,6 +380,29 @@ export default function TranslationsField({
       ...translations,
       [activeLocale]: prefillFromFrench(activeLocale, source, translations[activeLocale]),
     });
+  }
+
+  async function autoTranslate(locales: string[]) {
+    if (!hasFrenchText(source)) {
+      toast.error("Rien à traduire : remplissez d’abord le français.");
+      return;
+    }
+    setTranslating(true);
+    try {
+      const result = await fetchMachineTranslations(source, locales);
+      const next = { ...translations };
+      for (const t of result.translations) next[t.locale] = mergeMachineTranslation(next[t.locale], t);
+      onChange(next);
+      if (result.failed.length > 0) {
+        toast.error(`Non traduit : ${result.failed.join(", ")}. Réessayez dans un instant.`);
+      } else {
+        toast.success("Traduction automatique ajoutée — à relire avant d’enregistrer");
+      }
+    } catch {
+      toast.error("Le service de traduction ne répond pas. Vous pouvez traduire à la main ou réessayer.");
+    } finally {
+      setTranslating(false);
+    }
   }
 
   function clearActive() {
@@ -413,6 +460,22 @@ export default function TranslationsField({
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
+              disabled={translating}
+              onClick={() => autoTranslate([activeLocale])}
+              className="rounded-md bg-gold px-3 py-1.5 text-[12px] font-semibold text-navy-900 hover:brightness-95 disabled:opacity-60"
+            >
+              {translating ? "Traduction…" : "Traduire cette langue"}
+            </button>
+            <button
+              type="button"
+              disabled={translating}
+              onClick={() => autoTranslate([...AUTO_LOCALES])}
+              className="rounded-md border border-gold/40 px-3 py-1.5 text-[12px] font-semibold text-navy-800 hover:bg-gold/10 disabled:opacity-60"
+            >
+              Traduire toutes les langues
+            </button>
+            <button
+              type="button"
               onClick={prefillActive}
               className="rounded-md bg-navy-800 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-navy-700"
             >
@@ -433,41 +496,54 @@ export default function TranslationsField({
           Le préremplissage copie uniquement les champs français manquants et ne remplace jamais une traduction déjà saisie.
         </p>
         <FrenchSourcePreview source={source} />
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Nom</label>
-          <input className={inputClass} value={active.name} onChange={(e) => patchActive({ name: e.target.value })} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Description courte</label>
-          <textarea
-            className={`${inputClass} min-h-24`}
-            value={active.description}
-            onChange={(e) => patchActive({ description: e.target.value })}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Présentation détaillée</label>
-          <textarea
-            className={`${inputClass} min-h-32`}
-            value={active.aboutText}
-            onChange={(e) => patchActive({ aboutText: e.target.value })}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Points forts</label>
-          <StringListField items={active.highlights} onChange={(highlights) => patchActive({ highlights })} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Inclus</label>
-          <StringListField items={active.includedItems} onChange={(includedItems) => patchActive({ includedItems })} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className={labelClass}>Non inclus</label>
-          <StringListField
-            items={active.notIncludedItems}
-            onChange={(notIncludedItems) => patchActive({ notIncludedItems })}
-          />
-        </div>
+        {show("name") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Nom</label>
+            <input className={inputClass} value={active.name} onChange={(e) => patchActive({ name: e.target.value })} />
+          </div>
+        )}
+        {show("description") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Description courte</label>
+            <textarea
+              className={`${inputClass} min-h-24`}
+              value={active.description}
+              onChange={(e) => patchActive({ description: e.target.value })}
+            />
+          </div>
+        )}
+        {show("aboutText") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Présentation détaillée</label>
+            <textarea
+              className={`${inputClass} min-h-32`}
+              value={active.aboutText}
+              onChange={(e) => patchActive({ aboutText: e.target.value })}
+            />
+          </div>
+        )}
+        {show("highlights") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Points forts</label>
+            <StringListField items={active.highlights} onChange={(highlights) => patchActive({ highlights })} />
+          </div>
+        )}
+        {show("includedItems") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Inclus</label>
+            <StringListField items={active.includedItems} onChange={(includedItems) => patchActive({ includedItems })} />
+          </div>
+        )}
+        {show("notIncludedItems") && (
+          <div className="flex flex-col gap-1.5">
+            <label className={labelClass}>Non inclus</label>
+            <StringListField
+              items={active.notIncludedItems}
+              onChange={(notIncludedItems) => patchActive({ notIncludedItems })}
+            />
+          </div>
+        )}
+        {show("programSteps") && (
         <div className="flex flex-col gap-1.5">
           <label className={labelClass}>Itinéraire</label>
           {positionalSteps ? (
@@ -488,6 +564,7 @@ export default function TranslationsField({
             />
           )}
         </div>
+        )}
       </div>
     </div>
   );

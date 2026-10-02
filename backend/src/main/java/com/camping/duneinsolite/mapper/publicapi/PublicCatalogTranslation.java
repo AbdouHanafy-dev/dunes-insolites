@@ -56,11 +56,12 @@ final class PublicCatalogTranslation {
         for (int i = 0; i < translated.size(); i++) {
             ProgramStep t = translated.get(i);
             ProgramStep copy = new ProgramStep(t.getLabel(), t.getTitle(), t.getDescription());
-            copy.setSegmentType(t.getSegmentType());
-            copy.setOptionalSegment(t.getOptionalSegment());
-            copy.setDurationMinutes(t.getDurationMinutes());
-            // Same step in the source language when this one has no text of its own.
+            // Same step in the source language: its structure (type, optional, duration) is not
+            // language-dependent, and a translation row only carries the defaults for it.
             ProgramStep source = base != null && i < base.size() ? base.get(i) : null;
+            copy.setSegmentType(source != null ? source.getSegmentType() : t.getSegmentType());
+            copy.setOptionalSegment(source != null ? source.getOptionalSegment() : t.getOptionalSegment());
+            copy.setDurationMinutes(source != null ? source.getDurationMinutes() : t.getDurationMinutes());
             copy.setPickupPoint(own(t.getPickupPoint(), source == null ? null : source.getPickupPoint()));
             copy.setDropoffPoint(own(t.getDropoffPoint(), source == null ? null : source.getDropoffPoint()));
             copy.setAttraction(own(t.getAttraction(), source == null ? null : source.getAttraction()));
