@@ -49,6 +49,8 @@ export type AdminReservationLine = {
   // Present on stay lines (ReservationTourTypeResponse) - needed to re-submit
   // the line when the party size is edited.
   catalogTourTypeId?: string;
+  /** Circuit lines (ReservationTourResponse) use this instead. */
+  catalogTourId?: string;
   activityDate?: string | null;
   numberOfAdults?: number | null;
   numberOfChildren?: number | null;
@@ -56,6 +58,25 @@ export type AdminReservationLine = {
   numberOfNights?: number | null;
   /** The tiers booked on a stay line ("Tente" x 1, "Suite" x 2). */
   accommodations?: AdminReservationAccommodation[];
+  /** Display label of the line's length, as the backend stores it. */
+  duration?: string | null;
+  description?: string | null;
+  /** Circuit lines (ReservationTourResponse) carry their departure date and the camp nights they include. */
+  departureDate?: string | null;
+  hebergements?: AdminReservationHebergement[];
+};
+
+/** A camp night inside a circuit (TourHebergementResponseDto). */
+export type AdminReservationHebergement = {
+  hebergementId: string;
+  name: string;
+  description?: string | null;
+  duration?: string | null;
+  numberOfNights?: number | null;
+  numberOfAdults?: number | null;
+  numberOfChildren?: number | null;
+  numberOfInfants?: number | null;
+  activityDate?: string | null;
 };
 
 export type AdminReservationAccommodation = {
@@ -77,6 +98,19 @@ export type AdminReservationExtra = {
   serviceType: string | null;
   selectedExtraId: string | null;
   resourceAllocation: boolean;
+  /** Booked length of a timed activity ("1h30"); the catalogue's own label for other lines. */
+  duration?: string | null;
+  activityDate?: string | null;
+  pickupDetails?: AdminPickupDetails | null;
+};
+
+export type AdminPickupDetails = {
+  hotelName?: string | null;
+  airport?: string | null;
+  flightNumber?: string | null;
+  address?: string | null;
+  arrivalTime?: string | null;
+  instructions?: string | null;
 };
 
 export type AdminReservation = {
