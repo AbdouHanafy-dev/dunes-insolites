@@ -1016,7 +1016,10 @@ export type MyReservation = {
   // overview instead of omitting it.
   numberOfAdults: number | null;
   numberOfChildren: number | null;
+  /** Stay or circuit only. Use `grandTotalAmount` for what the guest owes. */
   totalAmount: number;
+  /** Everything the guest owes: stay or circuit plus extras. */
+  grandTotalAmount: number;
   currency: string;
   createdAt: string;
   tourTypes: MyReservationLine[];

@@ -48,7 +48,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
         <Field label="Statut" value={statusOf(reservation.status).label} />
         <Field label="Type" value={reservation.reservationType} />
         <Field label="Adultes / Enfants / Bébés" value={`${reservation.numberOfAdults ?? 0} / ${reservation.numberOfChildren ?? 0} / ${reservation.numberOfInfants ?? 0}`} />
-        <Field label="Montant" value={`${reservation.totalAmount} ${sym(reservation.currency)}`} />
+        <Field label="Montant" value={`${reservation.grandTotalAmount} ${sym(reservation.currency)}`} />
         {reservation.arrivalMode && (
           <Field
             label="Transport client"
@@ -89,7 +89,7 @@ export default async function ReservationDetailPage({ params }: { params: Promis
       <ReservationStatusPanel
         reservationId={reservation.reservationId}
         status={reservation.status}
-        total={reservation.paymentSummary?.originalTotalAmount ?? reservation.totalAmount}
+        total={reservation.paymentSummary?.originalTotalAmount ?? reservation.grandTotalAmount}
         currency={reservation.currency}
         policy={paymentPolicy}
         paymentLink={reservation.paymentLink}

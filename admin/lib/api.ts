@@ -130,7 +130,10 @@ export type AdminReservation = {
   returnCity?: "TUNIS" | "SOUSSE" | "HAMMAMET" | "DJERBA" | "MAHDIA" | "MONASTIR" | "TOZEUR" | null;
   /** A return city the guest typed because theirs was not in the list. */
   returnCityOther?: string | null;
+  /** Stay or circuit only. Use `grandTotalAmount` for what the guest owes. */
   totalAmount: number;
+  /** Everything the guest owes: stay or circuit plus extras. */
+  grandTotalAmount: number;
   currency: string;
   createdAt: string;
   extras?: AdminReservationExtra[];

@@ -55,7 +55,7 @@ export default async function AccountBookingDetailPage({
         <div>
           <div className="k">{t("totalLabel")}</div>
           <div className="v">
-            {reservation.totalAmount} {reservation.currency}
+            {reservation.grandTotalAmount} {reservation.currency}
           </div>
         </div>
       </div>

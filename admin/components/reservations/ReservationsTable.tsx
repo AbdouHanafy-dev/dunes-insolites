@@ -78,7 +78,7 @@ function sortValue(r: AdminReservation, key: SortKey): string | number {
     case "created":
       return r.createdAt;
     case "amount":
-      return r.totalAmount;
+      return r.grandTotalAmount;
   }
 }
 
@@ -142,7 +142,7 @@ export default function ReservationsTable({
   const rows = useMemo(() => {
     const filtered = applyFilters(reservations, filterDefs, filterState).filter((r) =>
       matchesSearch(
-        [r.userName, r.promoCode, prestation(r), accommodationSummary(r), activitySummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), r.totalAmount],
+        [r.userName, r.promoCode, prestation(r), accommodationSummary(r), activitySummary(r), statusOf(r.status).label, paymentStatusOf(r.paymentSummary?.paymentStatus).label, dateOf(r), r.grandTotalAmount],
         query,
       ),
     );
@@ -311,7 +311,7 @@ export default function ReservationsTable({
                         </td>
                         <td className="whitespace-nowrap px-3 py-3 tabular-nums text-navy-700/75">{dateOf(r) || "—"}</td>
                         <td className="whitespace-nowrap px-3 py-3 text-right font-medium tabular-nums text-navy-800">
-                          {r.totalAmount} {sym(r.currency)}
+                          {r.grandTotalAmount} {sym(r.currency)}
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex items-center justify-end gap-0.5">
@@ -495,7 +495,7 @@ function ReservationQuickView({
             </span>
           }
         />
-        <Info label="Montant" value={`${r.totalAmount} ${currency}`} />
+        <Info label="Montant" value={`${r.grandTotalAmount} ${currency}`} />
         {r.promoCode && <Info label="Code promo" value={`${r.promoCode}${r.promoDiscountPercent ? ` (-${r.promoDiscountPercent} %)` : ""}`} />}
       </dl>
 

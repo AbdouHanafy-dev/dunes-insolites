@@ -183,7 +183,7 @@ export default function NewReservationForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [issues, setIssues] = useState<FormIssue[]>([]);
-  const [result, setResult] = useState<{ reservationId: string; totalAmount: number; currency: string } | null>(null);
+  const [result, setResult] = useState<{ reservationId: string; grandTotalAmount: number; currency: string } | null>(null);
 
   // The bivouac's own rate already includes a camel trek out to the camp - don't
   // offer it again as a paid extra when booking that stay on a client's behalf.
@@ -347,7 +347,7 @@ export default function NewReservationForm({
       return;
     }
     const created = await res.json();
-    setResult({ reservationId: created.reservationId, totalAmount: created.totalAmount, currency: created.currency });
+    setResult({ reservationId: created.reservationId, grandTotalAmount: created.grandTotalAmount, currency: created.currency });
     toast.success("Réservation créée.");
   }
 
@@ -357,7 +357,7 @@ export default function NewReservationForm({
         <span className="grid h-14 w-14 place-items-center rounded-full bg-emerald/12 text-2xl text-emerald">✓</span>
         <h1 className="text-xl font-bold text-navy-800">Réservation créée</h1>
         <p className="text-sm text-navy-700/65">
-          Montant total : <strong>{result.totalAmount} {sym(result.currency)}</strong>
+          Montant total : <strong>{result.grandTotalAmount} {sym(result.currency)}</strong>
         </p>
         <div className="flex gap-2">
           <button onClick={() => router.push("/reservations")} className="btn btn-secondary">

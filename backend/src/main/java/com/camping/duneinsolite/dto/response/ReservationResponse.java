@@ -69,4 +69,9 @@ public class ReservationResponse {
 
     private Boolean hasFacture;
     private LocalDate factureDate;
+
+    /** What the guest owes for the whole booking: the stay or circuit plus its extras. */
+    public java.math.BigDecimal getGrandTotalAmount() {
+        return com.camping.duneinsolite.money.Money.sum(java.util.Arrays.asList(totalAmount, totalExtrasAmount));
+    }
 }

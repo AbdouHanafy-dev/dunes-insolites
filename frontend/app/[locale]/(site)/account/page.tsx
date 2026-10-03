@@ -159,7 +159,7 @@ function NextTripHero({ reservation, t }: { reservation: MyReservation; t: T }) 
 
         <div className="next-trip-hero-footer">
           <span className="next-trip-hero-total">
-            {reservation.totalAmount} {reservation.currency}
+            {reservation.grandTotalAmount} {reservation.currency}
           </span>
           <Link href="/account/bookings" className="btn-accent" style={{ padding: "12px 26px" }}>
             {t("viewYourTrip")} →

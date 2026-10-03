@@ -55,7 +55,7 @@ export default function ReservationCard({
           </p>
         </div>
         <p className="whitespace-nowrap text-[16px] font-bold tabular-nums text-navy-800">
-          {r.totalAmount} {currency}
+          {r.grandTotalAmount} {currency}
         </p>
       </div>
 
